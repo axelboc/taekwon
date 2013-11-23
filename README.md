@@ -1,4 +1,4 @@
 Taekwon
 =======
 
-Real-time scoring system for ITF Taekwon-Do sparring matches
+Real-time scoring system for ITF Taekwon-Do sparring matches.
