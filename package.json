@@ -1,0 +1,15 @@
+{
+  "name": "taekwon",
+  "description": "Scoring application for ITF Taekwon-Do sparring matches.",
+  "author": "Axel Bocciarelli",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/axelboc/taekwon"
+  },
+  "devDependencies": {
+    "socket.io": "~0.9.16",
+    "express": "3.x",
+    "jade": "~0.35.0"
+  }
+}
