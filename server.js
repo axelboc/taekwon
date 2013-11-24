@@ -11,7 +11,7 @@ app.get('/', function(request, response){
 	response.render("corner-judge");
 });
 
-var io = require('socket.io').listen(app.listen(8080));
+var io = require('socket.io').listen(app.listen(80));
 
 io.sockets.on('connection', function (socket) {
 	console.log("corner judge connected");
