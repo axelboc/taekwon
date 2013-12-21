@@ -7,5 +7,5 @@ Quick start
 -----------
 
 1. Install the project's dependencies with **npm install**.
-2. Start the server with **node server.js**
-3. Visit **http://localhost:8080**
+2. Start the server with **node server.js**.
+3. Visit **http://taekwon.do** or **http://taekwon.do/jury** or **http://taekwon.do/admin**.
