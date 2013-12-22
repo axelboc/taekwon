@@ -10,17 +10,21 @@ app.engine('jade', require('jade').__express);
 // Static files
 app.use(express.static(__dirname + '/public'));
 
+// App modules
+var JuryPresident = require('./jury-president').JuryPresident;
+var CornerJudge = require('./corner-judge').CornerJudge;
+
 
 /* Routes */
 
 // Corner Judge
 app.get('/', function (request, response) {
-	response.render('corner-judge');
+	response.render('client--corner-judge');
 });
 
 // Jury President
 app.get('/jury', function (request, response) {
-	response.render('jury-president');
+	response.render('client--jury-president');
 });
 
 
@@ -31,19 +35,19 @@ io.set('log level', 1);
 
 io.sockets.on('connection', function (socket) {
 	// Ask client for identification
-	socket.emit('id-yourself');
+	socket.emit('idYourself');
 	
 	// Listening for jury president connection
-	socket.on('jury-president', function () {
-		console.log("jury president connected");
+	socket.on('juryPresident', function () {
+		console.log("Jury president connected");
+		new JuryPresident(io, socket);
 	});
 	
 	// Listening for corner judge connection
-	socket.on('corner-judge', function () {
-		console.log("corner judge connected");
+	socket.on('cornerJudge', function (name) {
+		console.log("Corner judge connected");
+		new CornerJudge(io, socket, name);
 	});
 });
-
-
 
 

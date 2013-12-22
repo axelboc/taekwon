@@ -1,18 +1,32 @@
 
-var util = require('util');
-var EventEmitter = require('events').EventEmitter;
 var Match = require('./match').Match;
 
-var Ring = function (id) {
-	EventEmitter.call(this);
-	
+var rings = {};
+
+
+function Ring (id, juryPresident) {
 	this.id = id;
+	rings[id] = this;
+	
+	this.juryPresident = juryPresident;
+	this.cornerJudges = [];
+}
+
+
+Ring.get = function (id) {
+	return rings[id];
 };
 
-Ring.prototype.newMatch = function newMatch () {
-	this.match = new Match();
+Ring.prototype.addCornerJudge = function (cornerJudgeId) {
+	var cornerJudge = require('./corner-judge').CornerJudge.get(cornerJudgeId);
+	
+	if (this.cornerJudges.length >= 4) {
+		cornerJudge.socket.emit('ringIsFull', ringId);
+	} else {
+		this.cornerJudges.push(cornerJudge);
+		cornerJudge.ringJoined.call(cornerJudge, this);
+	}
 };
 
 
-util.inherits(Ring, EventEmitter);
 exports.Ring = Ring;
