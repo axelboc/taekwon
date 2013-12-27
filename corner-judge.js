@@ -21,26 +21,26 @@ CornerJudge.get = function (id) {
 };
 
 CornerJudge.prototype.onJoinRing = function (ringId) {
-	this.debug("Joining ring with ID=" + ringId);
+	this.debug("Joining ring with id=" + ringId);
 	
 	var ring = require('./ring').Ring.get(ringId);
 	
 	if (!ring) {
-		this.debug("  Ring does not exist");
+		this.debug("> Ring does not exist");
 		this.socket.emit('ringDoesNotExist', ringId);
 		
 	} else if (ring.cornerJudges.length >= 4) {
-		this.debug("  Ring is full");
+		this.debug("> Ring is full");
 		this.socket.emit('ringIsFull', ringId);
 		
 	} else {
-		this.debug("  Request authorisation");
+		this.debug("> Requesting authorisation from Jury President");
 		ring.juryPresident.authoriseCornerJudge(this);
 	}
 };
 
 CornerJudge.prototype.ringJoined = function (ring) {
-	this.debug("  Ring joined");
+	this.debug("> Ring joined");
 	
 	this.ring = ring;
 	this.socket.emit('ringJoined', ring.id);

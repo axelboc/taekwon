@@ -1,8 +1,23 @@
 !!!5
-html
+html(lang='en_AU')
 	head
 		title="Jury President"
+		link(rel='stylesheet' href='/css/main.css')
 		script(src='/socket.io/socket.io.js')
-		script(src='/js/fast-click.min.js')
 		script(src='/js/client--jury-president.js')
 	body
+		h1="Jury President"
+		div#pwd-view.view
+			p
+				label(for="pwd-field")="Password"
+				input#pwd-field[type="text"]
+				button#pwd-btn="Go"
+		div#ringid-view.view.hidden
+			p
+				label(for="ringid-field")="Ring number"
+				input#ringid-field[type="text"]
+				button#ringid-btn="Go"
+		div#start-match-view.view.hidden
+			p
+				button#start-match-btn="Start Match"
+				
