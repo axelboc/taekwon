@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<title>Corner Judge</title>
+	<link rel="stylesheet" href="/css/main.css">
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="/js/lib/fast-click.min.js"></script>
+	<script src="/js/corner-judge.js"></script>
+</head>
+<body>
+	<h1>Corner Judge</h1>
+	<div id="id-view" class="view">
+		<p>
+			<label for="id-field">Name</label>
+			<input type="text" id="id-field">
+			<button id="id-btn">Go</button>
+		</p>
+	</div>
+	<div id="rings-view" class="view hidden">
+		<ul id="rings-list"></ul>
+	</div>
+	<div id="round-view" class="view hidden">
+		<p><button id="score1">+1</button></p>
+	</div>
+</body>
+</html>

@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "socket.io": "~0.9.16",
-    "express": "3.x",
-    "jade": "~0.35.0"
+    "express": "~3.4.7"
+    "express3-handlebars": "~0.5.0",
   }
 }

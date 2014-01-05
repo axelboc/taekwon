@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<title>Jury President</title>
+	<link rel="stylesheet" href="/css/main.css">
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="/js/fast-click.min.js"></script>
+	<script src="/js/jury-president.js"></script>
+</head>
+<body>
+	<div id="pwd-view" class="view view--pwd">
+		<h1>Jury President</h1>
+		<div class="action">
+			<p class="instr">Master password required</p>
+			<input id="pwd-field" class="field" type="password">
+		</div>
+	</div>
+	<div id="ringid-view" class="view hidden">
+		<p>
+			<label for="ringid-field">Ring number</label>
+			<input type="text" id="ringid-field">
+			<button id="ringid-btn">Go</button>
+		</p>
+	</div>
+	<div id="start-match-view" class="view hidden">
+		<p><button id="start-match-btn">Start Match</button></p>
+	</div>
+</body>
+</html>

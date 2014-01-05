@@ -1,5 +1,51 @@
 @charset "utf-8";
 
+body {
+	font-family: Century Gothic, sans-serif;;
+	max-width: 50em;
+	margin: 0 auto;
+}
+
+h1 {
+	margin: 1.4em 0 1.4em;
+	font-size: 400%;
+	font-weight: normal;
+}
+
 .hidden {
 	display: none;
 }
+
+
+/* Views */
+
+.view--pwd {
+	text-align: center;
+}
+
+
+/* Action container */
+.action {
+	padding: .3em 0;
+	border-width: 0 8px;
+	border-style: solid;
+	border-color: hsl(357, 85%, 51%);
+	overflow: hidden;
+}
+
+/* Instruction paragraph */
+.instr {
+	margin-top: 0;
+	font-size: 170%;
+	font-style: italic;
+}
+
+/* Text field */
+.field {
+	padding: .2em;
+	border: 1px solid #555;
+	border-radius: 4px;
+	font-size: 150%;
+	text-align: inherit;
+}
+

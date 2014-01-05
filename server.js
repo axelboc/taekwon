@@ -3,12 +3,13 @@ var MASTER_PASSWORD = 'tkd';
 
 // Initialie Express
 var express = require('express');
+var exphbs = require('express3-handlebars');
 var app = express();
 
-// Jade templating engine
+// Handlebars templating engine
 app.set('views', __dirname + '/views');
-app.set('view engine', 'jade');
-app.engine('jade', require('jade').__express);
+app.set('view engine', 'hbs');
+app.engine('hbs', exphbs());
 
 // Static files
 app.use(express.static(__dirname + '/public'));
@@ -23,12 +24,12 @@ var Ring = require('./ring').Ring;
 
 // Corner Judge
 app.get('/', function (request, response) {
-	response.render('client--corner-judge');
+	response.render('corner-judge');
 });
 
 // Jury President
 app.get('/jury', function (request, response) {
-	response.render('client--jury-president');
+	response.render('jury-president');
 });
 
 
