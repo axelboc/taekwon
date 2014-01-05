@@ -39,22 +39,17 @@ var io = require('socket.io').listen(app.listen(80));
 io.set('log level', 1);
 
 io.sockets.on('connection', function (socket) {
-	console.log("Socket connection");
-	console.log("Requesting identification");
-	
-	// Send identification request
-	socket.emit('idYourself');
+	console.log("New socket connection. Waiting for identification...");
 	
 	// Listening for jury president connection
 	socket.on('juryPresident', function (password) {
 		if (password === MASTER_PASSWORD) {
-			console.log("> Jury president identified");
+			console.log("> Jury president accepted: valid password");
 			new JuryPresident(io, socket);
 			socket.emit('idSuccess');
 		} else {
-			console.log("> Jury president rejected: incorrect password");
+			console.log("> Jury president rejected: wrong password");
 			socket.emit('idFail');
-			socket.disconnect();
 		}
 	});
 	

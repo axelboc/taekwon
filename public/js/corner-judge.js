@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			socket = io.connect();
 			
 			// Bind events
-			socket.on('idYourself', onIdYourself.bind(null, name));
+			socket.on('idRequest', onIdRequest.bind(null, name));
 			socket.on('idSuccess', onIdSuccess);
 			socket.on('ringsList', onRingsList);
 			socket.on('newRing', onNewRing);
@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
-		var onIdYourself = function (name) {
+		var onIdRequest = function (name) {
 			console.log("Identification requested");
 			console.log("Sending identification (name=\"" + name + "\")");
 			socket.emit('cornerJudge', name);

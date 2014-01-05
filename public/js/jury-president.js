@@ -9,14 +9,13 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		
 		var socket;
 		
-		var init = function (password) {
+		var init = function () {
 			console.log("Connecting to server");
 			socket = io.connect();
 			
 			// Bind events
-			socket.on('idYourself', onIdYourself.bind(null, password));
 			socket.on('idSuccess', onIdSuccess);
-			socket.on('disconnect', onDisconnect);
+			socket.on('idFail', onIdFail);
 			socket.on('ringCreated', onRingCreated);
 			socket.on('ringAlreadyExists', onRingAlreadyExists);
 			socket.on('authoriseCornerJudge', onAuthoriseCornerJudge);
@@ -24,8 +23,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
-		var onIdYourself = function (password) {
-			console.log("Identification request");
+		var sendId = function (password) {
 			console.log("Sending identification (password=\"" + password + "\")");
 			socket.emit('juryPresident', password);
 		};
@@ -35,9 +33,10 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			View.showView(Views.RINGID);
 		};
 		
-		var onDisconnect = function () {
+		var onIdFail = function () {
 			console.log("Identification failed");
-			window.location.reload();
+			// Reset password field
+			View.resetPwdField(true);
 		};
 		
 		var createRing = function (ringId) {
@@ -71,6 +70,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		
 		return {
 			init: init,
+			sendId: sendId,
 			createRing: createRing,
 			startMatch: startMatch
 		};
@@ -107,30 +107,48 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
-		var views, pwdField, pwdBtn, ringidField, ringidBtn, startMatchBtn;
+		var views, pwdAction, pwdInstr, pwdField, ringidField, ringidBtn, startMatchBtn;
 		
 		var cacheElements = function () {
 			views = document.getElementsByClassName('view');
+			pwdAction = document.getElementById('pwd-action');
+			pwdInstr = document.getElementById('pwd-instr');
 			pwdField = document.getElementById('pwd-field');
-			pwdBtn = document.getElementById('pwd-btn');
 			ringidField = document.getElementById('ringid-field');
 			ringidBtn = document.getElementById('ringid-btn');
 			startMatchBtn = document.getElementById('start-match-btn');
 		};
 		
 		var bindEvents = function () {
-			pwdBtn.addEventListener('click', onPwdBtn);
+			resetPwdField(false);
 			ringidBtn.addEventListener('click', onRingidBtn);
 			startMatchBtn.addEventListener('click', onStartMatchBtn);
 		};
 		
+		var resetPwdField = function (idFail) {
+			pwdField.value = "";
+			pwdField.addEventListener('keypress', onPwdField);
+			
+			if (idFail) {
+				pwdInstr.textContent = pwdInstr.textContent.replace("required", "incorrect");
+				// Shake field to indicate error
+				pwdField.addEventListener('animationend', onShakeEnd);
+				pwdField.classList.add("shake");
+			}
+		};
 		
-		var onPwdBtn = function () {
-			if (pwdField.value.length > 0) {
-				// Initialise socket connection (pass name for identification)
-				IO.init(pwdField.value);
-			} else {
-				alert("Please enter password.");
+		var onPwdField = function (evt) {
+			// If Enter key was pressed...
+			if (evt.which === 13 || evt.keyCode === 13) {
+				// Remove event listener
+				pwdField.removeEventListener('keypress', onPwdField);
+				
+				if (pwdField.value.length > 0) {
+					// Send identification to server
+					IO.sendId(pwdField.value);
+				} else {
+					resetPwdField(true);
+				}
 			}
 		};
 		
@@ -158,15 +176,21 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			});
 		};
 		
+		var onShakeEnd = function (evt) {
+			evt.target.classList.remove("shake");
+			evt.target.removeEventListener('animationend', onShakeEnd);
+		};
+		
 		
 		return {
 			init: init,
+			resetPwdField: resetPwdField,
 			showView: showView
 		};
 		
 	}());
 	
-	
+	IO.init();
 	View.init();
 	
 });
