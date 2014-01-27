@@ -37,6 +37,10 @@ Ring.getRingAllocations = function () {
 	return ringAllocations;
 };
 
+Ring.getRingAllocation = function (index) {
+	return ringAllocations[index];
+};
+
 
 Ring.prototype.addCornerJudge = function (cornerJudgeId) {
 	var cornerJudge = require('./corner-judge').CornerJudge.get(cornerJudgeId);

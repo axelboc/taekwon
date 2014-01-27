@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		
 		var onRingAllocationChanged = function (allocation) {
 			console.log("Ring allocation changed (allocation=\"" + allocation + "\")");
-			View.onRingAllocationChanged(allocation);
+			View.onRingAllocationChanged(allocation, allocation.index - 1);
 		};
 		
 		var createRing = function (index) {

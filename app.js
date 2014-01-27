@@ -1,8 +1,4 @@
 
-// TODO: onRingAllocationChanged events
-
-
-
 // Initialie Express
 var express = require('express');
 var exphbs = require('express3-handlebars');

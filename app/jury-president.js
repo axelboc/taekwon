@@ -19,7 +19,7 @@ JuryPresident.prototype.onCreateRing = function (index) {
 		this.ring = new Ring(io, index, this);
 		this.debug("> Ring created");
 		this.socket.emit('ringCreated', index);
-		io.sockets.emit('newRing', index);
+		io.sockets.emit('ringAllocationChanged', Ring.getRingAllocation(index));
 	} else {
 		this.debug("> Ring already exists");
 		this.socket.emit('ringAlreadyExists', index);
