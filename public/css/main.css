@@ -1,9 +1,9 @@
 @charset "utf-8";
 
 body {
-	font-family: Century Gothic, sans-serif;;
+	font-family: Century Gothic, sans-serif;
 	max-width: 50em;
-	margin: 0 auto;
+	margin: 0 auto 4em;
 }
 
 h1 {
@@ -16,24 +16,41 @@ h1 {
 	display: none;
 }
 
+button::-moz-focus-inner {
+    border: none;
+}
+
+.list-reset {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.list-grid > li {
+    display: inline-block;
+    margin: 0 .5em;
+}
+
 
 /* Views */
 
-.view--pwd,
-.view--name {
+.view {
 	text-align: center;
 }
 
 
 /* Action container */
 .action {
-	padding: .3em 0;
+	padding: .2em 0 .6em;
 	border-width: 0 8px;
 	border-style: solid;
 	border-color: hsl(357, 85%, 51%);
-	overflow: hidden;
 	-webkit-transform: translate3d(0, 0, 0);
 	transform: translate3d(0, 0, 0);
+}
+
+.action > *:last-child {
+    margin-bottom: 0;
 }
 
 /* Instruction paragraph */
@@ -50,6 +67,29 @@ h1 {
 	border-radius: 4px;
 	font-size: 150%;
 	text-align: inherit;
+}
+
+/* Rings list */
+.rings-btn {
+    min-width: 2.8em;
+    min-height: 2.8em;
+    background-color: #555;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 230%;
+    transition: all .2s ease-in-out;
+}
+
+.rings-btn:not([disabled]):hover,
+.rings-btn:not([disabled]):focus {
+    background-color: #ddd;
+    color: #555;
+    cursor: pointer;
+}
+
+.rings-btn[disabled] {
+    opacity: .4;
 }
 
 

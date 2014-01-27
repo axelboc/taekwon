@@ -16,6 +16,8 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			// Bind events
 			socket.on('idSuccess', onIdSuccess);
 			socket.on('idFail', onIdFail);
+			socket.on('ringAllocations', onRingAllocations);
+			socket.on('ringAllocationChanged', onRingAllocationChanged);
 			socket.on('ringCreated', onRingCreated);
 			socket.on('ringAlreadyExists', onRingAlreadyExists);
 			socket.on('authoriseCornerJudge', onAuthoriseCornerJudge);
@@ -38,9 +40,19 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			View.pwdResult(false);
 		};
 		
-		var createRing = function (ringId) {
-			console.log("Creating ring (id=" + ringId + ")");
-			socket.emit('createRing', ringId);
+		var onRingAllocations = function (allocations) {
+			console.log("Ring allocations: " + allocations);
+			View.onRingAllocations(allocations);
+		};
+		
+		var onRingAllocationChanged = function (allocation) {
+			console.log("Ring allocation changed (allocation=\"" + allocation + "\")");
+			View.onRingAllocationChanged(allocation);
+		};
+		
+		var createRing = function (index) {
+			console.log("Creating ring (index=" + index + ")");
+			socket.emit('createRing', index);
 		};
 		
 		var onRingCreated = function (ringId) {
@@ -82,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 	 */
 	var Views = {
 		PWD: 'pwd-view',
-		RINGID: 'ringid-view',
+		RINGS: 'rings-view',
 		START_MATCH: 'start-match-view'
 	};
 	
@@ -103,24 +115,29 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		var init = function () {
 			cacheElements();
 			bindEvents();
+			
+			// Initialise FastClick to remove 300ms delay on mobile devices
+			FastClick.attach(document.body);
 		};
 		
 		
-		var views, pwdAction, pwdInstr, pwdField, ringidField, ringidBtn, startMatchBtn;
+		var views, pwdAction, pwdInstr, pwdField, ringsList, ringsBtns, startMatchBtn;
 		
 		var cacheElements = function () {
 			views = document.getElementsByClassName('view');
 			pwdAction = document.getElementById('pwd-action');
 			pwdInstr = document.getElementById('pwd-instr');
 			pwdField = document.getElementById('pwd-field');
-			ringidField = document.getElementById('ringid-field');
-			ringidBtn = document.getElementById('ringid-btn');
+			ringsList = document.getElementById('rings-list');
+            ringsBtns = ringsList.getElementsByClassName('rings-btn');
 			startMatchBtn = document.getElementById('start-match-btn');
 		};
 		
 		var bindEvents = function () {
 			pwdField.addEventListener('keypress', onPwdField);
-			ringidBtn.addEventListener('click', onRingidBtn);
+            [].forEach.call(ringsBtns, function (item, index) {
+                item.addEventListener('click', onRingsBtn.bind(null, index));
+            });
 			startMatchBtn.addEventListener('click', onStartMatchBtn);
 		};
 		
@@ -139,7 +156,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
         var pwdResult = function (correct) {
             if (correct) {
                 pwdField.removeEventListener('keypress', onPwdField);
-                showView(Views.RINGID);
+                showView(Views.RINGS);
             } else {
                 // Reset field
                 pwdField.value = "";
@@ -150,12 +167,25 @@ document.addEventListener("DOMContentLoaded", function domReady() {
             }
         };
 		
-		var onRingidBtn = function () {
-			if (ringidField.value.length > 0) {
-				IO.createRing(ringidField.value);
-			} else {
-				alert("Please enter your ring number.");
-			}
+		var onRingAllocations = function (allocations) {
+            allocations.forEach(onRingAllocationChanged);
+		};
+		
+		var onRingAllocationChanged = function (allocation, index) {
+            console.log(allocation);
+            if (allocation.allocated) {
+                ringsBtns[index].setAttribute("disabled", "disabled");
+            } else {
+                ringsBtns[index].removeAttribute("disabled");
+            }
+		};
+		
+		var onRingsBtn = function (index, evt) {
+            if (!evt.target.hasAttribute("disabled")) {
+                IO.createRing(index);
+            } else {
+                alert("This ring has already been selected by another Jury President.");
+            }
 		};
 		
 		var onStartMatchBtn = function () {
@@ -193,6 +223,8 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		return {
 			init: init,
             pwdResult: pwdResult,
+            onRingAllocations: onRingAllocations,
+            onRingAllocationChanged: onRingAllocationChanged,
 			showView: showView
 		};
 		

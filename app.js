@@ -1,5 +1,7 @@
 
-var MASTER_PASSWORD = 'tkd';
+// TODO: onRingAllocationChanged events
+
+
 
 // Initialie Express
 var express = require('express');
@@ -15,21 +17,21 @@ app.engine('hbs', exphbs());
 app.use(express.static(__dirname + '/public'));
 
 // App modules
+var Config = require('./app/config');
 var JuryPresident = require('./app/jury-president').JuryPresident;
 var CornerJudge = require('./app/corner-judge').CornerJudge;
 var Ring = require('./app/ring').Ring;
-
 
 /* Routes */
 
 // Corner Judge
 app.get('/', function (request, response) {
-	response.render('corner-judge');
+	response.render('corner-judge', {ringAllocations: Ring.getRingAllocations()});
 });
 
 // Jury President
 app.get('/jury', function (request, response) {
-	response.render('jury-president');
+	response.render('jury-president', {ringAllocations: Ring.getRingAllocations()});
 });
 
 
@@ -43,10 +45,13 @@ io.sockets.on('connection', function (socket) {
 	
 	// Listening for jury president connection
 	socket.on('juryPresident', function (password) {
-		if (password === MASTER_PASSWORD) {
+		if (password === Config.masterPwd) {
 			console.log("> Jury president accepted: valid password");
 			new JuryPresident(io, socket);
 			socket.emit('idSuccess');
+		
+            // Send ring allocations to client
+            socket.emit('ringAllocations', Ring.getRingAllocations());
 		} else {
 			console.log("> Jury president rejected: wrong password");
 			socket.emit('idFail');
@@ -59,8 +64,8 @@ io.sockets.on('connection', function (socket) {
 		new CornerJudge(io, socket, name);
 		socket.emit('idSuccess');
 		
-		// Send list of available rings to client
-		socket.emit('ringsList', Ring.getIds());
+		// Send ring allocations to client
+		socket.emit('ringAllocations', Ring.getRingAllocations());
 	});
 	
 	socket.on('disconnect', function () {

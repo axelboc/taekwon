@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 	<title>Corner Judge</title>
 	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/corner-judge.css">
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="/js/lib/fast-click.min.js"></script>
 	<script src="/js/corner-judge.js"></script>
@@ -17,8 +18,16 @@
 			<input id="name-field" class="field" type="text">
 		</div>
 	</div>
-	<div id="rings-view" class="view hidden">
-		<ul id="rings-list"></ul>
+	<div id="rings-view" class="view view--rings hidden">
+	    <h1>Corner Judge</h1>
+		<div id="rings-action" class="action">
+			<p id="rings-instr" class="instr">Select ring number</p>
+		    <ul id="rings-list" class="list-reset list-grid">
+                {{#each ringAllocations}}
+		            <li><button class="rings-btn" disabled>{{index}}</button></li>
+                {{/each}}
+		    </ul>
+		</div>
 	</div>
 	<div id="round-view" class="view hidden">
 		<p><button id="score1">+1</button></p>

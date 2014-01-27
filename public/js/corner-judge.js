@@ -14,10 +14,9 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			socket = io.connect();
 			
 			// Bind events
-			socket.on('idRequest', onIdRequest.bind(null, name));
 			socket.on('idSuccess', onIdSuccess);
-			socket.on('ringsList', onRingsList);
-			socket.on('newRing', onNewRing);
+			socket.on('ringAllocations', onRingAllocations);
+			socket.on('ringAllocationChanged', onRingAllocationChanged);
 			socket.on('ringJoined', onRingJoined);
 			socket.on('ringDoesNotExist', onRingDoesNotExist);
 			socket.on('ringIsFull', onRingIsFull);
@@ -25,25 +24,24 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
-		var onIdRequest = function (name) {
-			console.log("Identification requested");
+		var sendId = function (name) {
 			console.log("Sending identification (name=\"" + name + "\")");
 			socket.emit('cornerJudge', name);
 		};
 		
 		var onIdSuccess = function () {
 			console.log("Identification succeeded");
-		};
-		
-		var onRingsList = function (ringIds) {
-			console.log("Available rings: " + ringIds);
-			View.updateRingsList(ringIds);
 			View.showView(Views.RINGS);
 		};
 		
-		var onNewRing = function (ringId) {
-			console.log("New ring available: " + ringId);
-			View.pushNewRing(ringId);
+		var onRingAllocations = function (allocations) {
+			console.log("Ring allocations: " + allocations);
+			View.onRingAllocations(allocations);
+		};
+		
+		var onRingAllocationChanged = function (allocation) {
+			console.log("Ring allocation changed (allocation=\"" + allocation + "\")");
+			View.onRingAllocationChanged(allocation);
 		};
 		
 		var joinRing = function (ringId) {
@@ -79,6 +77,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		
 		return {
 			init: init,
+            sendId: sendId,
 			joinRing: joinRing,
 			score: score
 		};
@@ -90,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 	 * Enum of all the views
 	 */
 	var Views = {
-		ID: 'id-view',
+		NAME: 'name-view',
 		RINGS: 'rings-view',
 		ROUND: 'round-view'
 	};
@@ -118,37 +117,50 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
-		var views, nameField, ringsList, ringIds, scoreOneBtn;
+		var views, nameField, ringsList, ringsBtns, scoreOneBtn;
 		
 		var cacheElements = function () {
 			views = document.getElementsByClassName('view');
 			nameField = document.getElementById('name-field');
 			ringsList = document.getElementById('rings-list');
+            ringsBtns = ringsList.getElementsByClassName('rings-btn');
 			scoreOneBtn = document.getElementById('score1');
 		};
 		
 		var bindEvents = function () {
-			idBtn.addEventListener('click', onIdBtn);
+			nameField.addEventListener('keypress', onNameField);
 			scoreOneBtn.addEventListener('click', onScoreBtn.bind(null, Competitors.HONG, 1));
 		};
 		
 		
-		var onNameField = function () {
+		var onNameField = function (evt) {
 			// If Enter key was pressed...
 			if (evt.which === 13 || evt.keyCode === 13) {
                 // Check name field is not empty
 				if (nameField.value.length > 0) {
                     // Remove event listener
-                    nameField.removeEventListener('keypress', onPwdField);
-                    
+                    nameField.removeEventListener('keypress', onNameField);
 					// Send identification to server
 					IO.sendId(nameField.value);
 				} else {
-                    
+                    // Shake field
+                    shakeField(nameField);
                 }
 			}
 		};
 		
+		var onRingAllocations = function (allocations) {
+            allocations.forEach(onRingAllocationChanged);
+		};
+		
+		var onRingAllocationChanged = function (allocation, index) {
+            if (allocation.allocated) {
+                ringsBtns[index].removeAttribute("disabled");
+            } else {
+                ringsBtns[index].setAttribute("disabled", "disabled");
+            }
+		};
+        
 		var onScoreBtn = function (competitor, points) {
 			IO.score(competitor, points);
 		};
@@ -164,53 +176,33 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 				}
 			});
 		};
-		
-		
-		var clearRingsList = function () {
-			while (ringsList.hasChildNodes()) {
-				ringsList.removeChild(ringsList.lastChild);
-			}
-		};
-		
-		var updateRingsList = function (ids) {
-			ringIds = ids || ringIds;
-			ringIds.sort();
-			
-			clearRingsList();
-			
-			ringIds.forEach(function (ringId) {
-				var li = document.createElement('li');
-				var btn = document.createElement('button');
-				btn.appendChild(document.createTextNode(ringId));
-				btn.addEventListener('click', function () {
-					IO.joinRing(ringId);
-				});
-				li.appendChild(btn);
-				ringsList.appendChild(li);
-			});
-		};
-		
-		var pushNewRing = function (ringId) {
-			ringIds.push(ringId);
-			updateRingsList();
-		};
-		
+        
 		var onShakeEnd = function (evt) {
+            // Remove shake class in case another shake animation needs to be performed
 			evt.target.classList.remove("shake");
+            // Remove listener
 			evt.target.removeEventListener('animationend', onShakeEnd);
+		};
+		
+		var shakeField = function (field) {
+            // Listen to end of shake animation
+            field.addEventListener('animationend', onShakeEnd);
+            // Start shake animation
+            field.classList.add("shake");
 		};
 		
 		
 		return {
 			init: init,
-			showView: showView,
-			updateRingsList: updateRingsList,
-			pushNewRing: pushNewRing
+			onRingAllocations: onRingAllocations,
+			onRingAllocationChanged: onRingAllocationChanged,
+			showView: showView
 		};
 		
 	}());
 	
 	
+    IO.init();
 	View.init();
 	
 });

@@ -5,24 +5,29 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 	<title>Jury President</title>
 	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/jury-president.css">
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="/js/lib/fast-click.min.js"></script>
 	<script src="/js/jury-president.js"></script>
 </head>
 <body>
-	<div id="pwd-view" class="view view--pwd">
+	<div id="pwd-view" class="view">
 		<h1>Jury President</h1>
 		<div id="pwd-action" class="action">
 			<p id="pwd-instr" class="instr">Master password required</p>
 			<input id="pwd-field" class="field" type="password">
 		</div>
 	</div>
-	<div id="ringid-view" class="view hidden">
-		<p>
-			<label for="ringid-field">Ring number</label>
-			<input type="text" id="ringid-field">
-			<button id="ringid-btn">Go</button>
-		</p>
+	<div id="rings-view" class="view hidden">
+		<h1>Jury President</h1>
+		<div id="rings-action" class="action">
+			<p id="rings-instr" class="instr">Select ring number</p>
+		    <ul id="rings-list" class="list-reset list-grid">
+                {{#each ringAllocations}}
+		            <li><button class="rings-btn">{{index}}</button></li>
+                {{/each}}
+		    </ul>
+		</div>
 	</div>
 	<div id="start-match-view" class="view hidden">
 		<p><button id="start-match-btn">Start Match</button></p>

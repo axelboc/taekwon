@@ -20,18 +20,18 @@ CornerJudge.get = function (id) {
 	return cornerJudges[id]
 };
 
-CornerJudge.prototype.onJoinRing = function (ringId) {
-	this.debug("Joining ring with id=" + ringId);
+CornerJudge.prototype.onJoinRing = function (index) {
+	this.debug("Joining ring with index=" + index);
 	
-	var ring = require('./ring').Ring.get(ringId);
+	var ring = require('./ring').Ring.get(index);
 	
 	if (!ring) {
 		this.debug("> Ring does not exist");
-		this.socket.emit('ringDoesNotExist', ringId);
+		this.socket.emit('ringDoesNotExist', index);
 		
 	} else if (ring.cornerJudges.length >= 4) {
 		this.debug("> Ring is full");
-		this.socket.emit('ringIsFull', ringId);
+		this.socket.emit('ringIsFull', index);
 		
 	} else {
 		this.debug("> Requesting authorisation from Jury President");
@@ -43,7 +43,7 @@ CornerJudge.prototype.ringJoined = function (ring) {
 	this.debug("> Ring joined");
 	
 	this.ring = ring;
-	this.socket.emit('ringJoined', ring.id);
+	this.socket.emit('ringJoined', ring.index);
 };
 
 

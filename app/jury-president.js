@@ -13,16 +13,16 @@ function JuryPresident(sio, socket) {
 }
 
 
-JuryPresident.prototype.onCreateRing = function (ringId) {
-	this.debug("Creating ring with id=" + ringId);
-	if (!Ring.get(ringId)) {
-		this.ring = new Ring(io, ringId, this);
+JuryPresident.prototype.onCreateRing = function (index) {
+	this.debug("Creating ring with index=" + index);
+	if (!Ring.get(index)) {
+		this.ring = new Ring(io, index, this);
 		this.debug("> Ring created");
-		this.socket.emit('ringCreated', ringId);
-		io.sockets.emit('newRing', ringId);
+		this.socket.emit('ringCreated', index);
+		io.sockets.emit('newRing', index);
 	} else {
 		this.debug("> Ring already exists");
-		this.socket.emit('ringAlreadyExists', ringId);
+		this.socket.emit('ringAlreadyExists', index);
 	}
 };
 
