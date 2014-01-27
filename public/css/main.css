@@ -19,7 +19,8 @@ h1 {
 
 /* Views */
 
-.view--pwd {
+.view--pwd,
+.view--name {
 	text-align: center;
 }
 

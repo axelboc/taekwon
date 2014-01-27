@@ -15,9 +15,9 @@ app.engine('hbs', exphbs());
 app.use(express.static(__dirname + '/public'));
 
 // App modules
-var JuryPresident = require('./jury-president').JuryPresident;
-var CornerJudge = require('./corner-judge').CornerJudge;
-var Ring = require('./ring').Ring;
+var JuryPresident = require('./app/jury-president').JuryPresident;
+var CornerJudge = require('./app/corner-judge').CornerJudge;
+var Ring = require('./app/ring').Ring;
 
 
 /* Routes */

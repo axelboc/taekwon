@@ -118,12 +118,11 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
-		var views, idField, idBtn, ringsList, ringIds, scoreOneBtn;
+		var views, nameField, ringsList, ringIds, scoreOneBtn;
 		
 		var cacheElements = function () {
 			views = document.getElementsByClassName('view');
-			idField = document.getElementById('id-field');
-			idBtn = document.getElementById('id-btn');
+			nameField = document.getElementById('name-field');
 			ringsList = document.getElementById('rings-list');
 			scoreOneBtn = document.getElementById('score1');
 		};
@@ -134,15 +133,19 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
-		var onIdBtn = function () {
-			if (idField.value.length > 0) {
-				// Initialise socket connection (pass name for identification)
-				IO.init(idField.value);
-				
-				// Show rings view
-				showView(Views.RINGS);
-			} else {
-				alert("Please enter your name.");
+		var onNameField = function () {
+			// If Enter key was pressed...
+			if (evt.which === 13 || evt.keyCode === 13) {
+                // Check name field is not empty
+				if (nameField.value.length > 0) {
+                    // Remove event listener
+                    nameField.removeEventListener('keypress', onPwdField);
+                    
+					// Send identification to server
+					IO.sendId(nameField.value);
+				} else {
+                    
+                }
 			}
 		};
 		
@@ -190,6 +193,11 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		var pushNewRing = function (ringId) {
 			ringIds.push(ringId);
 			updateRingsList();
+		};
+		
+		var onShakeEnd = function (evt) {
+			evt.target.classList.remove("shake");
+			evt.target.removeEventListener('animationend', onShakeEnd);
 		};
 		
 		

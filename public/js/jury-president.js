@@ -30,13 +30,12 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		
 		var onIdSuccess = function () {
 			console.log("Identification succeeded");
-			View.showView(Views.RINGID);
+			View.pwdResult(true);
 		};
 		
 		var onIdFail = function () {
 			console.log("Identification failed");
-			// Reset password field
-			View.resetPwdField(true);
+			View.pwdResult(false);
 		};
 		
 		var createRing = function (ringId) {
@@ -120,37 +119,36 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		var bindEvents = function () {
-			resetPwdField(false);
+			pwdField.addEventListener('keypress', onPwdField);
 			ringidBtn.addEventListener('click', onRingidBtn);
 			startMatchBtn.addEventListener('click', onStartMatchBtn);
-		};
-		
-		var resetPwdField = function (idFail) {
-			pwdField.value = "";
-			pwdField.addEventListener('keypress', onPwdField);
-			
-			if (idFail) {
-				pwdInstr.textContent = pwdInstr.textContent.replace("required", "incorrect");
-				// Shake field to indicate error
-				pwdField.addEventListener('animationend', onShakeEnd);
-				pwdField.classList.add("shake");
-			}
 		};
 		
 		var onPwdField = function (evt) {
 			// If Enter key was pressed...
 			if (evt.which === 13 || evt.keyCode === 13) {
-				// Remove event listener
-				pwdField.removeEventListener('keypress', onPwdField);
-				
 				if (pwdField.value.length > 0) {
 					// Send identification to server
 					IO.sendId(pwdField.value);
 				} else {
-					resetPwdField(true);
+					pwdResult(false);
 				}
 			}
 		};
+        
+        var pwdResult = function (correct) {
+            if (correct) {
+                pwdField.removeEventListener('keypress', onPwdField);
+                showView(Views.RINGID);
+            } else {
+                // Reset field
+                pwdField.value = "";
+                // Update instructions
+                pwdInstr.textContent = pwdInstr.textContent.replace("required", "incorrect");
+                // Shake field
+                shakeField(pwdField);
+            }
+        };
 		
 		var onRingidBtn = function () {
 			if (ringidField.value.length > 0) {
@@ -176,15 +174,25 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			});
 		};
 		
+        
 		var onShakeEnd = function (evt) {
+            // Remove shake class in case another shake animation needs to be performed
 			evt.target.classList.remove("shake");
+            // Remove listener
 			evt.target.removeEventListener('animationend', onShakeEnd);
+		};
+		
+		var shakeField = function (field) {
+            // Listen to end of shake animation
+            field.addEventListener('animationend', onShakeEnd);
+            // Start shake animation
+            field.classList.add("shake");
 		};
 		
 		
 		return {
 			init: init,
-			resetPwdField: resetPwdField,
+            pwdResult: pwdResult,
 			showView: showView
 		};
 		
