@@ -1,4 +1,6 @@
 {
-    "masterPwd": "tkd",
-    "ringsCount": 4
+	"cookieKey": "express.sid",
+	"cookieSecret": "tkd is awesome",
+	"masterPwd": "tkd",
+	"ringsCount": 4
 }
