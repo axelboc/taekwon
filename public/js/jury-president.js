@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		
 		var onRingCreated = function (ringId) {
 			console.log("Ring created (id=" + ringId + ")");
-			View.showView(Views.START_MATCH);
+			View.showView(Views.MATCH);
 		};
 		
 		var onRingAlreadyExists = function (ringId) {
@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 	var Views = {
 		PWD: 'pwd-view',
 		RINGS: 'rings-view',
-		START_MATCH: 'start-match-view'
+		MATCH: 'match-view'
 	};
 	
 	/**
@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
-		var views, pwdAction, pwdInstr, pwdField, ringsList, ringsBtns, startMatchBtn;
+		var views, pwdAction, pwdInstr, pwdField, ringsList, ringsBtns, startBtn;
 		
 		var cacheElements = function () {
 			views = document.getElementsByClassName('view');
@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			pwdField = document.getElementById('pwd-field');
 			ringsList = document.getElementById('rings-list');
             ringsBtns = ringsList.getElementsByClassName('rings-btn');
-			startMatchBtn = document.getElementById('start-match-btn');
+			startBtn = document.getElementById('start-btn');
 		};
 		
 		var bindEvents = function () {
@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
             [].forEach.call(ringsBtns, function (item, index) {
                 item.addEventListener('click', onRingsBtn.bind(null, index));
             });
-			startMatchBtn.addEventListener('click', onStartMatchBtn);
+			startBtn.addEventListener('click', onStartBtn);
 		};
 		
 		var onPwdField = function (evt) {
@@ -172,7 +172,6 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		var onRingAllocationChanged = function (allocation, index) {
-            console.log(allocation);
             if (allocation.allocated) {
                 ringsBtns[index].setAttribute("disabled", "disabled");
             } else {
@@ -188,7 +187,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
             }
 		};
 		
-		var onStartMatchBtn = function () {
+		var onStartBtn = function () {
 			IO.startMatch();
 		};
 		
@@ -232,5 +231,8 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 	
 	IO.init();
 	View.init();
+    
+    // DEBUG
+    //IO.sendId('tkd');
 	
 });
