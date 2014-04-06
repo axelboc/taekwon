@@ -42,9 +42,7 @@ Ring.getRingAllocation = function (index) {
 };
 
 
-Ring.prototype.addCornerJudge = function (cornerJudgeId) {
-	var cornerJudge = require('./corner-judge').CornerJudge.get(cornerJudgeId);
-	
+Ring.prototype.addCornerJudge = function (cornerJudge) {
 	if (this.cornerJudges.length >= 4) {
 		cornerJudge.socket.emit('ringIsFull', this.index);
 	} else {

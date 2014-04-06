@@ -19,6 +19,7 @@ var app = express();
 
 // Initialise Session Store
 var sessionStore = new express.session.MemoryStore();
+var clients = {};
 
 // Configure Express
 app.configure(function () {
@@ -42,7 +43,7 @@ app.configure(function () {
 
 // Initialise Socket.IO
 var io = socket.listen(app.listen(80));
-io.set('log level', 4);
+io.set('log level', 1);
 
 // Configure Socket.IO
 io.configure(function () {
@@ -88,85 +89,46 @@ app.get('/jury', function (request, response) {
 io.sockets.on('connection', function (socket) {
 	var hs = socket.handshake;
 	var session = hs.session;
+	var sessionId = hs.sessionID;
+	console.log("New socket connection with session ID: " + sessionId + ".");
 	
-	console.log("New socket connection with session ID: " + hs.sessionID + ". Waiting for identification...");
-	
-	if (session.identified) {
-		switch (session.role) {
-			case 'jp':
-				onJPConnection(socket, Config.masterPwd);
-				break;
-			case 'cj':
-				onCJConnection(socket, session.name);
-				break;
-			default:
-		}
+	if (typeof clients[sessionId] !== "undefined") {
+		// If returning client, restore session automatically
+		clients[sessionId].restoreSession(socket);
 	} else {
-		// Listening for jury president connection
-		socket.on('juryPresident', onJPConnection.bind(null, socket));
+		// Listen for jury president and corner judge identification
+		socket.on('juryPresident', onJPConnection.bind(this, socket, sessionId));
+		socket.on('cornerJudge', onCJConnection.bind(this, socket, sessionId));
 		
-		// Listening for jury president connection
-		socket.on('cornerJudge', onCJConnection.bind(null, socket));
+		// Inform client that we're waiting for an identification
+		socket.emit('waitingForId');
+		console.log("Waiting for identification...");
 	}
 	
-	// Listen to disconnection
+	// Listen for disconnection
 	socket.on('disconnect', function () {
 		console.log("Socket disconnection");
 	});
 });
 
 
-/* Handle Jury President connection */
-function onJPConnection(socket, password) {
-	var hs = socket.handshake;
-	var session = hs.session;
-	
+/* Handle new Jury President connection */
+function onJPConnection(socket, sessionId, password) {
+	// Check password
 	if (password === Config.masterPwd) {
+		// Initialise JuryPresident
+		clients[sessionId] = new JuryPresident(io, socket, sessionId);
 		console.log("> Jury president accepted: valid password");
-		new JuryPresident(io, socket);
-		socket.emit('idSuccess');
-
-		// Send ring allocations to client
-		socket.emit('ringAllocations', Ring.getRingAllocations());
-		
-		// Save session information
-		session.identified = true;
-		session.role = 'jp';
 	} else {
+		// Send failure message to client
 		console.log("> Jury president rejected: wrong password");
 		socket.emit('idFail');
-		
-		// Save session information
-		session.identified = false;
 	}
-	
-	// Persist session
-	sessionStore.set(hs.sessionID, session, function () {
-		console.log(sessionStore);
-	});
 }
 
-/* Handle Corner Judge connection */
-function onCJConnection(socket, name) {
-	var hs = socket.handshake;
-	var session = hs.session;
-	
-	console.log("> Corner judge identified");
-	new CornerJudge(io, socket, name);
-	socket.emit('idSuccess');
-
-	// Send ring allocations to client
-	socket.emit('ringAllocations', Ring.getRingAllocations());
-	
-	// Save session information
-	session.identified = true;
-	session.role = 'cj';
-	session.name = name;
-	
-	// Persist session
-	sessionStore.set(hs.sessionID, session, function () {
-		console.log(sessionStore);
-	});
+/* Handle new Corner Judge connection */
+function onCJConnection(socket, sessionId, name) {
+	// Initialise CornerJudge
+	clients[sessionId] = new CornerJudge(io, socket, sessionId, name);
+	console.log("> Corner judge identified: " + name);
 }
-
-

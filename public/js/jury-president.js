@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			socket = io.connect();
 			
 			// Bind events
+			socket.on('waitingForId', onWaitingForId);
 			socket.on('idSuccess', onIdSuccess);
 			socket.on('idFail', onIdFail);
 			socket.on('ringAllocations', onRingAllocations);
@@ -25,14 +26,24 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
+		var onWaitingForId = function () {
+			console.log("Server waiting for identification");
+			View.showView(Views.PWD);
+		};
+		
 		var sendId = function (password) {
 			console.log("Sending identification (password=\"" + password + "\")");
 			socket.emit('juryPresident', password);
 		};
 		
-		var onIdSuccess = function () {
+		var onIdSuccess = function (showRingsView) {
 			console.log("Identification succeeded");
 			View.pwdResult(true);
+				
+			// If in process of restoring session, rings view may need to be skipped
+			if (showRingsView) {
+				View.showView(Views.RINGS);
+			}
 		};
 		
 		var onIdFail = function () {
@@ -153,10 +164,9 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			}
 		};
         
-        var pwdResult = function (correct) {
+        var pwdResult = function (correct, showRingsView) {
             if (correct) {
                 pwdField.removeEventListener('keypress', onPwdField);
-                showView(Views.RINGS);
             } else {
                 // Reset field
                 pwdField.value = "";

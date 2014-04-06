@@ -1,4 +1,4 @@
-
+/* TODO: show when a ring is full and disable its button */
 document.addEventListener("DOMContentLoaded", function domReady() {
 	"use strict";
 	
@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			socket = io.connect();
 			
 			// Bind events
+			socket.on('waitingForId', onWaitingForId);
 			socket.on('idSuccess', onIdSuccess);
 			socket.on('ringAllocations', onRingAllocations);
 			socket.on('ringAllocationChanged', onRingAllocationChanged);
@@ -24,14 +25,23 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
+		var onWaitingForId = function () {
+			console.log("Server waiting for identification");
+			View.showView(Views.NAME);
+		};
+		
 		var sendId = function (name) {
 			console.log("Sending identification (name=\"" + name + "\")");
 			socket.emit('cornerJudge', name);
 		};
 		
-		var onIdSuccess = function () {
+		var onIdSuccess = function (showRingsView) {
 			console.log("Identification succeeded");
-			View.showView(Views.RINGS);
+			
+			// If in process of restoring session, rings view may need to be skipped
+			if (showRingsView) {
+				View.showView(Views.RINGS);
+			}
 		};
 		
 		var onRingAllocations = function (allocations) {
@@ -129,6 +139,9 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		
 		var bindEvents = function () {
 			nameField.addEventListener('keypress', onNameField);
+			[].forEach.call(ringsBtns, function (item, index) {
+                item.addEventListener('click', onRingsBtn.bind(null, index));
+			});
 			scoreOneBtn.addEventListener('click', onScoreBtn.bind(null, Competitors.HONG, 1));
 		};
 		
@@ -154,11 +167,18 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		var onRingAllocationChanged = function (allocation, index) {
-            console.log(index);
             if (allocation.allocated) {
                 ringsBtns[index].removeAttribute("disabled");
             } else {
                 ringsBtns[index].setAttribute("disabled", "disabled");
+            }
+		};
+		
+		var onRingsBtn = function (index, evt) {
+            if (!evt.target.hasAttribute("disabled")) {
+                IO.joinRing(index);
+            } else {
+                alert("This ring hasn't been created yet.");
             }
 		};
         
