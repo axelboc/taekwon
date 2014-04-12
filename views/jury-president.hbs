@@ -24,7 +24,7 @@
 			<p id="rings-instr" class="instr">Select ring number</p>
 		    <ul id="rings-list" class="list-reset list-grid">
                 {{#each ringAllocations}}
-		            <li><button class="rings-btn">{{index}}</button></li>
+		            <li><button type="button" class="rings-btn">{{index}}</button></li>
                 {{/each}}
 		    </ul>
 		</div>
@@ -32,37 +32,37 @@
 	<div id="match-view" class="view hidden">
 		<div class="judges">
 		    <h2 class="judges-heading">Corner Judges</h2>
-		    <ul class="judges-list list-reset">
+		    <ul id="judges-list" class="list-reset">
 		        <li class="judge">
 		            <h3 class="judge-name">Judge #1</h3>
 		            <span class="judge-state">Waiting for connection</span>
                     <ul class="judge-btns list-reset hidden">
-                        <li><button class="judge-btn judge-btn--accept">Accept</button></li>
-                        <li><button class="judge-btn judge-btn--reject">Reject</button></li>
+                        <li><button type="button" class="judge-btn judge-btn--accept">Accept</button></li>
+                        <li><button type="button" class="judge-btn judge-btn--reject">Reject</button></li>
                     </ul>
                 </li>
 		        <li class="judge">
 		            <h3 class="judge-name">Judge #2</h3>
 		            <span class="judge-state">Waiting for connection</span>
                     <ul class="judge-btns list-reset hidden">
-                        <li><button class="judge-btn judge-btn--accept">Accept</button></li>
-                        <li><button class="judge-btn judge-btn--reject">Reject</button></li>
+                        <li><button type="button" class="judge-btn judge-btn--accept">Accept</button></li>
+                        <li><button type="button" class="judge-btn judge-btn--reject">Reject</button></li>
                     </ul>
                 </li>
                 <li class="judge">
 		            <h3 class="judge-name">Judge #3</h3>
                     <span class="judge-state">Waiting for connection</span>
                     <ul class="judge-btns list-reset hidden">
-                        <li><button class="judge-btn judge-btn--accept">Accept</button></li>
-                        <li><button class="judge-btn judge-btn--reject">Reject</button></li>
+                        <li><button type="button" class="judge-btn judge-btn--accept">Accept</button></li>
+                        <li><button type="button" class="judge-btn judge-btn--reject">Reject</button></li>
                     </ul>
                 </li>
                 <li class="judge">
 		            <h3 class="judge-name">Judge #4</h3>
                     <span class="judge-state">Waiting for connection</span>
                     <ul class="judge-btns list-reset hidden">
-                        <li><button class="judge-btn judge-btn--accept">Accept</button></li>
-                        <li><button class="judge-btn judge-btn--reject">Reject</button></li>
+                        <li><button type="button" class="judge-btn judge-btn--accept">Accept</button></li>
+                        <li><button type="button" class="judge-btn judge-btn--reject">Reject</button></li>
                     </ul>
                 </li>
 		    </ul>
@@ -72,7 +72,7 @@
 		        
 		    </div>
 		    <div class="match">
-	        	<p><button id="start-btn">Start Match</button></p>
+	        	<p><button type="button" id="start-btn">Start Match</button></p>
 		    </div>
 		</div>
 	</div>

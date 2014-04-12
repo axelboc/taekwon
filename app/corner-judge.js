@@ -17,26 +17,6 @@ function CornerJudge(io, socket, id, name) {
 	this.initSocket();
 }
 
-CornerJudge.prototype.restoreSession = function (newSocket) {
-	this.debug("Restoring session...");
-	
-	this.socket = newSocket;
-	this.initSocket();
-	
-	var hasRing = this.ring !== null;
-	
-	// Send success event to client
-	// If CJ doesn't have a ring, client must show the ring allocation view
-	this.socket.emit('idSuccess', !hasRing);
-	
-	// If CJ has ring, client must show the match view
-	if (hasRing) {
-		this.socket.emit('ringJoined', this.ring.index);
-	}
-	
-	this.debug("> Session restored");
-}
-
 CornerJudge.prototype.initSocket = function () {
 	this.socket.on('joinRing', this.onJoinRing.bind(this));
 };
@@ -67,6 +47,25 @@ CornerJudge.prototype.ringJoined = function (ring) {
 };
 
 
+CornerJudge.prototype.restoreSession = function (newSocket) {
+	this.debug("Restoring session...");
+	
+	this.socket = newSocket;
+	this.initSocket();
+	
+	var hasRing = this.ring !== null;
+	
+	// Send success event to client
+	// If CJ doesn't have a ring, client must show the ring allocation view
+	this.socket.emit('idSuccess', !hasRing);
+	
+	// If CJ has ring, client must show the match view
+	if (hasRing) {
+		this.socket.emit('ringJoined', this.ring.index);
+	}
+	
+	this.debug("> Session restored");
+}
 
 CornerJudge.prototype.debug = function (msg) {
 	console.log("[Corner Judge] " + msg);

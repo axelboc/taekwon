@@ -75,9 +75,26 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			console.log("Ring already exists (id=" + ringId + ")");
 		};
 		
-		var onAuthoriseCornerJudge = function (cornerJudgeId) {
-			console.log("Authorising corner judge (id=" + cornerJudgeId + ")");
-			socket.emit('cornerJudgeAuthorised', cornerJudgeId);
+		var onAuthoriseCornerJudge = function (cornerJudge) {
+			if (!cornerJudge.isAuthorised) {
+				// Let jury president decide whether to authorise or reject the corner judge
+				console.log("Authorising corner judge (id=" + cornerJudge.id + ")");
+				View.onAuthoriseCornerJudge(cornerJudge);
+			} else {
+				// Jury president has already authorised the corner judge in a previous session
+				console.log("Restoring authorised corner judge (id=" + cornerJudge.id + ")");
+				View.restoreCornerJudge(cornerJudge);
+			}
+		};
+		
+		var authoriseCornerJudge = function (cornerJudgeId, authorise) {
+			if (authorise) {
+				console.log("Corner judge accepted (id=" + cornerJudgeId + ")");
+				socket.emit('cornerJudgeAccepted', cornerJudgeId);
+			} else {
+				console.log("Corner judge rejected (id=" + cornerJudgeId + ")");
+				socket.emit('cornerJudgeRejected', cornerJudgeId);
+			}
 		};
 		
 		var startMatch = function () {
@@ -94,6 +111,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			init: init,
 			sendId: sendId,
 			createRing: createRing,
+			authoriseCornerJudge: authoriseCornerJudge,
 			startMatch: startMatch
 		};
 		
@@ -132,15 +150,34 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
-		var views, pwdAction, pwdInstr, pwdField, ringsList, ringsBtns, startBtn;
+		var views, pwdAction, pwdInstr, pwdField, ringsList, ringsBtns, startBtn, judgesList, judges;
 		
 		var cacheElements = function () {
 			views = document.getElementsByClassName('view');
+			
 			pwdAction = document.getElementById('pwd-action');
 			pwdInstr = document.getElementById('pwd-instr');
 			pwdField = document.getElementById('pwd-field');
+			
 			ringsList = document.getElementById('rings-list');
             ringsBtns = ringsList.getElementsByClassName('rings-btn');
+			
+			judges = [];
+			judgesList = document.getElementById('judges-list');
+			[].forEach.call(judgesList.getElementsByClassName('judge'), function (item, index) {
+				judges[index] = {
+					id: null,
+					name: null,
+					slot: index,
+					rootLi: item,
+					nameH3: item.getElementsByClassName('judge-name')[0],
+					stateSpan: item.getElementsByClassName('judge-state')[0],
+					btnsUl: item.getElementsByClassName('judge-btns')[0],
+					acceptBtn: item.getElementsByClassName('judge-btn--accept')[0],
+					rejectBtn: item.getElementsByClassName('judge-btn--reject')[0]
+				};
+			});
+			
 			startBtn = document.getElementById('start-btn');
 		};
 		
@@ -197,6 +234,73 @@ document.addEventListener("DOMContentLoaded", function domReady() {
             }
 		};
 		
+		var findFreeCornerJudgeSlot = function () {
+			var slot = 0;
+			while (judges[slot].id !== null && slot < 4) {
+				slot++;
+			}
+			return (slot < 4 ? slot : null);
+		};
+		
+		var onAuthoriseCornerJudge = function (cornerJudge) {
+			// Find next available slot
+			var slot = findFreeCornerJudgeSlot();
+			if (slot !== null) {
+				var judge = judges[slot];
+				judge.id = cornerJudge.id;
+				judge.name = cornerJudge.name;
+				
+				// Set name
+				judge.nameH3.textContent = cornerJudge.name;
+				
+				// Hide state span and show buttons
+				judge.stateSpan.classList.add("hidden");
+				judge.btnsUl.classList.remove("hidden");
+				
+				// Listen to jury president's decision
+				judge.acceptFn = onJudgeBtn.bind(null, judge, true);
+				judge.rejectFn = onJudgeBtn.bind(null, judge, false);
+				judge.acceptBtn.addEventListener('click', judge.acceptFn);
+				judge.rejectBtn.addEventListener('click', judge.rejectFn);
+			}
+		};
+		
+		var onJudgeBtn = function (judge, accept) {
+			IO.authoriseCornerJudge(judge.id, accept);
+			
+			// Hide buttons
+			judge.btnsUl.classList.add("hidden");
+			
+			// Remove listeners
+			judge.acceptBtn.removeEventListener('click', judge.acceptFn);
+			judge.rejectBtn.removeEventListener('click', judge.rejectFn);
+			judge.acceptFn = null;
+			judge.rejectFn = null;
+			
+			if (!accept) {
+				judge.nameH3.textContent = "Judge #" + (judge.slot + 1);
+				judge.stateSpan.classList.remove("hidden");
+				
+				judge.id = null;
+				judge.name = null;
+			}
+		};
+		
+		var restoreCornerJudge = function (cornerJudge) {
+			// Find next available slot
+			var slot = findFreeCornerJudgeSlot();
+			
+			if (slot !== null) {
+				var judge = judges[slot];
+				judge.id = cornerJudge.id;
+				judge.name = cornerJudge.name;
+				
+				// Set name and hide state span
+				judge.nameH3.textContent = cornerJudge.name;
+				judge.stateSpan.classList.add("hidden");
+			}
+		};
+		
 		var onStartBtn = function () {
 			IO.startMatch();
 		};
@@ -234,6 +338,8 @@ document.addEventListener("DOMContentLoaded", function domReady() {
             pwdResult: pwdResult,
             onRingAllocations: onRingAllocations,
             onRingAllocationChanged: onRingAllocationChanged,
+			onAuthoriseCornerJudge: onAuthoriseCornerJudge,
+			restoreCornerJudge: restoreCornerJudge,
 			showView: showView
 		};
 		
@@ -243,6 +349,6 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 	View.init();
     
     // DEBUG
-    //IO.sendId('tkd');
+    IO.sendId('tkd');
 	
 });
