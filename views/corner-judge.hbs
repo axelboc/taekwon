@@ -13,20 +13,26 @@
 <body>
 	<div id="name-view" class="view view--name hidden">
 	    <h1>Corner Judge</h1>
-		<div id="name-action" class="action">
-			<p id="name-instr" class="instr">Enter your name</p>
+		<div class="action">
+			<p class="instr">Enter your name</p>
 			<input id="name-field" class="field" type="text">
 		</div>
 	</div>
 	<div id="rings-view" class="view view--rings hidden">
 	    <h1>Corner Judge</h1>
-		<div id="rings-action" class="action">
+		<div class="action">
 			<p id="rings-instr" class="instr">Select ring number</p>
 		    <ul id="rings-list" class="list-reset list-grid">
                 {{#each ringAllocations}}
 		            <li><button class="rings-btn" disabled>{{index}}</button></li>
                 {{/each}}
 		    </ul>
+		</div>
+	</div>
+	<div id="authorisation-view" class="view view--authorisation hidden">
+		<h1>Corner Judge</h1>
+		<div class="action">
+			<p class="instr">Waiting for authorisation...</p>
 		</div>
 	</div>
 	<div id="round-view" class="view hidden">

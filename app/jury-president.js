@@ -58,6 +58,8 @@ JuryPresident.prototype.onCornerJudgeAuthorisation = function (accepted, cornerJ
 	if (accepted) {
 		// Add corner judge to ring
 		this.ring.addCornerJudge(this.waitingList[cornerJudgeId]);
+	} else {
+		this.waitingList[cornerJudgeId].ringNotJoined(this.ring);
 	}
 	
 	// Remove corner judge from waiting list

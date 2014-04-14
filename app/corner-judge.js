@@ -46,6 +46,11 @@ CornerJudge.prototype.ringJoined = function (ring) {
 	this.socket.emit('ringJoined', ring.index);
 };
 
+CornerJudge.prototype.ringNotJoined = function (ring) {
+	this.debug("> Ring not joined (rejected by Jury President)");
+	this.socket.emit('ringNotJoined', ring.index);
+}
+
 
 CornerJudge.prototype.restoreSession = function (newSocket) {
 	this.debug("Restoring session...");

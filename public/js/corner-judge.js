@@ -1,4 +1,4 @@
-/* TODO: show when a ring is full and disable its button */
+
 document.addEventListener("DOMContentLoaded", function domReady() {
 	"use strict";
 	
@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			socket.on('ringAllocations', onRingAllocations);
 			socket.on('ringAllocationChanged', onRingAllocationChanged);
 			socket.on('ringJoined', onRingJoined);
+			socket.on('ringNotJoined', onRingNotJoined);
 			socket.on('ringDoesNotExist', onRingDoesNotExist);
 			socket.on('ringIsFull', onRingIsFull);
 			socket.on('matchCreated', onMatchCreated);
@@ -57,6 +58,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		var joinRing = function (ringId) {
 			console.log("Joining ring (id=" + ringId + ")");
 			socket.emit('joinRing', ringId);
+			View.showView(Views.AUTHORISATION);
 		};
 		
 		var onRingJoined = function (ringId) {
@@ -64,12 +66,19 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			View.showView(Views.ROUND);
 		};
 		
+		var onRingNotJoined = function (ringId) {
+			console.log("Ring not joined (id=" + ringId + ")");
+			View.ringNotJoined("Not authorised to join ring");
+		};
+		
 		var onRingDoesNotExist = function (ringId) {
 			console.log("Ring does not exist (id=" + ringId + ")");
+			View.ringNotJoined("Ring does not exist... Wait, that's not quite right. Please contact the administrator.");
 		};
 		
 		var onRingIsFull = function (ringId) {
 			console.log("Ring is full (id=" + ringId + ")");
+			View.ringNotJoined("Ring is full");
 		};
 		
 		var onMatchCreated = function (matchId) {
@@ -101,6 +110,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 	var Views = {
 		NAME: 'name-view',
 		RINGS: 'rings-view',
+		AUTHORISATION: 'authorisation-view',
 		ROUND: 'round-view'
 	};
 	
@@ -127,11 +137,12 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
-		var views, nameField, ringsList, ringsBtns, scoreOneBtn;
+		var views, nameField, ringsInstr, ringsList, ringsBtns, scoreOneBtn;
 		
 		var cacheElements = function () {
 			views = document.getElementsByClassName('view');
 			nameField = document.getElementById('name-field');
+			ringsInstr = document.getElementById('rings-instr');
 			ringsList = document.getElementById('rings-list');
             ringsBtns = ringsList.getElementsByClassName('rings-btn');
 			scoreOneBtn = document.getElementById('score1');
@@ -181,6 +192,11 @@ document.addEventListener("DOMContentLoaded", function domReady() {
                 alert("This ring hasn't been created yet.");
             }
 		};
+		
+		var ringNotJoined = function (message) {
+			ringsInstr.textContent = message;
+			showView(Views.RINGS);
+		};
         
 		var onScoreBtn = function (competitor, points) {
 			IO.score(competitor, points);
@@ -217,6 +233,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			init: init,
 			onRingAllocations: onRingAllocations,
 			onRingAllocationChanged: onRingAllocationChanged,
+			ringNotJoined: ringNotJoined,
 			showView: showView
 		};
 		
