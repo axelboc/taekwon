@@ -5,6 +5,7 @@ var Ring = require('./ring').Ring;
 function JuryPresident(io, socket, id) {
 	this.io = io;
 	this.socket = socket;
+	this.connected = true;
 	this.id = id;
 	this.ring = null;
 	this.waitingList = {};
@@ -18,6 +19,7 @@ function JuryPresident(io, socket, id) {
 }
 
 JuryPresident.prototype.initSocket = function () {
+	this.socket.on('disconnect', this.onDisconnect.bind(this));
 	this.socket.on('createRing', this.onCreateRing.bind(this));
 	this.socket.on('cornerJudgeAccepted', this.onCornerJudgeAuthorisation.bind(this, true));
 	this.socket.on('cornerJudgeRejected', this.onCornerJudgeAuthorisation.bind(this, false));
@@ -73,10 +75,20 @@ JuryPresident.prototype.onStartMatch = function () {
 };
 
 
+JuryPresident.prototype.cornerJudgeStateChanged = function (cornerJudge) {
+	this.debug("Corner judge " + (cornerJudge.connected ? "connected" : "disconnected"));
+	this.socket.emit('cornerJudgeStateChanged', {
+		id: cornerJudge.id,
+		name: cornerJudge.name,
+		connected: cornerJudge.connected
+	});
+};
+
 JuryPresident.prototype.restoreSession = function (newSocket) {
 	this.debug("Restoring session...");
 	
 	this.socket = newSocket;
+	this.connected = true;
 	this.initSocket();
 	
 	var hasRing = this.ring !== null;
@@ -88,18 +100,17 @@ JuryPresident.prototype.restoreSession = function (newSocket) {
 	// If JP has ring, client must show the match view
 	if (hasRing) {
 		newSocket.emit('ringCreated', this.ring.index);
-		
-		this.ring.cornerJudges.forEach(function (cornerJudge, index) {
-			newSocket.emit('authoriseCornerJudge', {
-				id: cornerJudge.id,
-				name: cornerJudge.name,
-				isAuthorised: true
-			});
-		});
+		// Restore corner judges
+		this.ring.cornerJudges.forEach(this.cornerJudgeStateChanged.bind(this));
 	}
 	
 	this.debug("> Session restored");
-}
+};
+
+JuryPresident.prototype.onDisconnect = function () {
+	this.debug("Disconnected");
+	this.connected = false;
+};
 
 JuryPresident.prototype.debug = function (msg) {
 	console.log("[Jury President] " + msg);

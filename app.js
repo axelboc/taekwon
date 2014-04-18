@@ -104,11 +104,6 @@ io.sockets.on('connection', function (socket) {
 		socket.emit('waitingForId');
 		console.log("Waiting for identification...");
 	}
-	
-	// Listen for disconnection
-	socket.on('disconnect', function () {
-		console.log("Socket disconnection");
-	});
 });
 
 

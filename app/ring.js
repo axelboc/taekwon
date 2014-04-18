@@ -2,7 +2,6 @@
 var Config = require('./config');
 var Match = require('./match').Match;
 
-var io;
 var rings = [];
 
 var ringAllocations = [];
@@ -14,8 +13,8 @@ for (var i = 0; i < Config.ringsCount; i += 1) {
 }
 
 
-function Ring(sio, index, juryPresident) {
-	io = sio;
+function Ring(io, index, juryPresident) {
+	this.io = io;
 	
 	this.index = index;
 	rings[index] = this;
@@ -54,7 +53,7 @@ Ring.prototype.addCornerJudge = function (cornerJudge) {
 
 Ring.prototype.startMatch = function () {
 	this.match = new Match();
-	io.sockets.in(this.roomId).emit('matchStarted', this.match.id);
+	this.io.sockets.in(this.roomId).emit('matchStarted', this.match.id);
 };
 
 
