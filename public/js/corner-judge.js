@@ -151,9 +151,9 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		var bindEvents = function () {
 			nameField.addEventListener('keypress', onNameField);
 			[].forEach.call(ringsBtns, function (item, index) {
-                item.addEventListener('click', onRingsBtn.bind(null, index));
+                item.addEventListener('click', onRingsBtn.bind(item, index));
 			});
-			scoreOneBtn.addEventListener('click', onScoreBtn.bind(null, Competitors.HONG, 1));
+			scoreOneBtn.addEventListener('click', onScoreBtn.bind(scoreOneBtn, Competitors.HONG, 1));
 		};
 		
 		
@@ -186,7 +186,8 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		var onRingsBtn = function (index, evt) {
-            if (!evt.target.hasAttribute("disabled")) {
+			this.blur();
+            if (!this.hasAttribute("disabled")) {
                 IO.joinRing(index);
             } else {
                 alert("This ring hasn't been created yet.");

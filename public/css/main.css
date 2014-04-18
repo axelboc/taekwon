@@ -1,9 +1,20 @@
 @charset "utf-8";
 
+*,
+*:before,
+*:after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	height: 100%;
+}
+
 body {
 	font-family: Century Gothic, sans-serif;
 	max-width: 50em;
-	margin: 0 auto 4em;
+	margin: 0 auto;
 }
 
 h1 {
@@ -13,7 +24,7 @@ h1 {
 }
 
 .hidden {
-	display: none;
+	display: none!important;
 }
 
 button::-moz-focus-inner {
@@ -36,6 +47,7 @@ button::-moz-focus-inner {
 
 .view {
 	text-align: center;
+	overflow: hidden;
 }
 
 
