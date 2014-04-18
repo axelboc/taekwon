@@ -51,9 +51,18 @@ Ring.prototype.addCornerJudge = function (cornerJudge) {
 	}
 };
 
+Ring.prototype.juryPresidentStateChanged = function (connected) {
+	this.debug("Jury president " + (connected ? "connected" : "disconnected"));
+	this.io.sockets.in(this.roomId).emit('juryPresidentStateChanged', connected);
+};
+
 Ring.prototype.startMatch = function () {
 	this.match = new Match();
 	this.io.sockets.in(this.roomId).emit('matchStarted', this.match.id);
+};
+
+Ring.prototype.debug = function (msg) {
+	console.log("[Ring] " + msg);
 };
 
 

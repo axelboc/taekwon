@@ -10,6 +10,7 @@ function CornerJudge(io, socket, id, name) {
 	this.id = id;
 	this.name = name;
 	this.ring = null;
+	this.authorised = false;
 	
 	// Send ring allocations and success events to client
 	socket.emit('ringAllocations', Ring.getRingAllocations());
@@ -45,6 +46,7 @@ CornerJudge.prototype.onJoinRing = function (index) {
 
 CornerJudge.prototype.ringJoined = function (ring) {
 	this.debug("> Ring joined");
+	this.authorised = true;
 	this.socket.emit('ringJoined', ring.index);
 };
 
@@ -68,12 +70,22 @@ CornerJudge.prototype.restoreSession = function (newSocket) {
 	// If CJ doesn't have a ring, client must show the ring allocation view
 	this.socket.emit('idSuccess', !hasRing);
 	
-	// If CJ has ring, client must show the match view
-	if (hasRing) {
-		this.socket.emit('ringJoined', this.ring.index);
-		this.ring.juryPresident.cornerJudgeStateChanged(this);
-	} else {
+	if (!this.authorised) {
+		// If CJ not auhtorised, send ring allocations
 		this.socket.emit('ringAllocations', Ring.getRingAllocations());
+		// If CJ has ring, it is waiting for authorisation
+		if (hasRing) {
+			this.socket.emit('waitingForAuthorisation');
+			// Let jury president know that corner judge is now reconnected
+			this.ring.juryPresident.cornerJudgeStateChanged(this);
+		}
+	} else {
+		// If CJ is authorised, client must show the match view
+		this.socket.emit('ringJoined', this.ring.index);
+		// Add new socket to ring's room
+		this.socket.join(this.ring.roomId);
+		// Let jury president know that corner judge is now reconnected
+		this.ring.juryPresident.cornerJudgeStateChanged(this);
 	}
 	
 	this.debug("> Session restored");

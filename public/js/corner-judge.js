@@ -18,10 +18,12 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			socket.on('idSuccess', onIdSuccess);
 			socket.on('ringAllocations', onRingAllocations);
 			socket.on('ringAllocationChanged', onRingAllocationChanged);
+			socket.on('waitingForAuthorisation', onWaitingForAuthorisation);
 			socket.on('ringJoined', onRingJoined);
 			socket.on('ringNotJoined', onRingNotJoined);
 			socket.on('ringDoesNotExist', onRingDoesNotExist);
 			socket.on('ringIsFull', onRingIsFull);
+			socket.on('juryPresidentStateChanged', onJuryPresidentStateChanged);
 			socket.on('matchCreated', onMatchCreated);
 		};
 		
@@ -55,6 +57,11 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			View.onRingAllocationChanged(allocation, allocation.index - 1);
 		};
 		
+		var onWaitingForAuthorisation = function () {
+			console.log("Waiting for authorisation to join ring");
+			View.showView(Views.AUTHORISATION);
+		};
+		
 		var joinRing = function (ringId) {
 			console.log("Joining ring (id=" + ringId + ")");
 			socket.emit('joinRing', ringId);
@@ -79,6 +86,11 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		var onRingIsFull = function (ringId) {
 			console.log("Ring is full (id=" + ringId + ")");
 			View.ringNotJoined("Ring is full");
+		};
+		
+		var onJuryPresidentStateChanged = function (connected) {
+			console.log("Jury president " + (connected ? "connected" : "disconnected"));
+			View.toggleBackdrop(!connected);
 		};
 		
 		var onMatchCreated = function (matchId) {
@@ -137,10 +149,11 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
-		var views, nameField, ringsInstr, ringsList, ringsBtns, scoreOneBtn;
+		var views, backdrop, nameField, ringsInstr, ringsList, ringsBtns, scoreOneBtn;
 		
 		var cacheElements = function () {
 			views = document.getElementsByClassName('view');
+			backdrop = document.getElementById('backdrop');
 			nameField = document.getElementById('name-field');
 			ringsInstr = document.getElementById('rings-instr');
 			ringsList = document.getElementById('rings-list');
@@ -214,6 +227,10 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 				}
 			});
 		};
+		
+		var toggleBackdrop = function (show) {
+			backdrop.classList.toggle("hidden", !show);
+		};
         
 		var onShakeEnd = function (evt) {
             // Remove shake class in case another shake animation needs to be performed
@@ -235,7 +252,8 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			onRingAllocations: onRingAllocations,
 			onRingAllocationChanged: onRingAllocationChanged,
 			ringNotJoined: ringNotJoined,
-			showView: showView
+			showView: showView,
+			toggleBackdrop: toggleBackdrop
 		};
 		
 	}());

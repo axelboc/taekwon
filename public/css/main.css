@@ -8,13 +8,14 @@
 
 html,
 body {
-	height: 100%;
+	min-height: 100%;
 }
 
 body {
 	font-family: Century Gothic, sans-serif;
 	max-width: 50em;
 	margin: 0 auto;
+	padding-bottom: 4em;
 }
 
 h1 {

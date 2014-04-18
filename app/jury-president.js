@@ -100,8 +100,17 @@ JuryPresident.prototype.restoreSession = function (newSocket) {
 	// If JP has ring, client must show the match view
 	if (hasRing) {
 		newSocket.emit('ringCreated', this.ring.index);
+		
 		// Restore corner judges
 		this.ring.cornerJudges.forEach(this.cornerJudgeStateChanged.bind(this));
+		for (var judgeId in this.waitingList) {
+			if (this.waitingList.hasOwnProperty(judgeId)) {
+				this.authoriseCornerJudge(this.waitingList[judgeId]);
+			}
+		}
+		
+		// Let corner judges know that jury president is reconnected
+		this.ring.juryPresidentStateChanged(true);
 	}
 	
 	this.debug("> Session restored");
@@ -110,6 +119,10 @@ JuryPresident.prototype.restoreSession = function (newSocket) {
 JuryPresident.prototype.onDisconnect = function () {
 	this.debug("Disconnected");
 	this.connected = false;
+	
+	if (this.ring) {
+		this.ring.juryPresidentStateChanged(false);
+	}
 };
 
 JuryPresident.prototype.debug = function (msg) {

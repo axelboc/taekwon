@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 			
 		var onCornerJudgeStateChanged = function (cornerJudge) {
-			console.log("Corner judge state updated (id=" + cornerJudge.id + ", connected=" + cornerJudge.connected + ")");
+			console.log("Corner judge " + (cornerJudge.connected ? "connected" : "disconnected") + " (id=" + cornerJudge.id + ")");
 			View.onCornerJudgeStateChanged(cornerJudge);
 		};
 		
@@ -305,6 +305,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			if (cornerJudge.connected) {
 				// Set name and hide connection lost message
 				judge.nameH3.textContent = cornerJudge.name;
+				judge.stateSpan.textContent = "Waiting for connection";
 				judge.stateSpan.classList.add("hidden");
 			} else {
 				// Show connection lost message
@@ -361,8 +362,8 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 	View.init();
     
     // DEBUG
-//    setTimeout(function () {
-//		IO.sendId('tkd')
-//	}, 200);
+    setTimeout(function () {
+		IO.sendId('tkd')
+	}, 200);
 	
 });
