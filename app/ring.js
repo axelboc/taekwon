@@ -25,6 +25,8 @@ function Ring(io, index, juryPresident) {
 	
 	this.roomId = 'ring' + this.index;
 	this.juryPresident.socket.join(this.roomId);
+	
+	this.match = null;
 }
 
 
@@ -58,7 +60,7 @@ Ring.prototype.juryPresidentStateChanged = function (connected) {
 
 Ring.prototype.startMatch = function () {
 	this.match = new Match();
-	this.io.sockets.in(this.roomId).emit('matchStarted', this.match.id);
+	this.io.sockets.in(this.roomId).emit('matchStateChanged', this.match.state);
 };
 
 Ring.prototype.debug = function (msg) {

@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			socket.on('ringDoesNotExist', onRingDoesNotExist);
 			socket.on('ringIsFull', onRingIsFull);
 			socket.on('juryPresidentStateChanged', onJuryPresidentStateChanged);
-			socket.on('matchCreated', onMatchCreated);
+			socket.on('matchStateChanged', onMatchStateChanged);
 		};
 		
 		
@@ -71,6 +71,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		var onRingJoined = function (ringId) {
 			console.log("Joined ring (id=" + ringId + ")");
 			View.showView(Views.ROUND);
+			View.toggleBackdrop(true, Backdrops.WAITING);
 		};
 		
 		var onRingNotJoined = function (ringId) {
@@ -90,11 +91,12 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		
 		var onJuryPresidentStateChanged = function (connected) {
 			console.log("Jury president " + (connected ? "connected" : "disconnected"));
-			View.toggleBackdrop(!connected);
+			View.toggleBackdrop(!connected, Backdrops.DISCONNECTED);
 		};
 		
-		var onMatchCreated = function (matchId) {
-			console.log("Match created (id=" + matchId + ")");
+		var onMatchStateChanged = function (newState) {
+			console.log("Match state changed to " + newState);
+			View.onMatchStateChanged(newState);
 		};
 		
 		var score = function (points, competitor) {
@@ -126,6 +128,11 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		ROUND: 'round-view'
 	};
 	
+	var Backdrops = {
+		DISCONNECTED: 'backdrop--disconnected',
+		WAITING: 'backdrop--waiting'
+	};
+	
 	/**
 	 * Enum of the competitors
 	 */
@@ -148,12 +155,13 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			FastClick.attach(document.body);
 		};
 		
-		
-		var views, backdrop, nameField, ringsInstr, ringsList, ringsBtns, scoreOneBtn;
+		var state;
+		var views, backdropWrap, backdrops, nameField, ringsInstr, ringsList, ringsBtns, scoreOneBtn;
 		
 		var cacheElements = function () {
 			views = document.getElementsByClassName('view');
-			backdrop = document.getElementById('backdrop');
+			backdropWrap = document.getElementById('backdrop-wrap');
+			backdrops = backdropWrap.getElementsByClassName('backdrop');
 			nameField = document.getElementById('name-field');
 			ringsInstr = document.getElementById('rings-instr');
 			ringsList = document.getElementById('rings-list');
@@ -211,6 +219,11 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			ringsInstr.textContent = message;
 			showView(Views.RINGS);
 		};
+		
+		var onMatchStateChanged = function (newState) {
+			state = newState;
+			toggleBackdrop(state !== 'round', Backdrops.WAITING);
+		};
         
 		var onScoreBtn = function (competitor, points) {
 			IO.score(competitor, points);
@@ -220,16 +233,25 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		var showView = function (view) {
 			// Hide all views
 			[].forEach.call(views, function (v) {
-				if (v.id === view) {
-					v.classList.remove("hidden");
-				} else {
-					v.classList.add("hidden");
-				}
+				v.classList.toggle("hidden", !(v.id === view));
 			});
 		};
 		
-		var toggleBackdrop = function (show) {
-			backdrop.classList.toggle("hidden", !show);
+		var toggleBackdrop = function (show, backdrop) {
+			if (!show && backdrop === Backdrops.DISCONNECTED && state !== 'round') {
+				// Restore waiting backdrop instead
+				show = true;
+				backdrop = Backdrops.WAITING;
+			}
+			
+			if (show && backdrop) {
+				[].forEach.call(backdrops, function (b) {
+					b.classList.toggle("hidden", !b.classList.contains(backdrop));
+				});
+			}
+			
+			// Show/hide backdrop wrapper
+			backdropWrap.classList.toggle("hidden", !show);
 		};
         
 		var onShakeEnd = function (evt) {
@@ -252,6 +274,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			onRingAllocations: onRingAllocations,
 			onRingAllocationChanged: onRingAllocationChanged,
 			ringNotJoined: ringNotJoined,
+			onMatchStateChanged: onMatchStateChanged,
 			showView: showView,
 			toggleBackdrop: toggleBackdrop
 		};

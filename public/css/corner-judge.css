@@ -1,6 +1,6 @@
 @charset "utf-8";
 
-.backdrop {
+.backdrop-wrap {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -11,16 +11,16 @@
 	color: #fff;
 }
 
-.backdrop-body {
+.backdrop {
 	display: table-cell;
 	vertical-align: middle;
 	text-align: center;
 }
 
-.backdrop-body > p {
+.backdrop > p {
 	margin: .5em 0;
 }
 
-.backdrop-body > p:first-child {
+.backdrop > p:first-child {
 	font-size: 150%;
 }

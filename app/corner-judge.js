@@ -1,5 +1,6 @@
 
 var Ring = require('./ring').Ring;
+var MatchState = require('./match-state').MatchState;
 
 
 function CornerJudge(io, socket, id, name) {
@@ -86,6 +87,10 @@ CornerJudge.prototype.restoreSession = function (newSocket) {
 		this.socket.join(this.ring.roomId);
 		// Let jury president know that corner judge is now reconnected
 		this.ring.juryPresident.cornerJudgeStateChanged(this);
+		
+		if (this.ring.match) {
+			this.socket.emit('matchStateChanged', this.ring.match.state);
+		}
 	}
 	
 	this.debug("> Session restored");
