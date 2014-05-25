@@ -105,6 +105,11 @@ CornerJudge.prototype.onDisconnect = function () {
 	}
 };
 
+/* Exit the system and leave the ring */
+CornerJudge.prototype.exit = function () {
+	// TODO: Leave the ring and let jury president know
+}
+
 CornerJudge.prototype.debug = function (msg) {
 	console.log("[Corner Judge] " + msg);
 };

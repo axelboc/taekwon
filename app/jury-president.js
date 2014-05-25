@@ -125,6 +125,11 @@ JuryPresident.prototype.onDisconnect = function () {
 	}
 };
 
+/* Exit the system and close the ring */
+JuryPresident.prototype.exit = function () {
+	// TODO: Close the ring and ask corner judges to leave it
+}
+
 JuryPresident.prototype.debug = function (msg) {
 	console.log("[Jury President] " + msg);
 };

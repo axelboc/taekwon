@@ -90,22 +90,37 @@ io.sockets.on('connection', function (socket) {
 	var hs = socket.handshake;
 	var session = hs.session;
 	var sessionId = hs.sessionID;
+	var client = clients[sessionId];
+	var isJury = socket.handshake.headers.referer.indexOf('/jury') !== -1;
+	console.log(isJury);
 	console.log("New socket connection with session ID: " + sessionId + ".");
 	
-	if (typeof clients[sessionId] !== "undefined") {
-		// If returning client, restore session automatically
-		clients[sessionId].restoreSession(socket);
+	// If returning client, restore session automatically
+	if (typeof client !== "undefined") {
+		// Check that client hasn't switched role (from CornerJudge to JuryPresident and vice versa)
+		if (isJury && client instanceof JuryPresident || !isJury && client instanceof CornerJudge) {
+			// Restore session
+			client.restoreSession(socket);
+		} else {
+			// Client has switched role; remove its old instance from the system
+			client.exit();
+			waitForId(socket, sessionId);
+		}
 	} else {
-		// Listen for jury president and corner judge identification
-		socket.on('juryPresident', onJPConnection.bind(this, socket, sessionId));
-		socket.on('cornerJudge', onCJConnection.bind(this, socket, sessionId));
-		
-		// Inform client that we're waiting for an identification
-		socket.emit('waitingForId');
-		console.log("Waiting for identification...");
+		waitForId(socket, sessionId);
 	}
 });
 
+/* Request and wait for client identification */
+function waitForId(socket, sessionId) {
+	// Listen for jury president and corner judge identification
+	socket.on('juryPresident', onJPConnection.bind(this, socket, sessionId));
+	socket.on('cornerJudge', onCJConnection.bind(this, socket, sessionId));
+
+	// Inform client that we're waiting for an identification
+	socket.emit('waitingForId');
+	console.log("Waiting for identification...");
+}
 
 /* Handle new Jury President connection */
 function onJPConnection(socket, sessionId, password) {
