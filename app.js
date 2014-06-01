@@ -92,7 +92,6 @@ io.sockets.on('connection', function (socket) {
 	var sessionId = hs.sessionID;
 	var client = clients[sessionId];
 	var isJury = socket.handshake.headers.referer.indexOf('/jury') !== -1;
-	console.log(isJury);
 	console.log("New socket connection with session ID: " + sessionId + ".");
 	
 	// If returning client, restore session automatically

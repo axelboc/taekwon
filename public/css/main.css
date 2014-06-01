@@ -8,14 +8,13 @@
 
 html,
 body {
-	min-height: 100%;
+	height: 100%;
 }
 
 body {
 	font-family: Century Gothic, sans-serif;
 	max-width: 50em;
 	margin: 0 auto;
-	padding-bottom: 4em;
 }
 
 h1 {
@@ -49,6 +48,7 @@ button::-moz-focus-inner {
 .view {
 	text-align: center;
 	overflow: hidden;
+	padding-bottom: 4em;
 }
 
 

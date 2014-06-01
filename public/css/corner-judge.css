@@ -1,5 +1,76 @@
 @charset "utf-8";
 
+/* ===== SCORE BUTTONS ===== */
+
+#round-view {
+	height: 100%;
+	padding-bottom: 0;
+}
+
+.score-btns {
+	float: left;
+	width: 40%;
+	height: 100%;
+}
+
+.score-btns--hong {
+	margin-right: 20%;
+}
+
+.score-btn {
+	position: relative;
+	display: block;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	color: #fff;
+	border: 0;
+	transition: background-color 1.5s linear;
+	outline: 0;
+	cursor: pointer;
+}
+
+.score-btns--hong > .score-btn {
+	background-color: #e74c3c;
+	border-radius: 0 10px 10px 0;
+}
+
+.score-btns--chong > .score-btn {
+	background-color: #2980b9;
+	border-radius: 10px 0 0 10px;
+}
+
+.score-btn--1,
+.score-btn--2 {
+	height: 25%;
+	font-size: 350%;
+}
+
+.score-btn--3 {
+	height: 18%;
+	font-size: 250%;
+}
+
+.score-btn--4,
+.score-btn--5 {
+	height: 10%;
+	font-size: 150%;
+}
+
+.score-btn--5 { top: 2%; }
+.score-btn--4 { top: 4%; }
+.score-btn--3 { top: 6%; }
+.score-btn--2 { top: 8%; }
+.score-btn--1 { top: 10%; }
+
+.score-btn:active {
+	background-color: #444;
+	transition-duration: 0;
+}
+
+
+/* ===== BACKDROP ===== */
+
 .backdrop-wrap {
 	position: absolute;
 	top: 0;

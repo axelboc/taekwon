@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			View.onMatchStateChanged(newState);
 		};
 		
-		var score = function (points, competitor) {
+		var score = function (competitor, points) {
 			console.log("Scoring " + points + " points for " + competitor);
 			socket.emit('score', {
 				competitor: competitor,
@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		var state;
-		var views, backdropWrap, backdrops, nameField, ringsInstr, ringsList, ringsBtns, scoreOneBtn;
+		var views, backdropWrap, backdrops, nameField, ringsInstr, ringsList, ringsBtns, scoreBtnsHong, scoreBtnsChong;
 		
 		var cacheElements = function () {
 			views = document.getElementsByClassName('view');
@@ -166,15 +166,23 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			ringsInstr = document.getElementById('rings-instr');
 			ringsList = document.getElementById('rings-list');
             ringsBtns = ringsList.getElementsByClassName('rings-btn');
-			scoreOneBtn = document.getElementById('score1');
+			scoreBtnsHong = document.querySelectorAll('.score-btns--hong > .score-btn');
+			scoreBtnsChong = document.querySelectorAll('.score-btns--chong > .score-btn');
 		};
 		
 		var bindEvents = function () {
 			nameField.addEventListener('keypress', onNameField);
-			[].forEach.call(ringsBtns, function (item, index) {
-                item.addEventListener('click', onRingsBtn.bind(item, index));
+			
+			[].forEach.call(ringsBtns, function (btn, index) {
+                btn.addEventListener('click', onRingsBtn.bind(btn, index));
 			});
-			scoreOneBtn.addEventListener('click', onScoreBtn.bind(scoreOneBtn, Competitors.HONG, 1));
+			
+			var bindScoreBtn = function (competitor, btn, index) {
+				btn.addEventListener('click', onScoreBtn.bind(btn, competitor, index * -1 + 5));
+			};
+			
+			[].forEach.call(scoreBtnsHong, bindScoreBtn.bind(this, Competitors.HONG)); 
+			[].forEach.call(scoreBtnsChong, bindScoreBtn.bind(this, Competitors.CHONG)); 
 		};
 		
 		
@@ -226,6 +234,10 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
         
 		var onScoreBtn = function (competitor, points) {
+			if (window.navigator.vibrate) {
+				window.navigator.vibrate(100);
+			}
+			
 			IO.score(competitor, points);
 		};
 		
