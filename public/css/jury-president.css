@@ -1,3 +1,139 @@
 @charset "utf-8";
 
+#match-view {
+	max-width: none;
+	min-height: 33em;
+	padding-bottom: 0;
+	height: 100%;
+}
 
+.panel {
+	overflow: hidden;
+	height: 100%;
+}
+
+
+/* ===== Before match (configuration) ===== */
+
+.panel--before {
+	padding-top: 7em;
+}
+
+.config-wrap {
+	margin-top: 3em;
+	font-size: 120%;
+	text-align: left;
+}
+
+.config > span {
+	display: block;
+	float: left;
+	width: 50%;
+	margin: .3em 0;
+	padding: 0 .6em;
+}
+
+.config-lbl {
+	text-align: right;
+}
+
+
+/* ===== Time keeping and match/round management ===== */
+
+.time-keeping {
+	height: 50%;
+	border-bottom: solid 1px #ccc;
+}
+
+.timer-wrap {
+	position: relative;
+	width: 22.5em;
+	margin: 0 auto 5em;
+	text-align: center;
+}
+
+.timer {
+	letter-spacing: .06em;
+	color: #444;
+}
+
+.timer-sep {
+	position: relative;
+	top: -.09em;
+	text-align: center;
+}
+
+.timer--round {
+	font-size: 750%;
+	background-color: #fff;
+}
+
+.timer--round > span {
+	transition: opacity .5s ease;
+}
+
+.timer--injury {
+	position: absolute;
+	bottom: 0;
+	z-index: -10;
+	width: 100%;
+	font-size: 300%;
+	transition: bottom .5s ease-in;
+}
+
+.timer-wrap_injury .timer--round > span {
+	opacity: .7;
+}
+
+.timer-wrap_injury .timer--injury {
+	bottom: -1em;
+	transition-timing-function: ease-out;
+}
+
+
+/* ===== Score and injuries ===== */
+
+.scoring {
+	height: 50%;
+	border-top: solid 1px #ccc;
+}
+
+
+/* ===== Judges sidebar ===== */
+
+.judges {
+	float: left;
+	width: 16em;
+	height: 100%;
+	padding: 1em 2em;
+	font-size: 90%;
+	background-color: #eee;
+	border-right: 1px solid #ccc;
+}
+
+.judges-heading {
+	margin-top: 1.3em;
+	margin-bottom: 1.3em;
+	font-weight: normal;
+}
+
+.judge {
+	padding: 1.6em 0;
+}
+
+.judge:not(:first-child) {
+	border-top: 1px solid #ccc;
+}
+
+.judge-name {
+	margin-top: 0;
+	margin-bottom: .7em;
+}
+
+.judge-state {
+	margin-bottom: 0;
+}
+
+.judge-btns {
+	cursor: default;
+}

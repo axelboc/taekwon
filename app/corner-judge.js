@@ -1,6 +1,5 @@
 
 var Ring = require('./ring').Ring;
-var MatchState = require('./match-state').MatchState;
 
 
 function CornerJudge(io, socket, id, name) {

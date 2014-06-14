@@ -24,7 +24,7 @@
 			<p id="rings-instr" class="instr">Select ring number</p>
 		    <ul id="rings-list" class="list-reset list-grid">
                 {{#each ringAllocations}}
-		            <li><button type="button" class="rings-btn">{{index}}</button></li>
+		            <li><button type="button" class="btn btn--ring">{{index}}</button></li>
                 {{/each}}
 		    </ul>
 		</div>
@@ -36,44 +36,110 @@
 		        <li class="judge">
 		            <h3 class="judge-name">Judge #1</h3>
 		            <span class="judge-state">Waiting for connection</span>
-                    <ul class="judge-btns list-reset hidden">
-                        <li><button type="button" class="judge-btn judge-btn--accept">Accept</button></li>
-                        <li><button type="button" class="judge-btn judge-btn--reject">Reject</button></li>
-                    </ul>
+                    <div class="judge-btns hidden">
+                        <button type="button" class="judge-accept btn btn--judge btn--major">Accept</button>
+                        <button type="button" class="judge-reject btn btn--judge btn--minor">Reject</button>
+                    </div>
                 </li>
 		        <li class="judge">
 		            <h3 class="judge-name">Judge #2</h3>
 		            <span class="judge-state">Waiting for connection</span>
-                    <ul class="judge-btns list-reset hidden">
-                        <li><button type="button" class="judge-btn judge-btn--accept">Accept</button></li>
-                        <li><button type="button" class="judge-btn judge-btn--reject">Reject</button></li>
-                    </ul>
+                    <div class="judge-btns hidden">
+                        <button type="button" class="judge-accept btn btn--judge btn--major">Accept</button>
+                        <button type="button" class="judge-reject btn btn--judge btn--minor">Reject</button>
+                    </div>
                 </li>
                 <li class="judge">
 		            <h3 class="judge-name">Judge #3</h3>
                     <span class="judge-state">Waiting for connection</span>
-                    <ul class="judge-btns list-reset hidden">
-                        <li><button type="button" class="judge-btn judge-btn--accept">Accept</button></li>
-                        <li><button type="button" class="judge-btn judge-btn--reject">Reject</button></li>
-                    </ul>
+                    <div class="judge-btns hidden">
+                        <button type="button" class="judge-accept btn btn--judge btn--major">Accept</button>
+                        <button type="button" class="judge-reject btn btn--judge btn--minor">Reject</button>
+                    </div>
                 </li>
                 <li class="judge">
 		            <h3 class="judge-name">Judge #4</h3>
                     <span class="judge-state">Waiting for connection</span>
-                    <ul class="judge-btns list-reset hidden">
-                        <li><button type="button" class="judge-btn judge-btn--accept">Accept</button></li>
-                        <li><button type="button" class="judge-btn judge-btn--reject">Reject</button></li>
-                    </ul>
+                    <div class="judge-btns hidden">
+                        <button type="button" class="judge-accept btn btn--judge btn--major">Accept</button>
+                        <button type="button" class="judge-reject btn btn--judge btn--minor">Reject</button>
+                    </div>
                 </li>
 		    </ul>
 		</div>
-		<div class="main">
+		<div class="panel panel--before">
+			<button type="button" class="btn btn--match btn--major match-new">New match</button>
+			<div class="config-wrap">
+				<div class="config">
+					<span class="config-lbl">Round time</span>
+					<span class="config-inp"><button type="button">-</button><span>2:00</span><button type="button">+</button></span>
+				</div>
+				<div class="config">
+					<span class="config-lbl">Break time</span>
+					<span class="config-inp"><button type="button">-</button><span>1:00</span><button type="button">+</button></span>
+				</div>
+				<div class="config">
+					<span class="config-lbl">Number of rounds</span>
+					<span class="config-inp"><button type="button">1</button><button type="button">2</button></span>
+				</div>
+				<div class="config">
+					<span class="config-lbl">Tie breaker</span>
+					<span class="config-inp"><button type="button">On</button><button type="button">Off</button></span>
+				</div>
+				<div class="config">
+					<span class="config-lbl">Golden point</span>
+					<span class="config-inp"><button type="button">On</button><button type="button">Off</button></span>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel--during hidden">
 		    <div class="time-keeping">
-		        
+	        	<div class="timer-wrap">
+					<div class="timer timer--round">
+	        			<span class="timer-min">2</span><span class="timer-sep">:</span><span class="timer-sec">00</span>
+	        		</div>
+	        		<div class="timer timer--injury">
+	        			<span class="timer-min">2</span><span class="timer-sep">:</span><span class="timer-sec">00</span>
+	        		</div>
+	        	</div>
 		    </div>
-		    <div class="match">
-	        	<p><button type="button" id="start-btn">Start Match</button></p>
+		    <div class="scoring">
+		    	
 		    </div>
+		</div>
+		<div class="panel panel--after hidden">
+			<p id="result-winner">Hong wins</p>
+			<div>
+				<button type="button" class="btn btn--match btn--minor">Match configuration</button>
+				<button type="button" class="btn btn--match btn--major match-new">New match</button>
+			</div>
+			<div id="scoreboard-wrap">
+			</div>
+			<template id="scoreboard-template">
+				<p>Penalties: <span class="hong">\{{penalties.hong}}</span>, <span class="chong">\{{penalties.chong}}</span></p>
+				<table>
+					<thead>
+						<tr>
+							<th scope="col">Judge</th>
+							<th scope="col" colspan="2">Round1</th>
+							\{{if match.hadTwoRounds}}<th scope="col" colspan="2">Round 2</th>\{{/if}}
+							<th scope="col" colspan="2">Result</th>
+							\{{if match.hadTieBreaker}}<th scope="col" colspan="2">Tie breaker</th>\{{/if}}
+							\{{if match.hadGoldenPoint}}<th scope="col" colspan="2">Golden point</th>\{{/if}}
+						</tr>
+					</thead>
+					<tbody>
+						\{{each judges}}
+						<tr>
+							<th scope="row">\{{name}}</th>
+							\{{each results}}
+							<td>{{this}}</td>
+							\{{/each}}
+						</tr>
+						\{{/each}}
+					</tbody>
+				</table>
+			</template>
 		</div>
 	</div>
 </body>

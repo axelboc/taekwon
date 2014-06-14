@@ -13,8 +13,7 @@ body {
 
 body {
 	font-family: Century Gothic, sans-serif;
-	max-width: 50em;
-	margin: 0 auto;
+	margin: 0;
 }
 
 h1 {
@@ -46,9 +45,11 @@ button::-moz-focus-inner {
 /* Views */
 
 .view {
-	text-align: center;
 	overflow: hidden;
+	max-width: 50em;
+	margin: 0 auto;
 	padding-bottom: 4em;
+	text-align: center;
 }
 
 
@@ -82,27 +83,62 @@ button::-moz-focus-inner {
 	text-align: inherit;
 }
 
-/* Rings list */
-.rings-btn {
-    min-width: 2.8em;
-    min-height: 2.8em;
+/* Buttons */
+.btn {
     background-color: #555;
-    border: none;
-    border-radius: 10px;
     color: #fff;
-    font-size: 230%;
+    border: 1px solid #555;
+    border-radius: 10px;
+    cursor: pointer;
     transition: all .2s ease-in-out;
 }
 
-.rings-btn:not([disabled]):hover,
-.rings-btn:not([disabled]):focus {
-    background-color: #ddd;
-    color: #555;
-    cursor: pointer;
+.btn[disabled] {
+    opacity: .4;
+	pointer-events: none;
 }
 
-.rings-btn[disabled] {
-    opacity: .4;
+.btn--minor {
+    background-color: #ddd;
+	border: 1px solid #bbb;
+    color: #444;
+}
+
+.btn--major {
+	background-color: #ec1822;
+	border-color: #ec1822;
+    color: #fff;
+}
+
+.btn:hover,
+.btn:focus {
+    background-color: #ddd;
+    border-color: #ddd;
+    color: #444;
+}
+
+.btn--minor:hover,
+.btn--minor:focus,
+.btn--major:hover,
+.btn--major:focus {
+    background-color: #555;
+    border-color: #555;
+    color: #fff;
+}
+
+.btn--ring {
+    min-width: 2.8em;
+    min-height: 2.8em;
+    font-size: 230%;
+}
+
+.btn--match {
+	padding: .5em 1em;
+	font-size: 150%;
+}
+
+.btn--judge {
+	padding: .3em .8em;
 }
 
 

@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			socket.on('ringDoesNotExist', onRingDoesNotExist);
 			socket.on('ringIsFull', onRingIsFull);
 			socket.on('juryPresidentStateChanged', onJuryPresidentStateChanged);
-			socket.on('matchStateChanged', onMatchStateChanged);
+			socket.on('scoringStateChanged', onScoringStateChanged);
 		};
 		
 		
@@ -94,9 +94,9 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			View.toggleBackdrop(!connected, Backdrops.DISCONNECTED);
 		};
 		
-		var onMatchStateChanged = function (newState) {
-			console.log("Match state changed to " + newState);
-			View.onMatchStateChanged(newState);
+		var onScoringStateChanged = function (enabled) {
+			console.log("Scoring " + (enabled ? "enabled" : "disabled"));
+			View.onScoringStateChanged(enabled);
 		};
 		
 		var score = function (competitor, points) {
@@ -155,7 +155,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			FastClick.attach(document.body);
 		};
 		
-		var state;
+		var isScoringEnabled = false;
 		var views, backdropWrap, backdrops, nameField, ringsInstr, ringsList, ringsBtns, scoreBtnsHong, scoreBtnsChong;
 		
 		var cacheElements = function () {
@@ -165,7 +165,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			nameField = document.getElementById('name-field');
 			ringsInstr = document.getElementById('rings-instr');
 			ringsList = document.getElementById('rings-list');
-            ringsBtns = ringsList.getElementsByClassName('rings-btn');
+            ringsBtns = ringsList.getElementsByTagName('button');
 			scoreBtnsHong = document.querySelectorAll('.score-btns--hong > .score-btn');
 			scoreBtnsChong = document.querySelectorAll('.score-btns--chong > .score-btn');
 		};
@@ -228,9 +228,9 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			showView(Views.RINGS);
 		};
 		
-		var onMatchStateChanged = function (newState) {
-			state = newState;
-			toggleBackdrop(state !== 'round', Backdrops.WAITING);
+		var onScoringStateChanged = function (enabled) {
+			isScoringEnabled = enabled;
+			toggleBackdrop(!enabled, Backdrops.DISABLED);
 		};
         
 		var onScoreBtn = function (competitor, points) {
@@ -250,7 +250,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		var toggleBackdrop = function (show, backdrop) {
-			if (!show && backdrop === Backdrops.DISCONNECTED && state !== 'round') {
+			if (!show && backdrop === Backdrops.DISCONNECTED && !isScoringEnabled) {
 				// Restore waiting backdrop instead
 				show = true;
 				backdrop = Backdrops.WAITING;
@@ -286,7 +286,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			onRingAllocations: onRingAllocations,
 			onRingAllocationChanged: onRingAllocationChanged,
 			ringNotJoined: ringNotJoined,
-			onMatchStateChanged: onMatchStateChanged,
+			onScoringStateChanged: onScoringStateChanged,
 			showView: showView,
 			toggleBackdrop: toggleBackdrop
 		};

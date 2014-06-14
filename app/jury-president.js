@@ -23,7 +23,7 @@ JuryPresident.prototype.initSocket = function () {
 	this.socket.on('createRing', this.onCreateRing.bind(this));
 	this.socket.on('cornerJudgeAccepted', this.onCornerJudgeAuthorisation.bind(this, true));
 	this.socket.on('cornerJudgeRejected', this.onCornerJudgeAuthorisation.bind(this, false));
-	this.socket.on('startMatch', this.onStartMatch.bind(this));
+	this.socket.on('enableScoring', this.onEnableScoring.bind(this));
 };
 
 
@@ -68,10 +68,9 @@ JuryPresident.prototype.onCornerJudgeAuthorisation = function (accepted, cornerJ
 	delete this.waitingList[cornerJudgeId];
 };
 
-JuryPresident.prototype.onStartMatch = function () {
-	this.debug("Starting match");
-	this.ring.startMatch();
-	this.debug("> Match started");
+JuryPresident.prototype.onEnableScoring = function (enable) {
+	this.ring.scoringStateChanged(enable);
+	this.debug("Scoring " + (enable ? "enabled" : "disabled"));
 };
 
 

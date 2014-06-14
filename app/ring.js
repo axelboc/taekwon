@@ -1,6 +1,5 @@
 
 var Config = require('./config');
-var Match = require('./match').Match;
 
 var rings = [];
 
@@ -25,8 +24,6 @@ function Ring(io, index, juryPresident) {
 	
 	this.roomId = 'ring' + this.index;
 	this.juryPresident.socket.join(this.roomId);
-	
-	this.match = null;
 }
 
 
@@ -58,9 +55,8 @@ Ring.prototype.juryPresidentStateChanged = function (connected) {
 	this.io.sockets.in(this.roomId).emit('juryPresidentStateChanged', connected);
 };
 
-Ring.prototype.startMatch = function () {
-	this.match = new Match();
-	this.io.sockets.in(this.roomId).emit('matchStateChanged', this.match.state);
+Ring.prototype.scoringStateChanged = function (enabled) {
+	this.io.sockets.in(this.roomId).emit('scoringStateChanged', enabled);
 };
 
 Ring.prototype.debug = function (msg) {

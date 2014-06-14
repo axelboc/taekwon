@@ -23,7 +23,6 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			socket.on('ringAlreadyExists', onRingAlreadyExists);
 			socket.on('authoriseCornerJudge', onAuthoriseCornerJudge);
 			socket.on('cornerJudgeStateChanged', onCornerJudgeStateChanged);
-			socket.on('matchStarted', onMatchStarted);
 		};
 		
 		
@@ -96,13 +95,9 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			View.onCornerJudgeStateChanged(cornerJudge);
 		};
 		
-		var startMatch = function () {
-			console.log("Starting new match");
-			socket.emit('startMatch');
-		};
-		
-		var onMatchStarted = function (matchId) {
-			console.log("Match started (id=" + matchId + ")");
+		var enableScoring = function (enable) {
+			console.log((enable ? "Enable" : "Disable") + " scoring");
+			socket.emit('enableScoring', enable);
 		};
 	
 		
@@ -111,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			sendId: sendId,
 			createRing: createRing,
 			authoriseCornerJudge: authoriseCornerJudge,
-			startMatch: startMatch
+			enableScoring: enableScoring
 		};
 		
 	}());
@@ -149,7 +144,12 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
-		var views, pwdAction, pwdInstr, pwdField, ringsList, ringsBtns, startBtn, judgesList, judges, judgesById;
+		var views,
+			pwdAction, pwdInstr, pwdField,
+			ringsList, ringsBtns,
+			matchView, matchNewBtns,
+			judgesList, judges, judgesById;
+		
 		
 		var cacheElements = function () {
 			views = document.getElementsByClassName('view');
@@ -159,7 +159,10 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			pwdField = document.getElementById('pwd-field');
 			
 			ringsList = document.getElementById('rings-list');
-            ringsBtns = ringsList.getElementsByClassName('rings-btn');
+            ringsBtns = ringsList.getElementsByTagName('button');
+			
+			matchView = document.getElementById('match-view');
+			matchNewBtns = matchView.getElementsByClassName('match-new');
 			
 			judges = [];
 			judgesById = {};
@@ -173,20 +176,20 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 					nameH3: item.getElementsByClassName('judge-name')[0],
 					stateSpan: item.getElementsByClassName('judge-state')[0],
 					btnsUl: item.getElementsByClassName('judge-btns')[0],
-					acceptBtn: item.getElementsByClassName('judge-btn--accept')[0],
-					rejectBtn: item.getElementsByClassName('judge-btn--reject')[0]
+					acceptBtn: item.getElementsByClassName('judge-accept')[0],
+					rejectBtn: item.getElementsByClassName('judge-reject')[0]
 				};
 			});
-			
-			startBtn = document.getElementById('start-btn');
 		};
 		
 		var bindEvents = function () {
 			pwdField.addEventListener('keypress', onPwdField);
-            [].forEach.call(ringsBtns, function (item, index) {
-                item.addEventListener('click', onRingsBtn.bind(null, index));
+            [].forEach.call(ringsBtns, function (btn, index) {
+                btn.addEventListener('click', onRingsBtn.bind(null, index));
             });
-			startBtn.addEventListener('click', onStartBtn);
+            [].forEach.call(matchNewBtns, function (btn, index) {
+                btn.addEventListener('click', onMatchNewBtn);
+            });
 		};
 		
 		var onPwdField = function (evt) {
@@ -253,15 +256,14 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 				
 				// Set name
 				judge.nameH3.textContent = cornerJudge.name;
-				// Show/hide accept/reject buttons
+				
+				// Show/hide accept/reject buttons and state span
 				judge.btnsUl.classList.toggle("hidden", alreadyAuthorised);
+				judge.stateSpan.classList.toggle("hidden", !alreadyAuthorised);
 				
 				if (alreadyAuthorised) {
 					return judge;
 				} else {
-					// Hide state span
-					judge.stateSpan.classList.add("hidden");
-
 					// Listen to jury president's decision
 					judge.acceptFn = onJudgeBtn.bind(null, judge, true);
 					judge.rejectFn = onJudgeBtn.bind(null, judge, false);
@@ -274,8 +276,9 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		var onJudgeBtn = function (judge, accept) {
 			IO.authoriseCornerJudge(judge.id, accept);
 			
-			// Hide buttons
+			// Hide buttons and show state span
 			judge.btnsUl.classList.add("hidden");
+			judge.stateSpan.classList.remove("hidden");
 			
 			// Remove listeners
 			judge.acceptBtn.removeEventListener('click', judge.acceptFn);
@@ -285,11 +288,13 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			
 			if (!accept) {
 				judge.nameH3.textContent = "Judge #" + (judge.slot + 1);
-				judge.stateSpan.classList.remove("hidden");
+				judge.stateSpan.textContent = "Waiting for connection";
 				
 				delete judgesById[judge.id];
 				judge.id = null;
 				judge.name = null;
+			} else {
+				judge.stateSpan.textContent = "Connected";
 			}
 		};
 		
@@ -305,17 +310,17 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			if (cornerJudge.connected) {
 				// Set name and hide connection lost message
 				judge.nameH3.textContent = cornerJudge.name;
-				judge.stateSpan.textContent = "Waiting for connection";
-				judge.stateSpan.classList.add("hidden");
+				judge.stateSpan.textContent = "Connected";
 			} else {
 				// Show connection lost message
 				judge.stateSpan.textContent = "Connection lost. Waiting for reconnection...";
-				judge.stateSpan.classList.remove("hidden");
 			}
 		};
 		
-		var onStartBtn = function () {
-			IO.startMatch();
+		var enabled = false;
+		var onMatchNewBtn = function () {
+			enabled = !enabled;
+			IO.enableScoring(enabled);
 		};
 		
 		
