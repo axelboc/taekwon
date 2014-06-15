@@ -23,9 +23,9 @@
 		<div id="rings-action" class="action">
 			<p id="rings-instr" class="instr">Select ring number</p>
 		    <ul id="rings-list" class="list-reset list-grid">
-                {{#each ringAllocations}}
-		            <li><button type="button" class="btn btn--ring">{{index}}</button></li>
-                {{/each}}
+				{{#each ringAllocations}}
+				<li><button type="button" class="btn btn--ring">{{index}}</button></li>
+				{{/each}}
 		    </ul>
 		</div>
 	</div>
@@ -33,50 +33,28 @@
 		<div class="judges">
 		    <h2 class="judges-heading">Corner Judges</h2>
 		    <ul id="judges-list" class="list-reset">
+				{{#times judgeCount}}
 		        <li class="judge">
-		            <h3 class="judge-name">Judge #1</h3>
+		            <h3 class="judge-name">Judge #{{this}}</h3>
 		            <span class="judge-state">Waiting for connection</span>
                     <div class="judge-btns hidden">
                         <button type="button" class="judge-accept btn btn--judge btn--major">Accept</button>
                         <button type="button" class="judge-reject btn btn--judge btn--minor">Reject</button>
                     </div>
                 </li>
-		        <li class="judge">
-		            <h3 class="judge-name">Judge #2</h3>
-		            <span class="judge-state">Waiting for connection</span>
-                    <div class="judge-btns hidden">
-                        <button type="button" class="judge-accept btn btn--judge btn--major">Accept</button>
-                        <button type="button" class="judge-reject btn btn--judge btn--minor">Reject</button>
-                    </div>
-                </li>
-                <li class="judge">
-		            <h3 class="judge-name">Judge #3</h3>
-                    <span class="judge-state">Waiting for connection</span>
-                    <div class="judge-btns hidden">
-                        <button type="button" class="judge-accept btn btn--judge btn--major">Accept</button>
-                        <button type="button" class="judge-reject btn btn--judge btn--minor">Reject</button>
-                    </div>
-                </li>
-                <li class="judge">
-		            <h3 class="judge-name">Judge #4</h3>
-                    <span class="judge-state">Waiting for connection</span>
-                    <div class="judge-btns hidden">
-                        <button type="button" class="judge-accept btn btn--judge btn--major">Accept</button>
-                        <button type="button" class="judge-reject btn btn--judge btn--minor">Reject</button>
-                    </div>
-                </li>
+				{{/times}}
 		    </ul>
 		</div>
-		<div class="panel panel--before">
+		<div id="config-panel" class="panel">
 			<button type="button" class="btn btn--match btn--major match-new">New match</button>
 			<div class="config-wrap">
 				<div class="config">
 					<span class="config-lbl">Round time</span>
-					<span class="config-inp"><button type="button">-</button><span>2:00</span><button type="button">+</button></span>
+					<span class="config-inp"><button type="button">-</button><span>{{numToTime match.roundTime}}</span><button type="button">+</button></span>
 				</div>
 				<div class="config">
 					<span class="config-lbl">Break time</span>
-					<span class="config-inp"><button type="button">-</button><span>1:00</span><button type="button">+</button></span>
+					<span class="config-inp"><button type="button">-</button><span>{{numToTime match.breakTime}}</span><button type="button">+</button></span>
 				</div>
 				<div class="config">
 					<span class="config-lbl">Number of rounds</span>
@@ -92,7 +70,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="panel panel--during hidden">
+		<div id="match-panel" class="panel hidden">
 		    <div class="time-keeping">
 	        	<div class="timer-wrap">
 					<div class="timer timer--round">
@@ -107,7 +85,7 @@
 		    	
 		    </div>
 		</div>
-		<div class="panel panel--after hidden">
+		<div id="result-panel" class="panel hidden">
 			<p id="result-winner">Hong wins</p>
 			<div>
 				<button type="button" class="btn btn--match btn--minor">Match configuration</button>

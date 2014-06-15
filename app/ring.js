@@ -4,7 +4,7 @@ var Config = require('./config');
 var rings = [];
 
 var ringAllocations = [];
-for (var i = 0; i < Config.ringsCount; i += 1) {
+for (var i = 0; i < Config.ringCount; i += 1) {
     ringAllocations[i] = {
         index: i + 1,
         allocated: false

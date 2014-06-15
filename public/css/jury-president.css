@@ -13,9 +13,9 @@
 }
 
 
-/* ===== Before match (configuration) ===== */
+/* ===== Configuration panel ===== */
 
-.panel--before {
+#config-panel {
 	padding-top: 7em;
 }
 
@@ -38,7 +38,9 @@
 }
 
 
-/* ===== Time keeping and match/round management ===== */
+/* ===== Match panel ===== */
+
+/* Time keeping and match/round management */
 
 .time-keeping {
 	height: 50%;
@@ -91,12 +93,15 @@
 }
 
 
-/* ===== Score and injuries ===== */
+/* Score and injuries */
 
 .scoring {
 	height: 50%;
 	border-top: solid 1px #ccc;
 }
+
+
+/* ===== Result panel ===== */
 
 
 /* ===== Judges sidebar ===== */

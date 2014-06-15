@@ -2,5 +2,13 @@
 	"cookieKey": "express.sid",
 	"cookieSecret": "tkd is awesome",
 	"masterPwd": "tkd",
-	"ringsCount": 4
+	"ringCount": 4,
+	"judgeCount": 4,
+	"match": {
+		"roundTime": 2,
+		"breakTime": 1,
+		"roundCount": 2,
+		"tieBreaker": true,
+		"goldenPoint": true
+	}
 }

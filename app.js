@@ -10,6 +10,8 @@ var cookie = require('cookie');
 
 // Import app modules
 var Config = require('./app/config');
+var hbsHelpers = require('./app/hbs-helpers');
+console.log(hbsHelpers);
 var JuryPresident = require('./app/jury-president').JuryPresident;
 var CornerJudge = require('./app/corner-judge').CornerJudge;
 var Ring = require('./app/ring').Ring;
@@ -35,7 +37,7 @@ app.configure(function () {
     // Initialie Handlebars templating engine
     app.set('views', __dirname + '/views');
     app.set('view engine', 'hbs');
-    app.engine('hbs', exphbs());
+    app.engine('hbs', exphbs({helpers: hbsHelpers}));
 
     // Let Express know where to look for static files
     app.use(express.static(__dirname + '/public'));
@@ -75,12 +77,18 @@ io.configure(function () {
 
 // Corner Judge
 app.get('/', function (request, response) {
-	response.render('corner-judge', {ringAllocations: Ring.getRingAllocations()});
+	response.render('corner-judge', {
+		ringAllocations: Ring.getRingAllocations()
+	});
 });
 
 // Jury President
 app.get('/jury', function (request, response) {
-	response.render('jury-president', {ringAllocations: Ring.getRingAllocations()});
+	response.render('jury-president', {
+		ringAllocations: Ring.getRingAllocations(),
+		judgeCount: Config.judgeCount,
+		match: Config.match
+	});
 });
 
 

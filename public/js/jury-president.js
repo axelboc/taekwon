@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		
 		var onWaitingForId = function () {
 			console.log("Server waiting for identification");
-			View.showView(Views.PWD);
+			View.showElem(Views.PWD, 'views');
 		};
 		
 		var sendId = function (password) {
@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 				
 			// If in process of restoring session, rings view may need to be skipped
 			if (showRingsView) {
-				View.showView(Views.RINGS);
+				View.showElem(Views.RINGS, 'views');
 			}
 		};
 		
@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		
 		var onRingCreated = function (ringId) {
 			console.log("Ring created (id=" + ringId + ")");
-			View.showView(Views.MATCH);
+			View.showElem(Views.MATCH, 'views');
 		};
 		
 		var onRingAlreadyExists = function (ringId) {
@@ -113,12 +113,21 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 	
 	
 	/**
-	 * Enum of all the views
+	 * Enum of the views
 	 */
 	var Views = {
 		PWD: 'pwd-view',
 		RINGS: 'rings-view',
 		MATCH: 'match-view'
+	};
+	
+	/**
+	 * Enum of the panels
+	 */
+	var Panels = {
+		CONFIG: 'config-panel',
+		MATCH: 'match-panel',
+		RESULT: 'result-panel'
 	};
 	
 	/**
@@ -144,7 +153,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		
-		var views,
+		var sets = {},
 			pwdAction, pwdInstr, pwdField,
 			ringsList, ringsBtns,
 			matchView, matchNewBtns,
@@ -152,7 +161,8 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		
 		
 		var cacheElements = function () {
-			views = document.getElementsByClassName('view');
+			sets.views = document.getElementsByClassName('view');
+			sets.panels = document.getElementsByClassName('panel');
 			
 			pwdAction = document.getElementById('pwd-action');
 			pwdInstr = document.getElementById('pwd-instr');
@@ -317,20 +327,22 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			}
 		};
 		
-		var enabled = false;
+		//var enabled = false;
 		var onMatchNewBtn = function () {
-			enabled = !enabled;
-			IO.enableScoring(enabled);
+			//enabled = !enabled;
+			//IO.enableScoring(enabled);
+			
+			showElem(Panels.MATCH, 'panels');
 		};
 		
 		
-		var showView = function (view) {
-			// Hide all views
-			[].forEach.call(views, function (v) {
-				if (v.id === view) {
-					v.classList.remove("hidden");
+		// Show element with given ID and hide all other elements in set with given name
+		var showElem = function (elemId, setName) {
+			[].forEach.call(sets[setName], function (elem) {
+				if (elem.id === elemId) {
+					elem.classList.remove("hidden");
 				} else {
-					v.classList.add("hidden");
+					elem.classList.add("hidden");
 				}
 			});
 		};
@@ -358,7 +370,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
             onRingAllocationChanged: onRingAllocationChanged,
 			onAuthoriseCornerJudge: onAuthoriseCornerJudge,
 			onCornerJudgeStateChanged: onCornerJudgeStateChanged,
-			showView: showView
+			showElem: showElem
 		};
 		
 	}());
