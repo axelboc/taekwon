@@ -11,7 +11,6 @@ var cookie = require('cookie');
 // Import app modules
 var Config = require('./app/config');
 var hbsHelpers = require('./app/hbs-helpers');
-console.log(hbsHelpers);
 var JuryPresident = require('./app/jury-president').JuryPresident;
 var CornerJudge = require('./app/corner-judge').CornerJudge;
 var Ring = require('./app/ring').Ring;
@@ -87,7 +86,8 @@ app.get('/jury', function (request, response) {
 	response.render('jury-president', {
 		ringAllocations: Ring.getRingAllocations(),
 		judgeCount: Config.judgeCount,
-		match: Config.match
+		match: Config.match,
+		jsonMatch: JSON.stringify(Config.match)
 	});
 });
 

@@ -8,7 +8,12 @@
 	<link rel="stylesheet" href="/css/jury-president.css">
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="/js/lib/fast-click.min.js"></script>
+	<script src="/js/lib/handlebars.min.js"></script>
 	<script src="/js/jury-president.js"></script>
+	<script>
+		window.matchConfig = {{{jsonMatch}}};
+		console.log(window.matchConfig);
+	</script>
 </head>
 <body>
 	<div id="pwd-view" class="view hidden">
@@ -46,7 +51,7 @@
 		    </ul>
 		</div>
 		<div id="config-panel" class="panel">
-			<button type="button" class="btn btn--match btn--major match-new">New match</button>
+			<button type="button" class="btn btn--match btn--major match-btn-new">New match</button>
 			<div class="config-wrap">
 				<div class="config">
 					<span class="config-lbl">Round time</span>
@@ -88,36 +93,36 @@
 		<div id="result-panel" class="panel hidden">
 			<p id="result-winner">Hong wins</p>
 			<div>
-				<button type="button" class="btn btn--match btn--minor">Match configuration</button>
-				<button type="button" class="btn btn--match btn--major match-new">New match</button>
+				<button type="button" class="btn btn--match btn--minor" id="match-btn-config">Match configuration</button>
+				<button type="button" class="btn btn--match btn--major match-btn-new">New match</button>
 			</div>
 			<div id="scoreboard-wrap">
 			</div>
-			<template id="scoreboard-template">
-				<p>Penalties: <span class="hong">\{{penalties.hong}}</span>, <span class="chong">\{{penalties.chong}}</span></p>
+			<script id="scoreboard-template" type="text/x-handlebars-template">
+				<p>Penalties: <span class="hong">Hong: \{{penalties.[0]}}</span>, <span class="chong">Chong: \{{penalties.[1]}}</span></p>
 				<table>
 					<thead>
 						<tr>
 							<th scope="col">Judge</th>
 							<th scope="col" colspan="2">Round1</th>
-							\{{if match.hadTwoRounds}}<th scope="col" colspan="2">Round 2</th>\{{/if}}
+							\{{#if match.hadTwoRounds}}<th scope="col" colspan="2">Round 2</th>\{{/if}}
 							<th scope="col" colspan="2">Result</th>
-							\{{if match.hadTieBreaker}}<th scope="col" colspan="2">Tie breaker</th>\{{/if}}
-							\{{if match.hadGoldenPoint}}<th scope="col" colspan="2">Golden point</th>\{{/if}}
+							\{{#if match.hadTieBreaker}}<th scope="col" colspan="2">Tie breaker</th>\{{/if}}
+							\{{#if match.hadGoldenPoint}}<th scope="col" colspan="2">Golden point</th>\{{/if}}
 						</tr>
 					</thead>
 					<tbody>
-						\{{each judges}}
+						\{{#each judges}}
 						<tr>
 							<th scope="row">\{{name}}</th>
-							\{{each results}}
-							<td>{{this}}</td>
+							\{{#each results}}
+							<td>\{{this}}</td>
 							\{{/each}}
 						</tr>
 						\{{/each}}
 					</tbody>
 				</table>
-			</template>
+			</script>
 		</div>
 	</div>
 </body>

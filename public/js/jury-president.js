@@ -156,7 +156,8 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		var sets = {},
 			pwdAction, pwdInstr, pwdField,
 			ringsList, ringsBtns,
-			matchView, matchNewBtns,
+			matchView, matchNewBtns, matchConfigBtn,
+			scoreboardWrap, scoreboardTemplate,
 			judgesList, judges, judgesById;
 		
 		
@@ -172,7 +173,11 @@ document.addEventListener("DOMContentLoaded", function domReady() {
             ringsBtns = ringsList.getElementsByTagName('button');
 			
 			matchView = document.getElementById('match-view');
-			matchNewBtns = matchView.getElementsByClassName('match-new');
+			matchNewBtns = matchView.getElementsByClassName('match-btn-new');
+			matchConfigBtn = document.getElementById('match-btn-config');
+			
+			scoreboardWrap = document.getElementById('scoreboard-wrap');
+			scoreboardTemplate = Handlebars.compile(document.getElementById('scoreboard-template').innerHTML);
 			
 			judges = [];
 			judgesById = {};
@@ -200,6 +205,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
             [].forEach.call(matchNewBtns, function (btn, index) {
                 btn.addEventListener('click', onMatchNewBtn);
             });
+			matchConfigBtn.addEventListener('click', showElem.bind(null, Panels.CONFIG, 'panels'));
 		};
 		
 		var onPwdField = function (evt) {
@@ -331,8 +337,27 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		var onMatchNewBtn = function () {
 			//enabled = !enabled;
 			//IO.enableScoring(enabled);
+			onMatchResultBtn();
+		};
+		
+		var onMatchResultBtn = function () {
+			scoreboardWrap.innerHTML = scoreboardTemplate({
+				penalties: [-1, -2],
+				match: {
+					hadTwoRounds: matchConfig.roundCount == 2,
+					hadTieBreaker: false,
+					hadGoldenPoint: false
+				},
+				judges: [{
+					name: "Axel",
+					results: [23, 25, 12, 34, 45, 46]
+				}, {
+					name: "Judge #2",
+					results: [23, 25, 12, 34, 45, 46]
+				}]
+			});
 			
-			showElem(Panels.MATCH, 'panels');
+			showElem(Panels.RESULT, 'panels');
 		};
 		
 		
