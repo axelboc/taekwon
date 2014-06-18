@@ -23,7 +23,12 @@ h1 {
 }
 
 .hidden {
-	display: none!important;
+	display: none !important;
+}
+
+.hidden--view {
+	position: absolute !important;
+	clip: rect(1px, 1px, 1px, 1px);
 }
 
 button::-moz-focus-inner {
@@ -141,6 +146,16 @@ button::-moz-focus-inner {
 	padding: .3em .8em;
 }
 
+
+/* Competitor colours */
+
+.hong-col { color: hsl(6, 78%, 57%); }
+.hong-bg { background-color: hsl(6, 78%, 57%); }
+.hong-sbg { background-color: hsla(6, 78%, 57%, .3); }
+
+.chong-col { color: hsl(204, 64%, 44%); }
+.chong-bg { background-color: hsl(204, 64%, 44%); }
+.chong-sbg { background-color: hsla(204, 64%, 44%, .3); }
 
 
 /* Shake effect */

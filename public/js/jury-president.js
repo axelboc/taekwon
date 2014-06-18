@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 			pwdAction, pwdInstr, pwdField,
 			ringsList, ringsBtns,
 			matchView, matchNewBtns, matchConfigBtn,
-			scoreboardWrap, scoreboardTemplate,
+			scoreboardWrap, scoreboardTemplate, scoreboard, scoreboardCells,
 			judgesList, judges, judgesById;
 		
 		
@@ -206,6 +206,8 @@ document.addEventListener("DOMContentLoaded", function domReady() {
                 btn.addEventListener('click', onMatchNewBtn);
             });
 			matchConfigBtn.addEventListener('click', showElem.bind(null, Panels.CONFIG, 'panels'));
+			
+			onMatchResultBtn();
 		};
 		
 		var onPwdField = function (evt) {
@@ -341,7 +343,8 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 		var onMatchResultBtn = function () {
-			scoreboardWrap.innerHTML = scoreboardTemplate({
+			// TODO: use JS instead of handlebars to populate table to have more control over classes for styling
+			var matchContext = {
 				penalties: [-1, -2],
 				match: {
 					hadTwoRounds: matchConfig.roundCount == 2,
@@ -354,8 +357,33 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 				}, {
 					name: "Judge #2",
 					results: [23, 25, 12, 34, 45, 46]
+				}, {
+					name: "Judge #3",
+					results: [23, 25, 12, 34, 45, 46]
+				}, {
+					name: "Judge #4",
+					results: [23, 25, 12, 34, 45, 46]
 				}]
-			});
+			};
+			
+			// Evaluate scoreboard template with match context
+			scoreboardWrap.innerHTML = scoreboardTemplate(matchContext);
+			
+			// Get scoreboard and cells
+			scoreboard = scoreboardWrap.getElementsByClassName('scoreboard')[0];
+			scoreboardCells = scoreboard.getElementsByTagName('td');
+			
+			// Add classes to scoreboard root
+			var gcm = matchContext.match;
+			scoreboard.classList.toggle('sb--2-rounds', gcm.hadTwoRounds);
+			scoreboard.classList.toggle('sb--tie', gcm.hadTieBreaker);
+			scoreboard.classList.toggle('sb--golden-pt', gcm.hadGoldenPoint);
+			
+			// Add classes to cells
+			var cellsPerRow = matchContext.judges[0].results.length;
+			[].forEach.call(scoreboardCells, function (cell, index) {
+				cell.classList.add(((index % cellsPerRow) % 2 === 0 ? 'hong-sbg' : 'chong-sbg'));
+			})
 			
 			showElem(Panels.RESULT, 'panels');
 		};
@@ -399,6 +427,19 @@ document.addEventListener("DOMContentLoaded", function domReady() {
 		};
 		
 	}());
+	
+	
+	/**
+	 * 'Match' constructor and prototype.
+	 */
+	function Match () {
+		
+	}
+	
+	Match.prototype = {
+		
+	};
+	
 	
 	IO.init();
 	View.init();

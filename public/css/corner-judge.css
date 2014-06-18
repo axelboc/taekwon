@@ -30,15 +30,8 @@
 	cursor: pointer;
 }
 
-.score-btns--hong > .score-btn {
-	background-color: #e74c3c;
-	border-radius: 0 10px 10px 0;
-}
-
-.score-btns--chong > .score-btn {
-	background-color: #2980b9;
-	border-radius: 10px 0 0 10px;
-}
+.score-btns--hong > .score-btn { border-radius: 0 10px 10px 0; }
+.score-btns--chong > .score-btn { border-radius: 10px 0 0 10px; }
 
 .score-btn--1,
 .score-btn--2 {
