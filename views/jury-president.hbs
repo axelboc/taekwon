@@ -7,12 +7,11 @@
 	<link rel="stylesheet" href="/css/main.css">
 	<link rel="stylesheet" href="/css/jury-president.css">
 	<script src="/socket.io/socket.io.js"></script>
-	<script src="/js/lib/fast-click.min.js"></script>
-	<script src="/js/lib/handlebars.min.js"></script>
-	<script src="/js/jury-president.js"></script>
+	<script src="/js/lib/require.js" data-main="/js/jury-president/main.js"></script>
 	<script>
-		window.matchConfig = {{{jsonMatch}}};
-		console.log(window.matchConfig);
+		define('match-config', function () {
+			return {{{jsonMatch}}};
+		});
 	</script>
 </head>
 <body>
@@ -50,7 +49,7 @@
 				{{/times}}
 		    </ul>
 		</div>
-		<div id="config-panel" class="panel hidden">
+		<div id="config-panel" class="panel">
 			<button type="button" class="btn btn--match btn--major match-btn-new">New match</button>
 			<div class="config-wrap">
 				<div class="config">
@@ -77,20 +76,27 @@
 		</div>
 		<div id="match-panel" class="panel hidden">
 		    <div class="time-keeping">
-	        	<div class="timer-wrap">
-					<div class="timer timer--round">
-	        			<span class="timer-min">2</span><span class="timer-sep">:</span><span class="timer-sec">00</span>
+	        	<div class="tk-inner">
+					<div class="tk-timer tk-timer--round">
+	        			<span class="tk-timer-min">2</span><span class="tk-timer-sep">:</span><span class="tk-timer-sec">00</span>
 	        		</div>
-	        		<div class="timer timer--injury">
-	        			<span class="timer-min">2</span><span class="timer-sep">:</span><span class="timer-sec">00</span>
+	        		<div class="tk-timer tk-timer--injury">
+	        			<span class="tk-timer-min">2</span><span class="tk-timer-sep">:</span><span class="tk-timer-sec">00</span>
 	        		</div>
 	        	</div>
+		    </div>
+		    <div class="state-management">
+		    	<div class="sm-inner">
+		    		<button class="sm-btn sm-btn--start" type="button">Start round 1</button>
+		    		<button class="sm-btn sm-btn--end" type="button">End round 1</button>
+		    		<button class="sm-btn sm-btn--injury" type="button">Start injury</button>
+		    	</div>
 		    </div>
 		    <div class="scoring">
 		    	
 		    </div>
 		</div>
-		<div id="result-panel" class="panel">
+		<div id="result-panel" class="panel hidden">
 			<p id="result-winner" class="hong-col">Hong wins</p>
 			<div>
 				<button type="button" class="btn btn--match btn--minor" id="match-btn-config">Match configuration</button>

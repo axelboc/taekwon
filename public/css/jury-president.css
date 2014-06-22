@@ -40,41 +40,41 @@
 
 /* ===== Match panel ===== */
 
-/* Time keeping and match/round management */
+/* Time keeping */
 
 .time-keeping {
 	height: 50%;
 	border-bottom: solid 1px #ccc;
 }
 
-.timer-wrap {
+.tk-inner {
 	position: relative;
 	width: 22.5em;
 	margin: 0 auto 5em;
 	text-align: center;
 }
 
-.timer {
+.tk-timer {
 	letter-spacing: .06em;
 	color: #444;
 }
 
-.timer-sep {
+.tk-timer-sep {
 	position: relative;
 	top: -.09em;
 	text-align: center;
 }
 
-.timer--round {
+.tk-timer--round {
 	font-size: 750%;
 	background-color: #fff;
 }
 
-.timer--round > span {
+.tk-timer--round > span {
 	transition: opacity .5s ease;
 }
 
-.timer--injury {
+.tk-timer--injury {
 	position: absolute;
 	bottom: 0;
 	z-index: -10;
@@ -83,14 +83,19 @@
 	transition: bottom .5s ease-in;
 }
 
-.timer-wrap_injury .timer--round > span {
+.tk-timer-wrap_injury .tk-timer--round > span {
 	opacity: .7;
 }
 
-.timer-wrap_injury .timer--injury {
+.tk-timer-wrap_injury .tk-timer--injury {
 	bottom: -1em;
 	transition-timing-function: ease-out;
 }
+
+
+/* Match state management */
+
+
 
 
 /* Score and injuries */
