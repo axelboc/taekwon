@@ -40,18 +40,30 @@
 
 /* ===== Match panel ===== */
 
-/* Time keeping */
+.mp-top-row {
+	display: table;
+	width: 100%;
+	height: 40%;
+}
 
-.time-keeping {
+.time-keeping,
+.state-management {
+	display: table-cell;
+	vertical-align: middle;
+	width: 50%;
 	height: 50%;
 	border-bottom: solid 1px #ccc;
 }
 
+/* Time keeping */
+
 .tk-inner {
 	position: relative;
+	top: 0;
 	width: 22.5em;
-	margin: 0 auto 5em;
+	margin: 0 auto;
 	text-align: center;
+	transition: top .3s ease-out;
 }
 
 .tk-timer {
@@ -70,37 +82,64 @@
 	background-color: #fff;
 }
 
-.tk-timer--round > span {
-	transition: opacity .5s ease;
-}
-
 .tk-timer--injury {
 	position: absolute;
 	bottom: 0;
 	z-index: -10;
 	width: 100%;
 	font-size: 300%;
-	transition: bottom .5s ease-in;
+	opacity: 0;
+	transition: bottom .3s ease-out, opacity .5s ease-in;
 }
 
-.tk-timer-wrap_injury .tk-timer--round > span {
-	opacity: .7;
+.tk_injury > .tk-inner {
+	top: -2em;
 }
 
-.tk-timer-wrap_injury .tk-timer--injury {
+.tk_injury .tk-timer--round {
+	opacity: .6;
+}
+
+.tk_injury .tk-timer--injury {
 	bottom: -1em;
-	transition-timing-function: ease-out;
+	opacity: 1;
+}
+
+.time-keeping:not(.tk_injury) .tk-timer--round > .tk-timer-sep,
+.tk_injury .tk-timer--round,
+.tk_injury .tk-timer--injury > .tk-timer-sep {
+	animation: blink 1s .5s ease infinite reverse;
 }
 
 
 /* Match state management */
 
+.sm-inner {
+	max-width: 25em;
+	margin: 0 auto;
+}
 
+.sm-btn {
+	float: left;
+	display: block;
+	width: 48%;
+}
+
+.sm-btn--start {
+	margin-right: 4%;
+}
+
+.sm-btn--injury {
+	width: 100%;
+	margin-top: .6em;
+	font-size: 120%;
+}
 
 
 /* Score and injuries */
 
 .scoring {
+	clear: left;
 	height: 50%;
 	border-top: solid 1px #ccc;
 }
@@ -183,4 +222,15 @@
 
 .judge-btns {
 	cursor: default;
+}
+
+
+/* Blink effect */
+
+@-webkit-keyframes blink {
+	50% { opacity: 0; }
+}
+
+@keyframes blink{
+	50% { opacity: 0; }
 }

@@ -137,13 +137,13 @@ button::-moz-focus-inner {
     font-size: 230%;
 }
 
+.btn--judge {
+	padding: .3em .8em;
+}
+
 .btn--match {
 	padding: .5em 1em;
 	font-size: 150%;
-}
-
-.btn--judge {
-	padding: .3em .8em;
 }
 
 

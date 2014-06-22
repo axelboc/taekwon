@@ -8,7 +8,7 @@ define(['handlebars', 'enum/ui-views', 'enum/ui-match-panels', './match', 'match
 		pwdAction, pwdInstr, pwdField,
 		ringsList, ringsBtns,
 		matchView, matchNewBtns, matchConfigBtn, match = null,
-		stateMgmtBtns,
+		timeKeeping, stateManagement, stateMgmtBtns,
 		scoreboardWrap, scoreboardTemplate, scoreboard, scoreboardCells,
 		judgesList, judges, judgesById;
 
@@ -33,7 +33,10 @@ define(['handlebars', 'enum/ui-views', 'enum/ui-match-panels', './match', 'match
 		matchView = document.getElementById('match-view');
 		matchNewBtns = matchView.getElementsByClassName('match-btn-new');
 		matchConfigBtn = document.getElementById('match-btn-config');
-		stateMgmtBtns = matchView.getElementsByClassName('sm-btn');
+		
+		timeKeeping = matchView.getElementsByClassName('time-keeping')[0];
+		stateManagement = matchView.getElementsByClassName('state-management')[0];
+		stateMgmtBtns = stateManagement.getElementsByClassName('btn');
 
 		scoreboardWrap = document.getElementById('scoreboard-wrap');
 		scoreboardTemplate = Handlebars.compile(document.getElementById('scoreboard-template').innerHTML);
@@ -212,12 +215,13 @@ define(['handlebars', 'enum/ui-views', 'enum/ui-match-panels', './match', 'match
 
 	var onStateMgmtBtn = function (evt) {
 		var classList = evt.target.classList;
-		if (classList.contains()) {
+		if (classList.contains('sm-btn--start')) {
 			match.startNextState();
-		} else if (classList.contains()) {
+		} else if (classList.contains('sm-btn--end')) {
 			match.endCurrentState();
 		} else {
-			match.injury();
+			//match.injury('sm-btn--injury');
+			timeKeeping.classList.toggle('tk_injury');
 		}
 	};
 

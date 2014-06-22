@@ -49,7 +49,7 @@
 				{{/times}}
 		    </ul>
 		</div>
-		<div id="config-panel" class="panel">
+		<div id="config-panel" class="panel hidden">
 			<button type="button" class="btn btn--match btn--major match-btn-new">New match</button>
 			<div class="config-wrap">
 				<div class="config">
@@ -74,23 +74,25 @@
 				</div>
 			</div>
 		</div>
-		<div id="match-panel" class="panel hidden">
-		    <div class="time-keeping">
-	        	<div class="tk-inner">
-					<div class="tk-timer tk-timer--round">
-	        			<span class="tk-timer-min">2</span><span class="tk-timer-sep">:</span><span class="tk-timer-sec">00</span>
-	        		</div>
-	        		<div class="tk-timer tk-timer--injury">
-	        			<span class="tk-timer-min">2</span><span class="tk-timer-sep">:</span><span class="tk-timer-sec">00</span>
-	        		</div>
-	        	</div>
-		    </div>
-		    <div class="state-management">
-		    	<div class="sm-inner">
-		    		<button class="sm-btn sm-btn--start" type="button">Start round 1</button>
-		    		<button class="sm-btn sm-btn--end" type="button">End round 1</button>
-		    		<button class="sm-btn sm-btn--injury" type="button">Start injury</button>
-		    	</div>
+		<div id="match-panel" class="panel">
+	    	<div class="mp-top-row">
+				<div class="time-keeping">
+					<div class="tk-inner">
+						<div class="tk-timer tk-timer--round">
+							<span class="tk-timer-min">2</span><span class="tk-timer-sep">:</span><span class="tk-timer-sec">00</span>
+						</div>
+						<div class="tk-timer tk-timer--injury">
+							<span class="tk-timer-min">2</span><span class="tk-timer-sep">:</span><span class="tk-timer-sec">00</span>
+						</div>
+					</div>
+				</div>
+				<div class="state-management">
+					<div class="sm-inner">
+						<button class="btn btn--match sm-btn--start" type="button">Start round 1</button>
+						<button class="btn btn--match sm-btn--end" type="button">End round 1</button>
+						<button class="btn btn--match btn--minor sm-btn--injury" type="button">Start injury</button>
+					</div>
+				</div>
 		    </div>
 		    <div class="scoring">
 		    	
