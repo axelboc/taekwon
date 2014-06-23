@@ -4,15 +4,12 @@ require.config({
 	baseUrl: '/js/jury-president',
 	paths: {
 		fastclick: '../lib/fast-click.min',
-		handlebars: '../lib/handlebars.min'
+		handlebars: '../lib/handlebars.min',
+		minpubsub: '../lib/minpubsub'
 	},
 	shim: {
-		fastclick: {
-			exports: 'FastClick'
-		},
-		handlebars: {
-			exports: 'Handlebars'
-		}
+		fastclick: { exports: 'FastClick' },
+		handlebars: { exports: 'Handlebars' },
 	}
 });
 

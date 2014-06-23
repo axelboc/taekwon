@@ -105,7 +105,7 @@
 	opacity: 1;
 }
 
-.time-keeping:not(.tk_injury) .tk-timer--round > .tk-timer-sep,
+.tk_on .tk-timer--round > .tk-timer-sep,
 .tk_injury .tk-timer--round,
 .tk_injury .tk-timer--injury > .tk-timer-sep {
 	animation: blink 1s .5s ease infinite reverse;

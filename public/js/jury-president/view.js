@@ -2,7 +2,7 @@
 /**
  * Jury President 'View' module
  */
-define(['handlebars', 'enum/ui-views', 'enum/ui-match-panels', './match', 'match-config'], function (Handlebars, UIViews, UIMatchPanels, Match, matchConfig) {
+define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './match', 'match-config'], function (PubSub, Handlebars, UIViews, UIMatchPanels, Match, matchConfig) {
 	
 	var IO, sets = {},
 		pwdAction, pwdInstr, pwdField,
@@ -57,6 +57,9 @@ define(['handlebars', 'enum/ui-views', 'enum/ui-match-panels', './match', 'match
 				rejectBtn: item.getElementsByClassName('judge-reject')[0]
 			};
 		});
+		
+		// DEBUG
+		setTimeout(onMatchNewBtn, 500);
 	};
 
 	// TODO: event delegation
@@ -76,6 +79,11 @@ define(['handlebars', 'enum/ui-views', 'enum/ui-match-panels', './match', 'match
 		[].forEach.call(stateMgmtBtns, function (btn, index) {
 			btn.addEventListener('click', onStateMgmtBtn);
 		});
+		
+		PubSub.subscribe('match.created', onMatchCreated);
+		PubSub.subscribe('match.stateChanged', onStateChanged);
+		PubSub.subscribe('match.stateStarted', onStateStarted);
+		PubSub.subscribe('match.stateEnded', onStateEnded);
 	};
 
 	var onPwdField = function (evt) {
@@ -207,22 +215,47 @@ define(['handlebars', 'enum/ui-views', 'enum/ui-match-panels', './match', 'match
 	var onMatchNewBtn = function () {
 		match = new Match();
 		showElem(UIMatchPanels.MATCH, 'panels');
-
+		
 		//enabled = !enabled;
 		//IO.enableScoring(enabled);
 		//onMatchResultBtn();
 	};
 
 	var onStateMgmtBtn = function (evt) {
+		evt.target.blur();
+		
 		var classList = evt.target.classList;
+		
 		if (classList.contains('sm-btn--start')) {
-			match.startNextState();
+			match.startState();
 		} else if (classList.contains('sm-btn--end')) {
-			match.endCurrentState();
+			match.endState();
 		} else {
 			//match.injury('sm-btn--injury');
+			evt.target.textContent = timeKeeping.classList.contains('tk_injury') ? "Start injury" : "Stop injury";
 			timeKeeping.classList.toggle('tk_injury');
 		}
+	};
+	
+	var onMatchCreated = function (match) {
+		console.log("Match created");
+	};
+	
+	var onStateChanged = function (state) {
+		var stateStr = state.toLowerCase().replace('-', ' ');
+		console.log("State changed: " + stateStr);
+		
+		// Update text of start and end buttons
+		stateMgmtBtns[0].textContent = "Start " + stateStr;
+		stateMgmtBtns[1].textContent = "End " + stateStr;
+	}
+	
+	var onStateStarted = function (state) {
+		console.log("State started: " + state);
+	};
+	
+	var onStateEnded = function (state) {
+		console.log("State ended: " + state);
 	};
 
 	// TODO: two-way data binding
