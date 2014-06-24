@@ -115,7 +115,7 @@
 /* Match state management */
 
 .sm-inner {
-	max-width: 25em;
+	max-width: 28em;
 	margin: 0 auto;
 }
 
@@ -123,14 +123,19 @@
 	float: left;
 	display: block;
 	width: 48%;
+	padding: .5em .2em;
 }
 
 .sm-btn--start {
 	margin-right: 4%;
 }
 
+.sm-btn--result,
 .sm-btn--injury {
 	width: 100%;
+}
+
+.sm-btn--injury {
 	margin-top: .6em;
 	font-size: 120%;
 }

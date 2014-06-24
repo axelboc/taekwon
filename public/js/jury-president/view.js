@@ -8,7 +8,7 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './m
 		pwdAction, pwdInstr, pwdField,
 		ringsList, ringsBtns,
 		matchView, matchNewBtns, matchConfigBtn, match = null,
-		timeKeeping, stateManagement, stateMgmtBtns,
+		timeKeeping, stateManagement, stateStartBtn, stateEndBtn, matchResultBtn, injuryBtn,
 		scoreboardWrap, scoreboardTemplate, scoreboard, scoreboardCells,
 		judgesList, judges, judgesById;
 
@@ -36,7 +36,10 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './m
 		
 		timeKeeping = matchView.getElementsByClassName('time-keeping')[0];
 		stateManagement = matchView.getElementsByClassName('state-management')[0];
-		stateMgmtBtns = stateManagement.getElementsByClassName('btn');
+		stateStartBtn = stateManagement.getElementsByClassName('sm-btn--start')[0];
+		stateEndBtn = stateManagement.getElementsByClassName('sm-btn--end')[0];
+		matchResultBtn = stateManagement.getElementsByClassName('sm-btn--result')[0];
+		injuryBtn = stateManagement.getElementsByClassName('sm-btn--injury')[0];
 
 		scoreboardWrap = document.getElementById('scoreboard-wrap');
 		scoreboardTemplate = Handlebars.compile(document.getElementById('scoreboard-template').innerHTML);
@@ -59,7 +62,7 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './m
 		});
 		
 		// DEBUG
-		setTimeout(onMatchNewBtn, 500);
+		//setTimeout(onMatchNewBtn, 500);
 	};
 
 	// TODO: event delegation
@@ -76,14 +79,16 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './m
 
 		matchConfigBtn.addEventListener('click', showElem.bind(null, UIMatchPanels.CONFIG, 'panels'));
 
-		[].forEach.call(stateMgmtBtns, function (btn, index) {
-			btn.addEventListener('click', onStateMgmtBtn);
-		});
+		stateStartBtn.addEventListener('click', onStateStartBtn);
+		stateEndBtn.addEventListener('click', onStateEndBtn);
+		matchResultBtn.addEventListener('click', onMatchResultBtn);
+		injuryBtn.addEventListener('click', onInjuryBtn);
 		
 		PubSub.subscribe('match.created', onMatchCreated);
 		PubSub.subscribe('match.stateChanged', onStateChanged);
 		PubSub.subscribe('match.stateStarted', onStateStarted);
 		PubSub.subscribe('match.stateEnded', onStateEnded);
+		PubSub.subscribe('match.ended', onMatchEnded);
 	};
 
 	var onPwdField = function (evt) {
@@ -221,24 +226,29 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './m
 		//onMatchResultBtn();
 	};
 
-	var onStateMgmtBtn = function (evt) {
+	var onStateStartBtn = function (evt) {
 		evt.target.blur();
-		
-		var classList = evt.target.classList;
-		
-		if (classList.contains('sm-btn--start')) {
-			match.startState();
-		} else if (classList.contains('sm-btn--end')) {
-			match.endState();
-		} else {
-			//match.injury('sm-btn--injury');
-			evt.target.textContent = timeKeeping.classList.contains('tk_injury') ? "Start injury" : "Stop injury";
-			timeKeeping.classList.toggle('tk_injury');
-		}
+		match.startState();
 	};
+
+	var onStateEndBtn = function (evt) {
+		evt.target.blur();
+		match.endState();
+	};
+
+	var onInjuryBtn = function (evt) {
+		evt.target.blur();
+		evt.target.textContent = timeKeeping.classList.contains('tk_injury') ? "Start injury" : "Stop injury";
+		timeKeeping.classList.toggle('tk_injury');
+	};
+	
 	
 	var onMatchCreated = function (match) {
 		console.log("Match created");
+		updateStateBtns(false);
+		matchResultBtn.classList.add("hidden");
+		stateStartBtn.classList.remove("hidden");
+		stateEndBtn.classList.remove("hidden");
 	};
 	
 	var onStateChanged = function (state) {
@@ -246,16 +256,37 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './m
 		console.log("State changed: " + stateStr);
 		
 		// Update text of start and end buttons
-		stateMgmtBtns[0].textContent = "Start " + stateStr;
-		stateMgmtBtns[1].textContent = "End " + stateStr;
+		stateStartBtn.textContent = "Start " + stateStr;
+		stateEndBtn.textContent = "End " + stateStr;
 	}
 	
 	var onStateStarted = function (state) {
 		console.log("State started: " + state);
+		updateStateBtns(true);
 	};
 	
 	var onStateEnded = function (state) {
 		console.log("State ended: " + state);
+		updateStateBtns(false);
+	};
+	
+	var updateStateBtns = function (starting) {
+		// Injury button
+		enableBtn(injuryBtn, starting);
+		// State start/end button
+		enableBtn(stateEndBtn, starting);
+		enableBtn(stateStartBtn, !starting);
+		
+		// Switch btn--major class
+		stateEndBtn.classList.toggle('btn--major', starting);
+		stateStartBtn.classList.toggle('btn--major', !starting);
+	};
+	
+	var onMatchEnded = function () {
+		console.log("Match ended");
+		stateStartBtn.classList.add("hidden");
+		stateEndBtn.classList.add("hidden");
+		matchResultBtn.classList.remove("hidden");
 	};
 
 	// TODO: two-way data binding
@@ -310,17 +341,27 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './m
 	var showElem = function (elemId, setName) {
 		[].forEach.call(sets[setName], function (elem) {
 			if (elem.id === elemId) {
-				elem.classList.remove("hidden");
+				elem.classList.remove('hidden');
 			} else {
-				elem.classList.add("hidden");
+				elem.classList.add('hidden');
 			}
 		});
 	};
+	
+	
+	// Enable/disable button
+	var enableBtn = function (btn, enable) {
+		if (enable) {
+			btn.removeAttribute('disabled');
+		} else {
+			btn.setAttribute('disabled', 'disabled');
+		}
+	}
 
 
 	var onShakeEnd = function (evt) {
 		// Remove shake class in case another shake animation needs to be performed
-		evt.target.classList.remove("shake");
+		evt.target.classList.remove('shake');
 		// Remove listener
 		evt.target.removeEventListener('animationend', onShakeEnd);
 	};
@@ -329,7 +370,7 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './m
 		// Listen to end of shake animation
 		field.addEventListener('animationend', onShakeEnd);
 		// Start shake animation
-		field.classList.add("shake");
+		field.classList.add('shake');
 	};
 
 

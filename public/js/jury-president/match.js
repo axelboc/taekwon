@@ -27,14 +27,14 @@ define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, con
 			if (config.goldenPoint) { states.push(MatchStates.BREAK, MatchStates.GOLDEN_POINT); }
 			
 			this.states = states;
+			console.log(states);
 		},
 		
 		_nextState: function () {
-			this.state += 1;
-
 			if (this.state === this.lastState) {
 				this._endMatch();
 			} else {
+				this.state += 1;
 				publish('stateChanged', this.states[this.state]);
 			}
 		},
