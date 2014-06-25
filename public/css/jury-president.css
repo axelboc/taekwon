@@ -157,6 +157,10 @@
 	font-weight: bold;
 }
 
+#match-btn-config {
+	margin-right: 1em;
+}
+
 #scoreboard-wrap {
 	margin-top: 2.5em;
 	font-size: 120%;

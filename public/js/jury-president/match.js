@@ -11,6 +11,7 @@ define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, con
 		this.lastState = this.states.length - 1;
 		this.state = 0;
 		this.stateStarted = false;
+		this.injuryStarted = false;
 
 		publish('created', this);
 		publish('stateChanged', this.states[this.state], false);
@@ -27,7 +28,6 @@ define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, con
 			if (config.goldenPoint) { states.push(MatchStates.BREAK, MatchStates.GOLDEN_POINT); }
 			
 			this.states = states;
-			console.log(states);
 		},
 		
 		_nextState: function () {
@@ -66,6 +66,15 @@ define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, con
 				
 				// Move to next state
 				this._nextState();
+			}
+		},
+		
+		startEndInjury: function () {
+			this.injuryStarted = !this.injuryStarted;
+			if (this.injuryStarted) {
+				publish('injuryStarted');
+			} else {
+				publish('injuryEnded');
 			}
 		}
 		

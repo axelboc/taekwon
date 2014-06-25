@@ -2,7 +2,7 @@
 /**
  * Jury President 'View' module
  */
-define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './match', 'match-config'], function (PubSub, Handlebars, UIViews, UIMatchPanels, Match, matchConfig) {
+define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enum/match-states', './match', 'match-config'], function (PubSub, Handlebars, UIViews, UIMatchPanels, MatchStates, Match, matchConfig) {
 	
 	var IO, sets = {},
 		pwdAction, pwdInstr, pwdField,
@@ -89,6 +89,8 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './m
 		PubSub.subscribe('match.stateStarted', onStateStarted);
 		PubSub.subscribe('match.stateEnded', onStateEnded);
 		PubSub.subscribe('match.ended', onMatchEnded);
+		PubSub.subscribe('match.injuryStarted', onInjuryStarted);
+		PubSub.subscribe('match.injuryEnded', onInjuryEnded);
 	};
 
 	var onPwdField = function (evt) {
@@ -238,14 +240,13 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './m
 
 	var onInjuryBtn = function (evt) {
 		evt.target.blur();
-		evt.target.textContent = timeKeeping.classList.contains('tk_injury') ? "Start injury" : "Stop injury";
-		timeKeeping.classList.toggle('tk_injury');
+		match.startEndInjury();
 	};
 	
 	
 	var onMatchCreated = function (match) {
 		console.log("Match created");
-		updateStateBtns(false);
+		updateStateBtns(null, false);
 		matchResultBtn.classList.add("hidden");
 		stateStartBtn.classList.remove("hidden");
 		stateEndBtn.classList.remove("hidden");
@@ -258,28 +259,29 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './m
 		// Update text of start and end buttons
 		stateStartBtn.textContent = "Start " + stateStr;
 		stateEndBtn.textContent = "End " + stateStr;
+		
+		// Mark start button as major on non-BREAK states
+		stateStartBtn.classList.toggle('btn--major', state !== MatchStates.BREAK);
+		stateEndBtn.classList.toggle('btn--major', state !== MatchStates.BREAK);
 	}
 	
 	var onStateStarted = function (state) {
 		console.log("State started: " + state);
-		updateStateBtns(true);
+		updateStateBtns(state, true);
 	};
 	
 	var onStateEnded = function (state) {
 		console.log("State ended: " + state);
-		updateStateBtns(false);
+		updateStateBtns(state, false);
 	};
 	
-	var updateStateBtns = function (starting) {
-		// Injury button
-		enableBtn(injuryBtn, starting);
-		// State start/end button
+	var updateStateBtns = function (state, starting) {
+		// State start/end buttons
 		enableBtn(stateEndBtn, starting);
 		enableBtn(stateStartBtn, !starting);
 		
-		// Switch btn--major class
-		stateEndBtn.classList.toggle('btn--major', starting);
-		stateStartBtn.classList.toggle('btn--major', !starting);
+		// Enable injury button when a non-BREAK state is starting
+		enableBtn(injuryBtn, starting && state !== MatchStates.BREAK);
 	};
 	
 	var onMatchEnded = function () {
@@ -289,6 +291,16 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', './m
 		matchResultBtn.classList.remove("hidden");
 	};
 
+	var onInjuryStarted = function () {
+		injuryBtn.textContent = "End injury";
+		timeKeeping.classList.add('tk_injury');
+	};
+
+	var onInjuryEnded = function () {
+		injuryBtn.textContent = "Start injury";
+		timeKeeping.classList.remove('tk_injury');
+	};
+	
 	// TODO: two-way data binding
 	var onMatchResultBtn = function () {
 		// TODO: use JS instead of handlebars to populate table to have more control over classes for styling
