@@ -80,6 +80,7 @@
 .tk-timer--round {
 	font-size: 750%;
 	background-color: #fff;
+	transition: opacity .3s ease-in;
 }
 
 .tk-timer--injury {
@@ -89,7 +90,7 @@
 	width: 100%;
 	font-size: 300%;
 	opacity: 0;
-	transition: bottom .3s ease-out, opacity .5s ease-in;
+	transition: bottom .3s ease-out;
 }
 
 .tk_injury > .tk-inner {
@@ -106,9 +107,8 @@
 }
 
 .tk_on .tk-timer--round > .tk-timer-sep,
-.tk_injury .tk-timer--round,
-.tk_injury .tk-timer--injury > .tk-timer-sep {
-	animation: blink 1s .5s ease infinite reverse;
+.tk_injury .tk-timer--injury > .tk-timer-sep {/*
+	animation: blink 1s .5s ease infinite reverse;*/
 }
 
 
@@ -233,13 +233,3 @@
 	cursor: default;
 }
 
-
-/* Blink effect */
-
-@-webkit-keyframes blink {
-	50% { opacity: 0; }
-}
-
-@keyframes blink{
-	50% { opacity: 0; }
-}

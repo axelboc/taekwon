@@ -4,11 +4,12 @@
  */
 define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enum/match-states', './match', 'match-config'], function (PubSub, Handlebars, UIViews, UIMatchPanels, MatchStates, Match, matchConfig) {
 	
-	var IO, sets = {},
+	var IO, sets,
 		pwdAction, pwdInstr, pwdField,
 		ringsList, ringsBtns,
 		matchView, matchNewBtns, matchConfigBtn, match = null,
-		timeKeeping, stateManagement, stateStartBtn, stateEndBtn, matchResultBtn, injuryBtn,
+		timeKeeping, timers,
+		stateManagement, stateStartBtn, stateEndBtn, matchResultBtn, injuryBtn,
 		scoreboardWrap, scoreboardTemplate, scoreboard, scoreboardCells,
 		judgesList, judges, judgesById;
 
@@ -20,8 +21,10 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 	};
 
 	var cacheElements = function () {
-		sets.views = document.getElementsByClassName('view');
-		sets.panels = document.getElementsByClassName('panel');
+		sets = {
+			views: document.getElementsByClassName('view'),
+			panels: document.getElementsByClassName('panel')
+		};
 
 		pwdAction = document.getElementById('pwd-action');
 		pwdInstr = document.getElementById('pwd-instr');
@@ -34,12 +37,27 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		matchNewBtns = matchView.getElementsByClassName('match-btn-new');
 		matchConfigBtn = document.getElementById('match-btn-config');
 		
-		timeKeeping = matchView.getElementsByClassName('time-keeping')[0];
-		stateManagement = matchView.getElementsByClassName('state-management')[0];
-		stateStartBtn = stateManagement.getElementsByClassName('sm-btn--start')[0];
-		stateEndBtn = stateManagement.getElementsByClassName('sm-btn--end')[0];
-		matchResultBtn = stateManagement.getElementsByClassName('sm-btn--result')[0];
-		injuryBtn = stateManagement.getElementsByClassName('sm-btn--injury')[0];
+		timeKeeping = matchView.querySelector('.time-keeping');
+		timers = {
+			main: {
+				intervalId: null,
+				value: null,
+				min: timeKeeping.querySelector('.tk-timer--round > .tk-timer-min'),
+				sec: timeKeeping.querySelector('.tk-timer--round > .tk-timer-sec')
+			},
+			injury: {
+				intervalId: null,
+				value: null,
+				min: timeKeeping.querySelector('.tk-timer--injury > .tk-timer-min'),
+				sec: timeKeeping.querySelector('.tk-timer--injury > .tk-timer-sec')
+			}
+		};
+		
+		stateManagement = matchView.querySelector('.state-management');
+		stateStartBtn = stateManagement.querySelector('.sm-btn--start');
+		stateEndBtn = stateManagement.querySelector('.sm-btn--end');
+		matchResultBtn = stateManagement.querySelector('.sm-btn--result');
+		injuryBtn = stateManagement.querySelector('.sm-btn--injury');
 
 		scoreboardWrap = document.getElementById('scoreboard-wrap');
 		scoreboardTemplate = Handlebars.compile(document.getElementById('scoreboard-template').innerHTML);
@@ -53,11 +71,11 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 				name: null,
 				slot: index,
 				rootLi: item,
-				nameH3: item.getElementsByClassName('judge-name')[0],
-				stateSpan: item.getElementsByClassName('judge-state')[0],
-				btnsUl: item.getElementsByClassName('judge-btns')[0],
-				acceptBtn: item.getElementsByClassName('judge-accept')[0],
-				rejectBtn: item.getElementsByClassName('judge-reject')[0]
+				nameH3: item.querySelector('.judge-name'),
+				stateSpan: item.querySelector('.judge-state'),
+				btnsUl: item.querySelector('.judge-btns'),
+				acceptBtn: item.querySelector('.judge-accept'),
+				rejectBtn: item.querySelector('.judge-reject')
 			};
 		});
 		
@@ -256,6 +274,10 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		var stateStr = state.toLowerCase().replace('-', ' ');
 		console.log("State changed: " + stateStr);
 		
+		// Reset main timer
+		resetTimer('main', (state === MatchStates.BREAK ? matchConfig.breakTime :
+							(state === MatchStates.GOLDEN_POINT ? 0 : matchConfig.roundTime)));
+		
 		// Update text of start and end buttons
 		stateStartBtn.textContent = "Start " + stateStr;
 		stateEndBtn.textContent = "End " + stateStr;
@@ -268,11 +290,16 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 	var onStateStarted = function (state) {
 		console.log("State started: " + state);
 		updateStateBtns(state, true);
+		
+		if (state !== MatchStates.GOLDEN_POINT) {
+			startTimer('main', false);
+		}
 	};
 	
 	var onStateEnded = function (state) {
 		console.log("State ended: " + state);
 		updateStateBtns(state, false);
+		stopTimer('main');
 	};
 	
 	var updateStateBtns = function (state, starting) {
@@ -292,14 +319,58 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 	};
 
 	var onInjuryStarted = function () {
+		enableBtn(stateEndBtn, false);
 		injuryBtn.textContent = "End injury";
 		timeKeeping.classList.add('tk_injury');
+		
+		resetTimer('injury', matchConfig.injuryTime);
+		startTimer('injury', true);
+		stopTimer('main');
 	};
 
 	var onInjuryEnded = function () {
+		enableBtn(stateEndBtn, true);
 		injuryBtn.textContent = "Start injury";
 		timeKeeping.classList.remove('tk_injury');
+		
+		stopTimer('injury');
+		startTimer('main', true);
 	};
+	
+	
+	var resetTimer = function (timerId, value) {
+		timers[timerId].value = value;
+		updateTimer(timers[timerId]);
+	};
+	
+	// TODO: move to external module
+	var startTimer = function (timerId, delay) {
+		// Just in case, clear the previous timer interval
+		stopTimer(timerId);
+		
+		window.setTimeout(function () {
+			tick(timers[timerId]);
+			timers[timerId].intervalId = window.setInterval(tick, 1000, timers[timerId]);
+		}, (delay ? 600 : 0));
+	};
+	
+	var stopTimer = function (timerId) {
+		window.clearInterval(timers[timerId].intervalId);
+	};
+	
+	var tick = function (timer) {
+		if (timer.value > 0) {
+			timer.value -= 1;
+			updateTimer(timer);
+		}
+	};
+	
+	var updateTimer = function (timer) {
+		timer.min.textContent = Math.floor(timer.value / 60);
+		var sec = timer.value % 60
+		timer.sec.textContent = (sec < 10 ? '0' : '') + sec;
+	};
+	
 	
 	// TODO: two-way data binding
 	var onMatchResultBtn = function () {
