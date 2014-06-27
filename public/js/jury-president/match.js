@@ -72,9 +72,9 @@ define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, con
 		startEndInjury: function () {
 			this.injuryStarted = !this.injuryStarted;
 			if (this.injuryStarted) {
-				publish('injuryStarted');
+				publish('injuryStarted', this.states[this.state]);
 			} else {
-				publish('injuryEnded');
+				publish('injuryEnded', this.states[this.state]);
 			}
 		}
 		
@@ -88,6 +88,7 @@ define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, con
 		PubSub.publish('match.' + subTopic, [].slice.call(arguments, 1));
 	}
 	
+	// Debug errors
 	PubSub.subscribe('match.error', function (error) {
 		console.log(error);
 	});

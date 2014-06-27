@@ -2,13 +2,13 @@
 /**
  * Jury President 'View' module
  */
-define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enum/match-states', './match', 'match-config'], function (PubSub, Handlebars, UIViews, UIMatchPanels, MatchStates, Match, matchConfig) {
+define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enum/match-states', './match', './timer', 'match-config'], function (PubSub, Handlebars, UIViews, UIMatchPanels, MatchStates, Match, Timer, matchConfig) {
 	
 	var IO, sets,
 		pwdAction, pwdInstr, pwdField,
 		ringsList, ringsBtns,
 		matchView, matchNewBtns, matchConfigBtn, match = null,
-		timeKeeping, timers,
+		timeKeeping, mainTimer, injuryTimer,
 		stateManagement, stateStartBtn, stateEndBtn, matchResultBtn, injuryBtn,
 		scoreboardWrap, scoreboardTemplate, scoreboard, scoreboardCells,
 		judgesList, judges, judgesById;
@@ -38,20 +38,14 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		matchConfigBtn = document.getElementById('match-btn-config');
 		
 		timeKeeping = matchView.querySelector('.time-keeping');
-		timers = {
-			main: {
-				intervalId: null,
-				value: null,
-				min: timeKeeping.querySelector('.tk-timer--round > .tk-timer-min'),
-				sec: timeKeeping.querySelector('.tk-timer--round > .tk-timer-sec')
-			},
-			injury: {
-				intervalId: null,
-				value: null,
-				min: timeKeeping.querySelector('.tk-timer--injury > .tk-timer-min'),
-				sec: timeKeeping.querySelector('.tk-timer--injury > .tk-timer-sec')
-			}
-		};
+		mainTimer = new Timer(
+			timeKeeping.querySelector('.tk-timer--round > .tk-timer-min'),
+			timeKeeping.querySelector('.tk-timer--round > .tk-timer-sec')
+		);
+		injuryTimer = new Timer(
+			timeKeeping.querySelector('.tk-timer--injury > .tk-timer-min'),
+			timeKeeping.querySelector('.tk-timer--injury > .tk-timer-sec')
+		);
 		
 		stateManagement = matchView.querySelector('.state-management');
 		stateStartBtn = stateManagement.querySelector('.sm-btn--start');
@@ -275,7 +269,7 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		console.log("State changed: " + stateStr);
 		
 		// Reset main timer
-		resetTimer('main', (state === MatchStates.BREAK ? matchConfig.breakTime :
+		mainTimer.reset((state === MatchStates.BREAK ? matchConfig.breakTime :
 							(state === MatchStates.GOLDEN_POINT ? 0 : matchConfig.roundTime)));
 		
 		// Update text of start and end buttons
@@ -291,15 +285,13 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		console.log("State started: " + state);
 		updateStateBtns(state, true);
 		
-		if (state !== MatchStates.GOLDEN_POINT) {
-			startTimer('main', false);
-		}
+		mainTimer.start(state !== MatchStates.GOLDEN_POINT, false);
 	};
 	
 	var onStateEnded = function (state) {
 		console.log("State ended: " + state);
 		updateStateBtns(state, false);
-		stopTimer('main');
+		mainTimer.stop();
 	};
 	
 	var updateStateBtns = function (state, starting) {
@@ -316,6 +308,7 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		stateStartBtn.classList.add("hidden");
 		stateEndBtn.classList.add("hidden");
 		matchResultBtn.classList.remove("hidden");
+		mainTimer.reset(0);
 	};
 
 	var onInjuryStarted = function () {
@@ -323,52 +316,18 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		injuryBtn.textContent = "End injury";
 		timeKeeping.classList.add('tk_injury');
 		
-		resetTimer('injury', matchConfig.injuryTime);
-		startTimer('injury', true);
-		stopTimer('main');
+		injuryTimer.reset(matchConfig.injuryTime);
+		injuryTimer.start(true, true);
+		mainTimer.stop();
 	};
 
-	var onInjuryEnded = function () {
+	var onInjuryEnded = function (state) {
 		enableBtn(stateEndBtn, true);
 		injuryBtn.textContent = "Start injury";
 		timeKeeping.classList.remove('tk_injury');
 		
-		stopTimer('injury');
-		startTimer('main', true);
-	};
-	
-	
-	var resetTimer = function (timerId, value) {
-		timers[timerId].value = value;
-		updateTimer(timers[timerId]);
-	};
-	
-	// TODO: move to external module
-	var startTimer = function (timerId, delay) {
-		// Just in case, clear the previous timer interval
-		stopTimer(timerId);
-		
-		window.setTimeout(function () {
-			tick(timers[timerId]);
-			timers[timerId].intervalId = window.setInterval(tick, 1000, timers[timerId]);
-		}, (delay ? 600 : 0));
-	};
-	
-	var stopTimer = function (timerId) {
-		window.clearInterval(timers[timerId].intervalId);
-	};
-	
-	var tick = function (timer) {
-		if (timer.value > 0) {
-			timer.value -= 1;
-			updateTimer(timer);
-		}
-	};
-	
-	var updateTimer = function (timer) {
-		timer.min.textContent = Math.floor(timer.value / 60);
-		var sec = timer.value % 60
-		timer.sec.textContent = (sec < 10 ? '0' : '') + sec;
+		injuryTimer.stop();
+		mainTimer.start(state !== MatchStates.GOLDEN_POINT, true);
 	};
 	
 	
