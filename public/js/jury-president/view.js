@@ -72,9 +72,6 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 				rejectBtn: item.querySelector('.judge-reject')
 			};
 		});
-		
-		// DEBUG
-		//setTimeout(onMatchNewBtn, 500);
 	};
 
 	// TODO: event delegation

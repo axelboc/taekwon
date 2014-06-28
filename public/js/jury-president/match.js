@@ -5,13 +5,20 @@
 define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, config, MatchStates) {
 	
 	// TODO: consider injuries separately from states 
-	function Match () {
+	function Match (judgeIds) {
 		this._init();
 		
 		this.lastState = this.states.length - 1;
 		this.state = 0;
 		this.stateStarted = false;
 		this.injuryStarted = false;
+		
+		// Store total scores for each judge and round
+		this.scores = {};
+		
+		judgeIds.forEach(function (id) {
+			this.scores[id] = {};
+		}, this);
 
 		publish('created', this);
 		publish('stateChanged', this.states[this.state], false);
@@ -35,7 +42,16 @@ define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, con
 				this._endMatch();
 			} else {
 				this.state += 1;
-				publish('stateChanged', this.states[this.state]);
+				var stateStr = this.states[this.state];
+				
+				if (stateStr !== MatchStates.BREAK) {
+					// Initialise each judge's score array (i.e. [hong, chong]) for the new state
+					this.scores.keys().forEach(function (judgeId) {
+						this.scores[judgeId][stateStr] = [0, 0];
+					}, this);
+				}
+				
+				publish('stateChanged', stateStr);
 			}
 		},
 		
