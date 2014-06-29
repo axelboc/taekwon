@@ -73,7 +73,6 @@ JuryPresident.prototype.onEnableScoring = function (enable) {
 	this.debug("Scoring " + (enable ? "enabled" : "disabled"));
 };
 
-
 JuryPresident.prototype.cornerJudgeStateChanged = function (cornerJudge) {
 	this.debug("Corner judge " + (cornerJudge.connected ? "connected" : "disconnected"));
 	this.socket.emit('cornerJudgeStateChanged', {
@@ -81,6 +80,11 @@ JuryPresident.prototype.cornerJudgeStateChanged = function (cornerJudge) {
 		name: cornerJudge.name,
 		connected: cornerJudge.connected
 	});
+};
+
+JuryPresident.prototype.cornerJudgeScored = function (cornerJudge, score) {
+	score.judgeId = cornerJudge.id;
+	this.socket.emit('cornerJudgeScored', score);
 };
 
 JuryPresident.prototype.restoreSession = function (newSocket) {
@@ -121,6 +125,7 @@ JuryPresident.prototype.onDisconnect = function () {
 	
 	if (this.ring) {
 		this.ring.juryPresidentStateChanged(false);
+		this.ring.scoringStateChanged(false);
 	}
 };
 

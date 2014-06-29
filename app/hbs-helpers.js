@@ -12,8 +12,8 @@ var hbsHelpers = {
 	
 	// Convert number to time string (m:ss) - {{numToTime d}}
 	numToTime: function (num) {
-		var min = Math.floor(num);
-		var sec = 60 * (num - min);
+		var min = Math.floor(num / 60);
+		var sec = num % 60;
 		return min + ":" + (sec < 10 ? "0" : "") + sec;
 	}
 	

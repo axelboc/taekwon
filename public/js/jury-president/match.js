@@ -2,7 +2,7 @@
 /**
  * Match
  */
-define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, config, MatchStates) {
+define(['minpubsub', 'match-config', '../common/competitors', 'enum/match-states'], function (PubSub, config, Competitors, MatchStates) {
 	
 	// TODO: consider injuries separately from states 
 	function Match (judgeIds) {
@@ -102,7 +102,6 @@ define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, con
 				}
 			}
 			
-			//
 			this.stateIndex += 1;
 			this.state = this.states[this.stateIndex];
 
@@ -113,6 +112,7 @@ define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, con
 						state: this.state,
 						scores: [0, 0]
 					});
+					publish('judgeScoresUpdated', judgeId, [0, 0]);
 				}, this);
 			}
 
@@ -156,6 +156,16 @@ define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, con
 			} else {
 				publish('injuryEnded', this.state);
 			}
+		},
+		
+		score: function (judgeId, competitor, points) {
+			var judgeScores = this.scores[judgeId];
+			var scoresArr = judgeScores[judgeScores.length - 1]['scores'];
+			var competitorIndex = (competitor === Competitors.HONG ? 0 : 1);
+			
+			scoresArr[competitorIndex] += points;
+			
+			publish('judgeScoresUpdated', judgeId, scoresArr.slice(0));
 		}
 		
 	};

@@ -20,12 +20,13 @@ define(['./view', 'enum/ui-views'], function (View, UIViews) {
 		socket.on('ringAlreadyExists', onRingAlreadyExists);
 		socket.on('authoriseCornerJudge', onAuthoriseCornerJudge);
 		socket.on('cornerJudgeStateChanged', onCornerJudgeStateChanged);
+		socket.on('cornerJudgeScored', onCornerJudgeScored);
 	};
 
 
 	var onWaitingForId = function () {
 		console.log("Server waiting for identification");
-		View.showElem(UIViews.PWD, 'views');
+		View.onWaitingForId();
 	};
 
 	var sendId = function (password) {
@@ -96,6 +97,10 @@ define(['./view', 'enum/ui-views'], function (View, UIViews) {
 		console.log((enable ? "Enable" : "Disable") + " scoring");
 		socket.emit('enableScoring', enable);
 	};
+	
+	var onCornerJudgeScored = function (score) {
+		View.onCornerJudgeScored(score);
+	};
 
 
 	return {
@@ -106,7 +111,7 @@ define(['./view', 'enum/ui-views'], function (View, UIViews) {
 		enableScoring: enableScoring,
 		debug: function () {
 			// DEBUG
-			['Axel', 'Mikey', 'Chris', 'Chai'].forEach(function (name, index) {
+			['Axel', 'Mikey', 'Chris'].forEach(function (name, index) {
 				onCornerJudgeStateChanged({
 					connected: true,
 					id: index,

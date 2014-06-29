@@ -23,6 +23,7 @@ function CornerJudge(io, socket, id, name) {
 CornerJudge.prototype.initSocket = function () {
 	this.socket.on('disconnect', this.onDisconnect.bind(this));
 	this.socket.on('joinRing', this.onJoinRing.bind(this));
+	this.socket.on('score', this.onScore.bind(this));
 };
 
 
@@ -40,7 +41,7 @@ CornerJudge.prototype.onJoinRing = function (index) {
 	} else {
 		this.debug("> Requesting authorisation from Jury President");
 		this.ring = ring;
-		ring.juryPresident.authoriseCornerJudge(this);
+		this.ring.juryPresident.authoriseCornerJudge(this);
 	}
 };
 
@@ -55,8 +56,12 @@ CornerJudge.prototype.ringNotJoined = function (ring) {
 	this.debug("> Ring not joined (rejected by Jury President)");
 	this.ring = null;
 	this.socket.emit('ringNotJoined', ring.index);
-}
+};
 
+CornerJudge.prototype.onScore = function (score) {
+	this.debug("Scored " + score.points + " for " + score.competitor);
+	this.ring.juryPresident.cornerJudgeScored(this, score);
+};
 
 CornerJudge.prototype.restoreSession = function (newSocket) {
 	this.debug("Restoring session...");

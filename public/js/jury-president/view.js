@@ -2,7 +2,7 @@
 /**
  * Jury President 'View' module
  */
-define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enum/match-states', './match', './timer', 'match-config'], function (PubSub, Handlebars, UIViews, UIMatchPanels, MatchStates, Match, Timer, matchConfig) {
+define(['minpubsub', 'handlebars', '../common/competitors', 'enum/ui-views', 'enum/ui-match-panels', 'enum/match-states', './match', './timer', 'match-config'], function (PubSub, Handlebars, Competitors, UIViews, UIMatchPanels, MatchStates, Match, Timer, matchConfig) {
 	
 	var IO, sets,
 		pwdAction, pwdInstr, pwdField,
@@ -55,7 +55,7 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		injuryBtn = stateManagement.querySelector('.sm-btn--injury');
 		
 		scoring = matchView.querySelector('.scoring')
-		scoringJudges = scoring.querySelectorAll('.sc-judge');
+		judgeScores = scoring.querySelectorAll('.sc-judge');
 
 		scoreboardWrap = document.getElementById('scoreboard-wrap');
 		scoreboardTemplate = Handlebars.compile(document.getElementById('scoreboard-template').innerHTML);
@@ -69,11 +69,13 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 				name: null,
 				slot: index,
 				rootLi: item,
-				nameH3s: [item.querySelector('.judge-name'), scoringJudges[index].querySelector('.sc-judge-name')],
+				nameH3s: [item.querySelector('.judge-name'), judgeScores[index].querySelector('.sc-judge-name')],
 				stateSpan: item.querySelector('.judge-state'),
 				btnsUl: item.querySelector('.judge-btns'),
 				acceptBtn: item.querySelector('.judge-accept'),
-				rejectBtn: item.querySelector('.judge-reject')
+				rejectBtn: item.querySelector('.judge-reject'),
+				scoreHong: judgeScores[index].querySelector('.sc-hong'),
+				scoreChong: judgeScores[index].querySelector('.sc-chong')
 			};
 		});
 	};
@@ -104,8 +106,14 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		PubSub.subscribe('match.ended', onMatchEnded);
 		PubSub.subscribe('match.injuryStarted', onInjuryStarted);
 		PubSub.subscribe('match.injuryEnded', onInjuryEnded);
+		PubSub.subscribe('match.judgeScoresUpdated', onJudgeScoresUpdated);
 	};
 
+	var onWaitingForId = function () {
+		showElem(UIViews.PWD, 'views');
+		pwdField.focus();
+	};
+	
 	var onPwdField = function (evt) {
 		// If Enter key was pressed...
 		if (evt.which === 13 || evt.keyCode === 13) {
@@ -237,14 +245,9 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		}
 	};
 
-	//var enabled = false;
 	var onMatchNewBtn = function () {
 		match = new Match(Object.keys(judgesById));
 		showElem(UIMatchPanels.MATCH, 'panels');
-		
-		//enabled = !enabled;
-		//IO.enableScoring(enabled);
-		//onMatchResultBtn();
 	};
 
 	var onStateStartBtn = function (evt) {
@@ -349,6 +352,14 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		IO.enableScoring(true);
 	};
 	
+	var onCornerJudgeScored = function (score) {
+		match.score(score.judgeId, score.competitor, score.points);
+	};
+	
+	var onJudgeScoresUpdated = function (judgeId, scores) {
+		judgesById[judgeId].scoreHong.textContent = scores[0];
+		judgesById[judgeId].scoreChong.textContent = scores[1];
+	};
 	
 	// TODO: two-way data binding
 	var onMatchResultBtn = function () {
@@ -437,11 +448,13 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 
 	return {
 		init: init,
+		onWaitingForId: onWaitingForId,
 		pwdResult: pwdResult,
 		onRingAllocations: onRingAllocations,
 		onRingAllocationChanged: onRingAllocationChanged,
 		onAuthoriseCornerJudge: onAuthoriseCornerJudge,
 		onCornerJudgeStateChanged: onCornerJudgeStateChanged,
+		onCornerJudgeScored: onCornerJudgeScored,
 		showElem: showElem
 	};
 	

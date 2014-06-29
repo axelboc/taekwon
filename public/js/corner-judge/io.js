@@ -27,7 +27,7 @@ define(['./view', 'enum/ui-views', 'enum/ui-backdrops'], function (View, UIViews
 
 	var onWaitingForId = function () {
 		console.log("Server waiting for identification");
-		View.showView(UIViews.NAME);
+		View.onWaitingForId();
 	};
 
 	var sendId = function (name) {

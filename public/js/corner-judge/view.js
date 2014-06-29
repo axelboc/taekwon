@@ -43,6 +43,11 @@ define(['../common/competitors', 'enum/ui-views', 'enum/ui-backdrops'], function
 	};
 
 
+	var onWaitingForId = function () {
+		showView(UIViews.NAME);
+		nameField.focus();
+	};
+
 	var onNameField = function (evt) {
 		// If Enter key was pressed...
 		if (evt.which === 13 || evt.keyCode === 13) {
@@ -140,6 +145,7 @@ define(['../common/competitors', 'enum/ui-views', 'enum/ui-backdrops'], function
 
 	return {
 		init: init,
+		onWaitingForId: onWaitingForId,
 		onRingAllocations: onRingAllocations,
 		onRingAllocationChanged: onRingAllocationChanged,
 		ringNotJoined: ringNotJoined,
