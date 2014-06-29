@@ -48,6 +48,7 @@ CornerJudge.prototype.ringJoined = function (ring) {
 	this.debug("> Ring joined");
 	this.authorised = true;
 	this.socket.emit('ringJoined', ring.index);
+	this.socket.emit('scoringStateChanged', ring.scoringEnabled);
 };
 
 CornerJudge.prototype.ringNotJoined = function (ring) {
@@ -81,7 +82,7 @@ CornerJudge.prototype.restoreSession = function (newSocket) {
 		}
 	} else {
 		// If CJ is authorised, client must show the match view
-		this.socket.emit('ringJoined', this.ring.index);
+		this.ringJoined(this.ring);
 		// Add new socket to ring's room
 		this.socket.join(this.ring.roomId);
 		// Let jury president know that corner judge is now reconnected

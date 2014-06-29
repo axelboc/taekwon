@@ -18,6 +18,7 @@ function Ring(io, index, juryPresident) {
 	this.index = index;
 	rings[index] = this;
     ringAllocations[index].allocated = true;
+	this.scoringEnabled = false;
 	
 	this.juryPresident = juryPresident;
 	this.cornerJudges = [];
@@ -56,6 +57,7 @@ Ring.prototype.juryPresidentStateChanged = function (connected) {
 };
 
 Ring.prototype.scoringStateChanged = function (enabled) {
+	this.scoringEnabled = enabled;
 	this.io.sockets.in(this.roomId).emit('scoringStateChanged', enabled);
 };
 

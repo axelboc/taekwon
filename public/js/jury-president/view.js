@@ -293,12 +293,20 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		updateStateBtns(state, true);
 		
 		mainTimer.start(state !== MatchStates.GOLDEN_POINT, false);
+		
+		if (state !== MatchStates.BREAK) {
+			IO.enableScoring(true);
+		}
 	};
 	
 	var onStateEnded = function (state) {
 		console.log("State ended: " + state);
 		updateStateBtns(state, false);
 		mainTimer.stop();
+		
+		if (state !== MatchStates.BREAK) {
+			IO.enableScoring(false);
+		}
 	};
 	
 	var updateStateBtns = function (state, starting) {
@@ -326,6 +334,8 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		injuryTimer.reset(matchConfig.injuryTime);
 		injuryTimer.start(true, true);
 		mainTimer.stop();
+		
+		IO.enableScoring(false);
 	};
 
 	var onInjuryEnded = function (state) {
@@ -335,6 +345,8 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		
 		injuryTimer.stop();
 		mainTimer.start(state !== MatchStates.GOLDEN_POINT, true);
+		
+		IO.enableScoring(true);
 	};
 	
 	

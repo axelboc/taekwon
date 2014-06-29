@@ -87,7 +87,7 @@ define(['../common/competitors', 'enum/ui-views', 'enum/ui-backdrops'], function
 
 	var onScoringStateChanged = function (enabled) {
 		isScoringEnabled = enabled;
-		toggleBackdrop(!enabled, Backdrops.DISABLED);
+		toggleBackdrop(!enabled, UIBackdrops.DISABLED);
 	};
 
 	var onScoreBtn = function (competitor, points) {
@@ -107,10 +107,10 @@ define(['../common/competitors', 'enum/ui-views', 'enum/ui-backdrops'], function
 	};
 
 	var toggleBackdrop = function (show, backdrop) {
-		if (!show && backdrop === Backdrops.DISCONNECTED && !isScoringEnabled) {
+		if (!show && backdrop === UIBackdrops.DISCONNECTED && !isScoringEnabled) {
 			// Restore waiting backdrop instead
 			show = true;
-			backdrop = Backdrops.WAITING;
+			backdrop = UIBackdrops.WAITING;
 		}
 
 		if (show && backdrop) {
