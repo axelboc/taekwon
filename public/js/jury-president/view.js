@@ -229,7 +229,7 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 
 	//var enabled = false;
 	var onMatchNewBtn = function () {
-		match = new Match();
+		match = new Match(Object.keys(judgesById));
 		showElem(UIMatchPanels.MATCH, 'panels');
 		
 		//enabled = !enabled;

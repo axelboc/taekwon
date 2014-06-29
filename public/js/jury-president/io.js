@@ -103,7 +103,17 @@ define(['./view', 'enum/ui-views'], function (View, UIViews) {
 		sendId: sendId,
 		createRing: createRing,
 		authoriseCornerJudge: authoriseCornerJudge,
-		enableScoring: enableScoring
+		enableScoring: enableScoring,
+		debug: function () {
+			// DEBUG
+			['Axel', 'Mikey', 'Chris', 'Chai'].forEach(function (name, index) {
+				onCornerJudgeStateChanged({
+					connected: true,
+					id: index,
+					name: name
+				});
+			});
+		}
 	};
 	
 });

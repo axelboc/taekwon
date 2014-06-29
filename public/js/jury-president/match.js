@@ -6,79 +6,143 @@ define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, con
 	
 	// TODO: consider injuries separately from states 
 	function Match (judgeIds) {
-		this._init();
+		this.state = null;
+		this.states = [MatchStates.ROUND_1];
+		this.stateIndex = -1;
 		
-		this.lastState = this.states.length - 1;
-		this.state = 0;
 		this.stateStarted = false;
 		this.injuryStarted = false;
 		
 		// Store total scores for each judge and round
 		this.scores = {};
-		
 		judgeIds.forEach(function (id) {
-			this.scores[id] = {};
+			this.scores[id] = [];
 		}, this);
+		
+		// TODO: penalties
 
 		publish('created', this);
-		publish('stateChanged', this.states[this.state], false);
+		this._nextState();
 	}
 	
 	Match.prototype = {
 		
-		_init: function () {
-			/* Build match states array */ 
-			var states = [MatchStates.ROUND_1];
-			
-			if (config.roundCount === 2) { states.push(MatchStates.BREAK, MatchStates.ROUND_2); }
-			if (config.tieBreaker) { states.push(MatchStates.BREAK, MatchStates.TIE_BREAKER); }
-			if (config.goldenPoint) { states.push(MatchStates.BREAK, MatchStates.GOLDEN_POINT); }
-			
-			this.states = states;
+		_computeTotal: function () {
+			Object.keys(this.scores).forEach(function (judgeId) {
+				var judgeScores = this.scores[judgeId];
+				
+				// Total is at least the scores of the current state + penalties
+				var total = judgeScores[judgeScores.length - 1]['scores'].slice(0);
+				// TODO: add penalties
+	
+				// If current state is Round 2, then add scores of Round 1 to the total
+				if (this.state === MatchStates.ROUND_2) {
+					var rd1 = judgeScores[0]['scores'];
+					total[0] += rd1[0];
+					total[1] += rd1[1];
+				}
+				
+				judgeScores.push({
+					state: 'total',
+					scores: total
+				});
+			}, this);
+		},
+		
+		_isTie: function () {
+			// TODO: implement Match function _isTie
+			return true;
 		},
 		
 		_nextState: function () {
-			if (this.state === this.lastState) {
-				this._endMatch();
-			} else {
-				this.state += 1;
-				var stateStr = this.states[this.state];
-				
-				if (stateStr !== MatchStates.BREAK) {
-					// Initialise each judge's score array (i.e. [hong, chong]) for the new state
-					this.scores.keys().forEach(function (judgeId) {
-						this.scores[judgeId][stateStr] = [0, 0];
-					}, this);
+			// If no more states in array, add more if appropriate or end match
+			if (this.stateIndex === this.states.length - 1) {
+				switch (this.state) {
+					case MatchStates.ROUND_1:
+						if (config.roundCount === 2) {
+							// If match has two rounds, add Break and Round 2 states
+							this.states.push(MatchStates.BREAK, MatchStates.ROUND_2);
+							break;
+						} else {
+							// Otherwise, compute total score and end match
+							this._computeTotal();
+							this._endMatch();
+							return;
+						}
+						
+					case MatchStates.ROUND_2:
+						this._computeTotal();
+						
+						if (this._isTie() && config.tieBreaker) {
+							// If Round 1 and 2 led to a tie, add Tie Breaker round
+							this.states.push(MatchStates.BREAK, MatchStates.TIE_BREAKER);
+							break;
+						} else {
+							// Otherwise, end match
+							this._endMatch();
+							return;
+						}
+						
+					case MatchStates.TIE_BREAKER:
+						this._computeTotal();
+						
+						if (this._isTie() && config.goldenPoint) {
+							// If Tie Breaker led to a tie, add Golden Point round
+							this.states.push(MatchStates.BREAK, MatchStates.GOLDEN_POINT);
+							break;
+						} else {
+							// Otherwise, end match
+							this._endMatch();
+							return;
+						}
+					
+					case MatchStates.GOLDEN_POINT:
+						this._endMatch();
+						return;
 				}
-				
-				publish('stateChanged', stateStr);
 			}
+			
+			//
+			this.stateIndex += 1;
+			this.state = this.states[this.stateIndex];
+
+			if (this.state !== MatchStates.BREAK) {
+				// Initialise each judge's score array (i.e. [hong, chong]) for the new state
+				Object.keys(this.scores).forEach(function (judgeId) {
+					this.scores[judgeId].push({
+						state: this.state,
+						scores: [0, 0]
+					});
+				}, this);
+			}
+
+			publish('stateChanged', this.state);
 		},
 		
 		_endMatch: function () {
-			this.state = -1;
+			this.state = null;
 			publish('ended');
 		},
 		
 		startState: function () {
-			if (this.state === -1) {
+			if (this.state === null) {
 				publish('error', "Cannot start state: match ended.");
 			} else if (this.stateStarted) {
 				publish('error', "Cannot start state: already started.");
 			} else {
 				this.stateStarted = true;
-				publish('stateStarted', this.states[this.state]);
+				publish('stateStarted', this.state);
 			}
 		},
 		
 		endState: function () {
-			if (this.state === -1) {
+			if (this.state === null) {
 				publish('error', "Cannot end state: match ended.");
 			} else if (!this.stateStarted) {
 				publish('error', "Cannot end state: not yet started.");
 			} else {
 				this.stateStarted = false;
-				publish('stateEnded', this.states[this.state]);
+				publish('stateEnded', this.state);
 				
 				// Move to next state
 				this._nextState();
@@ -88,9 +152,9 @@ define(['minpubsub', 'match-config', 'enum/match-states'], function (PubSub, con
 		startEndInjury: function () {
 			this.injuryStarted = !this.injuryStarted;
 			if (this.injuryStarted) {
-				publish('injuryStarted', this.states[this.state]);
+				publish('injuryStarted', this.state);
 			} else {
-				publish('injuryEnded', this.states[this.state]);
+				publish('injuryEnded', this.state);
 			}
 		}
 		

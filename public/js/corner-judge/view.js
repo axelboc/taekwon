@@ -82,7 +82,7 @@ define(['../common/competitors', 'enum/ui-views', 'enum/ui-backdrops'], function
 
 	var ringNotJoined = function (message) {
 		ringsInstr.textContent = message;
-		showView(Views.RINGS);
+		showView(UIViews.RINGS);
 	};
 
 	var onScoringStateChanged = function (enabled) {

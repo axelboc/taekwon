@@ -23,6 +23,7 @@ define(['../lib/domReady!', 'fastclick', './io', './view'], function (document, 
 	FastClick.attach(document.body);
 
 	// DEBUG
+	IO.debug();
 	/*setTimeout(function () {
 		IO.sendId('tkd')
 	}, 200);*/
