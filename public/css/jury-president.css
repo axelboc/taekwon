@@ -40,19 +40,30 @@
 
 /* ===== Match panel ===== */
 
-.mp-top-row {
+.mp-row {
 	display: table;
 	width: 100%;
+}
+
+.mp-row--top {
 	height: 40%;
+	border-bottom: solid 1px #ccc;
+}
+
+.mp-row--bottom {
+	height: 60%;
+	border-top: solid 1px #ccc;
+}
+
+.mp-cell {
+	display: table-cell;
+	vertical-align: middle;
+	width: 50%;
 }
 
 .time-keeping,
 .state-management {
-	display: table-cell;
-	vertical-align: middle;
-	width: 50%;
 	height: 50%;
-	border-bottom: solid 1px #ccc;
 }
 
 /* Time keeping */
@@ -141,12 +152,34 @@
 }
 
 
-/* Score and injuries */
+/* Scoring */
 
-.scoring {
-	clear: left;
+.sc-inner {
+	padding: 0em 2em 2em;
+	overflow: hidden;
+}
+
+.sc-judge {
+	float: left;
+	width: 50%;
 	height: 50%;
-	border-top: solid 1px #ccc;
+	padding: 1em 2em;
+}
+
+.sc-judge-score > span {
+	display: block;
+	float: left;
+	width: 50%;
+	padding: .5em 0;
+	font-size: 140%;
+	font-weight: bold;
+}
+
+
+/* Penalties */
+
+.penalties {
+	
 }
 
 

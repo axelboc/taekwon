@@ -75,8 +75,8 @@
 			</div>
 		</div>
 		<div id="match-panel" class="panel hidden">
-	    	<div class="mp-top-row">
-				<div class="time-keeping tk_off">
+	    	<div class="mp-row mp-row--top">
+				<div class="mp-cell time-keeping tk_off">
 					<div class="tk-inner">
 						<div class="tk-timer tk-timer--round">
 							<span class="tk-timer-min">2</span><span class="tk-timer-sep">:</span><span class="tk-timer-sec">00</span>
@@ -86,7 +86,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="state-management">
+				<div class="mp-cell state-management">
 					<div class="sm-inner">
 						<button class="btn btn--match sm-btn sm-btn--start" type="button">Start round 1</button>
 						<button class="btn btn--match sm-btn sm-btn--end" type="button">End round 1</button>
@@ -95,8 +95,23 @@
 					</div>
 				</div>
 		    </div>
-		    <div class="scoring">
-		    	
+		    <div class="mp-row mp-row--bottom">
+		    	<div class="mp-cell scoring">
+		    		<div class="sc-inner">
+						{{#times judgeCount}}
+						<div class="sc-judge">
+		           			<h3 class="sc-judge-name">Judge #{{this}}</h3>
+							<div class="sc-judge-score">
+								<span class="sc-hong hong-bg">0</span>
+								<span class="sc-chong chong-bg">0</span>
+							</div>
+						</div>
+						{{/times}}
+	    			</div>
+		    	</div>
+		    	<div class="mp-cell penalties">
+		    		
+		    	</div>
 		    </div>
 		</div>
 		<div id="result-panel" class="panel hidden">

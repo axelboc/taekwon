@@ -10,6 +10,7 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		matchView, matchNewBtns, matchConfigBtn, match = null,
 		timeKeeping, mainTimer, injuryTimer,
 		stateManagement, stateStartBtn, stateEndBtn, matchResultBtn, injuryBtn,
+		scoring, scoringJudges,
 		scoreboardWrap, scoreboardTemplate, scoreboard, scoreboardCells,
 		judgesList, judges, judgesById;
 
@@ -52,6 +53,9 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		stateEndBtn = stateManagement.querySelector('.sm-btn--end');
 		matchResultBtn = stateManagement.querySelector('.sm-btn--result');
 		injuryBtn = stateManagement.querySelector('.sm-btn--injury');
+		
+		scoring = matchView.querySelector('.scoring')
+		scoringJudges = scoring.querySelectorAll('.sc-judge');
 
 		scoreboardWrap = document.getElementById('scoreboard-wrap');
 		scoreboardTemplate = Handlebars.compile(document.getElementById('scoreboard-template').innerHTML);
@@ -65,7 +69,7 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 				name: null,
 				slot: index,
 				rootLi: item,
-				nameH3: item.querySelector('.judge-name'),
+				nameH3s: [item.querySelector('.judge-name'), scoringJudges[index].querySelector('.sc-judge-name')],
 				stateSpan: item.querySelector('.judge-state'),
 				btnsUl: item.querySelector('.judge-btns'),
 				acceptBtn: item.querySelector('.judge-accept'),
@@ -165,7 +169,9 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 			judge.name = cornerJudge.name;
 
 			// Set name
-			judge.nameH3.textContent = cornerJudge.name;
+			judge.nameH3s.forEach(function (elem) {
+				elem.textContent = cornerJudge.name;
+			});
 
 			// Show/hide accept/reject buttons and state span
 			judge.btnsUl.classList.toggle("hidden", alreadyAuthorised);
@@ -197,7 +203,9 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 		judge.rejectFn = null;
 
 		if (!accept) {
-			judge.nameH3.textContent = "Judge #" + (judge.slot + 1);
+			judge.nameH3s.forEach(function (elem) {
+				elem.textContent = "Judge #" + (judge.slot + 1);
+			});
 			judge.stateSpan.textContent = "Waiting for connection";
 
 			delete judgesById[judge.id];
@@ -219,7 +227,9 @@ define(['minpubsub', 'handlebars', 'enum/ui-views', 'enum/ui-match-panels', 'enu
 
 		if (cornerJudge.connected) {
 			// Set name and hide connection lost message
-			judge.nameH3.textContent = cornerJudge.name;
+			judge.nameH3s.forEach(function (elem) {
+				elem.textContent = cornerJudge.name;
+			});
 			judge.stateSpan.textContent = "Connected";
 		} else {
 			// Show connection lost message

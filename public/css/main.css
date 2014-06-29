@@ -150,11 +150,11 @@ button::-moz-focus-inner {
 /* Competitor colours */
 
 .hong-col { color: hsl(6, 78%, 57%); }
-.hong-bg { background-color: hsl(6, 78%, 57%); }
+.hong-bg { background-color: hsl(6, 78%, 57%); color: #fff; }
 .hong-sbg { background-color: hsla(6, 78%, 57%, .3); }
 
 .chong-col { color: hsl(204, 64%, 44%); }
-.chong-bg { background-color: hsl(204, 64%, 44%); }
+.chong-bg { background-color: hsl(204, 64%, 44%); color: #fff; }
 .chong-sbg { background-color: hsla(204, 64%, 44%, .3); }
 
 
