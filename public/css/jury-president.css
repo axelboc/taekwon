@@ -13,6 +13,80 @@
 }
 
 
+/* ===== Judges sidebar ===== */
+
+.judges {
+	float: left;
+	width: 16em;
+	height: 100%;
+	padding: 1em 2em;
+	font-size: 90%;
+	background-color: #eee;
+	border-right: 1px solid #ccc;
+}
+
+.judges-heading {
+	margin-top: 1.3em;
+	margin-bottom: 1.3em;
+	font-weight: normal;
+}
+
+.judge {
+	position: relative;
+	padding: 1.6em 0;
+	border-bottom: 1px solid #ccc;
+}
+
+.judge-name {
+	margin-top: 0;
+	margin-bottom: .7em;
+}
+
+.judge-disconnect {
+	position: absolute;
+	top: 1.2em;
+	right: 0;
+	opacity: 0;
+	transition: all .3s ease;
+	padding: 0 .2em;
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: 50%;
+	font-size: 130%;
+    color: #777;
+	cursor: pointer;
+}
+
+.judge:hover > .judge-disconnect {
+	opacity: 1;
+}
+
+.judge-disconnect:hover {
+    background-color: #ddd;
+	border: 1px solid #bbb;
+    color: #444;
+}
+
+.judge-state {
+	margin-bottom: 0;
+}
+
+.judge-btns {
+	cursor: default;
+}
+
+.judge-count-btns {
+	margin-top: 1.6em;
+}
+
+.judge-count-btns > button {
+	margin: 0 .1em;
+	padding: .2em .4em;
+	border-radius: 50%;
+	font-size: 130%;
+}
+
+
 /* ===== Configuration panel ===== */
 
 #config-panel {
@@ -224,45 +298,5 @@
 .sb-head th:not(:first-child),
 .sb-body .hong-sbg {
 	border-left: 10px solid #fff;
-}
-
-
-/* ===== Judges sidebar ===== */
-
-.judges {
-	float: left;
-	width: 16em;
-	height: 100%;
-	padding: 1em 2em;
-	font-size: 90%;
-	background-color: #eee;
-	border-right: 1px solid #ccc;
-}
-
-.judges-heading {
-	margin-top: 1.3em;
-	margin-bottom: 1.3em;
-	font-weight: normal;
-}
-
-.judge {
-	padding: 1.6em 0;
-}
-
-.judge:not(:first-child) {
-	border-top: 1px solid #ccc;
-}
-
-.judge-name {
-	margin-top: 0;
-	margin-bottom: .7em;
-}
-
-.judge-state {
-	margin-bottom: 0;
-}
-
-.judge-btns {
-	cursor: default;
 }
 

@@ -40,6 +40,7 @@
 				{{#times judgeCount}}
 		        <li class="judge">
 		            <h3 class="judge-name">Judge #{{this}}</h3>
+		            <button type="button" class="judge-disconnect hidden" title="Disconnect">&times;</button>
 		            <span class="judge-state">Waiting for connection</span>
                     <div class="judge-btns hidden">
                         <button type="button" class="judge-accept btn btn--judge btn--major">Accept</button>
@@ -48,6 +49,10 @@
                 </li>
 				{{/times}}
 		    </ul>
+		    <div class="judge-count-btns">
+		    	<button type="button" class="judge-minus btn btn--minor" title="Remove one judge">&minus;</button>
+		    	<button type="button" class="judge-plus btn btn--minor" title="Add one judge">+</button>
+		    </div>
 		</div>
 		<div id="config-panel" class="panel">
 			<button type="button" class="btn btn--match btn--major match-btn-new">New match</button>
