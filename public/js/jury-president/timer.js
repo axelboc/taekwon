@@ -26,6 +26,8 @@ define(function () {
 			this._update();
 		},
 		
+		
+		// TODO: publish event instead
 		_update: function () {
 			this.minElem.textContent = Math.floor(this.value / 60);
 			var sec = this.value % 60

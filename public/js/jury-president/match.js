@@ -4,7 +4,6 @@
  */
 define(['minpubsub', 'match-config', '../common/competitors', 'enum/match-states'], function (PubSub, config, Competitors, MatchStates) {
 	
-	// TODO: consider injuries separately from states 
 	function Match (judgeIds) {
 		this.state = null;
 		this.states = [MatchStates.ROUND_1];
