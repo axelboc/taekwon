@@ -12,13 +12,24 @@ define(['minpubsub', 'match-config', '../common/competitors', 'enum/match-states
 		this.stateStarted = false;
 		this.injuryStarted = false;
 		
-		// Store total scores for each judge and round
-		this.scores = {};
+		// TODO: consider moving scoreboards to future Judge module
+		
+		/**
+		 * Judge scoreboards
+		 * Each scoreboard is an array of objects representing the main columns of the scoreboard.
+		 * Each column object contains two keys: 'label' (string) and 'values' (array of two integers, for hong and chong).
+		 * Examples of column sequences for various matches:
+		 * - 1-round match: 		round-1, penalties, total
+		 * - 2-round match: 		round-1, round-2, penalties, total
+		 * - up to golden point: 	round-1, round-2, penalties, total, tie-breaker, penalties, total, golden point
+		 */
+		this.scoreboards = {};
 		judgeIds.forEach(function (id) {
-			this.scores[id] = [];
+			this.scoreboards[id] = [];
 		}, this);
 		
-		// TODO: penalties
+		// Penalties ('warnings' and 'fouls') given at each state (except break states)
+		this.penalties = {};
 
 		publish('created', this);
 		this._nextState();
@@ -26,31 +37,77 @@ define(['minpubsub', 'match-config', '../common/competitors', 'enum/match-states
 	
 	Match.prototype = {
 		
+		/**
+		 * Compute maluses from penalties, knowing that:
+		 * - 3 warnings = -1 pt
+		 * - 1 foul 	= -1 pt
+		 */
+		_getMaluses: function (penalties) {
+			var maluses = [];
+			for (var i = 0; i <= 1; i += 1) {
+				maluses.push(- Math.floor(penalties.warnings[i] / 3) - penalties.fouls[i]);
+			}
+			return maluses;
+		},
+		
+		/**
+		 * Compute total maluses and scores for each judge and add them to their scoreboard
+		 */
 		_computeTotal: function () {
-			Object.keys(this.scores).forEach(function (judgeId) {
-				var judgeScores = this.scores[judgeId];
+			Object.keys(this.scoreboards).forEach(function (judgeId) {
+				var scoreboard = this.scoreboards[judgeId];
 				
-				// Total is at least the scores of the current state + penalties
-				var total = judgeScores[judgeScores.length - 1]['scores'].slice(0);
-				// TODO: add penalties
+				// Get the last colum of the scoreboard and its corresponding penalties
+				var lastCol = scoreboard[scoreboard.length - 1];
+				
+				// Start computing total scores and maluses
+				var totalScores = lastCol.values.slice(0);
+				var totalMaluses = _getMaluses(this.penalties[lastCol.label]);
 	
-				// If current state is Round 2, then add scores of Round 1 to the total
+				// If current state is round 2, then add scores and penalties from round 1 (the first column in the scoreboard)
 				if (this.state === MatchStates.ROUND_2) {
-					var rd1 = judgeScores[0]['scores'];
-					total[0] += rd1[0];
-					total[1] += rd1[1];
+					var firstCol = scoreboard[0];
+					var scores = firstCol.values;
+					var maluses = _getMaluses(this.penalties[firstCol.label]);
+					for (var i = 0; i <= 1; i += 1) {
+						totalScores[i] += scores[i];
+						totalMaluses[i] += maluses[i];
+					}
 				}
 				
-				judgeScores.push({
-					state: 'total',
-					scores: total
+				// Apply maluses to total
+				for (i = 0; i <= 1; i += 1) {
+					totalScores[i] -= totalMaluses[i];
+				}
+				
+				// Add total maluses and scores to scoreboard
+				scoreboard.push({
+					label: 'maluses',
+					values: totalMaluses
+				}, {
+					label: 'total',
+					values: totalScores
 				});
 			}, this);
 		},
 		
+		/**
+		 * Determine whether the latest total column of the scoreboard reveals a tie
+		 */
 		_isTie: function () {
-			// TODO: implement Match function _isTie
-			return true;
+			var diff = 0;
+			
+			// Loop through the judges' scoreboards
+			Object.keys(this.scoreboards).forEach(function (judgeId) {
+				var scoreboard = this.scoreboards[judgeId];
+				var totals = scoreboard[scoreboard.length - 1].values;
+				
+				// +1 if hong wins, -1 if chong wins, 0 if tie
+				diff += (totals[0] > totals[1] ? 1 : (totals[0] < totals[1] ? -1 : 0));
+			});
+			
+			// If tie, diff is equal to 0
+			return diff === 0;
 		},
 		
 		_nextState: function () {
@@ -105,11 +162,11 @@ define(['minpubsub', 'match-config', '../common/competitors', 'enum/match-states
 			this.state = this.states[this.stateIndex];
 
 			if (this.state !== MatchStates.BREAK) {
-				// Initialise each judge's score array (i.e. [hong, chong]) for the new state
-				Object.keys(this.scores).forEach(function (judgeId) {
-					this.scores[judgeId].push({
-						state: this.state,
-						scores: [0, 0]
+				// Add a new column to each judge's scoreboard for the new state
+				Object.keys(this.scoreboards).forEach(function (judgeId) {
+					this.scoreboards[judgeId].push({
+						label: this.state,
+						values: [0, 0]
 					});
 					publish('judgeScoresUpdated', judgeId, [0, 0]);
 				}, this);
@@ -158,13 +215,13 @@ define(['minpubsub', 'match-config', '../common/competitors', 'enum/match-states
 		},
 		
 		score: function (judgeId, competitor, points) {
-			var judgeScores = this.scores[judgeId];
-			var scoresArr = judgeScores[judgeScores.length - 1]['scores'];
+			var scoreboard = this.scoreboards[judgeId];
+			var scores = scoreboard[scoreboard.length - 1].values;
 			var competitorIndex = (competitor === Competitors.HONG ? 0 : 1);
 			
-			scoresArr[competitorIndex] += points;
+			scores[competitorIndex] += points;
 			
-			publish('judgeScoresUpdated', judgeId, scoresArr.slice(0));
+			publish('judgeScoresUpdated', judgeId, scores.slice(0));
 		}
 		
 	};
