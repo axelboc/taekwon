@@ -14,6 +14,18 @@ define(function () {
 	
 	Timer.prototype = {
 		
+		_publish: function (subTopic) {
+			PubSub.publish('timer.' + subTopic, [].slice.call(arguments, 1));
+		},
+		
+		// TODO: publish event instead
+		_update: function () {
+			/*this.minElem.textContent = Math.floor(this.value / 60);
+			var sec = this.value % 60
+			this.secElem.textContent = (sec < 10 ? '0' : '') + sec;*/
+			this._publish('tick', this.value);
+		},
+		
 		_tickDown: function () {
 			if (this.value > 0) {
 				this.value -= 1;
@@ -24,14 +36,6 @@ define(function () {
 		_tickUp: function () {
 			this.value += 1;
 			this._update();
-		},
-		
-		
-		// TODO: publish event instead
-		_update: function () {
-			this.minElem.textContent = Math.floor(this.value / 60);
-			var sec = this.value % 60
-			this.secElem.textContent = (sec < 10 ? '0' : '') + sec;
 		},
 		
 		reset: function (value) {

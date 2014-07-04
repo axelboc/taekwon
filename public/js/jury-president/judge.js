@@ -10,20 +10,11 @@ define(['minpubsub'], function (PubSub) {
 	
 	Judge.prototype = {
 		
+		publish: function (subTopic) {
+			PubSub.publish('judge.' + subTopic, [].slice.call(arguments, 1));
+		}
+		
 	};
-	
-	/**
-	 * Wrap publish function
-	 */
-	function publish(subTopic) {
-		PubSub.publish('judge.' + subTopic, [].slice.call(arguments, 1));
-	}
-	
-	// Debug errors
-	PubSub.subscribe('judge.error', function (error) {
-		console.log(error);
-	});
-	
 	
 	return Judge;
 	

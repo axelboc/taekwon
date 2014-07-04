@@ -32,6 +32,11 @@
 				{{/each}}
 		    </ul>
 		</div>
+		<script id="ring-template" type="x-handlebars-template">
+			{{#each ringAllocations}}
+			<li><button type="button" class="btn rings-btn" \{{#if allocated}}disabled\{{/if}}>\{{index}}</button></li>
+			{{/each}}
+		</script>
 	</div>
 	<div id="match-view" class="view hidden">
 		<div class="judges">

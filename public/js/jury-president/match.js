@@ -31,11 +31,16 @@ define(['minpubsub', 'match-config', '../common/competitors', 'enum/match-states
 		// Penalties ('warnings' and 'fouls') given at each state (except break states)
 		this.penalties = {};
 
-		publish('created', this);
+		this._publish('created', this);
 		this._nextState();
 	}
 	
 	Match.prototype = {
+		
+		// TODO: subscribe to errors in main module
+		_publish: function (subTopic) {
+			PubSub.publish('match.' + subTopic, [].slice.call(arguments, 1));
+		},
 		
 		/**
 		 * Compute maluses from penalties, knowing that:
@@ -168,37 +173,37 @@ define(['minpubsub', 'match-config', '../common/competitors', 'enum/match-states
 						label: this.state,
 						values: [0, 0]
 					});
-					publish('judgeScoresUpdated', judgeId, [0, 0]);
+					this._publish('judgeScoresUpdated', judgeId, [0, 0]);
 				}, this);
 			}
 
-			publish('stateChanged', this.state);
+			this._publish('stateChanged', this.state);
 		},
 		
 		_endMatch: function () {
 			this.state = null;
-			publish('ended');
+			this._publish('ended');
 		},
 		
 		startState: function () {
 			if (this.state === null) {
-				publish('error', "Cannot start state: match ended.");
+				this._publish('error', "Cannot start state: match ended.");
 			} else if (this.stateStarted) {
-				publish('error', "Cannot start state: already started.");
+				this._publish('error', "Cannot start state: already started.");
 			} else {
 				this.stateStarted = true;
-				publish('stateStarted', this.state);
+				this._publish('stateStarted', this.state);
 			}
 		},
 		
 		endState: function () {
 			if (this.state === null) {
-				publish('error', "Cannot end state: match ended.");
+				this._publish('error', "Cannot end state: match ended.");
 			} else if (!this.stateStarted) {
-				publish('error', "Cannot end state: not yet started.");
+				this._publish('error', "Cannot end state: not yet started.");
 			} else {
 				this.stateStarted = false;
-				publish('stateEnded', this.state);
+				this._publish('stateEnded', this.state);
 				
 				// Move to next state
 				this._nextState();
@@ -208,9 +213,9 @@ define(['minpubsub', 'match-config', '../common/competitors', 'enum/match-states
 		startEndInjury: function () {
 			this.injuryStarted = !this.injuryStarted;
 			if (this.injuryStarted) {
-				publish('injuryStarted', this.state);
+				this._publish('injuryStarted', this.state);
 			} else {
-				publish('injuryEnded', this.state);
+				this._publish('injuryEnded', this.state);
 			}
 		},
 		
@@ -221,24 +226,10 @@ define(['minpubsub', 'match-config', '../common/competitors', 'enum/match-states
 			
 			scores[competitorIndex] += points;
 			
-			publish('judgeScoresUpdated', judgeId, scores.slice(0));
+			this._publish('judgeScoresUpdated', judgeId, scores.slice(0));
 		}
 		
 	};
-	
-	
-	/**
-	 * Wrap publish function
-	 */
-	function publish(subTopic) {
-		PubSub.publish('match.' + subTopic, [].slice.call(arguments, 1));
-	}
-	
-	// Debug errors
-	PubSub.subscribe('match.error', function (error) {
-		console.log(error);
-	});
-	
 	
 	return Match;
 	
