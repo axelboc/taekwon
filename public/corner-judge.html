@@ -7,17 +7,17 @@
 	<link rel="stylesheet" href="/css/main.css">
 	<link rel="stylesheet" href="/css/corner-judge.css">
 	<script src="/socket.io/socket.io.js"></script>
-	<script src="/js/lib/require.js" data-main="/js/corner-judge/main.js"></script>
+	<script src="/js/lib/require.js" data-main="/js/main.js"></script>
 </head>
 <body>
-	<div id="name-view" class="view hidden">
+	<div id="name" class="view hidden">
 	    <h1>Corner Judge</h1>
 		<div class="action">
 			<p class="instr">Enter your name</p>
 			<input class="name-field field" type="text">
 		</div>
 	</div>
-	<div id="ring-list-view" class="view hidden">
+	<div id="ring-list" class="view hidden">
 	    <h1>Corner Judge</h1>
 		<div class="action">
 			<p class="rl-instr instr">Select ring number</p>
@@ -29,13 +29,13 @@
 			{{/each}}
 		</script>
 	</div>
-	<div id="authorisation-view" class="view hidden">
+	<div id="authorisation" class="view hidden">
 		<h1>Corner Judge</h1>
 		<div class="action">
 			<p class="instr">Waiting for authorisation...</p>
 		</div>
 	</div>
-	<div id="round-view" class="view hidden">
+	<div id="round" class="view hidden">
 		<div class="score-btns score-btns--hong">
 			<button class="score-btn score-btn--5 hong-bg">5</button>
 			<button class="score-btn score-btn--4 hong-bg">4</button>

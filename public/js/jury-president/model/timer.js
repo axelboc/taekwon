@@ -15,7 +15,6 @@ define(['minpubsub'], function (PubSub) {
 			PubSub.publish('timer.' + subTopic, [].slice.call(arguments, 1));
 		},
 		
-		// TODO: publish event instead
 		_update: function () {
 			/*this.minElem.textContent = Math.floor(this.value / 60);
 			var sec = this.value % 60

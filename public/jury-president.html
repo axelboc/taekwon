@@ -7,17 +7,17 @@
 	<link rel="stylesheet" href="/css/main.css">
 	<link rel="stylesheet" href="/css/jury-president.css">
 	<script src="/socket.io/socket.io.js"></script>
-	<script src="/js/lib/require.js" data-main="/js/jury-president/main.js"></script>
+	<script src="/js/lib/require.js" data-main="/js/main.js"></script>
 </head>
 <body>
-	<div id="pwd-view" class="view hidden">
+	<div id="pwd" class="view hidden">
 		<h1>Jury President</h1>
 		<div class="action">
 			<p class="pwd-instr instr">Master password required</p>
 			<input class="pwd-field field" type="password">
 		</div>
 	</div>
-	<div id="ring-list-view" class="view hidden">
+	<div id="ring-list" class="view hidden">
 		<h1>Jury President</h1>
 		<div class="action">
 			<p class="rl-instr instr">Select ring number</p>
@@ -29,7 +29,7 @@
 			{{/each}}
 		</script>
 	</div>
-	<div id="ring-view" class="view hidden">
+	<div id="ring" class="view hidden">
 		<div id="judges-sidebar">
 		    <h2 class="judges-heading">Corner Judges</h2>
 		    <ul class="judges-list list-reset"></ul>

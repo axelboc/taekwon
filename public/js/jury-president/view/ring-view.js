@@ -1,9 +1,10 @@
 
-define(['minpubsub', 'handlebars', '../defaults', './judges-sidebar'], function (PubSub, Handlebars, defaults, JudgesSidebar) {
+define(['minpubsub', 'handlebars', '../defaults', './judges-view'], function (PubSub, Handlebars, defaults, JudgesView) {
 	
-	function RingView() {
-		this.root = document.getElementById('ring-view');
-		this.judgesSidebar = new JudgesSidebar(defaults.judgesPerRing);
+	function RingView(model) {
+		this.model = model;
+		this.root = document.getElementById('ring');
+		this.JudgesView = new JudgesView(defaults.judgesPerRing);
 	}
 	
 	RingView.prototype = {

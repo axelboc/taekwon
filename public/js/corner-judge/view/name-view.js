@@ -2,7 +2,7 @@
 define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
 	
 	function NameView() {
-		this.root = document.getElementById('name-view');
+		this.root = document.getElementById('name');
 		this.field = this.root.querySelector('.name-field');
 		
 		this.field.addEventListener('keypress', this._onNameField.bind(this));

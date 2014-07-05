@@ -1,8 +1,8 @@
 @charset "utf-8";
 
-/* ===== SCORE BUTTONS ===== */
+/* ===== Round view (score buttons) ===== */
 
-#round-view {
+#round {
 	height: 100%;
 	padding-bottom: 0;
 }
@@ -62,7 +62,7 @@
 }
 
 
-/* ===== BACKDROP ===== */
+/* ===== Backdrop ===== */
 
 .backdrop-wrap {
 	position: absolute;

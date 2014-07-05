@@ -1,7 +1,7 @@
 
 define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
 	
-	function JudgeSidebar(judgeCount) {
+	function JudgesView(judgeCount) {
 		this.root = document.getElementById('judges-sidebar');
 		this.judgesList = this.root.querySelector('.judges-list');
 		this.template = Handlebars.compile(document.getElementById('judge-tmpl').innerHTML);
@@ -19,12 +19,12 @@ define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
 		});
 	}
 	
-	JudgeSidebar.prototype = {
+	JudgesView.prototype = {
 		
 		
 		
 	};
 	
-	return JudgeSidebar;
+	return JudgesView;
 	
 });

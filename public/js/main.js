@@ -1,9 +1,7 @@
 
-// TODO: use same main.js file for both clients
-
 // RequireJS configuration
 require.config({
-	baseUrl: '/js/corner-judge',
+	baseUrl: '/js/' + (window.location.href.indexOf('jury') !== -1 ? 'jury-president' : 'corner-judge'),
 	paths: {
 		fastclick: '../lib/fast-click.min',
 		handlebars: '../lib/handlebars.min',
@@ -17,7 +15,7 @@ require.config({
 
 // Jury President 'main' module
 define(['../lib/domReady!', 'fastclick', './controller'], function (document, FastClick, Controller) {
-
+	
 	Controller.init();
 
 	// Initialise FastClick to remove 300ms delay on mobile devices

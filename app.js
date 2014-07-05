@@ -1,7 +1,5 @@
 
-// TODO: separate server config (cookie, masterPwd, ringCount) from client config (judgeCount, match config)
 // TODO: pass client config to server via sockets when needed
-// TODO: split client view into sub-modules; use events to communicate
 // TODO: implement judges sidebar controls (buttons to add/remove/disconnect judge)
 
 /* Core set-up */

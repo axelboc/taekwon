@@ -2,7 +2,7 @@
 define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
 	
 	function PwdView() {
-		this.root = document.getElementById('pwd-view');
+		this.root = document.getElementById('pwd');
 		this.instr = this.root.querySelector('.pwd-instr');
 		this.field = this.root.querySelector('.pwd-field');
 		

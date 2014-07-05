@@ -101,7 +101,7 @@ define(['minpubsub', './io', './view/name-view', '../common/ring-list-view', './
 	}
 	
 	function _onRingDoesNotExist(index) {
-		console.log("Ring does not exist (index=" + index + ")");
+		console.error("Ring does not exist (index=" + index + ")");
 		ringListView.updateInstr("Sorry, an error occured");
 		_swapView(authorisationView, ringListView);
 	}

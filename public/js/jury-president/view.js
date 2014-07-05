@@ -12,7 +12,6 @@ define(['minpubsub', 'handlebars', '../common/competitors', 'enum/ui-views', 'en
 		scoreboardWrap, scoreboardTemplate, scoreboard, scoreboardCells,
 		judgesList, judges, judgesById;
 
-	// TODO: use pub/sub pattern instead of passing 'io' parameter to fix circular reference between IO and View modules
 	var init = function (io) {
 		IO = io;
 		cacheElements();

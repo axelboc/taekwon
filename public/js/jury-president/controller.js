@@ -1,7 +1,7 @@
 
-define(['minpubsub', './io', './view/pwd-view', '../common/ring-list-view', './view/ring-view'], function (PubSub, IO, PwdView, RingListView, RingView) {
+define(['minpubsub', './io', './view/pwd-view', '../common/ring-list-view', './model/ring', './view/ring-view', './ring-controller'], function (PubSub, IO, PwdView, RingListView, Ring, RingView, RingController) {
 	
-	var pwdView, ringListView, ringView;
+	var pwdView, ringListView;
 	
 	var events = {
 		io: {
@@ -18,9 +18,6 @@ define(['minpubsub', './io', './view/pwd-view', '../common/ring-list-view', './v
 		},
 		ringListView: {
 			ringSelected: _onRingSelected
-		},
-		ringView: {
-			
 		}
 	};
 	
@@ -40,13 +37,12 @@ define(['minpubsub', './io', './view/pwd-view', '../common/ring-list-view', './v
 		// Initialise views
 		pwdView = new PwdView();
 		ringListView = new RingListView();
-		ringView = new RingView();
 		
 		// DEBUG
 		//IO.debug();
-		/*setTimeout(function () {
+		setTimeout(function () {
 			IO.sendId('tkd')
-		}, 200);*/
+		}, 200);
 	}
 	
 	function _onWaitingForId() {
@@ -86,13 +82,19 @@ define(['minpubsub', './io', './view/pwd-view', '../common/ring-list-view', './v
 		IO.createRing(index);
 	}
 	
-	function _onRingCreated(id) {
-		console.log("Ring created (id=" + id + ")");
+	function _onRingCreated(index) {
+		console.log("Ring created (index=" + index + ")");
+		
+		// Initialise ring model, view and controller
+		var ring = new Ring(index);
+		var ringView = new RingView(ring);
+		var ringController = new RingController(ring, ringView);
+		
 		_swapView(ringListView, ringView);
 	}
 	
-	function _onRingAlreadyExists(id) {
-		console.error("Ring already exists (id=" + id + ")");
+	function _onRingAlreadyExists(index) {
+		console.error("Ring already exists (index=" + index + ")");
 	}
 	
 	function _swapView(oldView, newView) {

@@ -2,7 +2,7 @@
 define(['minpubsub', 'handlebars', '../../common/competitors'], function (PubSub, Handlebars, Competitors) {
 	
 	function RoundView() {
-		this.root = document.getElementById('round-view');
+		this.root = document.getElementById('round');
 		this.hongScoreBtns = this.root.querySelectorAll('.score-btns--hong > .score-btn');
 		this.chongScoreBtns = this.root.querySelectorAll('.score-btns--chong > .score-btn');
 		
