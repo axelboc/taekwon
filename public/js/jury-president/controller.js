@@ -1,7 +1,7 @@
 
-define(['minpubsub', './io', './view/pwd-view', './view/ring-list-view', './view/ring-view'], function (PubSub, IO, PwdView, RingListView, RingView) {
+define(['minpubsub', './io', './view/pwd-view', '../common/ring-list-view', './view/ring-view'], function (PubSub, IO, PwdView, RingListView, RingView) {
 	
-	var pwdView, ringsView;
+	var pwdView, ringListView, ringView;
 	
 	var events = {
 		io: {

@@ -3,6 +3,7 @@ define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
 	
 	function RingListView() {
 		this.root = document.getElementById('ring-list-view');
+		this.instr = this.root.querySelector('rl-instr');
 		this.btns = null;
 		this.template = Handlebars.compile(document.getElementById('rl-ring-tmpl').innerHTML);
 	}
@@ -23,11 +24,12 @@ define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
 			// Retrieve ring buttons and listen for events
 			this.btns = list.querySelectorAll('.rl-btn');
 			[].forEach.call(this.btns, function (btn, index) {
-				btn.addEventListener('click', this._onBtn.bind(this, index));
+				btn.addEventListener('click', this._onBtn.bind(this, btn, index));
 			}, this);
 		},
 		
-		_onBtn: function (index) {
+		_onBtn: function (btn, index) {
+			btn.blur();
 			this._publish('ringSelected', index);
 		},
 		
@@ -38,6 +40,10 @@ define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
 			} else {
 				btn.setAttribute("disabled", "disabled");
 			}
+		},
+		
+		updateInstr: function (instr) {
+			this.instr.textContent = instr;
 		}
 		
 	};

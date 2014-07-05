@@ -3,7 +3,7 @@ define(['minpubsub', 'handlebars', '../defaults', './judges-sidebar'], function 
 	
 	function RingView() {
 		this.root = document.getElementById('ring-view');
-		this.judgesSidebar = new JudgesSidebar(defaults.judgesPerRing); 
+		this.judgesSidebar = new JudgesSidebar(defaults.judgesPerRing);
 	}
 	
 	RingView.prototype = {
