@@ -74,19 +74,12 @@ io.configure(function () {
 
 // Corner Judge
 app.get('/', function (request, response) {
-	response.render('corner-judge', {
-		ringAllocations: Ring.getRingAllocations()
-	});
+	response.sendfile('corner-judge.html', {root: './public'});
 });
 
 // Jury President
 app.get('/jury', function (request, response) {
-	response.render('jury-president', {
-		ringAllocations: Ring.getRingAllocations(),
-		judgeCount: Config.judgeCount,
-		match: Config.match,
-		jsonMatch: JSON.stringify(Config.match)
-	});
+	response.sendfile('jury-president.html', {root: './public'});
 });
 
 
@@ -96,7 +89,8 @@ io.sockets.on('connection', function (socket) {
 	var hs = socket.handshake;
 	var session = hs.session;
 	var sessionId = hs.sessionID;
-	var client = clients[sessionId];
+	// DEBUG
+	//var client = clients[sessionId];
 	var isJury = socket.handshake.headers.referer.indexOf('/jury') !== -1;
 	console.log("New socket connection with session ID: " + sessionId + ".");
 	

@@ -171,9 +171,9 @@ button::-moz-focus-inner {
 }
 
 
-/* Rings view */
+/* Ring list view */
 
-.rings-btn {
+.rl-btn {
     min-width: 2.8em;
     min-height: 2.8em;
     font-size: 230%;

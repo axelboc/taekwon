@@ -1,5 +1,5 @@
 
-define(['minpubsub', './io', './view/pwd-view', './view/rings-view', './view/rings-view'], function (PubSub, IO, PwdView, RingsView, MatchView) {
+define(['minpubsub', './io', './view/pwd-view', './view/ring-list-view', './view/match-view'], function (PubSub, IO, PwdView, RingListView, MatchView) {
 	
 	var pwdView, ringsView;
 	
@@ -16,7 +16,7 @@ define(['minpubsub', './io', './view/pwd-view', './view/rings-view', './view/rin
 		pwdView: {
 			pwdSubmitted: _onPwdSubmitted
 		},
-		ringsView: {
+		ringListView: {
 			ringSelected: _onRingSelected
 		}
 	};
@@ -36,7 +36,7 @@ define(['minpubsub', './io', './view/pwd-view', './view/rings-view', './view/rin
 		
 		// Initialise views
 		pwdView = new PwdView();
-		ringsView = new RingsView();
+		ringListView = new RingListView();
 		matchView = new MatchView();
 		
 		// DEBUG
@@ -67,15 +67,15 @@ define(['minpubsub', './io', './view/pwd-view', './view/rings-view', './view/rin
 		pwdView.invalidPwd();
 	}
 	
-	function _onRingAllocations(allocs) {
-		console.log("Ring allocations received (allocs=\"" + allocs + "\")");
-		ringsView.init(allocs);
-		_swapView(pwdView, ringsView);
+	function _onRingAllocations(rings) {
+		console.log("Ring allocations received (rings=\"" + rings + "\")");
+		ringListView.init(rings);
+		_swapView(pwdView, ringListView);
 	}
 	
-	function _onRingAllocationChanged(alloc) {
-		console.log("Ring allocation changed (alloc=\"" + alloc + "\")");
-		ringsView.updateRingAllocation(alloc);
+	function _onRingAllocationChanged(ring) {
+		console.log("Ring allocation changed (ring=\"" + ring + "\")");
+		ringListView.updateRingBtn(ring.index - 1, !ring.allocated);
 	}
 	
 	function _onRingSelected(index) {
@@ -85,7 +85,7 @@ define(['minpubsub', './io', './view/pwd-view', './view/rings-view', './view/rin
 	
 	function _onRingCreated(id) {
 		console.log("Ring created (id=" + id + ")");
-		_swapView(ringsView, matchView);
+		_swapView(ringListView, matchView);
 	}
 	
 	function _onRingAlreadyExists(id) {

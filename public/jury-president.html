@@ -8,11 +8,6 @@
 	<link rel="stylesheet" href="/css/jury-president.css">
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="/js/lib/require.js" data-main="/js/jury-president/main.js"></script>
-	<script>
-		define('match-config', function () {
-			return {{{jsonMatch}}};
-		});
-	</script>
 </head>
 <body>
 	<div id="pwd-view" class="view hidden">
@@ -22,15 +17,15 @@
 			<input class="pwd-field field" type="password">
 		</div>
 	</div>
-	<div id="rings-view" class="view hidden">
+	<div id="ring-list-view" class="view hidden">
 		<h1>Jury President</h1>
 		<div class="action">
 			<p class="instr">Select ring number</p>
-		    <ul class="rings-list list-reset list-grid"></ul>
+		    <ul class="rl-list list-reset list-grid"></ul>
 		</div>
-		<script id="ring-allocation-tmpl" type="x-handlebars-template">
-			{{#each allocs}}
-			<li><button type="button" class="btn rings-btn"{{#if allocated}} disabled{{/if}}>{{index}}</button></li>
+		<script id="rl-ring-tmpl" type="x-handlebars-template">
+			{{#each rings}}
+			<li><button type="button" class="btn rl-btn"{{#if allocated}} disabled{{/if}}>{{index}}</button></li>
 			{{/each}}
 		</script>
 	</div>
