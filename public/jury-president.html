@@ -29,46 +29,47 @@
 		    <ul class="rings-list list-reset list-grid"></ul>
 		</div>
 		<script id="ring-allocation-tmpl" type="x-handlebars-template">
-			\{{#each allocs}}
-			<li><button type="button" class="btn rings-btn" \{{#if allocated}}disabled\{{/if}}>\{{index}}</button></li>
-			\{{/each}}
+			{{#each allocs}}
+			<li><button type="button" class="btn rings-btn"{{#if allocated}} disabled{{/if}}>{{index}}</button></li>
+			{{/each}}
 		</script>
 	</div>
 	<div id="match-view" class="view hidden">
 		<div class="judges">
 		    <h2 class="judges-heading">Corner Judges</h2>
-		    <ul id="judges-list" class="list-reset">
-				{{#times judgeCount}}
-		        <li class="judge">
-		            <h3 class="judge-name">Judge #{{this}}</h3>
-		            <button type="button" class="judge-disconnect hidden" title="Disconnect">&times;</button>
-		            <span class="judge-state">Waiting for connection</span>
-                    <div class="judge-btns hidden">
-                        <button type="button" class="judge-accept btn btn--judge btn--major">Accept</button>
-                        <button type="button" class="judge-reject btn btn--judge btn--minor">Reject</button>
-                    </div>
-                </li>
-				{{/times}}
-		    </ul>
+		    <ul id="judges-list" class="list-reset"></ul>
 		    <div class="judge-count-btns">
 		    	<button type="button" class="judge-minus btn btn--minor" title="Remove one judge">&minus;</button>
 		    	<button type="button" class="judge-plus btn btn--minor" title="Add one judge">+</button>
 		    </div>
+		    <script id="judge-tmpl" type="x-handlebars-template">
+				{{#each judges}}
+		        <li class="judge">
+		            <h3 class="judge-name">{{name}}</h3>
+		            <button type="button" class="judge-disconnect{{#if authorised}} hidden{{/if}}" title="Disconnect">&times;</button>
+		            <span class="judge-state">{{#if connected}}{{#if authorised}}Waiting for connection{{/if}}{{/if}}</span>
+                    <div class="judge-btns{{#if connected}}{{#unless authorised}} hidden{{/unless}}{{/if}}">
+                        <button type="button" class="judge-accept btn btn--judge btn--major">Accept</button>
+                        <button type="button" class="judge-reject btn btn--judge btn--minor">Reject</button>
+                    </div>
+                </li>
+				{{/each}}
+			</script>
 		</div>
 		<div id="config-panel" class="panel">
 			<button type="button" class="btn btn--match btn--major match-btn-new">New match</button>
 			<div class="config-wrap">
 				<div class="config">
 					<span class="config-lbl">Round time</span>
-					<span class="config-inp"><button type="button">-</button><span>{{numToTime match.roundTime}}</span><button type="button">+</button></span>
+					<span class="config-inp"><button type="button">-</button><span></span><button type="button">+</button></span>
 				</div>
 				<div class="config">
 					<span class="config-lbl">Injury time</span>
-					<span class="config-inp"><button type="button">-</button><span>{{numToTime match.injuryTime}}</span><button type="button">+</button></span>
+					<span class="config-inp"><button type="button">-</button><span></span><button type="button">+</button></span>
 				</div>
 				<div class="config">
 					<span class="config-lbl">Break time</span>
-					<span class="config-inp"><button type="button">-</button><span>{{numToTime match.breakTime}}</span><button type="button">+</button></span>
+					<span class="config-inp"><button type="button">-</button><span></span><button type="button">+</button></span>
 				</div>
 				<div class="config">
 					<span class="config-lbl">Number of rounds</span>
@@ -89,10 +90,10 @@
 				<div class="mp-cell time-keeping tk_off">
 					<div class="tk-inner">
 						<div class="tk-timer tk-timer--round">
-							<span class="tk-timer-min">2</span><span class="tk-timer-sep">:</span><span class="tk-timer-sec">00</span>
+							<span class="tk-timer-min"></span><span class="tk-timer-sep">:</span><span class="tk-timer-sec"></span>
 						</div>
 						<div class="tk-timer tk-timer--injury">
-							<span class="tk-timer-min">2</span><span class="tk-timer-sep">:</span><span class="tk-timer-sec">00</span>
+							<span class="tk-timer-min"></span><span class="tk-timer-sep">:</span><span class="tk-timer-sec"></span>
 						</div>
 					</div>
 				</div>
@@ -106,20 +107,21 @@
 				</div>
 		    </div>
 		    <div class="mp-row mp-row--bottom">
-		    	<div class="mp-cell scoring">
-		    		<div class="sc-inner">
-						{{#times judgeCount}}
+		    	<div class="scoring mp-cell">
+		    		<div class="sc-inner"></div>
+					<script id="sc-judge-tmpl" type="x-handlebars-template">
+						{{#each judges}}
 						<div class="sc-judge">
-		           			<h3 class="sc-judge-name">Judge #{{this}}</h3>
+		           			<h3 class="sc-judge-name">{{name}}</h3>
 							<div class="sc-judge-score">
 								<span class="sc-hong hong-bg">0</span>
 								<span class="sc-chong chong-bg">0</span>
 							</div>
 						</div>
-						{{/times}}
-	    			</div>
+						{{/each}}
+					</script>
 		    	</div>
-		    	<div class="mp-cell penalties">
+		    	<div class="penalties mp-cell">
 		    		
 		    	</div>
 		    </div>
@@ -130,30 +132,29 @@
 				<button type="button" class="btn btn--match btn--minor" id="match-btn-config">Change match configuration</button>
 				<button type="button" class="btn btn--match btn--major match-btn-new">New match</button>
 			</div>
-			<div id="scoreboard-wrap">
-			</div>
+			<div id="scoreboard-wrap"></div>
 			<script id="scoreboard-template" type="text/x-handlebars-template">
-				<p class="result-penalties">Penalties: <span class="hong-col">Hong: \{{penalties.[0]}}</span>, <span class="chong-col">Chong: \{{penalties.[1]}}</span></p>
+				<p class="result-penalties">Penalties: <span class="hong-col">Hong: {{penalties.[0]}}</span>, <span class="chong-col">Chong: {{penalties.[1]}}</span></p>
 				<table class="scoreboard">
 					<thead class="sb-head">
 						<tr>
 							<th scope="col" class="hidden--view">Judge</th>
 							<th scope="col" colspan="2">Round 1</th>
-							\{{#if match.hadTwoRounds}}<th scope="col" colspan="2">Round 2</th>\{{/if}}
+							{{#if match.hadTwoRounds}}<th scope="col" colspan="2">Round 2</th>{{/if}}
 							<th scope="col" colspan="2">Result</th>
-							\{{#if match.hadTieBreaker}}<th scope="col" colspan="2">Tie breaker</th>\{{/if}}
-							\{{#if match.hadGoldenPoint}}<th scope="col" colspan="2">Golden point</th>\{{/if}}
+							{{#if match.hadTieBreaker}}<th scope="col" colspan="2">Tie breaker</th>{{/if}}
+							{{#if match.hadGoldenPoint}}<th scope="col" colspan="2">Golden point</th>{{/if}}
 						</tr>
 					</thead>
 					<tbody class="sb-body">
-						\{{#each judges}}
+						{{#each judges}}
 						<tr>
-							<th scope="row">\{{name}}</th>
-							\{{#each results}}
-							<td>\{{this}}</td>
-							\{{/each}}
+							<th scope="row">{{name}}</th>
+							{{#each results}}
+							<td>{{this}}</td>
+							{{/each}}
 						</tr>
-						\{{/each}}
+						{{/each}}
 					</tbody>
 				</table>
 			</script>

@@ -1,5 +1,4 @@
 
-// TODO: don't use Handlebars for server-side rendering; only for client-side rendering
 // TODO: separate server config (cookie, masterPwd, ringCount) from client config (judgeCount, match config)
 // TODO: pass client config to server via sockets when needed
 // TODO: split client view into sub-modules; use events to communicate
@@ -9,14 +8,12 @@
 
 // Import core modules
 var express = require('express');
-var exphbs = require('express3-handlebars');
 var socket = require('socket.io');
 var connectUtils = require('./node_modules/express/node_modules/connect/lib/utils');
 var cookie = require('cookie');
 
 // Import app modules
 var Config = require('./app/config');
-var hbsHelpers = require('./app/hbs-helpers');
 var JuryPresident = require('./app/jury-president').JuryPresident;
 var CornerJudge = require('./app/corner-judge').CornerJudge;
 var Ring = require('./app/ring').Ring;
@@ -38,12 +35,7 @@ app.configure(function () {
 			maxAge: 1000 * 60 * 60 * 24 // one day
 		}
 	}));
-    
-    // Initialie Handlebars templating engine
-    app.set('views', __dirname + '/views');
-    app.set('view engine', 'hbs');
-    app.engine('hbs', exphbs({helpers: hbsHelpers}));
-
+	
     // Let Express know where to look for static files
     app.use(express.static(__dirname + '/public'));
 });
