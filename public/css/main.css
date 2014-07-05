@@ -57,7 +57,6 @@ button::-moz-focus-inner {
 	text-align: center;
 }
 
-
 /* Action container */
 .action {
 	padding: .2em 0 .6em;
@@ -118,7 +117,7 @@ button::-moz-focus-inner {
 .btn:hover,
 .btn:focus {
     background-color: #ddd;
-    border-color: #ddd;
+    border-color: #bbb;
     color: #444;
 }
 
@@ -129,12 +128,6 @@ button::-moz-focus-inner {
     background-color: #555;
     border-color: #555;
     color: #fff;
-}
-
-.btn--ring {
-    min-width: 2.8em;
-    min-height: 2.8em;
-    font-size: 230%;
 }
 
 .btn--judge {
@@ -175,4 +168,13 @@ button::-moz-focus-inner {
 	0% { transform: translate3d(3px, 0, 0); }
 	50% { transform: translate3d(-3px, 0, 0); }
 	100% { transform: translate3d(0, 0, 0); }
+}
+
+
+/* Rings view */
+
+.rings-btn {
+    min-width: 2.8em;
+    min-height: 2.8em;
+    font-size: 230%;
 }

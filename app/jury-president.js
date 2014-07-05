@@ -98,7 +98,7 @@ JuryPresident.prototype.restoreSession = function (newSocket) {
 	
 	// Send success event to client
 	// If JP doesn't have a ring, client must show the ring creation view
-	newSocket.emit('idSuccess', !hasRing);
+	newSocket.emit('idSuccess', hasRing);
 	
 	// If JP has ring, client must show the match view
 	if (hasRing) {

@@ -5,8 +5,6 @@
 define(['minpubsub', 'handlebars', '../common/competitors', 'enum/ui-views', 'enum/ui-match-panels', 'enum/match-states', './match', './timer', 'match-config'], function (PubSub, Handlebars, Competitors, UIViews, UIMatchPanels, MatchStates, Match, Timer, matchConfig) {
 	
 	var IO, sets,
-		pwdAction, pwdInstr, pwdField,
-		ringsList, ringsBtns,
 		matchView, matchNewBtns, matchConfigBtn, match = null,
 		timeKeeping, mainTimer, injuryTimer,
 		stateManagement, stateStartBtn, stateEndBtn, matchResultBtn, injuryBtn,
@@ -26,13 +24,6 @@ define(['minpubsub', 'handlebars', '../common/competitors', 'enum/ui-views', 'en
 			views: document.getElementsByClassName('view'),
 			panels: document.getElementsByClassName('panel')
 		};
-
-		pwdAction = document.getElementById('pwd-action');
-		pwdInstr = document.getElementById('pwd-instr');
-		pwdField = document.getElementById('pwd-field');
-
-		ringsList = document.getElementById('rings-list');
-		ringsBtns = ringsList.getElementsByTagName('button');
 
 		matchView = document.getElementById('match-view');
 		matchNewBtns = matchView.getElementsByClassName('match-btn-new');
@@ -82,12 +73,6 @@ define(['minpubsub', 'handlebars', '../common/competitors', 'enum/ui-views', 'en
 
 	// TODO: event delegation
 	var bindEvents = function () {
-		pwdField.addEventListener('keypress', onPwdField);
-
-		[].forEach.call(ringsBtns, function (btn, index) {
-			btn.addEventListener('click', onRingsBtn.bind(null, index));
-		});
-
 		[].forEach.call(matchNewBtns, function (btn, index) {
 			btn.addEventListener('click', onMatchNewBtn);
 		});
@@ -107,56 +92,6 @@ define(['minpubsub', 'handlebars', '../common/competitors', 'enum/ui-views', 'en
 		PubSub.subscribe('match.injuryStarted', onInjuryStarted);
 		PubSub.subscribe('match.injuryEnded', onInjuryEnded);
 		PubSub.subscribe('match.judgeScoresUpdated', onJudgeScoresUpdated);
-	};
-
-	var onWaitingForId = function () {
-		showElem(UIViews.PWD, 'views');
-		pwdField.focus();
-	};
-	
-	var onPwdField = function (evt) {
-		// If Enter key was pressed...
-		if (evt.which === 13 || evt.keyCode === 13) {
-			if (pwdField.value.length > 0) {
-				// Send identification to server
-				IO.sendId(pwdField.value);
-			} else {
-				pwdResult(false);
-			}
-		}
-	};
-
-	var pwdResult = function (correct, showRingsView) {
-		if (correct) {
-			pwdField.removeEventListener('keypress', onPwdField);
-		} else {
-			// Reset field
-			pwdField.value = "";
-			// Update instructions
-			pwdInstr.textContent = pwdInstr.textContent.replace("required", "incorrect");
-			// Shake field
-			shakeField(pwdField);
-		}
-	};
-
-	var onRingAllocations = function (allocations) {
-		allocations.forEach(onRingAllocationChanged);
-	};
-
-	var onRingAllocationChanged = function (allocation, index) {
-		if (allocation.allocated) {
-			ringsBtns[index].setAttribute("disabled", "disabled");
-		} else {
-			ringsBtns[index].removeAttribute("disabled");
-		}
-	};
-
-	var onRingsBtn = function (index, evt) {
-		if (!evt.target.hasAttribute("disabled")) {
-			IO.createRing(index);
-		} else {
-			alert("This ring has already been selected by another Jury President.");
-		}
 	};
 
 	var findFreeCornerJudgeSlot = function () {
@@ -431,27 +366,8 @@ define(['minpubsub', 'handlebars', '../common/competitors', 'enum/ui-views', 'en
 	}
 
 
-	var onShakeEnd = function (evt) {
-		// Remove shake class in case another shake animation needs to be performed
-		evt.target.classList.remove('shake');
-		// Remove listener
-		evt.target.removeEventListener('animationend', onShakeEnd);
-	};
-
-	var shakeField = function (field) {
-		// Listen to end of shake animation
-		field.addEventListener('animationend', onShakeEnd);
-		// Start shake animation
-		field.classList.add('shake');
-	};
-
-
 	return {
 		init: init,
-		onWaitingForId: onWaitingForId,
-		pwdResult: pwdResult,
-		onRingAllocations: onRingAllocations,
-		onRingAllocationChanged: onRingAllocationChanged,
 		onAuthoriseCornerJudge: onAuthoriseCornerJudge,
 		onCornerJudgeStateChanged: onCornerJudgeStateChanged,
 		onCornerJudgeScored: onCornerJudgeScored,

@@ -14,18 +14,11 @@ require.config({
 });
 
 // Jury President 'main' module
-define(['../lib/domReady!', 'fastclick', './io', './view'], function (document, FastClick, IO, View) {
+define(['../lib/domReady!', 'fastclick', './controller'], function (document, FastClick, Controller) {
 	
-	IO.init();
-	View.init(IO);
+	Controller.init();
 
 	// Initialise FastClick to remove 300ms delay on mobile devices
 	FastClick.attach(document.body);
-
-	// DEBUG
-	IO.debug();
-	/*setTimeout(function () {
-		IO.sendId('tkd')
-	}, 200);*/
 	
 });

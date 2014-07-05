@@ -1,8 +1,5 @@
 
-/**
- * Timer
- */
-define(function () {
+define(['minpubsub'], function (PubSub) {
 	
 	function Timer(minElem, secElem) {
 		this.intervalId = null;

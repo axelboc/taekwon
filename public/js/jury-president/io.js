@@ -2,78 +2,47 @@
 /**
  * Jury President 'IO' module for socket communication.
  */
-define(['./view', 'enum/ui-views'], function (View, UIViews) {
+define(['minpubsub'], function (PubSub) {
 	
 	var socket;
+	var events = [
+		'waitingForId',
+		'idSuccess',
+		'idFail',
+		'ringAllocations',
+		'ringAllocationChanged',
+		'ringCreated',
+		'ringAlreadyExists',
+		'authoriseCornerJudge',
+		'cornerJudgeStateChanged',
+		'cornerJudgeScored'
+	];
 
-	var init = function () {
+	function init() {
 		console.log("Connecting to server");
 		socket = io.connect();
 
 		// Bind events
-		socket.on('waitingForId', onWaitingForId);
-		socket.on('idSuccess', onIdSuccess);
-		socket.on('idFail', onIdFail);
-		socket.on('ringAllocations', onRingAllocations);
-		socket.on('ringAllocationChanged', onRingAllocationChanged);
-		socket.on('ringCreated', onRingCreated);
-		socket.on('ringAlreadyExists', onRingAlreadyExists);
-		socket.on('authoriseCornerJudge', onAuthoriseCornerJudge);
-		socket.on('cornerJudgeStateChanged', onCornerJudgeStateChanged);
-		socket.on('cornerJudgeScored', onCornerJudgeScored);
+		events.forEach(function (evt) {
+			socket.on(evt, _publish.bind(this, evt));
+		});
+	}
+
+	function _publish(subTopic) {
+		PubSub.publish('io.' + subTopic, [].slice.call(arguments, 1));
+	}
+
+	function sendId(pwd) {
+		socket.emit('juryPresident', pwd);
 	};
 
-
-	var onWaitingForId = function () {
-		console.log("Server waiting for identification");
-		View.onWaitingForId();
-	};
-
-	var sendId = function (password) {
-		console.log("Sending identification (password=\"" + password + "\")");
-		socket.emit('juryPresident', password);
-	};
-
-	var onIdSuccess = function (showRingsView) {
-		console.log("Identification succeeded");
-		View.pwdResult(true);
-
-		// If in process of restoring session, rings view may need to be skipped
-		if (showRingsView) {
-			View.showElem(UIViews.RINGS, 'views');
-		}
-	};
-
-	var onIdFail = function () {
-		console.log("Identification failed");
-		View.pwdResult(false);
-	};
-
-	var onRingAllocations = function (allocations) {
-		console.log("Ring allocations: " + allocations);
-		View.onRingAllocations(allocations);
-	};
-
-	var onRingAllocationChanged = function (allocation) {
-		console.log("Ring allocation changed (allocation=\"" + allocation + "\")");
-		View.onRingAllocationChanged(allocation, allocation.index - 1);
-	};
-
-	var createRing = function (index) {
-		console.log("Creating ring (index=" + index + ")");
+	function createRing(index) {
 		socket.emit('createRing', index);
 	};
 
-	var onRingCreated = function (ringId) {
-		console.log("Ring created (id=" + ringId + ")");
-		View.showElem(UIViews.MATCH, 'views');
-	};
-
-	var onRingAlreadyExists = function (ringId) {
-		console.log("Ring already exists (id=" + ringId + ")");
-	};
-
-	var onAuthoriseCornerJudge = function (cornerJudge) {
+		
+		
+	/*var onAuthoriseCornerJudge = function (cornerJudge) {
 		console.log("Authorising corner judge (id=" + cornerJudge.id + ")");
 		View.onAuthoriseCornerJudge(cornerJudge, false);
 	};
@@ -100,13 +69,13 @@ define(['./view', 'enum/ui-views'], function (View, UIViews) {
 	
 	var onCornerJudgeScored = function (score) {
 		View.onCornerJudgeScored(score);
-	};
+	};*/
 
 
 	return {
 		init: init,
 		sendId: sendId,
-		createRing: createRing,
+		createRing: createRing/*,
 		authoriseCornerJudge: authoriseCornerJudge,
 		enableScoring: enableScoring,
 		debug: function () {
@@ -118,7 +87,7 @@ define(['./view', 'enum/ui-views'], function (View, UIViews) {
 					name: name
 				});
 			});
-		}
+		}*/
 	};
 	
 });

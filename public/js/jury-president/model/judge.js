@@ -1,7 +1,4 @@
 
-/**
- * Judge
- */
 define(['minpubsub'], function (PubSub) {
 	
 	function Judge() {
@@ -10,7 +7,7 @@ define(['minpubsub'], function (PubSub) {
 	
 	Judge.prototype = {
 		
-		publish: function (subTopic) {
+		_publish: function (subTopic) {
 			PubSub.publish('judge.' + subTopic, [].slice.call(arguments, 1));
 		}
 		
