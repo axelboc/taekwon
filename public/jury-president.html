@@ -29,21 +29,21 @@
 			{{/each}}
 		</script>
 	</div>
-	<div id="match-view" class="view hidden">
-		<div class="judges">
+	<div id="ring-view" class="view hidden">
+		<div id="judges-sidebar">
 		    <h2 class="judges-heading">Corner Judges</h2>
-		    <ul id="judges-list" class="list-reset"></ul>
+		    <ul class="judges-list list-reset"></ul>
 		    <div class="judge-count-btns">
 		    	<button type="button" class="judge-minus btn btn--minor" title="Remove one judge">&minus;</button>
 		    	<button type="button" class="judge-plus btn btn--minor" title="Add one judge">+</button>
 		    </div>
 		    <script id="judge-tmpl" type="x-handlebars-template">
-				{{#each judges}}
+				{{#each slots}}
 		        <li class="judge">
-		            <h3 class="judge-name">{{name}}</h3>
-		            <button type="button" class="judge-disconnect{{#if authorised}} hidden{{/if}}" title="Disconnect">&times;</button>
-		            <span class="judge-state">{{#if connected}}{{#if authorised}}Waiting for connection{{/if}}{{/if}}</span>
-                    <div class="judge-btns{{#if connected}}{{#unless authorised}} hidden{{/unless}}{{/if}}">
+		            <h3 class="judge-name">Judge #{{index}}</h3>
+		            <button type="button" class="judge-disconnect hidden" title="Disconnect">&times;</button>
+		            <span class="judge-state">Waiting for connection</span>
+                    <div class="judge-btns hidden">
                         <button type="button" class="judge-accept btn btn--judge btn--major">Accept</button>
                         <button type="button" class="judge-reject btn btn--judge btn--minor">Reject</button>
                     </div>
@@ -51,75 +51,77 @@
 				{{/each}}
 			</script>
 		</div>
-		<div id="config-panel" class="panel">
-			<button type="button" class="btn btn--match btn--major match-btn-new">New match</button>
-			<div class="config-wrap">
-				<div class="config">
-					<span class="config-lbl">Round time</span>
-					<span class="config-inp"><button type="button">-</button><span></span><button type="button">+</button></span>
-				</div>
-				<div class="config">
-					<span class="config-lbl">Injury time</span>
-					<span class="config-inp"><button type="button">-</button><span></span><button type="button">+</button></span>
-				</div>
-				<div class="config">
-					<span class="config-lbl">Break time</span>
-					<span class="config-inp"><button type="button">-</button><span></span><button type="button">+</button></span>
-				</div>
-				<div class="config">
-					<span class="config-lbl">Number of rounds</span>
-					<span class="config-inp"><button type="button">1</button><button type="button">2</button></span>
-				</div>
-				<div class="config">
-					<span class="config-lbl">Tie breaker</span>
-					<span class="config-inp"><button type="button">On</button><button type="button">Off</button></span>
-				</div>
-				<div class="config">
-					<span class="config-lbl">Golden point</span>
-					<span class="config-inp"><button type="button">On</button><button type="button">Off</button></span>
+		<div class="main">
+			<div id="config-panel" class="panel">
+				<button type="button" class="btn btn--match btn--major match-btn-new">New match</button>
+				<div class="config-wrap">
+					<div class="config">
+						<span class="config-lbl">Round time</span>
+						<span class="config-inp"><button type="button">-</button><span></span><button type="button">+</button></span>
+					</div>
+					<div class="config">
+						<span class="config-lbl">Injury time</span>
+						<span class="config-inp"><button type="button">-</button><span></span><button type="button">+</button></span>
+					</div>
+					<div class="config">
+						<span class="config-lbl">Break time</span>
+						<span class="config-inp"><button type="button">-</button><span></span><button type="button">+</button></span>
+					</div>
+					<div class="config">
+						<span class="config-lbl">Number of rounds</span>
+						<span class="config-inp"><button type="button">1</button><button type="button">2</button></span>
+					</div>
+					<div class="config">
+						<span class="config-lbl">Tie breaker</span>
+						<span class="config-inp"><button type="button">On</button><button type="button">Off</button></span>
+					</div>
+					<div class="config">
+						<span class="config-lbl">Golden point</span>
+						<span class="config-inp"><button type="button">On</button><button type="button">Off</button></span>
+					</div>
 				</div>
 			</div>
-		</div>
-		<div id="match-panel" class="panel hidden">
-	    	<div class="mp-row mp-row--top">
-				<div class="mp-cell time-keeping tk_off">
-					<div class="tk-inner">
-						<div class="tk-timer tk-timer--round">
-							<span class="tk-timer-min"></span><span class="tk-timer-sep">:</span><span class="tk-timer-sec"></span>
-						</div>
-						<div class="tk-timer tk-timer--injury">
-							<span class="tk-timer-min"></span><span class="tk-timer-sep">:</span><span class="tk-timer-sec"></span>
-						</div>
-					</div>
-				</div>
-				<div class="mp-cell state-management">
-					<div class="sm-inner">
-						<button class="btn btn--match sm-btn sm-btn--start" type="button">Start round 1</button>
-						<button class="btn btn--match sm-btn sm-btn--end" type="button">End round 1</button>
-						<button class="btn btn--match btn--major sm-btn sm-btn--result hidden" type="button">See result</button>
-						<button class="btn btn--match btn--minor sm-btn sm-btn--injury" type="button">Start injury</button>
-					</div>
-				</div>
-		    </div>
-		    <div class="mp-row mp-row--bottom">
-		    	<div class="scoring mp-cell">
-		    		<div class="sc-inner"></div>
-					<script id="sc-judge-tmpl" type="x-handlebars-template">
-						{{#each judges}}
-						<div class="sc-judge">
-		           			<h3 class="sc-judge-name">{{name}}</h3>
-							<div class="sc-judge-score">
-								<span class="sc-hong hong-bg">0</span>
-								<span class="sc-chong chong-bg">0</span>
+			<div id="match-panel" class="panel hidden">
+				<div class="mp-row mp-row--top">
+					<div class="mp-cell time-keeping tk_off">
+						<div class="tk-inner">
+							<div class="tk-timer tk-timer--round">
+								<span class="tk-timer-min"></span><span class="tk-timer-sep">:</span><span class="tk-timer-sec"></span>
+							</div>
+							<div class="tk-timer tk-timer--injury">
+								<span class="tk-timer-min"></span><span class="tk-timer-sep">:</span><span class="tk-timer-sec"></span>
 							</div>
 						</div>
-						{{/each}}
-					</script>
-		    	</div>
-		    	<div class="penalties mp-cell">
-		    		
-		    	</div>
-		    </div>
+					</div>
+					<div class="mp-cell state-management">
+						<div class="sm-inner">
+							<button class="btn btn--match sm-btn sm-btn--start" type="button">Start round 1</button>
+							<button class="btn btn--match sm-btn sm-btn--end" type="button">End round 1</button>
+							<button class="btn btn--match btn--major sm-btn sm-btn--result hidden" type="button">See result</button>
+							<button class="btn btn--match btn--minor sm-btn sm-btn--injury" type="button">Start injury</button>
+						</div>
+					</div>
+				</div>
+				<div class="mp-row mp-row--bottom">
+					<div class="scoring mp-cell">
+						<div class="sc-inner"></div>
+						<script id="sc-judge-tmpl" type="x-handlebars-template">
+							{{#each judges}}
+							<div class="sc-judge">
+								<h3 class="sc-judge-name">{{name}}</h3>
+								<div class="sc-judge-score">
+									<span class="sc-hong hong-bg">0</span>
+									<span class="sc-chong chong-bg">0</span>
+								</div>
+							</div>
+							{{/each}}
+						</script>
+					</div>
+					<div class="penalties mp-cell">
+
+					</div>
+				</div>
+			</div>
 		</div>
 		<div id="result-panel" class="panel hidden">
 			<p id="result-winner" class="hong-col">Hong wins</p>

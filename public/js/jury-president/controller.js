@@ -1,5 +1,5 @@
 
-define(['minpubsub', './io', './view/pwd-view', './view/ring-list-view', './view/match-view'], function (PubSub, IO, PwdView, RingListView, MatchView) {
+define(['minpubsub', './io', './view/pwd-view', './view/ring-list-view', './view/ring-view'], function (PubSub, IO, PwdView, RingListView, RingView) {
 	
 	var pwdView, ringsView;
 	
@@ -18,6 +18,9 @@ define(['minpubsub', './io', './view/pwd-view', './view/ring-list-view', './view
 		},
 		ringListView: {
 			ringSelected: _onRingSelected
+		},
+		ringView: {
+			
 		}
 	};
 	
@@ -37,7 +40,7 @@ define(['minpubsub', './io', './view/pwd-view', './view/ring-list-view', './view
 		// Initialise views
 		pwdView = new PwdView();
 		ringListView = new RingListView();
-		matchView = new MatchView();
+		ringView = new RingView();
 		
 		// DEBUG
 		//IO.debug();
@@ -85,7 +88,7 @@ define(['minpubsub', './io', './view/pwd-view', './view/ring-list-view', './view
 	
 	function _onRingCreated(id) {
 		console.log("Ring created (id=" + id + ")");
-		_swapView(ringListView, matchView);
+		_swapView(ringListView, ringView);
 	}
 	
 	function _onRingAlreadyExists(id) {

@@ -1,10 +1,17 @@
 @charset "utf-8";
 
-#match-view {
+#ring-view {
+	display: table;
+	width: 100%;
 	max-width: none;
-	min-height: 33em;
+	min-height: 100%;
 	padding-bottom: 0;
-	height: 100%;
+}
+
+#judges-sidebar,
+.main {
+	display: table-cell;
+	vertical-align: top;
 }
 
 .panel {
@@ -15,11 +22,9 @@
 
 /* ===== Judges sidebar ===== */
 
-.judges {
-	float: left;
+#judges-sidebar {
 	width: 16em;
-	height: 100%;
-	padding: 1em 2em;
+	padding: 1em 2em 3em;
 	font-size: 90%;
 	background-color: #eee;
 	border-right: 1px solid #ccc;
