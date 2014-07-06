@@ -1,9 +1,9 @@
 
 define([
 	'minpubsub',
-	'../common/helpers',
-	'./io',
-	'./controller/judge-slot-controller'
+	'../../common/helpers',
+	'../io',
+	'./judge-slot-controller'
 	
 ], function (PubSub, Helpers, IO, JudgeSlotController) {
 	

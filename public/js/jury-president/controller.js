@@ -6,7 +6,7 @@ define([
 	'../common/ring-list-view',
 	'./model/ring',
 	'./view/ring-view',
-	'./ring-controller'
+	'./controller/ring-controller'
 
 ], function (PubSub, Helpers, IO, PwdView, RingListView, Ring, RingView, RingController) {
 	

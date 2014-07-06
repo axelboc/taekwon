@@ -93,71 +93,7 @@ define(['minpubsub', 'handlebars', '../common/competitors', 'enum/ui-views', 'en
 		PubSub.subscribe('match.judgeScoresUpdated', onJudgeScoresUpdated);
 	};
 
-	var findFreeCornerJudgeSlot = function () {
-		var slot = 0;
-		while (judges[slot].id !== null && slot < 4) {
-			slot++;
-		}
-		return (slot < 4 ? slot : null);
-	};
-
-	var onAuthoriseCornerJudge = function (cornerJudge, alreadyAuthorised) {
-		// Find next available slot
-		var slot = findFreeCornerJudgeSlot();
-		if (slot !== null) {
-			var judge = judges[slot];
-			judge.id = cornerJudge.id;
-			judgesById[judge.id] = judge;
-			judge.name = cornerJudge.name;
-
-			// Set name
-			judge.nameH3s.forEach(function (elem) {
-				elem.textContent = cornerJudge.name;
-			});
-
-			// Show/hide accept/reject buttons and state span
-			judge.btnsUl.classList.toggle("hidden", alreadyAuthorised);
-			judge.stateSpan.classList.toggle("hidden", !alreadyAuthorised);
-
-			if (alreadyAuthorised) {
-				return judge;
-			} else {
-				// Listen to jury president's decision
-				judge.acceptFn = onJudgeBtn.bind(null, judge, true);
-				judge.rejectFn = onJudgeBtn.bind(null, judge, false);
-				judge.acceptBtn.addEventListener('click', judge.acceptFn);
-				judge.rejectBtn.addEventListener('click', judge.rejectFn);
-			}
-		}
-	};
-
-	var onJudgeBtn = function (judge, accept) {
-		IO.authoriseCornerJudge(judge.id, accept);
-
-		// Hide buttons and show state span
-		judge.btnsUl.classList.add("hidden");
-		judge.stateSpan.classList.remove("hidden");
-
-		// Remove listeners
-		judge.acceptBtn.removeEventListener('click', judge.acceptFn);
-		judge.rejectBtn.removeEventListener('click', judge.rejectFn);
-		judge.acceptFn = null;
-		judge.rejectFn = null;
-
-		if (!accept) {
-			judge.nameH3s.forEach(function (elem) {
-				elem.textContent = "Judge #" + (judge.slot + 1);
-			});
-			judge.stateSpan.textContent = "Waiting for connection";
-
-			delete judgesById[judge.id];
-			judge.id = null;
-			judge.name = null;
-		} else {
-			judge.stateSpan.textContent = "Connected";
-		}
-	};
-
+	// TODO: implement change of state (after fixing session restoration)
 	var onCornerJudgeStateChanged = function (cornerJudge) {
 		// Retrieve judge from ID
 		var judge = judgesById[cornerJudge.id];
