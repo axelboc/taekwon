@@ -47,9 +47,10 @@ button::-moz-focus-inner {
 }
 
 
-/* Views */
+/* ===== Components ===== */
 
-.view {
+/* Screen */
+.screen {
 	overflow: hidden;
 	max-width: 50em;
 	margin: 0 auto;
@@ -87,7 +88,9 @@ button::-moz-focus-inner {
 	text-align: inherit;
 }
 
-/* Buttons */
+
+/* ===== Buttons ===== */
+
 .btn {
     background-color: #555;
     color: #fff;
@@ -130,17 +133,8 @@ button::-moz-focus-inner {
     color: #fff;
 }
 
-.btn--judge {
-	padding: .3em .8em;
-}
 
-.btn--match {
-	padding: .5em 1em;
-	font-size: 150%;
-}
-
-
-/* Competitor colours */
+/* ===== Competitor colours ===== */
 
 .hong-col { color: hsl(6, 78%, 57%); }
 .hong-bg { background-color: hsl(6, 78%, 57%); color: #fff; }
@@ -151,7 +145,7 @@ button::-moz-focus-inner {
 .chong-sbg { background-color: hsla(204, 64%, 44%, .3); }
 
 
-/* Shake effect */
+/* ===== Shake effect ===== */
 
 .shake {
 	-webkit-animation: shake 150ms 2 linear;
@@ -171,10 +165,11 @@ button::-moz-focus-inner {
 }
 
 
-/* Ring list view */
+/* ===== Ring list screen ===== */
 
 .rl-btn {
     min-width: 2.8em;
     min-height: 2.8em;
     font-size: 230%;
 }
+

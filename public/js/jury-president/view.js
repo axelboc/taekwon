@@ -25,8 +25,8 @@ define(['minpubsub', 'handlebars', '../common/competitors', 'enum/ui-views', 'en
 		};
 
 		matchView = document.getElementById('match-view');
-		matchNewBtns = matchView.getElementsByClassName('match-btn-new');
-		matchConfigBtn = document.getElementById('match-btn-config');
+		matchNewBtns = matchView.getElementsByClassName('match-btn--new');
+		matchConfigBtn = document.getElementById('match-btn--config');
 		
 		timeKeeping = matchView.querySelector('.time-keeping');
 		mainTimer = new Timer(

@@ -1,5 +1,7 @@
 @charset "utf-8";
 
+/* ===== Ring screen ===== */
+
 #ring {
 	display: table;
 	width: 100%;
@@ -8,7 +10,7 @@
 	padding-bottom: 0;
 }
 
-#judges-sidebar,
+#judges,
 .main {
 	display: table-cell;
 	vertical-align: top;
@@ -19,10 +21,15 @@
 	height: 100%;
 }
 
+.match-btn {
+	padding: .5em 1em;
+	font-size: 150%;
+}
+
 
 /* ===== Judges sidebar ===== */
 
-#judges-sidebar {
+#judges {
 	width: 16em;
 	padding: 1em 2em 3em;
 	font-size: 90%;
@@ -77,7 +84,11 @@
 }
 
 .judge-btns {
-	cursor: default;
+	cursor: default; /* Prevent text cursor between the two buttons */
+}
+
+.judge-btn {
+	padding: .3em .8em;
 }
 
 .judge-count-btns {
@@ -269,7 +280,7 @@
 	font-weight: bold;
 }
 
-#match-btn-config {
+.match-btn--config {
 	margin-right: 1em;
 }
 

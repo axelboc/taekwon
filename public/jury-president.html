@@ -10,14 +10,14 @@
 	<script src="/js/lib/require.js" data-main="/js/main.js"></script>
 </head>
 <body>
-	<div id="pwd" class="view hidden">
+	<div id="pwd" class="screen hidden">
 		<h1>Jury President</h1>
 		<div class="action">
 			<p class="pwd-instr instr">Master password required</p>
 			<input class="pwd-field field" type="password">
 		</div>
 	</div>
-	<div id="ring-list" class="view hidden">
+	<div id="ring-list" class="screen hidden">
 		<h1>Jury President</h1>
 		<div class="action">
 			<p class="rl-instr instr">Select ring number</p>
@@ -29,8 +29,8 @@
 			{{/each}}
 		</script>
 	</div>
-	<div id="ring" class="view hidden">
-		<div id="judges-sidebar">
+	<div id="ring" class="screen hidden">
+		<div id="judges">
 		    <h2 class="judges-heading">Corner Judges</h2>
 		    <ul class="judges-list list-reset"></ul>
 		    <div class="judge-count-btns">
@@ -44,8 +44,8 @@
 		            <button type="button" class="judge-disconnect hidden" title="Disconnect">&times;</button>
 		            <span class="judge-state">Waiting for connection</span>
                     <div class="judge-btns hidden">
-                        <button type="button" class="judge-accept btn btn--judge btn--major">Accept</button>
-                        <button type="button" class="judge-reject btn btn--judge btn--minor">Reject</button>
+                        <button type="button" class="judge-accept judge-btn btn btn--major">Accept</button>
+                        <button type="button" class="judge-reject judge-btn btn btn--minor">Reject</button>
                     </div>
                 </li>
 				{{/each}}
@@ -53,7 +53,7 @@
 		</div>
 		<div class="main">
 			<div id="config-panel" class="panel">
-				<button type="button" class="btn btn--match btn--major match-btn-new">New match</button>
+				<button type="button" class="match-btn match-btn--new btn btn--major">New match</button>
 				<div class="config-wrap">
 					<div class="config">
 						<span class="config-lbl">Round time</span>
@@ -95,10 +95,10 @@
 					</div>
 					<div class="mp-cell state-management">
 						<div class="sm-inner">
-							<button class="btn btn--match sm-btn sm-btn--start" type="button">Start round 1</button>
-							<button class="btn btn--match sm-btn sm-btn--end" type="button">End round 1</button>
-							<button class="btn btn--match btn--major sm-btn sm-btn--result hidden" type="button">See result</button>
-							<button class="btn btn--match btn--minor sm-btn sm-btn--injury" type="button">Start injury</button>
+							<button class="sm-btn sm-btn--start match-btn btn" type="button">Start round 1</button>
+							<button class="sm-btn sm-btn--end match-btn btn" type="button">End round 1</button>
+							<button class="sm-btn sm-btn--result match-btn btn btn--major hidden" type="button">See result</button>
+							<button class="sm-btn sm-btn--injury match-btn btn btn--minor" type="button">Start injury</button>
 						</div>
 					</div>
 				</div>
@@ -126,8 +126,8 @@
 		<div id="result-panel" class="panel hidden">
 			<p id="result-winner" class="hong-col">Hong wins</p>
 			<div>
-				<button type="button" class="btn btn--match btn--minor" id="match-btn-config">Change match configuration</button>
-				<button type="button" class="btn btn--match btn--major match-btn-new">New match</button>
+				<button type="button" class="match-btn match-btn--config btn btn--minor">Change match configuration</button>
+				<button type="button" class="match-btn match-btn--new btn btn--major">New match</button>
 			</div>
 			<div id="scoreboard-wrap"></div>
 			<script id="scoreboard-template" type="text/x-handlebars-template">
