@@ -42,13 +42,22 @@ Ring.getRingAllocation = function (index) {
 
 
 Ring.prototype.addCornerJudge = function (cornerJudge) {
-	if (this.cornerJudges.length >= 4) {
-		cornerJudge.socket.emit('ringIsFull', this.index);
-	} else {
-		this.cornerJudges.push(cornerJudge);
-		cornerJudge.socket.join(this.roomId);
-		cornerJudge.ringJoined.call(cornerJudge, this);
+	this.cornerJudges.push(cornerJudge);
+	cornerJudge.socket.join(this.roomId);
+	cornerJudge.ringJoined.call(cornerJudge, this);
+};
+
+Ring.prototype.removeCornerJudge = function (cornerJudgeId) {
+	for (var i = 0, len = this.cornerJudges.length; i < len; i += 1) {
+		if (this.cornerJudges[i].id === cornerJudgeId) {
+			break;
+		}
 	}
+	
+	var cornerJudge = this.cornerJudges[i];
+	this.cornerJudges.splice(i, 1);
+	cornerJudge.socket.leave(this.roomId);
+	cornerJudge.removedFromRing.call(cornerJudge, this);
 };
 
 Ring.prototype.juryPresidentStateChanged = function (connected) {

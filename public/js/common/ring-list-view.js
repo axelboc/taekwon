@@ -3,7 +3,7 @@ define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
 	
 	function RingListView() {
 		this.root = document.getElementById('ring-list');
-		this.instr = this.root.querySelector('rl-instr');
+		this.instr = this.root.querySelector('.rl-instr');
 		this.btns = null;
 		this.template = Handlebars.compile(document.getElementById('rl-ring-tmpl').innerHTML);
 	}

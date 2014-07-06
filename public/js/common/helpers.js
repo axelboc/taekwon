@@ -5,7 +5,7 @@ define(['minpubsub'], function (PubSub) {
 		
 		/**
 		 * Subscribe to events by topic.
-		 * events = {
+		 * this.events = {
 		 *     topic: {
 		 *         subTopic: handlerFn
 		 *     }

@@ -1,6 +1,6 @@
 
-// TODO: pass client config to server via sockets when needed
-// TODO: implement judges sidebar controls (buttons to add/remove/disconnect judge)
+// TODO: Fix session restoration
+// TODO: Implement judges sidebar controls (buttons to add/remove judges)
 
 /* Core set-up */
 

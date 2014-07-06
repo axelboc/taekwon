@@ -15,7 +15,8 @@ define(['minpubsub'], function (PubSub) {
 		'ringDoesNotExist',
 		'ringIsFull',
 		'juryPresidentStateChanged',
-		'scoringStateChanged'
+		'scoringStateChanged',
+		'removedFromRing'
 	];
 
 	function init() {

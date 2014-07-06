@@ -34,29 +34,30 @@ define(['minpubsub'], function (PubSub) {
 
 	function sendId(pwd) {
 		socket.emit('juryPresident', pwd);
-	};
+	}
 
 	function createRing(index) {
 		socket.emit('createRing', index);
-	};
+	}
+	
+	function ringIsFull(cornerJudgeId) {
+		socket.emit('ringIsFull', cornerJudgeId);
+	}
+
+	function authoriseCornerJudge(id) {
+		socket.emit('authoriseCornerJudge', id);
+	}
+	
+	function rejectCornerJudge(id) {
+		socket.emit('rejectCornerJudge', id);
+	}
+	
+	function removeCornerJudge(id) {
+		socket.emit('removeCornerJudge', id);
+	}
 
 		
-		
-	/*var onAuthoriseCornerJudge = function (cornerJudge) {
-		console.log("Authorising corner judge (id=" + cornerJudge.id + ")");
-		View.onAuthoriseCornerJudge(cornerJudge, false);
-	};
-
-	var authoriseCornerJudge = function (cornerJudgeId, authorise) {
-		if (authorise) {
-			console.log("Corner judge accepted (id=" + cornerJudgeId + ")");
-			socket.emit('cornerJudgeAccepted', cornerJudgeId);
-		} else {
-			console.log("Corner judge rejected (id=" + cornerJudgeId + ")");
-			socket.emit('cornerJudgeRejected', cornerJudgeId);
-		}
-	};
-
+	/*
 	var onCornerJudgeStateChanged = function (cornerJudge) {
 		console.log("Corner judge " + (cornerJudge.connected ? "connected" : "disconnected") + " (id=" + cornerJudge.id + ")");
 		View.onCornerJudgeStateChanged(cornerJudge);
@@ -75,9 +76,12 @@ define(['minpubsub'], function (PubSub) {
 	return {
 		init: init,
 		sendId: sendId,
-		createRing: createRing/*,
+		createRing: createRing,
+		ringIsFull: ringIsFull,
 		authoriseCornerJudge: authoriseCornerJudge,
-		enableScoring: enableScoring,
+		rejectCornerJudge: rejectCornerJudge,
+		removeCornerJudge: removeCornerJudge
+		/*enableScoring: enableScoring,
 		debug: function () {
 			// DEBUG
 			['Axel', 'Mikey', 'Chris'].forEach(function (name, index) {

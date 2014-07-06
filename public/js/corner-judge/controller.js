@@ -7,11 +7,11 @@ define([
 	'../common/ring-list-view',
 	'./view/round-view'
 
-], function (PubSub, Helpers IO, NameView, RingListView, RoundView) {
+], function (PubSub, Helpers, IO, NameView, RingListView, RoundView) {
 	
 	var nameView, ringListView, authorisationView, roundView;
 	var isScoringEnabled = false;
-	var disconnectedBackdrop, waitingBackdrop;
+	var backdropWrap, disconnectedBackdrop, waitingBackdrop;
 	
 	var events = {
 		io: {
@@ -24,7 +24,8 @@ define([
 			ringDoesNotExist: _onRingDoesNotExist,
 			ringIsFull: _onRingIsFull,
 			juryPresidentStateChanged: _onJuryPresidentStateChanged,
-			scoringStateChanged: _onScoringStateChanged
+			scoringStateChanged: _onScoringStateChanged,
+			removedFromRing: _onRemovedFromRing
 		},
 		nameView: {
 			nameSubmitted: _onNameSubmitted
@@ -49,12 +50,18 @@ define([
 		ringListView = new RingListView();
 		// Authorisation view doesn't need to be defined as a separate module
 		authorisationView = {
-			root: document.getElementById('authorisation-view')
+			root: document.getElementById('authorisation')
 		};
 		roundView = new RoundView();
 		
+		backdropWrap = document.getElementById('backdrop-wrap');
 		disconnectedBackdrop = document.getElementById('disconnected-backdrop');
 		waitingBackdrop = document.getElementById('waiting-backdrop');
+		
+		// DEBUG
+		setTimeout(function () {
+			IO.sendId('Axel')
+		}, 200);
 	}
 	
 	function _onWaitingForId() {
@@ -93,6 +100,7 @@ define([
 	
 	function _onRingJoined(index) {
 		console.log("Joined ring (index=" + index + ")");
+		isScoringEnabled= false;
 		_toggleBackdrop(true, waitingBackdrop);
 		_swapView(authorisationView, roundView);
 	}
@@ -109,7 +117,7 @@ define([
 		_swapView(authorisationView, ringListView);
 	}
 	
-	function _onRingIsFull() {
+	function _onRingIsFull(index) {
 		console.log("Ring is full (index=" + index + ")");
 		ringListView.updateInstr("Ring is full");
 		_swapView(authorisationView, ringListView);
@@ -129,6 +137,13 @@ define([
 	function _onScore(competitor, points) {
 		console.log("Scoring " + points + " points for " + competitor);
 		IO.score(competitor, points);
+	}
+	
+	function _onRemovedFromRing(index) {
+		console.log("Ring is full (index=" + index + ")");
+		ringListView.updateInstr("Removed from ring");
+		_toggleBackdrop(false);
+		_swapView(roundView, ringListView);
 	}
 	
 	function _swapView(oldView, newView) {

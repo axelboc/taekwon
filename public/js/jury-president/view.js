@@ -52,7 +52,7 @@ define(['minpubsub', 'handlebars', '../common/competitors', 'enum/ui-views', 'en
 
 		judges = [];
 		judgesById = {};
-		judgesList = document.getElementById('judges-list');
+		judgesList = document.getElementById('judge-list');
 		[].forEach.call(judgesList.getElementsByClassName('judge'), function (item, index) {
 			judges[index] = {
 				id: null,

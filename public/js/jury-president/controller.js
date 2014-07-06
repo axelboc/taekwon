@@ -1,7 +1,7 @@
 
 define([
 	'minpubsub',
-	'../common/helpers.js',
+	'../common/helpers',
 	'./io', './view/pwd-view',
 	'../common/ring-list-view',
 	'./model/ring',

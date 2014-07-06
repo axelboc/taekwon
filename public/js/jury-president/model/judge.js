@@ -1,17 +1,19 @@
 
 define(['minpubsub'], function (PubSub) {
 	
-	function Judge(id, name, authorised) {
+	function Judge(slotIndex, id, name) {
+		this.slotIndex = slotIndex;
 		this.id = id;
-		this.name = name;false
-		this.authorised = authorised
+		this.name = name;
+		this.connected = true;
+		this.authorised = false;
 	}
 	
 	Judge.prototype = {
 		
 		_publish: function (subTopic) {
-			// Always pass the ID of the judge when publishing an event
-			PubSub.publish('judge.' + subTopic, [this.id].concat([].slice.call(arguments, 1)));
+			// Pass the slot index of the judge with any event
+			PubSub.publish('judge.' + this.slotIndex + '.' + subTopic, [].slice.call(arguments, 1));
 		},
 		
 		authorise: function () {
@@ -19,13 +21,9 @@ define(['minpubsub'], function (PubSub) {
 			this._publish('authorised');
 		},
 		
-		reject: function () {
-			this.authorised = false;
-			this._publish('rejected');
-		},
-		
-		disconnect: function () {
-			this._publish('disconnected');
+		connectionStateChanged: function (connected) {
+			this.connected = connected;
+			this._publish('connectionStateChanged', connected);
 		}
 		
 	};

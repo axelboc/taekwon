@@ -35,11 +35,6 @@ CornerJudge.prototype.onJoinRing = function (index) {
 	if (!ring) {
 		this.debug("> Ring does not exist");
 		this.socket.emit('ringDoesNotExist', index);
-	
-	// TODO: manage ring full check on client-side
-	} else if (ring.cornerJudges.length >= 4) {
-		this.debug("> Ring is full");
-		this.socket.emit('ringIsFull', index);
 	} else {
 		this.debug("> Requesting authorisation from Jury President");
 		this.ring = ring;
@@ -58,6 +53,12 @@ CornerJudge.prototype.ringNotJoined = function (ring) {
 	this.debug("> Ring not joined (rejected by Jury President)");
 	this.ring = null;
 	this.socket.emit('ringNotJoined', ring.index);
+};
+
+CornerJudge.prototype.ringIsFull = function (ring) {
+	this.debug("> Ring is full");
+	this.ring = null;
+	this.socket.emit('ringIsFull', ring.index);
 };
 
 CornerJudge.prototype.onScore = function (score) {
@@ -112,10 +113,16 @@ CornerJudge.prototype.onDisconnect = function () {
 	}
 };
 
+CornerJudge.prototype.removedFromRing = function (ring) {
+	this.debug("Removed from ring");
+	this.ring = null;
+	this.socket.emit('removedFromRing', ring.index);
+};
+
 /* Exit the system and leave the ring */
 CornerJudge.prototype.exit = function () {
-	// TODO: Leave the ring and let jury president know
-}
+	// TODO: Exit after 30s of being disconnected
+};
 
 CornerJudge.prototype.debug = function (msg) {
 	console.log("[Corner Judge] " + msg);

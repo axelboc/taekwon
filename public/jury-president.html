@@ -32,15 +32,15 @@
 	<div id="ring" class="screen hidden">
 		<div id="judges">
 		    <h2 class="judges-heading">Corner Judges</h2>
-		    <ul class="judges-list list-reset"></ul>
+		    <ul class="judge-list list-reset"></ul>
 		    <div class="judge-count-btns">
 		    	<button type="button" class="judge-minus btn btn--minor" title="Remove one judge">&minus;</button>
 		    	<button type="button" class="judge-plus btn btn--minor" title="Add one judge">+</button>
 		    </div>
-		    <script id="judge-tmpl" type="x-handlebars-template">
-				{{#each slots}}
+		    <script id="judge-list-tmpl" type="x-handlebars-template">
+				{{#each judgeIndices}}
 		        <li class="judge">
-		            <h3 class="judge-name">Judge #{{index}}</h3>
+		            <h3 class="judge-name">Judge #{{this}}</h3>
 		            <button type="button" class="judge-disconnect hidden" title="Disconnect">&times;</button>
 		            <span class="judge-state">Waiting for connection</span>
                     <div class="judge-btns hidden">

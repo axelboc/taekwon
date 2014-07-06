@@ -21,8 +21,10 @@ function JuryPresident(io, socket, id) {
 JuryPresident.prototype.initSocket = function () {
 	this.socket.on('disconnect', this.onDisconnect.bind(this));
 	this.socket.on('createRing', this.onCreateRing.bind(this));
-	this.socket.on('cornerJudgeAccepted', this.onCornerJudgeAuthorisation.bind(this, true));
-	this.socket.on('cornerJudgeRejected', this.onCornerJudgeAuthorisation.bind(this, false));
+	this.socket.on('authoriseCornerJudge', this.onCornerJudgeAuthorisation.bind(this, true));
+	this.socket.on('ringIsFull', this.onRingIsFull.bind(this));
+	this.socket.on('rejectCornerJudge', this.onCornerJudgeAuthorisation.bind(this, false));
+	this.socket.on('removeCornerJudge', this.onRemoveCornerJudge.bind(this));
 	this.socket.on('enableScoring', this.onEnableScoring.bind(this));
 };
 
@@ -46,6 +48,7 @@ JuryPresident.prototype.authoriseCornerJudge = function (cornerJudge) {
 	
 	// Adding corner judge to waiting list
 	this.waitingList[cornerJudge.id] = cornerJudge;
+	this.debug(cornerJudge.id);
 	
 	// Requesting authorisation from client
 	this.socket.emit('newCornerJudge', {
@@ -61,11 +64,23 @@ JuryPresident.prototype.onCornerJudgeAuthorisation = function (accepted, cornerJ
 		// Add corner judge to ring
 		this.ring.addCornerJudge(this.waitingList[cornerJudgeId]);
 	} else {
+		this.debug(cornerJudgeId);
 		this.waitingList[cornerJudgeId].ringNotJoined(this.ring);
 	}
 	
 	// Remove corner judge from waiting list
 	delete this.waitingList[cornerJudgeId];
+};
+
+JuryPresident.prototype.onRingIsFull = function (cornerJudgeId) {
+	this.waitingList[cornerJudgeId].ringIsFull(this.ring);
+	// Remove corner judge from waiting list
+	delete this.waitingList[cornerJudgeId];
+};
+
+JuryPresident.prototype.onRemoveCornerJudge = function (cornerJudgeId) {
+	this.debug("> Corner judge removed from ring");
+	this.ring.removeCornerJudge(cornerJudgeId);
 };
 
 JuryPresident.prototype.onEnableScoring = function (enable) {
