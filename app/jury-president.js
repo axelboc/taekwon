@@ -48,7 +48,7 @@ JuryPresident.prototype.authoriseCornerJudge = function (cornerJudge) {
 	this.waitingList[cornerJudge.id] = cornerJudge;
 	
 	// Requesting authorisation from client
-	this.socket.emit('authoriseCornerJudge', {
+	this.socket.emit('newCornerJudge', {
 		id: cornerJudge.id,
 		name: cornerJudge.name
 	});

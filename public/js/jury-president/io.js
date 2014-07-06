@@ -13,7 +13,7 @@ define(['minpubsub'], function (PubSub) {
 		'ringAllocationChanged',
 		'ringCreated',
 		'ringAlreadyExists',
-		'authoriseCornerJudge',
+		'newCornerJudge',
 		'cornerJudgeStateChanged',
 		'cornerJudgeScored'
 	];

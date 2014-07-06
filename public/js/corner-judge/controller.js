@@ -1,5 +1,13 @@
 
-define(['minpubsub', './io', './view/name-view', '../common/ring-list-view', './view/round-view'], function (PubSub, IO, NameView, RingListView, RoundView) {
+define([
+	'minpubsub',
+	'../common/helpers',
+	'./io',
+	'./view/name-view',
+	'../common/ring-list-view',
+	'./view/round-view'
+
+], function (PubSub, Helpers IO, NameView, RingListView, RoundView) {
 	
 	var nameView, ringListView, authorisationView, roundView;
 	var isScoringEnabled = false;
@@ -34,12 +42,7 @@ define(['minpubsub', './io', './view/name-view', '../common/ring-list-view', './
 		IO.init();
 		
 		// Subscribe to events
-		Object.keys(events).forEach(function (topic) {
-			var topicEvents = events[topic];
-			Object.keys(topicEvents).forEach(function (subTopic) {
-				PubSub.subscribe(topic + '.' + subTopic, topicEvents[subTopic]);
-			});
-		}, this);
+		Helpers.subscribeToEvents(this, events);
 		
 		// Initialise views
 		nameView = new NameView();

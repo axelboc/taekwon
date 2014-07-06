@@ -1,8 +1,11 @@
 
-/**
- * Match
- */
-define(['minpubsub', 'match-config', '../common/competitors', 'enum/match-states'], function (PubSub, config, Competitors, MatchStates) {
+define([
+	'minpubsub',
+	'match-config',
+	'../common/competitors',
+	'enum/match-states'
+
+], function (PubSub, config, Competitors, MatchStates) {
 	
 	function Match (judgeIds) {
 		this.state = null;

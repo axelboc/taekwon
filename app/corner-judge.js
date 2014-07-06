@@ -35,6 +35,8 @@ CornerJudge.prototype.onJoinRing = function (index) {
 	if (!ring) {
 		this.debug("> Ring does not exist");
 		this.socket.emit('ringDoesNotExist', index);
+	
+	// TODO: manage ring full check on client-side
 	} else if (ring.cornerJudges.length >= 4) {
 		this.debug("> Ring is full");
 		this.socket.emit('ringIsFull', index);

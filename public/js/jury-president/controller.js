@@ -1,5 +1,14 @@
 
-define(['minpubsub', './io', './view/pwd-view', '../common/ring-list-view', './model/ring', './view/ring-view', './ring-controller'], function (PubSub, IO, PwdView, RingListView, Ring, RingView, RingController) {
+define([
+	'minpubsub',
+	'../common/helpers.js',
+	'./io', './view/pwd-view',
+	'../common/ring-list-view',
+	'./model/ring',
+	'./view/ring-view',
+	'./ring-controller'
+
+], function (PubSub, Helpers, IO, PwdView, RingListView, Ring, RingView, RingController) {
 	
 	var pwdView, ringListView;
 	
@@ -27,12 +36,7 @@ define(['minpubsub', './io', './view/pwd-view', '../common/ring-list-view', './m
 		IO.init();
 		
 		// Subscribe to events
-		Object.keys(events).forEach(function (topic) {
-			var topicEvents = events[topic];
-			Object.keys(topicEvents).forEach(function (subTopic) {
-				PubSub.subscribe(topic + '.' + subTopic, topicEvents[subTopic]);
-			});
-		}, this);
+		Helpers.subscribeToEvents(this, events);
 		
 		// Initialise views
 		pwdView = new PwdView();

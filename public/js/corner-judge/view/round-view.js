@@ -1,5 +1,10 @@
 
-define(['minpubsub', 'handlebars', '../../common/competitors'], function (PubSub, Handlebars, Competitors) {
+define([
+	'minpubsub',
+	'handlebars',
+	'../../common/competitors'
+
+], function (PubSub, Handlebars, Competitors) {
 	
 	function RoundView() {
 		this.root = document.getElementById('round');
