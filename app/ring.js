@@ -3,12 +3,13 @@ var Config = require('./config');
 
 var rings = [];
 
+// TODO: change wording from 'índex' to 'number' to distinguish with ring index in system
 var ringAllocations = [];
 for (var i = 0; i < Config.ringCount; i += 1) {
-    ringAllocations[i] = {
+    ringAllocations.push({
         index: i + 1,
         allocated: false
-    };
+    });
 }
 
 

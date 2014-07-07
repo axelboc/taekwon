@@ -26,6 +26,7 @@ JuryPresident.prototype.initSocket = function () {
 	this.socket.on('rejectCornerJudge', this.onCornerJudgeAuthorisation.bind(this, false));
 	this.socket.on('removeCornerJudge', this.onRemoveCornerJudge.bind(this));
 	this.socket.on('enableScoring', this.onEnableScoring.bind(this));
+	this.socket.on('sessionRestored', this.onSessionRestored.bind(this));
 };
 
 
@@ -102,38 +103,6 @@ JuryPresident.prototype.cornerJudgeScored = function (cornerJudge, score) {
 	this.socket.emit('cornerJudgeScored', score);
 };
 
-JuryPresident.prototype.restoreSession = function (newSocket) {
-	this.debug("Restoring session...");
-	
-	this.socket = newSocket;
-	this.connected = true;
-	this.initSocket();
-	
-	var hasRing = this.ring !== null;
-	
-	// Send success event to client
-	// If JP doesn't have a ring, client must show the ring creation view
-	newSocket.emit('idSuccess', hasRing);
-	
-	// If JP has ring, client must show the match view
-	if (hasRing) {
-		newSocket.emit('ringCreated', this.ring.index);
-		
-		// Restore corner judges
-		this.ring.cornerJudges.forEach(this.cornerJudgeStateChanged.bind(this));
-		for (var judgeId in this.waitingList) {
-			if (this.waitingList.hasOwnProperty(judgeId)) {
-				this.authoriseCornerJudge(this.waitingList[judgeId]);
-			}
-		}
-		
-		// Let corner judges know that jury president is reconnected
-		this.ring.juryPresidentStateChanged(true);
-	}
-	
-	this.debug("> Session restored");
-};
-
 JuryPresident.prototype.onDisconnect = function () {
 	this.debug("Disconnected");
 	this.connected = false;
@@ -144,9 +113,54 @@ JuryPresident.prototype.onDisconnect = function () {
 	}
 };
 
+JuryPresident.prototype.restoreSession = function (newSocket) {
+	this.debug("Restoring session");
+	
+	this.socket = newSocket;
+	this.initSocket();
+	
+	// Prepare restoration data
+	var restorationData = {
+		ringAllocations: Ring.getRingAllocations(),
+		ringIndex: this.ring ? this.ring.index : -1,
+		cornerJudges: []
+	};
+	
+	// Add corner judges
+	if (this.ring) {
+		var addJudge = function (authorised, judge) {
+			restorationData.cornerJudges.push({
+				id: judge.id,
+				name: judge.name,
+				authorised: authorised
+			});
+		}
+		
+		// Add authorised judges
+		this.ring.cornerJudges.forEach(addJudge.bind(this, true));
+		// Add judges waiting for authorisation
+		Object.keys(this.waitingList).forEach(function (id) {
+			addJudge(false, this.waitingList[id]);
+		}, this);
+		
+	} 
+	
+	// Send session restore event with all the required data
+	this.socket.emit('restoreSession', restorationData);
+};
+
+JuryPresident.prototype.onSessionRestored = function () {
+	this.debug("> Session restored");
+	this.connected = true;
+	if (this.ring) {
+		// Let corner judges know that jury president is reconnected
+		this.ring.juryPresidentStateChanged(true);
+	}
+};
+
 /* Exit the system and close the ring */
 JuryPresident.prototype.exit = function () {
-	// TODO: Close the ring and ask corner judges to leave it
+	// TODO: Close the ring after removing corner judges
 }
 
 JuryPresident.prototype.debug = function (msg) {

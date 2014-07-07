@@ -88,18 +88,20 @@ io.sockets.on('connection', function (socket) {
 	var session = hs.session;
 	var sessionId = hs.sessionID;
 	// DEBUG
-	//var client = clients[sessionId];
+	var client = clients[sessionId];
 	var isJury = socket.handshake.headers.referer.indexOf('/jury') !== -1;
 	console.log("New socket connection with session ID: " + sessionId + ".");
 	
 	// If returning client, restore session automatically
 	if (typeof client !== "undefined") {
 		// Check that client hasn't switched role (from CornerJudge to JuryPresident and vice versa)
-		if (isJury && client instanceof JuryPresident || !isJury && client instanceof CornerJudge) {
+		if (isJury && client instanceof JuryPresident ||
+			!isJury && client instanceof CornerJudge) {
 			// Restore session
 			client.restoreSession(socket);
 		} else {
-			// Client has switched role; remove its old instance from the system
+			// Client has switched role; remove its old instance from the system and wait for ID
+			// TODO: implement exit functions of JP and CJ
 			client.exit();
 			waitForId(socket, sessionId);
 		}

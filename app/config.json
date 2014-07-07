@@ -2,5 +2,5 @@
 	"cookieKey": "express.sid",
 	"cookieSecret": "tkd is awesome",
 	"masterPwd": "tkd",
-	"ringCount": 2
+	"ringCount": 4
 }

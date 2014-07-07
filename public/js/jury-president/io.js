@@ -15,7 +15,8 @@ define(['minpubsub'], function (PubSub) {
 		'ringAlreadyExists',
 		'newCornerJudge',
 		'cornerJudgeStateChanged',
-		'cornerJudgeScored'
+		'cornerJudgeScored',
+		'restoreSession'
 	];
 
 	function init() {
@@ -56,6 +57,9 @@ define(['minpubsub'], function (PubSub) {
 		socket.emit('removeCornerJudge', id);
 	}
 
+	function sessionRestored() {
+		socket.emit('sessionRestored');
+	}
 		
 	/*
 	var onCornerJudgeStateChanged = function (cornerJudge) {
@@ -80,7 +84,8 @@ define(['minpubsub'], function (PubSub) {
 		ringIsFull: ringIsFull,
 		authoriseCornerJudge: authoriseCornerJudge,
 		rejectCornerJudge: rejectCornerJudge,
-		removeCornerJudge: removeCornerJudge
+		removeCornerJudge: removeCornerJudge,
+		sessionRestored: sessionRestored
 		/*enableScoring: enableScoring,
 		debug: function () {
 			// DEBUG

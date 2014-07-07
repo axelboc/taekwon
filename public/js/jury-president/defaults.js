@@ -2,7 +2,7 @@
 define(function () {
 	
 	return {
-		"judgesPerRing": 1,
+		"judgesPerRing": 2,
 		"match": {
 			"roundTime": 120,
 			"breakTime": 60,

@@ -20,7 +20,8 @@ define([
 			ringAllocations: _onRingAllocations,
 			ringAllocationChanged: _onRingAllocationChanged,
 			ringCreated: _onRingCreated,
-			ringAlreadyExists: _onRingAlreadyExists
+			ringAlreadyExists: _onRingAlreadyExists,
+			restoreSession: _onRestoreSession
 		},
 		pwdView: {
 			pwdSubmitted: _onPwdSubmitted
@@ -44,9 +45,9 @@ define([
 		
 		// DEBUG
 		//IO.debug();
-		setTimeout(function () {
+		/*setTimeout(function () {
 			IO.sendId('tkd')
-		}, 200);
+		}, 200);*/
 	}
 	
 	function _onWaitingForId() {
@@ -99,6 +100,12 @@ define([
 	
 	function _onRingAlreadyExists(index) {
 		console.error("Ring already exists (index=" + index + ")");
+	}
+	
+	function _onRestoreSession(data) {
+		console.log("Restoring session");
+		console.log(data);
+		IO.sessionRestored();
 	}
 	
 	function _swapView(oldView, newView) {
