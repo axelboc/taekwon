@@ -21,9 +21,10 @@ function CornerJudge(io, socket, id, name) {
 }
 
 CornerJudge.prototype.initSocket = function () {
-	this.socket.on('disconnect', this.onDisconnect.bind(this));
 	this.socket.on('joinRing', this.onJoinRing.bind(this));
 	this.socket.on('score', this.onScore.bind(this));
+	this.socket.on('disconnect', this.onDisconnect.bind(this));
+	this.socket.on('sessionRestored', this.onSessionRestored.bind(this));
 };
 
 
@@ -66,43 +67,11 @@ CornerJudge.prototype.onScore = function (score) {
 	this.ring.juryPresident.cornerJudgeScored(this, score);
 };
 
-CornerJudge.prototype.restoreSession = function (newSocket) {
-	this.debug("Restoring session...");
-	
-	this.socket = newSocket;
-	this.connected = true;
-	this.initSocket();
-	
-	var hasRing = this.ring !== null;
-	
-	// Send success event to client
-	// If CJ doesn't have a ring, client must show the ring allocation view
-	this.socket.emit('idSuccess', !hasRing);
-	
-	if (!this.authorised) {
-		// If CJ not auhtorised, send ring allocations
-		this.socket.emit('ringAllocations', Ring.getRingAllocations());
-		// If CJ has ring, it is waiting for authorisation
-		if (hasRing) {
-			this.socket.emit('waitingForAuthorisation');
-			// Let jury president know that corner judge is now reconnected
-			this.ring.juryPresident.cornerJudgeStateChanged(this);
-		}
-	} else {
-		// If CJ is authorised, client must show the match view
-		this.ringJoined(this.ring);
-		// Add new socket to ring's room
-		this.socket.join(this.ring.roomId);
-		// Let jury president know that corner judge is now reconnected
-		this.ring.juryPresident.cornerJudgeStateChanged(this);
-		
-		if (this.ring.match) {
-			this.socket.emit('matchStateChanged', this.ring.match.state);
-		}
-	}
-	
-	this.debug("> Session restored");
-}
+CornerJudge.prototype.removedFromRing = function (ring) {
+	this.debug("Removed from ring");
+	this.ring = null;
+	this.socket.emit('removedFromRing', ring.index);
+};
 
 CornerJudge.prototype.onDisconnect = function () {
 	this.debug("Disconnected");
@@ -113,10 +82,28 @@ CornerJudge.prototype.onDisconnect = function () {
 	}
 };
 
-CornerJudge.prototype.removedFromRing = function (ring) {
-	this.debug("Removed from ring");
-	this.ring = null;
-	this.socket.emit('removedFromRing', ring.index);
+CornerJudge.prototype.restoreSession = function (newSocket) {
+	this.debug("Restoring session");
+	
+	this.socket = newSocket;
+	this.initSocket();
+	
+	// Send session restore event with all the required data
+	this.socket.emit('restoreSession', {
+		ringAllocations: Ring.getRingAllocations(),
+		authorised: this.authorised,
+		ringIndex: this.ring ? this.ring.index : -1,
+		scoringEnabled: this.ring? this.ring.scoringEnabled : false
+	});
+};
+
+CornerJudge.prototype.onSessionRestored = function () {
+	this.debug("> Session restored");
+	this.connected = true;
+	if (this.ring) {
+		// Let corner judges know that jury president is reconnected
+		this.ring.juryPresident.cornerJudgeStateChanged(this);
+	}
 };
 
 /* Exit the system and leave the ring */

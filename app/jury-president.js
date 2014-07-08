@@ -19,13 +19,13 @@ function JuryPresident(io, socket, id) {
 }
 
 JuryPresident.prototype.initSocket = function () {
-	this.socket.on('disconnect', this.onDisconnect.bind(this));
 	this.socket.on('createRing', this.onCreateRing.bind(this));
 	this.socket.on('authoriseCornerJudge', this.onCornerJudgeAuthorisation.bind(this, true));
 	this.socket.on('ringIsFull', this.onRingIsFull.bind(this));
 	this.socket.on('rejectCornerJudge', this.onCornerJudgeAuthorisation.bind(this, false));
 	this.socket.on('removeCornerJudge', this.onRemoveCornerJudge.bind(this));
 	this.socket.on('enableScoring', this.onEnableScoring.bind(this));
+	this.socket.on('disconnect', this.onDisconnect.bind(this));
 	this.socket.on('sessionRestored', this.onSessionRestored.bind(this));
 };
 

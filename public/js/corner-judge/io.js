@@ -16,7 +16,8 @@ define(['minpubsub'], function (PubSub) {
 		'ringIsFull',
 		'juryPresidentStateChanged',
 		'scoringStateChanged',
-		'removedFromRing'
+		'removedFromRing',
+		'restoreSession'
 	];
 
 	function init() {
@@ -35,25 +36,30 @@ define(['minpubsub'], function (PubSub) {
 
 	function sendId(name) {
 		socket.emit('cornerJudge', name);
-	};
+	}
 
 	function joinRing(index) {
 		socket.emit('joinRing', index);
-	};
+	}
 
 	function score(competitor, points) {
 		socket.emit('score', {
 			competitor: competitor,
 			points: points
 		});
-	};
+	}
+
+	function sessionRestored() {
+		socket.emit('sessionRestored');
+	}
 
 
 	return {
 		init: init,
 		sendId: sendId,
 		joinRing: joinRing,
-		score: score
+		score: score,
+		sessionRestored: sessionRestored
 	};
 	
 });

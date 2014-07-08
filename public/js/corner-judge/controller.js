@@ -25,7 +25,8 @@ define([
 			ringIsFull: _onRingIsFull,
 			juryPresidentStateChanged: _onJuryPresidentStateChanged,
 			scoringStateChanged: _onScoringStateChanged,
-			removedFromRing: _onRemovedFromRing
+			removedFromRing: _onRemovedFromRing,
+			restoreSession: _onRestoreSession
 		},
 		nameView: {
 			nameSubmitted: _onNameSubmitted
@@ -59,9 +60,9 @@ define([
 		waitingBackdrop = document.getElementById('waiting-backdrop');
 		
 		// DEBUG
-		setTimeout(function () {
+		/*setTimeout(function () {
 			IO.sendId('Axel')
-		}, 200);
+		}, 200);*/
 	}
 	
 	function _onWaitingForId() {
@@ -144,6 +145,12 @@ define([
 		ringListView.updateInstr("Removed from ring");
 		_toggleBackdrop(false);
 		_swapView(roundView, ringListView);
+	}
+	
+	function _onRestoreSession(data) {
+		console.log("Restoring session");
+		console.log(data);
+		IO.sessionRestored();
 	}
 	
 	function _swapView(oldView, newView) {
