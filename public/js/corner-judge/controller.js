@@ -10,7 +10,7 @@ define([
 ], function (PubSub, Helpers, IO, NameView, RingListView, RoundView) {
 	
 	var nameView, ringListView, authorisationView, roundView;
-	var isScoringEnabled = false;
+	var isScoringEnabled = false, isJPConnected = false;
 	var backdropWrap, disconnectedBackdrop, waitingBackdrop;
 	
 	var events = {
@@ -81,15 +81,15 @@ define([
 		console.log("Identification succeeded");
 	}
 	
-	function _onRingAllocations(rings) {
-		console.log("Ring allocations received (rings=\"" + rings + "\")");
-		ringListView.init(rings);
+	function _onRingAllocations(allocations) {
+		console.log("Ring allocations received (count=\"" + allocations.length + "\")");
+		ringListView.init(allocations);
 		_swapView(nameView, ringListView);
 	}
 	
-	function _onRingAllocationChanged(ring) {
-		console.log("Ring allocation changed (ring=\"" + ring + "\")");
-		ringListView.updateRingBtn(ring.index - 1, ring.allocated);
+	function _onRingAllocationChanged(allocation) {
+		console.log("Ring allocation changed (index=\"" + allocation.index + "\")");
+		ringListView.updateRingBtn(allocation.index - 1, allocation.allocated);
 	}
 	
 	function _onRingSelected(index) {
@@ -99,11 +99,16 @@ define([
 		_swapView(ringListView, authorisationView);
 	}
 	
-	function _onRingJoined(index) {
-		console.log("Joined ring (index=" + index + ")");
-		isScoringEnabled= false;
-		_toggleBackdrop(true, waitingBackdrop);
+	function _onRingJoined(data) {
+		console.log("Joined ring (index=" + data.ringIndex + ")");
+		
+		// Show round view
 		_swapView(authorisationView, roundView);
+		
+		// Update scoring and JP states and toggle backdrops
+		isScoringEnabled = data.scoringEnabled;
+		isJPConnected = data.jpConnected;
+		_updateBackdrops();
 	}
 	
 	function _onRingNotJoined(index) {
@@ -126,13 +131,14 @@ define([
 	
 	function _onJuryPresidentStateChanged(connected) {
 		console.log("Jury president " + (connected ? "connected" : "disconnected"));
-		_toggleBackdrop(!connected, disconnectedBackdrop);
+		isJPConnected = connected;
+		_updateBackdrops();
 	}
 	
 	function _onScoringStateChanged(enabled) {
 		console.log("Scoring " + (enabled ? "enabled" : "disabled"));
 		isScoringEnabled = enabled;
-		_toggleBackdrop(!enabled, waitingBackdrop);
+		_updateBackdrops();
 	}
 	
 	function _onScore(competitor, points) {
@@ -143,13 +149,35 @@ define([
 	function _onRemovedFromRing(index) {
 		console.log("Ring is full (index=" + index + ")");
 		ringListView.updateInstr("Removed from ring");
-		_toggleBackdrop(false);
 		_swapView(roundView, ringListView);
+		_updateBackdrops();
 	}
 	
 	function _onRestoreSession(data) {
 		console.log("Restoring session");
 		console.log(data);
+		
+		// Init ring list view with ring allocation data
+		ringListView.init(data.ringAllocations);
+		
+		// If no ring has been joined yet, show ring list view
+		if (data.ringIndex === -1) {
+			_swapView(null, ringListView);
+			
+		// If a ring has been joined, but JP hasn't authorised the request yet, show authorisation view
+		} else if (!data.authorised) {
+			_swapView(null, authorisationView);
+		
+		// If JP has authorised CJ to join a ring, show round view
+		} else {
+			_swapView(null, roundView);
+			
+			// Retrieve scoring and JP states and toggle backdrops
+			isScoringEnabled = data.scoringEnabled;
+			isJPConnected = data.jpConnected;
+			_updateBackdrops();
+		}
+		
 		IO.sessionRestored();
 	}
 	
@@ -160,21 +188,14 @@ define([
 		}
 	}
 
-	function _toggleBackdrop(show, backdrop) {
-		var isDisconnectedBackdrop = backdrop === disconnectedBackdrop;
-		if (!show && isDisconnectedBackdrop && !isScoringEnabled) {
-			// Restore waiting backdrop instead
-			show = true;
-			backdrop = waitingBackdrop;
-		}
-
-		if (show && backdrop) {
-			disconnectedBackdrop.classList.toggle('hidden', !isDisconnectedBackdrop);
-			waitingBackdrop.classList.toggle('hidden', isDisconnectedBackdrop);
-		}
-
-		// Show/hide backdrop wrapper
-		backdropWrap.classList.toggle('hidden', !show);
+	function _updateBackdrops() {
+		// Toggle backdrops
+		disconnectedBackdrop.classList.toggle('hidden', isJPConnected);
+		waitingBackdrop.classList.toggle('hidden', !isJPConnected || isScoringEnabled);
+		
+		// Toggle backdrop wrapper
+		backdropWrap.classList.toggle('hidden', roundView.root.classList.contains('hidden') || 
+									  			isJPConnected && (!isJPConnected || isScoringEnabled));
 	}
 	
 	return {

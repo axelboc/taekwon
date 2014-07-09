@@ -25,7 +25,7 @@
 	padding: 0;
 	color: #fff;
 	border: 0;
-	transition: background-color 1.5s linear;
+	transition: background-color 1.5s linear 0s;
 	outline: 0;
 	cursor: pointer;
 }
@@ -58,7 +58,7 @@
 
 .score-btn:active {
 	background-color: #444;
-	transition-duration: 0;
+	transition-duration: 0s;
 }
 
 

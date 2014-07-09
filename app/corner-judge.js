@@ -46,8 +46,11 @@ CornerJudge.prototype.onJoinRing = function (index) {
 CornerJudge.prototype.ringJoined = function (ring) {
 	this.debug("> Ring joined");
 	this.authorised = true;
-	this.socket.emit('ringJoined', ring.index);
-	this.socket.emit('scoringStateChanged', ring.scoringEnabled);
+	this.socket.emit('ringJoined', {
+		ringIndex: ring.index,
+		scoringEnabled: ring.scoringEnabled,
+		jpConnected: ring.juryPresident.connected
+	});
 };
 
 CornerJudge.prototype.ringNotJoined = function (ring) {
@@ -70,6 +73,7 @@ CornerJudge.prototype.onScore = function (score) {
 CornerJudge.prototype.removedFromRing = function (ring) {
 	this.debug("Removed from ring");
 	this.ring = null;
+	this.authorised = false;
 	this.socket.emit('removedFromRing', ring.index);
 };
 
@@ -91,9 +95,10 @@ CornerJudge.prototype.restoreSession = function (newSocket) {
 	// Send session restore event with all the required data
 	this.socket.emit('restoreSession', {
 		ringAllocations: Ring.getRingAllocations(),
-		authorised: this.authorised,
 		ringIndex: this.ring ? this.ring.index : -1,
-		scoringEnabled: this.ring? this.ring.scoringEnabled : false
+		authorised: this.authorised,
+		scoringEnabled: this.ring ? this.ring.scoringEnabled : false,
+		jpConnected: this.ring ? this.ring.juryPresident.connected : false
 	});
 };
 
@@ -108,7 +113,10 @@ CornerJudge.prototype.onSessionRestored = function () {
 
 /* Exit the system and leave the ring */
 CornerJudge.prototype.exit = function () {
+	this.debug("Exit");
 	// TODO: Exit after 30s of being disconnected
+	this.ring = null;
+	this.authorised = false;
 };
 
 CornerJudge.prototype.debug = function (msg) {
