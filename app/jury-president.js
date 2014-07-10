@@ -128,19 +128,20 @@ JuryPresident.prototype.restoreSession = function (newSocket) {
 	
 	// Add corner judges
 	if (this.ring) {
-		var addJudge = function (authorised, judge) {
+		var addJudge = function (judge) {
 			restorationData.cornerJudges.push({
 				id: judge.id,
 				name: judge.name,
-				authorised: authorised
+				connected: judge.connected,
+				authorised: judge.authorised
 			});
 		}
 		
 		// Add authorised judges
-		this.ring.cornerJudges.forEach(addJudge.bind(this, true));
+		this.ring.cornerJudges.forEach(addJudge, this);
 		// Add judges waiting for authorisation
 		Object.keys(this.waitingList).forEach(function (id) {
-			addJudge(false, this.waitingList[id]);
+			addJudge(this.waitingList[id]);
 		}, this);
 		
 	} 
@@ -161,6 +162,9 @@ JuryPresident.prototype.onSessionRestored = function () {
 /* Exit the system and close the ring */
 JuryPresident.prototype.exit = function () {
 	// TODO: Close the ring after removing corner judges
+	this.connected = false;
+	Ring.delete(this.ring);
+	this.ring = null;
 }
 
 JuryPresident.prototype.debug = function (msg) {

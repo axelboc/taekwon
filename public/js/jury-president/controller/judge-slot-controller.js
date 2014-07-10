@@ -23,7 +23,8 @@ define([
 		};
 		
 		this.events['judge.' + this.index] = {
-			authorised: this._onAuthorised
+			authorised: this._onAuthorised,
+			connectionStateChanged: this._onConnectionStateChanged
 		};
 		
 		
@@ -33,10 +34,13 @@ define([
 	
 	JudgeSlotController.prototype = {
 		
-		attachJudge: function (id, name) {
+		attachJudge: function (id, name, authorised, connected) {
 			console.log("Attaching judge to slot (index=" + this.index + ")");
-			this.model = new Judge(this.index, id, name);
+			this.model = new Judge(this.index, id, name, authorised, connected);
 			this.view.attachJudge(this.model);
+			if (authorised) {
+				this.view.judgeAuthorised();
+			}
 		},
 		
 		_detachJudge: function () {
@@ -64,6 +68,15 @@ define([
 			console.log("Judge authorised");
 			IO.authoriseCornerJudge(this.model.id);
 			this.view.judgeAuthorised();
+		},
+		
+		setConnectionState: function (connected) {
+			this.model.setConnectionState(connected);
+		},
+		
+		_onConnectionStateChanged: function () {
+			console.log("Judge connection state changed");
+			this.view.connectionStateChanged();
 		}
 		
 	};

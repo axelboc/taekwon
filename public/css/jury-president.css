@@ -110,9 +110,13 @@
 }
 
 .config-wrap {
-	margin-top: 3em;
+	margin: 3em 0 4em;
 	font-size: 120%;
 	text-align: left;
+}
+
+.config { 
+	overflow: hidden;
 }
 
 .config > span {

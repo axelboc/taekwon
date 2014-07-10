@@ -57,6 +57,10 @@ define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
 			this._updateState();
 			this.toggleBtnList(false);
 			this.disconnectBtn.classList.add('hidden');
+		},
+		
+		connectionStateChanged: function (connected) {
+			this._updateState();
 		}
 		
 	};

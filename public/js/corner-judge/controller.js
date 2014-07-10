@@ -155,20 +155,19 @@ define([
 	
 	function _onRestoreSession(data) {
 		console.log("Restoring session");
-		console.log(data);
 		
 		// Init ring list view with ring allocation data
 		ringListView.init(data.ringAllocations);
 		
-		// If no ring has been joined yet, show ring list view
+		// If no ring was joined yet, show ring list view
 		if (data.ringIndex === -1) {
 			_swapView(null, ringListView);
 			
-		// If a ring has been joined, but JP hasn't authorised the request yet, show authorisation view
+		// If a ring was joined, but JP had not authorised the request yet, show authorisation view
 		} else if (!data.authorised) {
 			_swapView(null, authorisationView);
 		
-		// If JP has authorised CJ to join a ring, show round view
+		// If JP was authorised by CJ to join a ring, show round view
 		} else {
 			_swapView(null, roundView);
 			

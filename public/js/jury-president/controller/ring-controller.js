@@ -19,7 +19,8 @@ define([
 		// Build events object
 		this.events = {
 			io: {
-				newCornerJudge: this._onNewCornerJudge
+				newCornerJudge: this._onNewCornerJudge,
+				cornerJudgeStateChanged: this._onCornerJudgeStateChanged
 			},
 			ring: {},
 			ringView: {}
@@ -31,24 +32,46 @@ define([
 	
 	RingController.prototype = {
 		
-		_onNewCornerJudge: function (judge) {
-			console.log("New corner judge (id=" + judge.id + ")");
-			
-			// Find unallocated judge slot
+		_findFreeJudgeSlot: function () {
 			for (var i = 0, len = this.judgeSlotControllers.length; i < len; i += 1) {
+				// Slot is free if no model is allocated to it
 				if (this.judgeSlotControllers[i].model === null) {
-					this.judgeSlotControllers[i].attachJudge(judge.id, judge.name);
-					return;
+					return i;
 				}
 			}
-			
-			// If no unallocated slot was found, the ring is full
-			this._ringIsFull(judge.id);
+			// No free slot found
+			return -1;
 		},
 		
 		_ringIsFull: function (judgeId) {
 			console.log("Ring is full");
 			IO.ringIsFull(judgeId);
+		},
+		
+		attachJudgeToSlot: function(slotIndex, id, name, authorised, connected) {
+			this.judgeSlotControllers[slotIndex].attachJudge(id, name, authorised, connected);
+		},
+		
+		_onNewCornerJudge: function (judge) {
+			console.log("New corner judge (id=" + judge.id + ")");
+			
+			var slotIndex = this._findFreeJudgeSlot();
+			if (slotIndex === -1) {
+				// If no unallocated slot is found, the ring is full
+				this._ringIsFull(judge.id);
+			} else {
+				// Otherwise, attach judge to slot
+				this.attachJudgeToSlot(slotIndex, judge.id, judge.name, false, true);
+			}
+		},
+		
+		_onCornerJudgeStateChanged: function (judge) {
+			console.log("Setting judge connection state (connected=" + judge.connected + ")");
+			this.judgeSlotControllers.forEach(function (controller) {
+				if (controller.model && controller.model.id === judge.id) {
+					controller.setConnectionState(judge.connected);
+				}
+			});
 		}
 		
 	};

@@ -10,7 +10,7 @@ define([
 
 ], function (PubSub, Helpers, IO, PwdView, RingListView, Ring, RingView, RingController) {
 	
-	var pwdView, ringListView;
+	var pwdView, ringListView, ringController, ringView;
 	
 	var events = {
 		io: {
@@ -71,15 +71,15 @@ define([
 		pwdView.invalidPwd();
 	}
 	
-	function _onRingAllocations(rings) {
-		console.log("Ring allocations received (rings=\"" + rings + "\")");
-		ringListView.init(rings);
+	function _onRingAllocations(allocations) {
+		console.log("Ring allocations received (count=\"" + allocations.length + "\")");
+		ringListView.init(allocations);
 		_swapView(pwdView, ringListView);
 	}
 	
-	function _onRingAllocationChanged(ring) {
-		console.log("Ring allocation changed (ring=\"" + ring + "\")");
-		ringListView.updateRingBtn(ring.index - 1, !ring.allocated);
+	function _onRingAllocationChanged(allocation) {
+		console.log("Ring allocation changed (index=\"" + allocation.index + "\")");
+		ringListView.updateRingBtn(allocation.index - 1, !allocation.allocated);
 	}
 	
 	function _onRingSelected(index) {
@@ -87,14 +87,16 @@ define([
 		IO.createRing(index);
 	}
 	
-	function _onRingCreated(index) {
-		console.log("Ring created (index=" + index + ")");
-		
+	function _createRing(index) {
 		// Initialise ring model, view and controller
 		var ring = new Ring(index);
-		var ringView = new RingView(ring);
-		var ringController = new RingController(ring, ringView);
-		
+		ringView = new RingView(ring);
+		ringController = new RingController(ring, ringView);
+	}
+	
+	function _onRingCreated(index) {
+		console.log("Ring created (index=" + index + ")");
+		_createRing(index);
 		_swapView(ringListView, ringView);
 	}
 	
@@ -104,7 +106,26 @@ define([
 	
 	function _onRestoreSession(data) {
 		console.log("Restoring session");
-		console.log(data);
+		
+		// Init ring list view with ring allocation data
+		ringListView.init(data.ringAllocations);
+		
+		// If no ring was created, show ring list view
+		if (data.ringIndex === -1) {
+			_swapView(null, ringListView);
+			
+		// If a ring was created, add corner judges and show authorisation view
+		} else {
+			_createRing(data.ringIndex);
+			
+			for (var i = 0, len = data.cornerJudges.length; i < len; i += 1) {
+				var judge = data.cornerJudges[i];
+				ringController.attachJudgeToSlot(i, judge.id, judge.name, judge.authorised, judge.connected);
+			}
+			
+			_swapView(null, ringView);
+		}
+		
 		IO.sessionRestored();
 	}
 	

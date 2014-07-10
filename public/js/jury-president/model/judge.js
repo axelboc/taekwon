@@ -1,12 +1,12 @@
 
 define(['minpubsub'], function (PubSub) {
 	
-	function Judge(slotIndex, id, name) {
+	function Judge(slotIndex, id, name, authorised, connected) {
 		this.slotIndex = slotIndex;
 		this.id = id;
 		this.name = name;
-		this.connected = true;
-		this.authorised = false;
+		this.connected = connected;
+		this.authorised = authorised;
 	}
 	
 	Judge.prototype = {
@@ -21,7 +21,7 @@ define(['minpubsub'], function (PubSub) {
 			this._publish('authorised');
 		},
 		
-		connectionStateChanged: function (connected) {
+		setConnectionState: function (connected) {
 			this.connected = connected;
 			this._publish('connectionStateChanged', connected);
 		}

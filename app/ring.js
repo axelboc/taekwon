@@ -41,6 +41,11 @@ Ring.getRingAllocation = function (index) {
 	return ringAllocations[index];
 };
 
+Ring.delete = function (ring) {
+	rings[ring.index] = null;
+    ringAllocations[ring.index].allocated = false;
+};
+
 
 Ring.prototype.addCornerJudge = function (cornerJudge) {
 	this.cornerJudges.push(cornerJudge);
@@ -63,6 +68,8 @@ Ring.prototype.removeCornerJudge = function (cornerJudgeId) {
 
 Ring.prototype.juryPresidentStateChanged = function (connected) {
 	this.debug("Jury president " + (connected ? "connected" : "disconnected"));
+	console.log(this.io.sockets);
+	// TODO: fix 'juryPresidentStateChanged' event not emitted after disconnection and restoration of CJ
 	this.io.sockets.in(this.roomId).emit('juryPresidentStateChanged', connected);
 };
 
