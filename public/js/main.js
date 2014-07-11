@@ -16,7 +16,8 @@ require.config({
 // Jury President 'main' module
 define(['../lib/domReady!', 'fastclick', './controller'], function (document, FastClick, Controller) {
 	
-	Controller.init();
+	// Start controller
+	var controller = new Controller();
 
 	// Initialise FastClick to remove 300ms delay on mobile devices
 	FastClick.attach(document.body);
