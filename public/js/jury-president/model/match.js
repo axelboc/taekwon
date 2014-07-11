@@ -1,13 +1,14 @@
 
 define([
 	'minpubsub',
-	'match-config',
 	'../common/competitors',
 	'enum/match-states'
 
-], function (PubSub, config, Competitors, MatchStates) {
+], function (PubSub, Competitors, MatchStates) {
 	
-	function Match (judgeIds) {
+	function Match(config, judgeIds) {
+		this.config = config;
+		
 		this.state = null;
 		this.states = [MatchStates.ROUND_1];
 		this.stateIndex = -1;
@@ -123,7 +124,7 @@ define([
 			if (this.stateIndex === this.states.length - 1) {
 				switch (this.state) {
 					case MatchStates.ROUND_1:
-						if (config.roundCount === 2) {
+						if (this.config.roundCount === 2) {
 							// If match has two rounds, add Break and Round 2 states
 							this.states.push(MatchStates.BREAK, MatchStates.ROUND_2);
 							break;
@@ -137,7 +138,7 @@ define([
 					case MatchStates.ROUND_2:
 						this._computeTotal();
 						
-						if (this._isTie() && config.tieBreaker) {
+						if (this._isTie() && this.config.tieBreaker) {
 							// If Round 1 and 2 led to a tie, add Tie Breaker round
 							this.states.push(MatchStates.BREAK, MatchStates.TIE_BREAKER);
 							break;
@@ -150,7 +151,7 @@ define([
 					case MatchStates.TIE_BREAKER:
 						this._computeTotal();
 						
-						if (this._isTie() && config.goldenPoint) {
+						if (this._isTie() && this.config.goldenPoint) {
 							// If Tie Breaker led to a tie, add Golden Point round
 							this.states.push(MatchStates.BREAK, MatchStates.GOLDEN_POINT);
 							break;
