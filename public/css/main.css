@@ -49,8 +49,8 @@ button::-moz-focus-inner {
 
 /* ===== Components ===== */
 
-/* Screen */
-.screen {
+/* View */
+.view {
 	overflow: hidden;
 	max-width: 50em;
 	margin: 0 auto;
@@ -165,7 +165,7 @@ button::-moz-focus-inner {
 }
 
 
-/* ===== Ring list screen ===== */
+/* ===== Ring list view ===== */
 
 .rl-btn {
     min-width: 2.8em;

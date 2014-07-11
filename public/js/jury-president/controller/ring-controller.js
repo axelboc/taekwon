@@ -3,31 +3,42 @@ define([
 	'minpubsub',
 	'../../common/helpers',
 	'../io',
-	'./judge-slot-controller'
+	'../defaults',
+	'./judge-slot-controller',
+	'../view/config-panel',
+	'../view/match-panel',
+	'../view/result-panel'
 	
-], function (PubSub, Helpers, IO, JudgeSlotController) {
+], function (PubSub, Helpers, IO, defaults, JudgeSlotController, ConfigPanel, MathPanel, ResultPanel) {
 	
 	function RingController(model, view) {
 		this.model = model;
 		this.view = view;
 		
-		this.judgeSlotControllers = [];
-		this.view.judgeSlotViews.forEach(function (judgeSlotView) {
-			this.judgeSlotControllers.push(new JudgeSlotController(judgeSlotView.index, judgeSlotView));
-		}, this);
-		
-		// Build events object
-		this.events = {
+		// Subscribe to events
+		Helpers.subscribeToEvents(this, {
 			io: {
 				newCornerJudge: this._onNewCornerJudge,
 				cornerJudgeStateChanged: this._onCornerJudgeStateChanged
 			},
 			ring: {},
-			ringView: {}
-		};	
+			ringView: {
+				newBtnClicked: this._onNewBtnClicked,
+				configBtnClicked: this._onConfigBtnClicked,
+				resultBtnClicked: this._onResultBtnClicked
+			}
+		});
 		
-		// Subscribe to events
-		Helpers.subscribeToEvents(this, this.events);
+		// Initialise judge slot controllers
+		this.judgeSlotControllers = [];
+		this.view.judgeSlotViews.forEach(function (judgeSlotView) {
+			this.judgeSlotControllers.push(new JudgeSlotController(judgeSlotView.index, judgeSlotView));
+		}, this);
+		
+		// Initialise panels
+		this.configPanel = new ConfigPanel(defaults.match);
+		this.matchPanel = new MathPanel();
+		this.resultPanel = new ResultPanel();
 	}
 	
 	RingController.prototype = {
@@ -72,6 +83,24 @@ define([
 					controller.setConnectionState(judge.connected);
 				}
 			});
+		},
+		
+		_showPanel: function (panel) {
+			this.configPanel.root.classList.toggle('hidden', panel !== this.configPanel);
+			this.matchPanel.root.classList.toggle('hidden', panel !== this.matchPanel);
+			this.resultPanel.root.classList.toggle('hidden', panel !== this.resultPanel);
+		},
+		
+		_onNewBtnClicked: function () {
+			this._showPanel(this.matchPanel);
+		},
+		
+		_onConfigBtnClicked: function () {
+			this._showPanel(this.configPanel);
+		},
+		
+		_onResultBtnClicked: function () {
+			this._showPanel(this.resultPanel);
 		}
 		
 	};

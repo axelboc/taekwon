@@ -13,7 +13,7 @@ define([
 		this.model = null;
 		this.view = view;
 		
-		// Events object must be built dynamically
+		// Events object has to be built dynamically
 		this.events = {};
 		
 		this.events['judgeSlotView.' + this.index] = {

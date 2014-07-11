@@ -11,6 +11,16 @@ define([
 		this.model = model;
 		this.root = document.getElementById('ring');
 		this._initJudgeList();
+		
+		this.newBtns = this.root.querySelectorAll('.match-btn--new');
+		this.configBtn = this.root.querySelector('.match-btn--config');
+		this.resultBtn = this.root.querySelector('.sm-btn--result');
+		
+		[].forEach.call(this.newBtns, function (btn) {
+			btn.addEventListener('click', this._publish.bind(this, 'newBtnClicked'));
+		}, this);
+		this.configBtn.addEventListener('click', this._publish.bind(this, 'configBtnClicked'));
+		this.resultBtn.addEventListener('click', this._publish.bind(this, 'resultBtnClicked'));
 	}
 	
 	RingView.prototype = {

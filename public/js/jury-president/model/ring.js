@@ -1,4 +1,4 @@
-
+// TODO: determine if this module is still relevant
 define(['minpubsub'], function (PubSub) {
 	
 	function Ring(index) {
