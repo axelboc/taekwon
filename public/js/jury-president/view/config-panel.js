@@ -1,5 +1,9 @@
 
-define(['minpubsub', '../../common/helpers'], function (PubSub, Helpers) {
+define([
+	'minpubsub',
+	'../../common/helpers'
+
+], function (PubSub, Helpers) {
 	
 	function ConfigPanel(defaults) {
 		// Copy default match configuration into model
@@ -13,6 +17,10 @@ define(['minpubsub', '../../common/helpers'], function (PubSub, Helpers) {
 	}
 	
 	ConfigPanel.prototype = {
+		
+		_numToTime: function (num) {
+			return Math.floor(num / 60) + ":" + (num % 60);
+		},
 		
 		_update: function () {
 			

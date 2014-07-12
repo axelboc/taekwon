@@ -1,12 +1,13 @@
 
 define([
 	'minpubsub',
-	'../common/helpers',
-	'./io', './view/pwd-view',
-	'../common/ring-list-view',
-	'./model/ring',
-	'./view/ring-view',
-	'./controller/ring-controller'
+	'../../common/helpers',
+	'../io',
+	'../view/pwd-view',
+	'../../common/ring-list-view',
+	'../model/ring',
+	'../view/ring-view',
+	'./ring-controller'
 
 ], function (PubSub, Helpers, IO, PwdView, RingListView, Ring, RingView, RingController) {
 	

@@ -1,13 +1,14 @@
 
 define([
 	'minpubsub',
-	'../common/competitors',
-	'enum/match-states'
+	'../../common/competitors',
+	'./match-states'
 
 ], function (PubSub, Competitors, MatchStates) {
 	
-	function Match(config, judgeIds) {
+	function Match(config, judges) {
 		this.config = config;
+		this.judges = judges;
 		
 		this.state = null;
 		this.states = [MatchStates.ROUND_1];
@@ -16,7 +17,7 @@ define([
 		this.stateStarted = false;
 		this.injuryStarted = false;
 		
-		// TODO: consider moving scoreboards to future Judge module
+		// TODO: consider moving scoreboards to Judge module
 		
 		/**
 		 * Judge scoreboards
@@ -28,8 +29,8 @@ define([
 		 * - up to golden point: 	round-1, round-2, penalties, total, tie-breaker, penalties, total, golden point
 		 */
 		this.scoreboards = {};
-		judgeIds.forEach(function (id) {
-			this.scoreboards[id] = [];
+		this.judges.forEach(function (judge) {
+			this.scoreboards[judge.id] = [];
 		}, this);
 		
 		// Penalties ('warnings' and 'fouls') given at each state (except break states)

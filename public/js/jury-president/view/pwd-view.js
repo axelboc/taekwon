@@ -18,7 +18,7 @@ define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
 		init: function () {
 			setTimeout(function () {
 				this.field.focus();
-			}, 100);
+			}.bind(this), 100);
 		},
 		
 		invalidPwd: function () {

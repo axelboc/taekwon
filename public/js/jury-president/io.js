@@ -60,20 +60,16 @@ define(['minpubsub'], function (PubSub) {
 	function sessionRestored() {
 		socket.emit('sessionRestored');
 	}
+	
+	function enableScoring(enable) {
+		console.log((enable ? "Enable" : "Disable") + " scoring");
+		socket.emit('enableScoring', enable);
+	}
 		
 	/*
 	var onCornerJudgeStateChanged = function (cornerJudge) {
 		console.log("Corner judge " + (cornerJudge.connected ? "connected" : "disconnected") + " (id=" + cornerJudge.id + ")");
 		View.onCornerJudgeStateChanged(cornerJudge);
-	};
-
-	var enableScoring = function (enable) {
-		console.log((enable ? "Enable" : "Disable") + " scoring");
-		socket.emit('enableScoring', enable);
-	};
-	
-	var onCornerJudgeScored = function (score) {
-		View.onCornerJudgeScored(score);
 	};*/
 
 
@@ -85,9 +81,9 @@ define(['minpubsub'], function (PubSub) {
 		authoriseCornerJudge: authoriseCornerJudge,
 		rejectCornerJudge: rejectCornerJudge,
 		removeCornerJudge: removeCornerJudge,
-		sessionRestored: sessionRestored
-		/*enableScoring: enableScoring,
-		debug: function () {
+		sessionRestored: sessionRestored,
+		enableScoring: enableScoring
+		/*debug: function () {
 			// DEBUG
 			['Axel', 'Mikey', 'Chris'].forEach(function (name, index) {
 				onCornerJudgeStateChanged({

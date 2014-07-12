@@ -29,6 +29,17 @@ define(['minpubsub'], function (PubSub) {
 				copy[key] = obj[key];
 			});
 			return copy;
+		},
+		
+		/**
+		 * Enable/disable button
+		 */
+		enableBtn: function (btn, enable) {
+			if (enable) {
+				btn.removeAttribute('disabled');
+			} else {
+				btn.setAttribute('disabled', 'disabled');
+			}
 		}
 		
 	};

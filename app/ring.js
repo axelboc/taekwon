@@ -68,7 +68,6 @@ Ring.prototype.removeCornerJudge = function (cornerJudgeId) {
 
 Ring.prototype.juryPresidentStateChanged = function (connected) {
 	this.debug("Jury president " + (connected ? "connected" : "disconnected"));
-	console.log(this.io.sockets);
 	// TODO: fix 'juryPresidentStateChanged' event not emitted after disconnection and restoration of CJ
 	this.io.sockets.in(this.roomId).emit('juryPresidentStateChanged', connected);
 };

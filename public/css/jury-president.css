@@ -14,6 +14,7 @@
 .main {
 	display: table-cell;
 	vertical-align: top;
+	height: 100%;
 }
 
 .panel {
@@ -141,6 +142,8 @@
 
 .mp-row--top {
 	height: 40%;
+	min-height: 12em;
+	max-height: 20em;
 	border-bottom: solid 1px #ccc;
 }
 

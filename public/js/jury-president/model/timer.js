@@ -1,12 +1,10 @@
 
 define(['minpubsub'], function (PubSub) {
 	
-	function Timer(minElem, secElem) {
+	function Timer(name) {
+		this.name = name;
 		this.intervalId = null;
 		this.value = null;
-		
-		this.minElem = minElem;
-		this.secElem = secElem;
 	}
 	
 	Timer.prototype = {
@@ -16,10 +14,7 @@ define(['minpubsub'], function (PubSub) {
 		},
 		
 		_update: function () {
-			/*this.minElem.textContent = Math.floor(this.value / 60);
-			var sec = this.value % 60
-			this.secElem.textContent = (sec < 10 ? '0' : '') + sec;*/
-			this._publish('tick', this.value);
+			this._publish('tick', this.name, this.value);
 		},
 		
 		_tickDown: function () {

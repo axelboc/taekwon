@@ -1,6 +1,7 @@
 
 // TODO: Fix session restoration
 // TODO: Implement judges sidebar controls (buttons to add/remove judges)
+// TODO: use Full Screen API
 
 /* Core set-up */
 
@@ -87,7 +88,6 @@ io.sockets.on('connection', function (socket) {
 	var hs = socket.handshake;
 	var session = hs.session;
 	var sessionId = hs.sessionID;
-	// DEBUG
 	var client = clients[sessionId];
 	var isJury = socket.handshake.headers.referer.indexOf('/jury') !== -1;
 	console.log("New socket connection with session ID: " + sessionId + ".");
