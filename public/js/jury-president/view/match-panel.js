@@ -1,12 +1,13 @@
 
 define([
 	'minpubsub',
+	'handlebars',
 	'../../common/helpers',
 	'../io',
 	'../model/match-states',
 	'../model/timer'
 
-], function (PubSub, Helpers, IO, MatchStates, Timer) {
+], function (PubSub, Handlebars, Helpers, IO, MatchStates, Timer) {
 	
 	function MatchPanel() {
 		this.root = document.getElementById('match-panel');
@@ -31,8 +32,8 @@ define([
 		
 		// Time keeping
 		this.timeKeeping = this.root.querySelector('.time-keeping');
-		this.mainTimer = {
-			timer: new Timer('main'),
+		this.roundTimer = {
+			timer: new Timer('round'),
 			min: this.timeKeeping.querySelector('.tk-timer--round > .tk-timer-min'),
 			sec: this.timeKeeping.querySelector('.tk-timer--round > .tk-timer-sec')
 		};
@@ -44,7 +45,7 @@ define([
 		};
 		
 		// Match state management
-		// TODO: bindEvents helper 
+		// TODO: bindEvents helper
 		this.stateStartBtn = this.root.querySelector('.sm-btn--start');
 		this.stateEndBtn = this.root.querySelector('.sm-btn--end');
 		this.matchResultBtn = this.root.querySelector('.sm-btn--result');
@@ -54,6 +55,13 @@ define([
 		this.stateEndBtn.addEventListener('click', this._onStateEndBtn.bind(this));
 		this.matchResultBtn.addEventListener('click', this._onMatchResultBtn.bind(this));
 		this.injuryBtn.addEventListener('click', this._onInjuryBtn.bind(this));
+		
+		// Scoring
+		this.scoring = this.root.querySelector('.scoring');
+		var scoringInner = this.scoring.querySelector('.sc-inner');
+		var scoringTmpl = Handlebars.compile(document.getElementById('sc-judge-tmpl').innerHTML);
+		scoringInner.innerHTML = scoringTmpl();
+		this.judgeScores = scoringInner.querySelectorAll('.sc-judge');
 	}
 	
 	MatchPanel.prototype = {
@@ -91,7 +99,6 @@ define([
 		_onMatchCreated: function (match) {
 			console.log("Match created");
 			this.match = match;
-			console.log(this);
 			this._updateStateBtns(null, false);
 			this.matchResultBtn.classList.add("hidden");
 			this.stateStartBtn.classList.remove("hidden");
@@ -102,8 +109,8 @@ define([
 			var stateStr = state.toLowerCase().replace('-', ' ');
 			console.log("State changed: " + stateStr);
 
-			// Reset main timer
-			this.mainTimer.timer.reset((state === MatchStates.BREAK ? this.match.config.breakTime :
+			// Reset round timer
+			this.roundTimer.timer.reset((state === MatchStates.BREAK ? this.match.config.breakTime :
 								(state === MatchStates.GOLDEN_POINT ? 0 : this.match.config.roundTime)));
 
 			// Update text of start and end buttons
@@ -119,7 +126,7 @@ define([
 			console.log("State started: " + state);
 			this._updateStateBtns(state, true);
 
-			this.mainTimer.timer.start(state !== MatchStates.GOLDEN_POINT, false);
+			this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, false);
 
 			if (state !== MatchStates.BREAK) {
 				IO.enableScoring(true);
@@ -129,7 +136,7 @@ define([
 		_onStateEnded: function (state) {
 			console.log("State ended: " + state);
 			this._updateStateBtns(state, false);
-			this.mainTimer.timer.stop();
+			this.roundTimer.timer.stop();
 
 			if (state !== MatchStates.BREAK) {
 				IO.enableScoring(false);
@@ -150,7 +157,7 @@ define([
 			this.stateStartBtn.classList.add("hidden");
 			this.stateEndBtn.classList.add("hidden");
 			this.matchResultBtn.classList.remove("hidden");
-			this.mainTimer.timer.reset(0);
+			this.roundTimer.timer.reset(0);
 		},
 
 		_onInjuryStarted: function () {
@@ -160,7 +167,7 @@ define([
 
 			this.injuryTimer.timer.reset(this.match.config.injuryTime);
 			this.injuryTimer.timer.start(true, true);
-			this.mainTimer.timer.stop();
+			this.roundTimer.timer.stop();
 
 			IO.enableScoring(false);
 		},
@@ -171,7 +178,7 @@ define([
 			this.timeKeeping.classList.remove('tk_injury');
 
 			this.injuryTimer.timer.stop();
-			this.mainTimer.timer.start(state !== MatchStates.GOLDEN_POINT, true);
+			this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, true);
 
 			IO.enableScoring(true);
 		},

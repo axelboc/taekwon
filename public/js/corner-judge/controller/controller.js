@@ -105,7 +105,7 @@ define([
 		_onRingAllocations: function(allocations) {
 			console.log("Ring allocations received (count=\"" + allocations.length + "\")");
 			this.ringListView.init(allocations);
-			_swapView(this.nameView, this.ringListView);
+			this._swapView(this.nameView, this.ringListView);
 		},
 
 		_onRingAllocationChanged: function(allocation) {
@@ -170,7 +170,7 @@ define([
 		_onRemovedFromRing: function(index) {
 			console.log("Ring is full (index=" + index + ")");
 			this.ringListView.updateInstr("Removed from ring");
-			this._swapView(roundView, ringListView);
+			this._swapView(this.roundView, this.ringListView);
 			this._updateBackdrops();
 		},
 

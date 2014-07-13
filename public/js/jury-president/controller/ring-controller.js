@@ -4,18 +4,23 @@ define([
 	'../../common/helpers',
 	'../io',
 	'../defaults',
-	'./judge-slot-controller',
+	'../view/judges-sidebar',
 	'../view/config-panel',
 	'../view/match-panel',
 	'../view/result-panel',
 	'../model/match'
 	
-], function (PubSub, Helpers, IO, defaults, JudgeSlotController, ConfigPanel, MathPanel, ResultPanel, Match) {
+], function (PubSub, Helpers, IO, defaults, JudgesSidebar, ConfigPanel, MathPanel, ResultPanel, Match) {
 	
-	function RingController(model, view) {
-		this.model = model;
+	function RingController(ring, view) {
+		this.ring = ring;
 		this.view = view;
-		this.match = null;
+		
+		// Initialise sidebar and panels
+		this.judgesSidebar = new JudgesSidebar(defaults.judgesPerRing);
+		this.configPanel = new ConfigPanel(defaults.match);
+		this.matchPanel = new MathPanel();
+		this.resultPanel = new ResultPanel();
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
@@ -24,73 +29,46 @@ define([
 				cornerJudgeStateChanged: this._onCornerJudgeStateChanged,
 				cornerJudgeScored: this._onCornerJudgeScored
 			},
+			ring: {
+				full: this._onRingFull
+			},
 			ringView: {
 				newBtnClicked: this._onNewBtnClicked,
 				configBtnClicked: this._onConfigBtnClicked
+			},
+			judge: {
+				authorised: this._onJudgeAuthorised
 			},
 			matchPanel: {
 				showResult: this._onShowResult
 			}
 		});
-		
-		// Initialise judge slot controllers
-		this.judgeSlotControllers = [];
-		this.view.judgeSlotViews.forEach(function (judgeSlotView) {
-			this.judgeSlotControllers.push(new JudgeSlotController(judgeSlotView.index, judgeSlotView));
-		}, this);
-		
-		// Initialise panels
-		this.configPanel = new ConfigPanel(defaults.match);
-		this.matchPanel = new MathPanel();
-		this.resultPanel = new ResultPanel();
 	}
 	
 	RingController.prototype = {
 		
-		_findFreeJudgeSlot: function () {
-			for (var i = 0, len = this.judgeSlotControllers.length; i < len; i += 1) {
-				// Slot is free if no model is allocated to it
-				if (this.judgeSlotControllers[i].model === null) {
-					return i;
-				}
-			}
-			// No free slot found
-			return -1;
-		},
-		
-		_ringIsFull: function (judgeId) {
-			console.log("Ring is full");
-			IO.ringIsFull(judgeId);
-		},
-		
-		attachJudgeToSlot: function(slotIndex, id, name, authorised, connected) {
-			this.judgeSlotControllers[slotIndex].attachJudge(id, name, authorised, connected);
-		},
-		
 		_onNewCornerJudge: function (judge) {
 			console.log("New corner judge (id=" + judge.id + ")");
-			
-			var slotIndex = this._findFreeJudgeSlot();
-			if (slotIndex === -1) {
-				// If no unallocated slot is found, the ring is full
-				this._ringIsFull(judge.id);
-			} else {
-				// Otherwise, attach judge to slot
-				this.attachJudgeToSlot(slotIndex, judge.id, judge.name, false, true);
-			}
+			this.ring.newJudge(judge.id, judge.name, false, true);
+		},
+		
+		_onRingFull: function () {
+			console.log("Ring is full");
+			IO.ringIsFull(judge.id);
+		},
+		
+		_onJudgeAuthorised: function (id) {
+			console.log("Judge authorised (id=" + id + ")");
+			IO.authoriseCornerJudge(id);
 		},
 		
 		_onCornerJudgeStateChanged: function (judge) {
 			console.log("Setting judge connection state (connected=" + judge.connected + ")");
-			this.judgeSlotControllers.forEach(function (controller) {
-				if (controller.model && controller.model.id === judge.id) {
-					controller.setConnectionState(judge.connected);
-				}
-			});
+			this.ring.judgeStateChanged(judge.id, judge.connected);
 		},
 		
 		_onCornerJudgeScored: function (score) {
-			this.match.score(score.judgeId, score.competitor, score.points);
+			this.ring.judgeScored(score.judgeId, score.competitor, score.points);
 		},
 		
 		_showPanel: function (panel) {
@@ -100,16 +78,7 @@ define([
 		},
 		
 		_onNewBtnClicked: function () {
-			// Retrieve the connected judges
-			var judges = this.judgeSlotControllers.reduce(function (arr, controller) {
-				if (controller.model) {
-					arr.push(controller.model);
-				}
-				return arr;
-			}, []);
-			
-			// Create new match and show match panel
-			this.match = new Match(this.configPanel.getConfig(), judges);
+			this.ring.newMatch(this.configPanel.getConfig());
 			this._showPanel(this.matchPanel);
 		},
 		
@@ -122,7 +91,7 @@ define([
 			var matchContext = {
 				penalties: [-1, -2],
 				match: {
-					hadTwoRounds: this.match.config.roundCount == 2,
+					hadTwoRounds: this.ring.match.config.roundCount == 2,
 					hadTieBreaker: false,
 					hadGoldenPoint: false
 				},

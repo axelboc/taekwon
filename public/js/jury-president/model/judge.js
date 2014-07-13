@@ -1,19 +1,23 @@
 
 define(['minpubsub'], function (PubSub) {
 	
-	function Judge(slotIndex, id, name, authorised, connected) {
-		this.slotIndex = slotIndex;
+	function Judge(id, name, authorised, connected) {
 		this.id = id;
 		this.name = name;
 		this.connected = connected;
 		this.authorised = authorised;
+		
+		this._publish('initialised', this);
 	}
 	
 	Judge.prototype = {
 		
 		_publish: function (subTopic) {
 			// Pass the slot index of the judge with any event
-			PubSub.publish('judge.' + this.slotIndex + '.' + subTopic, [].slice.call(arguments, 1));
+			var args = [].slice.call(arguments, 0);
+			args[0] = this.id;
+			
+			PubSub.publish('judge.' + subTopic, args);
 		},
 		
 		authorise: function () {

@@ -10,7 +10,7 @@
 	padding-bottom: 0;
 }
 
-#judges,
+#judges-sidebar,
 .main {
 	display: table-cell;
 	vertical-align: top;
@@ -30,7 +30,7 @@
 
 /* ===== Judges sidebar ===== */
 
-#judges {
+#judges-sidebar {
 	width: 16em;
 	padding: 1em 2em 3em;
 	font-size: 90%;
@@ -38,24 +38,35 @@
 	border-right: 1px solid #ccc;
 }
 
-.judges-heading {
+.js-heading {
 	margin-top: 1.3em;
 	margin-bottom: 1.3em;
 	font-weight: normal;
 }
 
-.judge {
+.js-btns {
+	margin-top: 1.6em;
+}
+
+.js-btns > button {
+	margin: 0 .1em;
+	padding: .2em .4em;
+	border-radius: 50%;
+	font-size: 130%;
+}
+
+.js-judge {
 	position: relative;
 	padding: 1.6em 0;
 	border-bottom: 1px solid #ccc;
 }
 
-.judge-name {
+.js-judge-name {
 	margin-top: 0;
 	margin-bottom: .7em;
 }
 
-.judge-disconnect {
+.js-judge-disconnect {
 	position: absolute;
 	top: 1.2em;
 	right: 0;
@@ -70,37 +81,26 @@
 	cursor: pointer;
 }
 
-.judge:hover > .judge-disconnect {
+.js-judge:hover > .js-judge-disconnect {
 	opacity: 1;
 }
 
-.judge-disconnect:hover {
+.js-judge-disconnect:hover {
     background-color: #ddd;
 	border: 1px solid #bbb;
     color: #444;
 }
 
-.judge-state {
+.js-judge-state {
 	margin-bottom: 0;
 }
 
-.judge-btns {
+.js-judge-btns {
 	cursor: default; /* Prevent text cursor between the two buttons */
 }
 
-.judge-btn {
+.js-judge-btn {
 	padding: .3em .8em;
-}
-
-.judge-count-btns {
-	margin-top: 1.6em;
-}
-
-.judge-count-btns > button {
-	margin: 0 .1em;
-	padding: .2em .4em;
-	border-radius: 50%;
-	font-size: 130%;
 }
 
 

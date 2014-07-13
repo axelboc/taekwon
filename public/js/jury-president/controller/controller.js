@@ -94,7 +94,7 @@ define([
 			IO.createRing(index);
 		},
 
-		_createRing: function(index) {
+		_initRing: function(index) {
 			// Initialise ring model, view and controller
 			var ring = new Ring(index);
 			this.ringView = new RingView(ring);
@@ -102,8 +102,8 @@ define([
 		},
 
 		_onRingCreated: function(index) {
-			console.log("Ring created (index=" + index + ")");
-			this._createRing(index);
+			console.log("Ring initialised (index=" + index + ")");
+			this._initRing(index);
 			this._swapView(this.ringListView, this.ringView);
 		},
 
@@ -121,13 +121,13 @@ define([
 			if (data.ringIndex === -1) {
 				this._swapView(null, this.ringListView);
 
-			// If a ring was created, add corner judges and show authorisation view
+			// If a ring was created, initialise it then add corner judges and show authorisation view
 			} else {
-				this._createRing(data.ringIndex);
+				this._initRing(data.ringIndex);
 
 				for (var i = 0, len = data.cornerJudges.length; i < len; i += 1) {
 					var judge = data.cornerJudges[i];
-					this.ringController.attachJudgeToSlot(i, judge.id, judge.name, judge.authorised, judge.connected);
+					this.ringController.ring.newJudge(judge.id, judge.name, judge.authorised, judge.connected);
 				}
 
 				this._swapView(null, this.ringView);

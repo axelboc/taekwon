@@ -72,13 +72,13 @@ define([
 				
 				// Start computing total scores and maluses
 				var totalScores = lastCol.values.slice(0);
-				var totalMaluses = _getMaluses(this.penalties[lastCol.label]);
+				var totalMaluses = this._getMaluses(this.penalties[lastCol.label]);
 	
 				// If current state is round 2, then add scores and penalties from round 1 (the first column in the scoreboard)
 				if (this.state === MatchStates.ROUND_2) {
 					var firstCol = scoreboard[0];
 					var scores = firstCol.values;
-					var maluses = _getMaluses(this.penalties[firstCol.label]);
+					var maluses = this._getMaluses(this.penalties[firstCol.label]);
 					for (var i = 0; i <= 1; i += 1) {
 						totalScores[i] += scores[i];
 						totalMaluses[i] += maluses[i];
@@ -114,7 +114,7 @@ define([
 				
 				// +1 if hong wins, -1 if chong wins, 0 if tie
 				diff += (totals[0] > totals[1] ? 1 : (totals[0] < totals[1] ? -1 : 0));
-			});
+			}, this);
 			
 			// If tie, diff is equal to 0
 			return diff === 0;
@@ -174,10 +174,16 @@ define([
 			if (this.state !== MatchStates.BREAK) {
 				// Add a new column to each judge's scoreboard for the new state
 				Object.keys(this.scoreboards).forEach(function (judgeId) {
+					this.penalties[this.state] = {
+						warnings: [0, 0],
+						fouls: [0, 0]
+					};
+					
 					this.scoreboards[judgeId].push({
 						label: this.state,
 						values: [0, 0]
 					});
+					
 					this._publish('judgeScoresUpdated', judgeId, [0, 0]);
 				}, this);
 			}
