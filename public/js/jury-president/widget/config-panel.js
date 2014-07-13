@@ -6,17 +6,21 @@ define([
 ], function (PubSub, Helpers) {
 	
 	function ConfigPanel(defaults) {
-		// Copy default match configuration into model
-		this.model = Helpers.shallowCopy(defaults);
-		
-		// Retrieve DOM elements
+		this.config = Helpers.shallowCopy(defaults);
 		this.root = document.getElementById('config-panel');
+		
+		this.newMatchBtn = this.root.querySelector('.match-btn--new');
+		this.newMatchBtn.addEventListener('click', this._publish.bind(this, 'newMatchBtn'));
 		
 		// Update view to show default configuration values
 		this._update();
 	}
 	
 	ConfigPanel.prototype = {
+		
+		_publish: function (subTopic) {
+			PubSub.publish('configPanel.' + subTopic, [].slice.call(arguments, 1));
+		},
 		
 		_numToTime: function (num) {
 			return Math.floor(num / 60) + ":" + (num % 60);
@@ -27,7 +31,7 @@ define([
 		},
 		
 		getConfig: function () {
-			return Helpers.shallowCopy(this.model);
+			return Helpers.shallowCopy(this.config);
 		}
 		
 	};

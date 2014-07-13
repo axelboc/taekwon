@@ -14,7 +14,7 @@ require.config({
 });
 
 // Jury President 'main' module
-define(['../lib/domReady!', 'fastclick', './controller/controller'], function (document, FastClick, Controller) {
+define(['../lib/domReady!', 'fastclick', './controller'], function (document, FastClick, Controller) {
 	
 	// Start controller
 	var controller = new Controller();

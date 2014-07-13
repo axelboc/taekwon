@@ -46,6 +46,10 @@ define([
 		
 		newMatch: function (config) {
 			this.match = new Match(config, this.judges);
+		},
+		
+		clearMatch: function () {
+			this.match = null;
 		}
 		
 	};

@@ -1,5 +1,9 @@
 
-define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
+define([
+	'minpubsub',
+	'handlebars'
+
+], function (PubSub, Handlebars) {
 	
 	function RingListView() {
 		this.root = document.getElementById('ring-list');

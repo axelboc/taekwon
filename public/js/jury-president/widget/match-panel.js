@@ -53,7 +53,7 @@ define([
 		
 		this.stateStartBtn.addEventListener('click', this._onStateStartBtn.bind(this));
 		this.stateEndBtn.addEventListener('click', this._onStateEndBtn.bind(this));
-		this.matchResultBtn.addEventListener('click', this._onMatchResultBtn.bind(this));
+		this.matchResultBtn.addEventListener('click', this._publish.bind(this, 'matchResultBtn'));
 		this.injuryBtn.addEventListener('click', this._onInjuryBtn.bind(this));
 		
 		// Scoring
@@ -85,10 +85,6 @@ define([
 		_onStateEndBtn: function (evt) {
 			evt.target.blur();
 			this.match.endState();
-		},
-
-		_onMatchResultBtn: function () {
-			this._publish('showResult');
 		},
 
 		_onInjuryBtn: function (evt) {

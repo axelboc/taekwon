@@ -1,17 +1,22 @@
 
-define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
+define([
+	'minpubsub',
+	'handlebars'
+
+], function (PubSub, Handlebars) {
 	
-	function NameView() {
-		this.root = document.getElementById('name');
-		this.field = this.root.querySelector('.name-field');
+	function PwdView() {
+		this.root = document.getElementById('pwd');
+		this.instr = this.root.querySelector('.pwd-instr');
+		this.field = this.root.querySelector('.pwd-field');
 		
-		this.field.addEventListener('keypress', this._onNameField.bind(this));
+		this.field.addEventListener('keypress', this._onPwdField.bind(this));
 	}
 	
-	NameView.prototype = {
+	PwdView.prototype = {
 		
 		_publish: function (subTopic) {
-			PubSub.publish('nameView.' + subTopic, [].slice.call(arguments, 1));
+			PubSub.publish('pwdView.' + subTopic, [].slice.call(arguments, 1));
 		},
 		
 		init: function () {
@@ -20,20 +25,22 @@ define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
 			}.bind(this), 100);
 		},
 		
-		_invalidName: function () {
+		invalidPwd: function () {
 			// Reset field
 			this.field.value = "";
+			// Update instructions
+			this.instr.textContent = this.instr.textContent.replace("required", "incorrect");
 			// Shake field
 			this._shake(this.field);
 		},
 		
-		_onNameField: function (evt) {
+		_onPwdField: function (evt) {
 			// If Enter key was pressed...
 			if (evt.which === 13 || evt.keyCode === 13) {
 				if (this.field.value.length > 0) {
-					this._publish('nameSubmitted', this.field.value);
+					this._publish('pwdSubmitted', this.field.value);
 				} else {
-					this._invalidName();
+					this.invalidPwd();
 				}
 			}
 		},
@@ -54,6 +61,6 @@ define(['minpubsub', 'handlebars'], function (PubSub, Handlebars) {
 		
 	};
 	
-	return NameView;
+	return PwdView;
 	
 });

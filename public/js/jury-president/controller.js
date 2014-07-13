@@ -1,15 +1,14 @@
 
 define([
 	'minpubsub',
-	'../../common/helpers',
-	'../io',
-	'../view/pwd-view',
-	'../../common/ring-list-view',
-	'../model/ring',
-	'../view/ring-view',
-	'./ring-controller'
+	'../common/helpers',
+	'./io',
+	'./widget/pwd-view',
+	'../common/ring-list-view',
+	'./model/ring',
+	'./widget/ring-view'
 
-], function (PubSub, Helpers, IO, PwdView, RingListView, Ring, RingView, RingController) {
+], function (PubSub, Helpers, IO, PwdView, RingListView, Ring, RingView) {
 	
 	function Controller() {
 		// Initialise socket connection with server
@@ -35,12 +34,10 @@ define([
 			}
 		});
 		
-		// Initialise views, panels and controllers
+		// Initialise views
 		this.pwdView = new PwdView();
 		this.ringListView = new RingListView();
-		this.ringController = null;
 		this.ringView = null;
-		this.configPanel = null;
 		
 		// DEBUG
 		//IO.debug();
@@ -98,7 +95,6 @@ define([
 			// Initialise ring model, view and controller
 			var ring = new Ring(index);
 			this.ringView = new RingView(ring);
-			this.ringController = new RingController(ring, this.ringView);
 		},
 
 		_onRingCreated: function(index) {
@@ -127,7 +123,7 @@ define([
 
 				for (var i = 0, len = data.cornerJudges.length; i < len; i += 1) {
 					var judge = data.cornerJudges[i];
-					this.ringController.ring.newJudge(judge.id, judge.name, judge.authorised, judge.connected);
+					this.ringView.ring.newJudge(judge.id, judge.name, judge.authorised, judge.connected);
 				}
 
 				this._swapView(null, this.ringView);

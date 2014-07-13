@@ -1,20 +1,20 @@
 
 define([
 	'minpubsub',
+	'handlebars',
 	'../../common/helpers',
 	'../io',
 	'../defaults',
-	'../view/judges-sidebar',
-	'../view/config-panel',
-	'../view/match-panel',
-	'../view/result-panel',
-	'../model/match'
+	'./judges-sidebar',
+	'./config-panel',
+	'./match-panel',
+	'./result-panel'
 	
-], function (PubSub, Helpers, IO, defaults, JudgesSidebar, ConfigPanel, MathPanel, ResultPanel, Match) {
+], function (PubSub, Handlebars, Helpers, IO, defaults, JudgesSidebar, ConfigPanel, MathPanel, ResultPanel) {
 	
-	function RingController(ring, view) {
+	function RingView(ring) {
 		this.ring = ring;
-		this.view = view;
+		this.root = document.getElementById('ring');
 		
 		// Initialise sidebar and panels
 		this.judgesSidebar = new JudgesSidebar(defaults.judgesPerRing);
@@ -32,20 +32,37 @@ define([
 			ring: {
 				full: this._onRingFull
 			},
-			ringView: {
-				newBtnClicked: this._onNewBtnClicked,
-				configBtnClicked: this._onConfigBtnClicked
-			},
 			judge: {
 				authorised: this._onJudgeAuthorised
 			},
+			configPanel: {
+				newMatchBtn: this._onNewMatchBtn
+			},
 			matchPanel: {
-				showResult: this._onShowResult
+				matchResultBtn: this._onMatchResultBtn
+			},
+			resultPanel: {
+				matchConfigBtn: this._onMatchConfigBtn
 			}
 		});
+		
+		
+		/*this.newBtns = this.root.querySelectorAll('.match-btn--new');
+		this.configBtn = this.root.querySelector('.match-btn--config');
+		this.resultBtn = this.root.querySelector('.sm-btn--result');
+		
+		[].forEach.call(this.newBtns, function (btn) {
+			btn.addEventListener('click', this._publish.bind(this, 'newBtnClicked'));
+		}, this);
+		this.configBtn.addEventListener('click', this._publish.bind(this, 'configBtnClicked'));
+		this.resultBtn.addEventListener('click', this._publish.bind(this, 'resultBtnClicked'));*/
 	}
 	
-	RingController.prototype = {
+	RingView.prototype = {
+		
+		_publish: function (subTopic) {
+			PubSub.publish('ringView.' + subTopic, [].slice.call(arguments, 1));
+		},
 		
 		_onNewCornerJudge: function (judge) {
 			console.log("New corner judge (id=" + judge.id + ")");
@@ -77,16 +94,17 @@ define([
 			this.resultPanel.root.classList.toggle('hidden', panel !== this.resultPanel);
 		},
 		
-		_onNewBtnClicked: function () {
+		_onNewMatchBtn: function () {
 			this.ring.newMatch(this.configPanel.getConfig());
 			this._showPanel(this.matchPanel);
 		},
 		
-		_onConfigBtnClicked: function () {
+		_onMatchConfigBtn: function () {
+			this.ring.clearMatch();
 			this._showPanel(this.configPanel);
 		},
 		
-		_onShowResult: function () {
+		_onMatchResultBtn: function () {
 			// TODO: use JS instead of handlebars to populate table to have more control over classes for styling
 			var matchContext = {
 				penalties: [-1, -2],
@@ -134,6 +152,6 @@ define([
 		
 	};
 	
-	return RingController;
+	return RingView;
 	
 });

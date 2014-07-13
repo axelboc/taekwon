@@ -1,11 +1,11 @@
 
 define([
 	'minpubsub',
-	'../../common/helpers',
-	'../io',
-	'../view/name-view',
-	'../../common/ring-list-view',
-	'../view/round-view'
+	'../common/helpers',
+	'./io',
+	'./widget/name-view',
+	'../common/ring-list-view',
+	'./widget/round-view'
 
 ], function (PubSub, Helpers, IO, NameView, RingListView, RoundView) {
 	
