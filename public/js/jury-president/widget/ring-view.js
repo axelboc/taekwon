@@ -17,10 +17,10 @@ define([
 		this.root = document.getElementById('ring');
 		
 		// Initialise sidebar and panels
-		this.judgesSidebar = new JudgesSidebar(defaults.judgesPerRing);
-		this.configPanel = new ConfigPanel(defaults.match);
-		this.matchPanel = new MathPanel();
-		this.resultPanel = new ResultPanel();
+		this.judgesSidebar = new JudgesSidebar(this.ring);
+		this.configPanel = new ConfigPanel(this.ring, defaults.match);
+		this.matchPanel = new MathPanel(this.ring);
+		this.resultPanel = new ResultPanel(this.ring);
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
@@ -35,6 +35,9 @@ define([
 			judge: {
 				authorised: this._onJudgeAuthorised
 			},
+			judgesSidebar: {
+				judgeDetached: this._onJudgeDetached
+			},
 			configPanel: {
 				newMatchBtn: this._onNewMatchBtn
 			},
@@ -45,17 +48,6 @@ define([
 				matchConfigBtn: this._onMatchConfigBtn
 			}
 		});
-		
-		
-		/*this.newBtns = this.root.querySelectorAll('.match-btn--new');
-		this.configBtn = this.root.querySelector('.match-btn--config');
-		this.resultBtn = this.root.querySelector('.sm-btn--result');
-		
-		[].forEach.call(this.newBtns, function (btn) {
-			btn.addEventListener('click', this._publish.bind(this, 'newBtnClicked'));
-		}, this);
-		this.configBtn.addEventListener('click', this._publish.bind(this, 'configBtnClicked'));
-		this.resultBtn.addEventListener('click', this._publish.bind(this, 'resultBtnClicked'));*/
 	}
 	
 	RingView.prototype = {
@@ -69,14 +61,19 @@ define([
 			this.ring.newJudge(judge.id, judge.name, false, true);
 		},
 		
-		_onRingFull: function () {
+		_onRingFull: function (judgeId) {
 			console.log("Ring is full");
-			IO.ringIsFull(judge.id);
+			IO.ringIsFull(judgeId);
 		},
 		
 		_onJudgeAuthorised: function (id) {
 			console.log("Judge authorised (id=" + id + ")");
 			IO.authoriseCornerJudge(id);
+		},
+		
+		_onJudgeDetached: function (id) {
+			console.log("Judge detached (id=" + id + ")");
+			this.ring.judgeDetached(id);
 		},
 		
 		_onCornerJudgeStateChanged: function (judge) {

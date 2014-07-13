@@ -1,7 +1,8 @@
 
 define(['minpubsub'], function (PubSub) {
 	
-	function ResultPanel() {
+	function ResultPanel(ring) {
+		this.ring = ring;
 		this.root = document.getElementById('result-panel');
 		
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');

@@ -1,8 +1,9 @@
 
 define(['minpubsub'], function (PubSub) {
 	
-	function Judge(id, name, authorised, connected) {
+	function Judge(id, index, name, authorised, connected) {
 		this.id = id;
+		this.index = index;
 		this.name = name;
 		this.connected = connected;
 		this.authorised = authorised;

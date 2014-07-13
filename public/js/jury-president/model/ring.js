@@ -13,6 +13,16 @@ define([
 		this.judges = [];
 		this.judgeById = {};
 		this.match = null;
+
+		// Prepare context for JudgeSidebar and MatchPanel templates
+		var indices = [];
+		for (var i = 0; i < this.judgeSlotCount; i += 1) {
+			indices.push(i + 1);
+		}
+		
+		this.tmplContext = {
+			indices: indices
+		};
 	}
 	
 	Ring.prototype = {
@@ -22,18 +32,33 @@ define([
 			PubSub.publish('ring.' + subTopic, [].slice.call(arguments, 1));
 		},
 		
-		_isFull: function () {
-			return (this.judges.length === this.judgeSlotCount);
+		_findFreeJudgeSlot: function () {
+			for (var i = 0; i < this.judgeSlotCount; i += 1) {
+				if (!this.judges[i]) {
+					return i;
+				}
+			}
+			// No free slot found
+			return -1;
 		},
 		
 		newJudge: function (id, name, authorised, connected) {
-			if (this._isFull()) {
-				this._publish('full');
+			var index = this._findFreeJudgeSlot();
+			if (index === -1) {
+				this._publish('full', id);
 			} else {
-				var judge = new Judge(id, name, authorised, connected);
-				this.judges.push(judge);
+				var judge = new Judge(id, index, name, authorised, connected);
+				this.judges[index] = judge;
 				this.judgeById[judge.id] = judge;
+				this._publish('judgeAttached', judge);
 			}
+		},
+		
+		judgeDetached: function (id) {
+			var judge = this.judgeById[id];
+			delete this.judgeById[id];
+			this.judges[judge.index] = null;
+			this._publish('judgeDetached', judge);
 		},
 		
 		judgeStateChanged: function (id, connected) {

@@ -3,16 +3,22 @@ define([
 	'minpubsub',
 	'../common/helpers',
 	'./io',
+	'./defaults',
 	'./widget/pwd-view',
 	'../common/ring-list-view',
 	'./model/ring',
 	'./widget/ring-view'
 
-], function (PubSub, Helpers, IO, PwdView, RingListView, Ring, RingView) {
+], function (PubSub, Helpers, IO, defaults, PwdView, RingListView, Ring, RingView) {
 	
 	function Controller() {
 		// Initialise socket connection with server
 		IO.init();
+		
+		// Initialise views
+		this.pwdView = new PwdView();
+		this.ringListView = new RingListView();
+		this.ringView = null;
 		
 		// Subscribe to events from server and views
 		Helpers.subscribeToEvents(this, {
@@ -33,11 +39,6 @@ define([
 				ringSelected: this._onRingSelected
 			}
 		});
-		
-		// Initialise views
-		this.pwdView = new PwdView();
-		this.ringListView = new RingListView();
-		this.ringView = null;
 		
 		// DEBUG
 		//IO.debug();
@@ -93,13 +94,13 @@ define([
 
 		_initRing: function(index) {
 			// Initialise ring model, view and controller
-			var ring = new Ring(index);
+			var ring = new Ring(index, defaults.judgesPerRing);
 			this.ringView = new RingView(ring);
 		},
 
 		_onRingCreated: function(index) {
 			console.log("Ring initialised (index=" + index + ")");
-			this._initRing(index);
+			this._initRing(index, defaults.judgesPerRing);
 			this._swapView(this.ringListView, this.ringView);
 		},
 

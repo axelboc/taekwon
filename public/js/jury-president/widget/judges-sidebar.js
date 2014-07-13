@@ -7,9 +7,9 @@ define([
 
 ], function (PubSub, Handlebars, Helpers, IO) {
 	
-	function JudgesSidebar(slotCount) {
+	function JudgesSidebar(ring) {
+		this.ring = ring;
 		this.root = document.getElementById('judges-sidebar');
-		this.slotCount = slotCount;
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
@@ -20,23 +20,15 @@ define([
 			}
 		});
 
-		// Prepare template context
-		var indices = [];
-		for (var i = 0; i < this.slotCount; i += 1) {
-			indices.push(i + 1);
-		}
-
 		// Populate judge list from template
-		this.list = this.root.querySelector('.js-list');
-		this.listTemplate = Handlebars.compile(document.getElementById('js-list-tmpl').innerHTML);
-		this.list.innerHTML = this.listTemplate({
-			indices: indices
-		});
+		var list = this.root.querySelector('.js-list');
+		var listTemplate = Handlebars.compile(document.getElementById('js-list-tmpl').innerHTML);
+		list.innerHTML = listTemplate(this.ring.tmplContext);
 		
 		this.slots = [];
 		this.slotsById = {};
 		
-		[].forEach.call(this.list.querySelectorAll('.js-judge'), function (elem, index) {
+		[].forEach.call(list.querySelectorAll('.js-judge'), function (elem, index) {
 			var slot = {
 				index: index,
 				judge: null,
@@ -85,22 +77,10 @@ define([
 			slot.disconnectBtn.classList.toggle('hidden', !judge || !judge.authorised);
 		},
 		
-		_findFreeJudgeSlot: function () {
-			for (var i = 0; i < this.slotCount; i += 1) {
-				// Slot is free if no judge is allocated to it
-				var slot = this.slots[i];
-				if (!slot.judge) {
-					return slot;
-				}
-			}
-		},
-		
 		_onJudgeInitialised: function (id, judge) {
-			var slot = this._findFreeJudgeSlot();
-			
+			var slot = this.slots[judge.index];
 			slot.judge = judge;
 			this.slotsById[id] = slot;
-			
 			this._updateSlot(slot);
 		},
 		
@@ -114,9 +94,12 @@ define([
 		},
 		
 		_detachJudge: function (slot) {
-			delete this.slotsById[slot.judge.id]
+			var id = slot.judge.id;
+			delete this.slotsById[id]
 			slot.judge = null;
 			this._updateSlot(slot);
+			// TODO: use direct reference to parent view instead of event
+			this._publish('judgeDetached', id, slot.index);
 		},
 		
 		_onAcceptBtn: function (index) {

@@ -5,7 +5,8 @@ define([
 
 ], function (PubSub, Helpers) {
 	
-	function ConfigPanel(defaults) {
+	function ConfigPanel(ring, defaults) {
+		this.ring = ring;
 		this.config = Helpers.shallowCopy(defaults);
 		this.root = document.getElementById('config-panel');
 		

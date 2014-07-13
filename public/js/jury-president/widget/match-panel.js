@@ -9,12 +9,17 @@ define([
 
 ], function (PubSub, Handlebars, Helpers, IO, MatchStates, Timer) {
 	
-	function MatchPanel() {
-		this.root = document.getElementById('match-panel');
+	function MatchPanel(ring) {
+		this.ring = ring;
 		this.match = null;
+		this.root = document.getElementById('match-panel');
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
+			ring: {
+				judgeAttached: this._onJudgeAttached,
+				judgeDetached: this._onJudgeDetached
+			},
 			match: {
 				created: this._onMatchCreated,
 				ended: this._onMatchEnded,
@@ -60,8 +65,17 @@ define([
 		this.scoring = this.root.querySelector('.scoring');
 		var scoringInner = this.scoring.querySelector('.sc-inner');
 		var scoringTmpl = Handlebars.compile(document.getElementById('sc-judge-tmpl').innerHTML);
-		scoringInner.innerHTML = scoringTmpl();
-		this.judgeScores = scoringInner.querySelectorAll('.sc-judge');
+		scoringInner.innerHTML = scoringTmpl(this.ring.tmplContext);
+		
+		this.judgeScores = [];
+		this.judgeScoresById = {};
+		[].forEach.call(scoringInner.querySelectorAll('.sc-judge'), function (elem) {
+			this.judgeScores.push({
+				name: elem.querySelector('.sc-judge-name'),
+				hong: elem.querySelector('.sc-hong'),
+				chong: elem.querySelector('.sc-chong')
+			});
+		}, this);
 	}
 	
 	MatchPanel.prototype = {
@@ -177,6 +191,14 @@ define([
 			this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, true);
 
 			IO.enableScoring(true);
+		},
+		
+		_onJudgeAttached: function (judge) {
+			this.judgeScores[judge.index].name.textContent = judge.name;
+		},
+		
+		_onJudgeDetached: function (judge) {
+			this.judgeScores[judge.index].name.textContent = "Judge #" + (judge.index + 1);
 		},
 		
 		_onJudgeScoresUpdated: function (judgeId, scores) {
