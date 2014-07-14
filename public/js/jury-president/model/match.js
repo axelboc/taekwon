@@ -16,17 +16,19 @@ define([
 		
 		this.stateStarted = false;
 		this.injuryStarted = false;
+		this.scoringEnabled = false;
 		
 		// TODO: consider moving scoreboards to Judge module
+		// TODO: fix issue with judges entering/leaving ring during match (this.ring.judges?)
 		
 		/**
 		 * Judge scoreboards
 		 * Each scoreboard is an array of objects representing the main columns of the scoreboard.
 		 * Each column object contains two keys: 'label' (string) and 'values' (array of two integers, for hong and chong).
 		 * Examples of column sequences for various matches:
-		 * - 1-round match: 		round-1, penalties, total
-		 * - 2-round match: 		round-1, round-2, penalties, total
-		 * - up to golden point: 	round-1, round-2, penalties, total, tie-breaker, penalties, total, golden point
+		 * - 1-round match: 		round-1, maluses, total
+		 * - 2-round match: 		round-1, round-2, maluses, total
+		 * - up to golden point: 	round-1, round-2, maluses, total, tie-breaker, maluses, total, golden point
 		 */
 		this.scoreboards = {};
 		this.judges.forEach(function (judge) {
@@ -196,6 +198,10 @@ define([
 			this._publish('ended');
 		},
 		
+		hasEnded: function () {
+			return this.state === null;
+		},
+		
 		startState: function () {
 			if (this.state === null) {
 				this._publish('error', "Cannot start state: match ended.");
@@ -230,6 +236,11 @@ define([
 			}
 		},
 		
+		setScoringState: function (enabled) {
+			this.scoringEnabled = enabled;
+			this._publish('scoringStateChanged', enabled);
+		},
+		
 		score: function (judgeId, competitor, points) {
 			var scoreboard = this.scoreboards[judgeId];
 			var scores = scoreboard[scoreboard.length - 1].values;
@@ -238,6 +249,10 @@ define([
 			scores[competitorIndex] += points;
 			
 			this._publish('judgeScoresUpdated', judgeId, scores.slice(0));
+		},
+		
+		eraseScoreboard: function (judgeId) {
+			delete this.scoreboards[judgeId];
 		}
 		
 	};

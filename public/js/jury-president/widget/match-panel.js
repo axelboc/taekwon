@@ -16,6 +16,9 @@ define([
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
+			io: {
+				cornerJudgeScored: this._onCornerJudgeScored
+			},
 			ring: {
 				judgeAttached: this._onJudgeAttached,
 				judgeDetached: this._onJudgeDetached
@@ -28,6 +31,7 @@ define([
 				stateEnded: this._onStateEnded,
 				injuryStarted: this._onInjuryStarted,
 				injuryEnded: this._onInjuryEnded,
+				scoringStateChanged: this._onScoringStateChanged,
 				judgeScoresUpdated: this._onJudgeScoresUpdated
 			},
 			timer: {
@@ -139,7 +143,7 @@ define([
 			this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, false);
 
 			if (state !== MatchStates.BREAK) {
-				IO.enableScoring(true);
+				this.match.setScoringState(true);
 			}
 		},
 
@@ -149,7 +153,7 @@ define([
 			this.roundTimer.timer.stop();
 
 			if (state !== MatchStates.BREAK) {
-				IO.enableScoring(false);
+				this.match.setScoringState(false);
 			}
 		},
 
@@ -179,7 +183,7 @@ define([
 			this.injuryTimer.timer.start(true, true);
 			this.roundTimer.timer.stop();
 
-			IO.enableScoring(false);
+			this.match.setScoringState(false);
 		},
 
 		_onInjuryEnded: function (state) {
@@ -190,20 +194,33 @@ define([
 			this.injuryTimer.timer.stop();
 			this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, true);
 
-			IO.enableScoring(true);
+			this.match.setScoringState(true);
 		},
 		
 		_onJudgeAttached: function (judge) {
-			this.judgeScores[judge.index].name.textContent = judge.name;
+			var js = this.judgeScores[judge.index];
+			js.name.textContent = judge.name;
+			this.judgeScoresById[judge.id] = js;
 		},
 		
 		_onJudgeDetached: function (judge) {
 			this.judgeScores[judge.index].name.textContent = "Judge #" + (judge.index + 1);
+			delete this.judgeScoresById[judge.id];
+		},
+		
+		_onScoringStateChanged: function (enabled) {
+			IO.enableScoring(enabled);
+		},
+		
+		_onCornerJudgeScored: function (score) {
+			console.log("Judge scored (points=" + score.points + ")");
+			this.match.score(score.judgeId, score.competitor, score.points);
 		},
 		
 		_onJudgeScoresUpdated: function (judgeId, scores) {
-			//this.judgesById[judgeId].scoreHong.textContent = scores[0];
-			//this.judgesById[judgeId].scoreChong.textContent = scores[1];
+			var js = this.judgeScoresById[judgeId];
+			js.hong.textContent = scores[0];
+			js.chong.textContent = scores[1];
 		}
 		
 	};

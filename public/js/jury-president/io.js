@@ -44,6 +44,10 @@ define(['minpubsub'], function (PubSub) {
 	function ringIsFull(cornerJudgeId) {
 		socket.emit('ringIsFull', cornerJudgeId);
 	}
+	
+	function matchInProgress(cornerJudgeId) {
+		socket.emit('matchInProgress', cornerJudgeId);
+	}
 
 	function authoriseCornerJudge(id) {
 		socket.emit('authoriseCornerJudge', id);
@@ -65,34 +69,18 @@ define(['minpubsub'], function (PubSub) {
 		console.log((enable ? "Enable" : "Disable") + " scoring");
 		socket.emit('enableScoring', enable);
 	}
-		
-	/*
-	var onCornerJudgeStateChanged = function (cornerJudge) {
-		console.log("Corner judge " + (cornerJudge.connected ? "connected" : "disconnected") + " (id=" + cornerJudge.id + ")");
-		View.onCornerJudgeStateChanged(cornerJudge);
-	};*/
-
 
 	return {
 		init: init,
 		sendId: sendId,
 		createRing: createRing,
 		ringIsFull: ringIsFull,
+		matchInProgress: matchInProgress,
 		authoriseCornerJudge: authoriseCornerJudge,
 		rejectCornerJudge: rejectCornerJudge,
 		removeCornerJudge: removeCornerJudge,
 		sessionRestored: sessionRestored,
 		enableScoring: enableScoring
-		/*debug: function () {
-			// DEBUG
-			['Axel', 'Mikey', 'Chris'].forEach(function (name, index) {
-				onCornerJudgeStateChanged({
-					connected: true,
-					id: index,
-					name: name
-				});
-			});
-		}*/
 	};
 	
 });

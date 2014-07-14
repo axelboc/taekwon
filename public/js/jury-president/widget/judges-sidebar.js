@@ -114,10 +114,14 @@ define([
 		},
 		
 		_onDisconnectBtn: function (index) {
-			console.log("Judge disconnected");
-			var slot = this.slots[index];
-			IO.removeCornerJudge(slot.judge.id);
-			this._detachJudge(slot);
+			var confirmText = "Match in progress. If you continue, this judge's scoreboard will be erased completely. Disconnect anyway?";
+			
+			if (!this.ring.match || this.ring.match.hasEnded() || confirm(confirmText)) {
+				console.log("Judge disconnected");
+				var slot = this.slots[index];
+				IO.removeCornerJudge(slot.judge.id);
+				this._detachJudge(slot);
+			}
 		},
 		
 	};

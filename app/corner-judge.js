@@ -65,6 +65,12 @@ CornerJudge.prototype.ringIsFull = function (ring) {
 	this.socket.emit('ringIsFull', ring.index);
 };
 
+CornerJudge.prototype.matchInProgress = function (ring) {
+	this.debug("> Match in progress");
+	this.ring = null;
+	this.socket.emit('matchInProgress', ring.index);
+};
+
 CornerJudge.prototype.onScore = function (score) {
 	this.debug("Scored " + score.points + " for " + score.competitor);
 	this.ring.juryPresident.cornerJudgeScored(this, score);

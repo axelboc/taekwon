@@ -5,12 +5,13 @@ define([
 	'../../common/helpers',
 	'../io',
 	'../defaults',
+	'../model/match-states',
 	'./judges-sidebar',
 	'./config-panel',
 	'./match-panel',
 	'./result-panel'
 	
-], function (PubSub, Handlebars, Helpers, IO, defaults, JudgesSidebar, ConfigPanel, MathPanel, ResultPanel) {
+], function (PubSub, Handlebars, Helpers, IO, defaults, MatchStates, JudgesSidebar, ConfigPanel, MathPanel, ResultPanel) {
 	
 	function RingView(ring) {
 		this.ring = ring;
@@ -26,11 +27,14 @@ define([
 		Helpers.subscribeToEvents(this, {
 			io: {
 				newCornerJudge: this._onNewCornerJudge,
-				cornerJudgeStateChanged: this._onCornerJudgeStateChanged,
-				cornerJudgeScored: this._onCornerJudgeScored
+				cornerJudgeStateChanged: this._onCornerJudgeStateChanged
 			},
 			ring: {
-				full: this._onRingFull
+				full: this._onRingFull,
+				matchInProgress: this._onMatchInProgress
+			},
+			match: {
+				created: this._onMatchCreated
 			},
 			judge: {
 				authorised: this._onJudgeAuthorised
@@ -66,6 +70,11 @@ define([
 			IO.ringIsFull(judgeId);
 		},
 		
+		_onMatchInProgress: function (judgeId) {
+			console.log("Cannot join ring: match in progress");
+			IO.matchInProgress(judgeId);
+		},
+		
 		_onJudgeAuthorised: function (id) {
 			console.log("Judge authorised (id=" + id + ")");
 			IO.authoriseCornerJudge(id);
@@ -81,34 +90,35 @@ define([
 			this.ring.judgeStateChanged(judge.id, judge.connected);
 		},
 		
-		_onCornerJudgeScored: function (score) {
-			this.ring.judgeScored(score.judgeId, score.competitor, score.points);
-		},
-		
 		_showPanel: function (panel) {
 			this.configPanel.root.classList.toggle('hidden', panel !== this.configPanel);
 			this.matchPanel.root.classList.toggle('hidden', panel !== this.matchPanel);
 			this.resultPanel.root.classList.toggle('hidden', panel !== this.resultPanel);
 		},
 		
-		_onNewMatchBtn: function () {
+		_onNewMatchBtn: function (btn) {
+			btn.blur();
 			this.ring.newMatch(this.configPanel.getConfig());
+		},
+		
+		_onMatchCreated: function () {
 			this._showPanel(this.matchPanel);
 		},
 		
 		_onMatchConfigBtn: function () {
-			this.ring.clearMatch();
 			this._showPanel(this.configPanel);
 		},
 		
 		_onMatchResultBtn: function () {
 			// TODO: use JS instead of handlebars to populate table to have more control over classes for styling
-			var matchContext = {
-				penalties: [-1, -2],
+			var match = this.ring.match;
+			var states = match.states;
+			
+			var tmplContext = {
 				match: {
-					hadTwoRounds: this.ring.match.config.roundCount == 2,
-					hadTieBreaker: false,
-					hadGoldenPoint: false
+					hadTwoRounds: states.indexOf(MatchStates.ROUND_2) !== -1,
+					hadTieBreaker: states.indexOf(MatchStates.TIE_BREAKER) !== -1,
+					hadGoldenPoint: states.indexOf(MatchStates.GOLDEN_POINT) !== -1
 				},
 				judges: [{
 					name: "Axel",

@@ -11,7 +11,7 @@ define([
 		this.root = document.getElementById('config-panel');
 		
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
-		this.newMatchBtn.addEventListener('click', this._publish.bind(this, 'newMatchBtn'));
+		this.newMatchBtn.addEventListener('click', this._publish.bind(this, 'newMatchBtn', this.newMatchBtn));
 		
 		// Update view to show default configuration values
 		this._update();

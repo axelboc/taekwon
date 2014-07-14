@@ -1,4 +1,6 @@
 
+// TODO: combine rejection events (ring is full, not authorised, match in progress, does not exist)
+// TODO: fix issue with backdrop in IE
 define([
 	'minpubsub',
 	'../common/helpers',
@@ -24,6 +26,7 @@ define([
 				ringNotJoined: this._onRingNotJoined,
 				ringDoesNotExist: this._onRingDoesNotExist,
 				ringIsFull: this._onRingIsFull,
+				matchInProgress: this._onMatchInProgress,
 				juryPresidentStateChanged: this._onJuryPresidentStateChanged,
 				scoringStateChanged: this._onScoringStateChanged,
 				removedFromRing: this._onRemovedFromRing,
@@ -147,6 +150,12 @@ define([
 		_onRingIsFull: function(index) {
 			console.log("Ring is full (index=" + index + ")");
 			this.ringListView.updateInstr("Ring is full");
+			this._swapView(this.authorisationView, this.ringListView);
+		},
+
+		_onMatchInProgress: function(index) {
+			console.log("Match in progress (index=" + index + ")");
+			this.ringListView.updateInstr("Match in progress");
 			this._swapView(this.authorisationView, this.ringListView);
 		},
 
