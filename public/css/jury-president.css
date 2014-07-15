@@ -282,7 +282,7 @@
 
 /* ===== Result panel ===== */
 
-#result-winner {
+.rp-winner {
 	font-size: 400%;
 	font-weight: bold;
 }
@@ -291,13 +291,13 @@
 	margin-right: 1em;
 }
 
-#scoreboard-wrap {
+.scoreboard-wrap {
 	margin-top: 2.5em;
 	font-size: 120%;
 }
 
 .scoreboard {
-	margin: 1em auto 0;
+	margin: 1em auto 3em;
 	font-size: 95%;
 }
 

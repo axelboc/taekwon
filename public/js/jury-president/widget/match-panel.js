@@ -68,8 +68,8 @@ define([
 		// Scoring
 		this.scoring = this.root.querySelector('.scoring');
 		var scoringInner = this.scoring.querySelector('.sc-inner');
-		var scoringTmpl = Handlebars.compile(document.getElementById('sc-judge-tmpl').innerHTML);
-		scoringInner.innerHTML = scoringTmpl(this.ring.tmplContext);
+		var scoringTemplate = Handlebars.compile(document.getElementById('sc-judge-tmpl').innerHTML);
+		scoringInner.innerHTML = scoringTemplate(this.ring.tmplContext);
 		
 		this.judgeScores = [];
 		this.judgeScoresById = {};
