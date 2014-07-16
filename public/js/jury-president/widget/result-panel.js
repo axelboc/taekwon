@@ -3,9 +3,10 @@ define([
 	'minpubsub',
 	'handlebars',
 	'../../common/helpers',
+	'../../common/competitors',
 	'../model/match-states'
 	
-], function (PubSub, Handlebars, Helpers, MatchStates) {
+], function (PubSub, Handlebars, Helpers, Competitor, MatchStates) {
 	
 	function ResultPanel(ring) {
 		this.ring = ring;
@@ -37,7 +38,14 @@ define([
 		},
 		
 		_showWinner: function () {
-			
+			var winner = this.ring.match.computeWinner();
+			if (winner) {
+				this.winner.className = 'rp-winner ' + winner + '-col';
+				this.winner.textContent = winner.charAt(0).toUpperCase() + winner.slice(1) + " wins";
+			} else {
+				this.winner.className = 'rp-winner';
+				this.winner.textContent = "Match is a tie";
+			}
 		},
 		
 		_populateScoreboard: function () {

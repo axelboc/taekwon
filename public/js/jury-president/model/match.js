@@ -103,23 +103,26 @@ define([
 			}, this);
 		},
 		
-		/**
-		 * Determine whether the latest total column of the scoreboard reveals a tie
-		 */
-		_isTie: function () {
+		computeWinner: function () {
 			var diff = 0;
 			
 			// Loop through the judges' scoreboards
 			Object.keys(this.scoreboards).forEach(function (judgeId) {
 				var scoreboard = this.scoreboards[judgeId];
+				
+				// Look at the last column of the scoreboard (total or golden point)
 				var totals = scoreboard[scoreboard.length - 1].values;
 				
 				// +1 if hong wins, -1 if chong wins, 0 if tie
 				diff += (totals[0] > totals[1] ? 1 : (totals[0] < totals[1] ? -1 : 0));
 			}, this);
 			
-			// If tie, diff is equal to 0
-			return diff === 0;
+			return diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null);
+		},
+		
+		_isTie: function () {
+			// If tie, computeWinner returns null
+			return !this.computeWinner();
 		},
 		
 		_nextState: function () {
