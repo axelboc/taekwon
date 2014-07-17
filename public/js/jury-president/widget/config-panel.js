@@ -13,6 +13,9 @@ define([
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
 		this.newMatchBtn.addEventListener('click', this._publish.bind(this, 'newMatchBtn', this.newMatchBtn));
 		
+		this.decBtns = this.root.querySelectorAll('.ci-dec');
+		this.incBtns = this.root.querySelectorAll('.ci-inc');
+		
 		// Update view to show default configuration values
 		this._update();
 	}

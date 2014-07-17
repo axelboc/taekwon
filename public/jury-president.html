@@ -54,30 +54,31 @@
 		<div class="main">
 			<div id="config-panel" class="panel">
 				<button type="button" class="match-btn match-btn--new btn btn--major">New match</button>
-				<div class="config-wrap">
-					<div class="config">
-						<span class="config-lbl">Round time</span>
-						<span class="config-inp"><button type="button">-</button><span></span><button type="button">+</button></span>
+				<div class="config action">
+					<h2 class="config-heading">Match Configuration</h2>
+					<div class="config-item" data-name="roundTime" data-type="time">
+						<span class="ci-lbl">Round time</span>
+						<span class="ci-controls"><button class="ci-dec" type="button">-</button><span class="ci-value"></span><button class="ci-inc" class="ci-inc" type="button">+</button></span>
 					</div>
-					<div class="config">
-						<span class="config-lbl">Injury time</span>
-						<span class="config-inp"><button type="button">-</button><span></span><button type="button">+</button></span>
+					<div class="config-item" data-name="injuryTime" data-type="time">
+						<span class="ci-lbl">Injury time</span>
+						<span class="ci-controls"><button class="ci-dec" type="button">-</button><span class="ci-value"></span><button class="ci-inc" type="button">+</button></span>
 					</div>
-					<div class="config">
-						<span class="config-lbl">Break time</span>
-						<span class="config-inp"><button type="button">-</button><span></span><button type="button">+</button></span>
+					<div class="config-item" data-name="breakTime" data-type="time">
+						<span class="ci-lbl">Break time</span>
+						<span class="ci-controls"><button class="ci-dec" type="button">-</button><span class="ci-value"></span><button class="ci-inc" type="button">+</button></span>
 					</div>
-					<div class="config">
-						<span class="config-lbl">Number of rounds</span>
-						<span class="config-inp"><button type="button">1</button><button type="button">2</button></span>
+					<div class="config-item" data-name="roundCount" data-type="dual">
+						<span class="ci-lbl">Number of rounds</span>
+						<span class="ci-controls"><button class="ci-first" type="button">1</button><button class="ci-second" type="button">2</button></span>
 					</div>
-					<div class="config">
-						<span class="config-lbl">Tie breaker</span>
-						<span class="config-inp"><button type="button">On</button><button type="button">Off</button></span>
+					<div class="config-item" data-name="tieBreaker" data-type="dual">
+						<span class="ci-lbl">Tie breaker</span>
+						<span class="ci-controls"><button class="ci-first" type="button">On</button><button class="ci-second" type="button">Off</button></span>
 					</div>
-					<div class="config">
-						<span class="config-lbl">Golden point</span>
-						<span class="config-inp"><button type="button">On</button><button type="button">Off</button></span>
+					<div class="config-item" data-name="goldenPoint" data-type="dual">
+						<span class="ci-lbl">Golden point</span>
+						<span class="ci-controls"><button class="ci-first" type="button">On</button><button class="ci-second" type="button">Off</button></span>
 					</div>
 				</div>
 			</div>

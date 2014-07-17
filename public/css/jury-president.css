@@ -107,13 +107,21 @@
 /* ===== Configuration panel ===== */
 
 #config-panel {
-	padding-top: 7em;
+	padding-top: 5em;
 }
 
 .config-wrap {
-	margin: 3em 0 4em;
+	max-width: 45em;
+	margin: 4em auto 4em;
+	padding-bottom: 0;
 	font-size: 120%;
 	text-align: left;
+}
+
+.config-heading {
+	margin-top: 0;
+	text-align: center;
+	font-weight: normal;
 }
 
 .config { 
