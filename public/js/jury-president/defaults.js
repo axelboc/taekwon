@@ -3,6 +3,7 @@ define(function () {
 	
 	return {
 		judgesPerRing: 1,
+		timeIncrements: 15,
 		match: {
 			roundTime: 120,
 			breakTime: 60,

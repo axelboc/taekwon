@@ -110,7 +110,7 @@
 	padding-top: 5em;
 }
 
-.config-wrap {
+.config {
 	max-width: 45em;
 	margin: 4em auto 4em;
 	padding-bottom: 0;
@@ -124,11 +124,12 @@
 	font-weight: normal;
 }
 
-.config { 
+.config-item { 
 	overflow: hidden;
 }
 
-.config > span {
+.ci-lbl,
+.ci-controls {
 	display: block;
 	float: left;
 	width: 50%;
@@ -136,7 +137,7 @@
 	padding: 0 .6em;
 }
 
-.config-lbl {
+.ci-lbl {
 	text-align: right;
 }
 
