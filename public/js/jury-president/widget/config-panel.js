@@ -14,16 +14,29 @@ define([
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
 		this.newMatchBtn.addEventListener('click', this._publish.bind(this, 'newMatchBtn', this.newMatchBtn));
 		
-		// Use event delegation on configuration items
+		// Loop through cnfiguration items
 		[].forEach.call(this.root.querySelectorAll('.config-item'), function (item) {
+			// Use event delegation on configuration items
 			var type = item.dataset.type;
-			type = type.charAt(0).toUpperCase() + type.slice(1);
-			item.addEventListener('click', this['_on' + type + 'ConfigItem'].bind(this, item));
+			var capType = type.charAt(0).toUpperCase() + type.slice(1);
+			item.addEventListener('click', this['_on' + capType + 'ConfigItem'].bind(this, item));
+			
+			// Enable all buttons
+			[].forEach.call(item.querySelectorAll('button'), function (btn) {
+				btn.removeAttribute('disabled');
+			});
+			
+			// Populate default configuration values
+			var val = this.config[item.dataset.name];
+			switch (type) {
+				case 'time':
+					item.querySelector('.ci-value').textContent = this._numToTime(val);
+					break;
+				case 'boolean':
+					item.querySelector('.ci-' + val).classList.add('btn_pressed');
+					break;
+			}
 		}, this);
-		
-		// TODO: Update view to show default configuration values
-		// TODO: Remember to enable disabled buttons
-		this._updateAll();
 	}
 	
 	ConfigPanel.prototype = {
@@ -37,16 +50,13 @@ define([
 			return Math.floor(num / 60) + ":" + (sec < 10 ? '0' : '') + sec;
 		},
 		
-		_updateAll: function () {
-			
-		},
-		
 		_onTimeConfigItem: function (item, evt) {
 			var elem = evt.target;
 			if (!elem || elem.nodeName !== 'BUTTON') {
 				return;
 			}
 			
+			elem.blur();
 			var configName = item.dataset.name;
 			var value = this.config[configName];
 			
@@ -73,13 +83,20 @@ define([
 			item.querySelector('.ci-value').textContent = this._numToTime(value);
 		},
 		
-		_onDualConfigItem: function (item, evt) {
+		_onBooleanConfigItem: function (item, evt) {
 			var elem = evt.target;
-			if (elem.classList.contains('ci-first')) {
-				
-			} else if (elem.classList.contains('ci-second')) {
-				
+			if (!elem || elem.nodeName !== 'BUTTON') {
+				return;
 			}
+			
+			elem.blur();
+			var configName = item.dataset.name;
+			var value = elem.classList.contains('ci-true');
+			
+			// Update config value and display it
+			this.config[configName] = value;
+			elem.classList.add('btn_pressed');
+			item.querySelector('.ci-' + !value).classList.remove('btn_pressed');
 		},
 		
 		getConfig: function () {

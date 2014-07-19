@@ -96,22 +96,29 @@ button::-moz-focus-inner {
     color: #fff;
     border: 1px solid #555;
     border-radius: 10px;
+	font: inherit;
     cursor: pointer;
     transition: all .2s ease-in-out;
 }
 
-.btn[disabled] {
-    opacity: .4;
+.btn[disabled],
+.btn_pressed {
 	pointer-events: none;
 }
 
-.btn--minor {
+.btn[disabled] {
+    opacity: .4;
+}
+
+.btn--minor,
+.btn--toggle {
     background-color: #ddd;
 	border: 1px solid #bbb;
     color: #444;
 }
 
-.btn--major {
+.btn--major,
+.btn_pressed {
 	background-color: #ec1822;
 	border-color: #ec1822;
     color: #fff;
@@ -127,7 +134,9 @@ button::-moz-focus-inner {
 .btn--minor:hover,
 .btn--minor:focus,
 .btn--major:hover,
-.btn--major:focus {
+.btn--major:focus,
+.btn--toggle:hover,
+.btn--toggle:focus {
     background-color: #555;
     border-color: #555;
     color: #fff;

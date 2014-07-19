@@ -8,7 +8,7 @@ define(function () {
 			roundTime: 120,
 			breakTime: 60,
 			injuryTime: 120,
-			roundCount: 2,
+			twoRounds: true,
 			tieBreaker: true,
 			goldenPoint: true
 		}
