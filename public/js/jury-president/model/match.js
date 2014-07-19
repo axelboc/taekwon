@@ -125,47 +125,41 @@ define([
 			return !this.computeWinner();
 		},
 		
+		_addExtraRoundOrEndMatch: function () {
+			this._computeTotal();
+			
+			var tbOrNull = this.config.tieBreaker ? MatchStates.TIE_BREAKER : null;
+			var gpOrNull = this.config.goldenPoint ? MatchStates.GOLDEN_POINT : null;
+			var eitherOrNull = tbOrNull ? tbOrNull : gpOrNull;
+
+			if (this._isTie()) {
+				var extraRound = this.state === MatchStates.TIE_BREAKER ? gpOrNull : eitherOrNull;
+				if (extraRound) {
+					this.states.push(MatchStates.BREAK, extraRound);
+					return;
+				}
+			}
+			
+			this._endMatch();
+		},
+		
 		_nextState: function () {
 			// If no more states in array, add more if appropriate or end match
 			if (this.stateIndex === this.states.length - 1) {
 				switch (this.state) {
 					case MatchStates.ROUND_1:
-						if (this.config.roundCount === 2) {
+						if (this.config.twoRounds) {
 							// If match has two rounds, add Break and Round 2 states
 							this.states.push(MatchStates.BREAK, MatchStates.ROUND_2);
-							break;
 						} else {
-							// Otherwise, compute total score and end match
-							this._computeTotal();
-							this._endMatch();
-							return;
+							this._addExtraRoundOrEndMatch();
 						}
+						break;
 						
 					case MatchStates.ROUND_2:
-						this._computeTotal();
-						
-						if (this._isTie() && this.config.tieBreaker) {
-							// If Round 1 and 2 led to a tie, add Tie Breaker round
-							this.states.push(MatchStates.BREAK, MatchStates.TIE_BREAKER);
-							break;
-						} else {
-							// Otherwise, end match
-							this._endMatch();
-							return;
-						}
-						
 					case MatchStates.TIE_BREAKER:
-						this._computeTotal();
-						
-						if (this._isTie() && this.config.goldenPoint) {
-							// If Tie Breaker led to a tie, add Golden Point round
-							this.states.push(MatchStates.BREAK, MatchStates.GOLDEN_POINT);
-							break;
-						} else {
-							// Otherwise, end match
-							this._endMatch();
-							return;
-						}
+						this._addExtraRoundOrEndMatch();
+						break;
 					
 					case MatchStates.GOLDEN_POINT:
 						this._endMatch();
