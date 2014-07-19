@@ -50,7 +50,7 @@
 
 .js-btns > button {
 	margin: 0 .1em;
-	padding: .2em .4em;
+	padding: .2em .5em;
 	border-radius: 50%;
 	font-size: 130%;
 }
@@ -186,14 +186,11 @@
 }
 
 .mp-row--top {
-	height: 40%;
-	min-height: 12em;
-	max-height: 20em;
+	height: 15em;
 	border-bottom: solid 1px #ccc;
 }
 
 .mp-row--bottom {
-	height: 60%;
 	border-top: solid 1px #ccc;
 }
 

@@ -34,21 +34,17 @@
 		    <h2 class="js-heading">Corner Judges</h2>
 		    <ul class="js-list list-reset"></ul>
 		    <div class="js-btns">
-		    	<button type="button" class="js-minus btn btn--minor" title="Remove one judge">&minus;</button>
-		    	<button type="button" class="js-plus btn btn--minor" title="Add one judge">+</button>
+		    	<button type="button" class="js-add btn btn--minor" title="Add slot">+</button>
+		    	<button type="button" class="js-remove btn btn--minor" title="Remove last slot">&minus;</button>
 		    </div>
-		    <script id="js-list-tmpl" type="x-handlebars-template">
-				{{#each indices}}
-		        <li class="js-judge">
-		            <h3 class="js-judge-name">Judge #{{this}}</h3>
-		            <button type="button" class="js-judge-disconnect hidden" title="Disconnect">&times;</button>
-		            <span class="js-judge-state">Waiting for connection</span>
-                    <div class="js-judge-btns hidden">
-                        <button type="button" class="js-judge-accept js-judge-btn btn btn--major">Accept</button>
-                        <button type="button" class="js-judge-reject js-judge-btn btn btn--minor">Reject</button>
-                    </div>
-                </li>
-				{{/each}}
+		    <script id="js-judge-tmpl" type="x-handlebars-template">
+				<h3 class="js-judge-name">Judge #{{index}}</h3>
+				<button type="button" class="js-judge-disconnect hidden" title="Disconnect">&times;</button>
+				<span class="js-judge-state">Waiting for connection</span>
+				<div class="js-judge-btns hidden">
+					<button type="button" class="js-judge-accept js-judge-btn btn btn--major">Accept</button>
+					<button type="button" class="js-judge-reject js-judge-btn btn btn--minor">Reject</button>
+				</div>
 			</script>
 		</div>
 		<div class="main">
@@ -107,15 +103,11 @@
 					<div class="scoring mp-cell">
 						<div class="sc-inner"></div>
 						<script id="sc-judge-tmpl" type="x-handlebars-template">
-							{{#each indices}}
-							<div class="sc-judge">
-								<h3 class="sc-judge-name">Judge #{{this}}</h3>
-								<div class="sc-judge-score">
-									<span class="sc-hong hong-bg">0</span>
-									<span class="sc-chong chong-bg">0</span>
-								</div>
+							<h3 class="sc-judge-name">Judge #{{index}}</h3>
+							<div class="sc-judge-score">
+								<span class="sc-hong hong-bg">0</span>
+								<span class="sc-chong chong-bg">0</span>
 							</div>
-							{{/each}}
 						</script>
 					</div>
 					<div class="penalties mp-cell">

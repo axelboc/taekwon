@@ -20,6 +20,8 @@ define([
 				cornerJudgeScored: this._onCornerJudgeScored
 			},
 			ring: {
+				slotAdded: this._onSlotAdded,
+				slotRemoved: this._onSlotRemoved,
 				judgeAttached: this._onJudgeAttached,
 				judgeDetached: this._onJudgeDetached
 			},
@@ -67,19 +69,11 @@ define([
 		
 		// Scoring
 		this.scoring = this.root.querySelector('.scoring');
-		var scoringInner = this.scoring.querySelector('.sc-inner');
-		var scoringTemplate = Handlebars.compile(document.getElementById('sc-judge-tmpl').innerHTML);
-		scoringInner.innerHTML = scoringTemplate(this.ring.tmplContext);
+		this.scoringInner = this.scoring.querySelector('.sc-inner');
+		this.judgeScoringTemplate = Handlebars.compile(document.getElementById('sc-judge-tmpl').innerHTML);
 		
 		this.judgeScores = [];
 		this.judgeScoresById = {};
-		[].forEach.call(scoringInner.querySelectorAll('.sc-judge'), function (elem) {
-			this.judgeScores.push({
-				name: elem.querySelector('.sc-judge-name'),
-				hong: elem.querySelector('.sc-hong'),
-				chong: elem.querySelector('.sc-chong')
-			});
-		}, this);
 	}
 	
 	MatchPanel.prototype = {
@@ -195,6 +189,26 @@ define([
 			this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, true);
 
 			this.match.setScoringState(true);
+		},
+		
+		_onSlotAdded: function (index) {
+			console.log(index);
+			var elem = document.createElement('div');
+			elem.className = 'sc-judge';
+			elem.innerHTML = this.judgeScoringTemplate({ index: index + 1 });
+			this.scoringInner.appendChild(elem);
+			
+			this.judgeScores.push({
+				root: elem,
+				name: elem.querySelector('.sc-judge-name'),
+				hong: elem.querySelector('.sc-hong'),
+				chong: elem.querySelector('.sc-chong')
+			});
+		},
+		
+		_onSlotRemoved: function (index) {
+			this.scoringInner.removeChild(this.judgeScores[index].root);
+			this.judgeScores.splice(index, 1);
 		},
 		
 		_onJudgeAttached: function (judge) {

@@ -6,24 +6,16 @@ define([
 
 ], function (PubSub, Judge, Match) {
 	
-	function Ring(index, judgeSlotCount) {
+	function Ring(index) {
 		this.index = index;
-		this.judgeSlotCount = judgeSlotCount;
 		
-		this.judges = [];
-		this.judgeCount = 0;
+		this.judgeSlots = [];
+		this.judgeSlotCount = 0;
+		
 		this.judgeById = {};
-		this.match = null;
-
-		// Prepare context for JudgeSidebar and MatchPanel templates
-		var indices = [];
-		for (var i = 0; i < this.judgeSlotCount; i += 1) {
-			indices.push(i + 1);
-		}
+		this.judgeCount = 0;
 		
-		this.tmplContext = {
-			indices: indices
-		};
+		this.match = null;
 	}
 	
 	Ring.prototype = {
@@ -33,9 +25,30 @@ define([
 			PubSub.publish('ring.' + subTopic, [].slice.call(arguments, 1));
 		},
 		
+		addSlot: function (index) {
+			this.judgeSlotCount += 1;
+			this.judgeSlots.push({
+				index: index,
+				judge: null
+			});
+			this._publish('slotAdded', index);
+		},
+		
+		removeSlot: function (index) {
+			if (this.judgeSlotCount === 1) {
+				alert("Ring must contain at least one judge slot.");
+			} else if (this.judgeSlots[index].judge) {
+				alert("To proceed, first disconnect corner judge from last slot.");
+			} else {
+				this.judgeSlotCount -= 1;
+				this.judgeSlots.splice(index, 1);
+				this._publish('slotRemoved', index);
+			}
+		},
+		
 		_findFreeJudgeSlot: function () {
 			for (var i = 0; i < this.judgeSlotCount; i += 1) {
-				if (!this.judges[i]) {
+				if (!this.judgeSlots[i].judge) {
 					return i;
 				}
 			}
@@ -51,7 +64,7 @@ define([
 				this._publish('matchInProgress', id);
 			} else {
 				var judge = new Judge(id, index, name, authorised, connected);
-				this.judges[index] = judge;
+				this.judgeSlots[index].judge = judge;
 				this.judgeCount += 1;
 				this.judgeById[judge.id] = judge;
 				this._publish('judgeAttached', judge);
@@ -61,7 +74,7 @@ define([
 		judgeDetached: function (id) {
 			var judge = this.judgeById[id];
 			delete this.judgeById[id];
-			this.judges[judge.index] = null;
+			this.judgeSlots[judge.index].judge = null;
 			this.judgeCount -= 1;
 			
 			if (this.match) {
@@ -85,14 +98,19 @@ define([
 			if (diff > 0) {
 				alert("Waiting for " + diff + " more corner judge" + (diff > 1 ? "s" : "") + " to join the ring.");
 			} else {
-				var unauthorisedCount = this.judges.filter(function (judge) {
+				var judges = this.judgeSlots.reduce(function (arr, slot) {
+					arr.push(slot.judge);
+					return arr;
+				}, []);
+
+				var unauthorisedCount = judges.filter(function (judge) {
 					return !judge.authorised;
 				}).length;
 				
 				if (unauthorisedCount > 0) {
 					alert(unauthorisedCount + " corner judge" + (unauthorisedCount > 1 ? "s are" : " is") + " awaiting your authorisation to join the ring.");
 				} else {
-					this.match = new Match(config, this.judges);
+					this.match = new Match(config, judges);
 				}
 			}
 		}

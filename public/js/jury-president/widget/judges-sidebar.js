@@ -13,6 +13,10 @@ define([
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
+			ring: {
+				slotAdded: this._onSlotAdded,
+				slotRemoved: this._onSlotRemoved
+			},
 			judge: {
 				initialised: this._onJudgeInitialised,
 				authorised: this._onJudgeAuthorised,
@@ -20,18 +24,36 @@ define([
 			}
 		});
 
-		// Populate judge list from template
-		var list = this.root.querySelector('.js-list');
-		var listTemplate = Handlebars.compile(document.getElementById('js-list-tmpl').innerHTML);
-		list.innerHTML = listTemplate(this.ring.tmplContext);
+		this.list = this.root.querySelector('.js-list');
+		this.judgeTemplate = Handlebars.compile(document.getElementById('js-judge-tmpl').innerHTML);
 		
 		this.slots = [];
 		this.slotsById = {};
 		
-		[].forEach.call(list.querySelectorAll('.js-judge'), function (elem, index) {
+		this.addSlotBtn = this.root.querySelector('.js-add');
+		this.removeSlotBtn = this.root.querySelector('.js-remove');
+		
+		this.addSlotBtn.addEventListener('click', this._onAddSlotBtn.bind(this));
+		this.removeSlotBtn.addEventListener('click', this._onRemoveSlotBtn.bind(this));
+	}
+	
+	JudgesSidebar.prototype = {
+		
+		_publish: function (subTopic) {
+			PubSub.publish('judgesSidebar.' + subTopic, [].slice.call(arguments, 1));
+		},
+		
+		_onSlotAdded: function (index) {
+			console.log("Judge slot added (index=" + index + ")");
+			var elem = document.createElement('li');
+			elem.className = 'js-judge';
+			elem.innerHTML = this.judgeTemplate({ index: index + 1 });
+			this.list.appendChild(elem);
+			
 			var slot = {
 				index: index,
 				judge: null,
+				root: elem,
 				name: elem.querySelector('.js-judge-name'),
 				state: elem.querySelector('.js-judge-state'),
 				btnList: elem.querySelector('.js-judge-btns'),
@@ -45,14 +67,22 @@ define([
 			slot.disconnectBtn.addEventListener('click', this._onDisconnectBtn.bind(this, index));
 			
 			this.slots.push(slot);
-		}, this);
+		},
 		
-	}
-	
-	JudgesSidebar.prototype = {
+		_onSlotRemoved: function (index) {
+			console.log("Judge slot removed (index=" + index + ")");
+			this.list.removeChild(this.slots[index].root);
+			this.slots.splice(index, 1);
+		},
 		
-		_publish: function (subTopic) {
-			PubSub.publish('judgesSidebar.' + subTopic, [].slice.call(arguments, 1));
+		_onAddSlotBtn: function () {
+			this.addSlotBtn.blur();
+			this.ring.addSlot(this.ring.judgeSlotCount);
+		},
+		
+		_onRemoveSlotBtn: function () {
+			this.removeSlotBtn.blur();
+			this.ring.removeSlot(this.slots.length - 1);
 		},
 		
 		_updateSlot: function (slot) {
@@ -122,7 +152,7 @@ define([
 				IO.removeCornerJudge(slot.judge.id);
 				this._detachJudge(slot);
 			}
-		},
+		}
 		
 	};
 	

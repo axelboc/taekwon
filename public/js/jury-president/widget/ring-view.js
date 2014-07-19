@@ -51,6 +51,11 @@ define([
 				newMatchBtn: this._onNewMatchBtn
 			}
 		});
+		
+		// Add judge slots
+		for (var i = 0, len = defaults.judgesPerRing; i < len; i += 1) {
+			this.ring.addSlot(i);
+		}
 	}
 	
 	RingView.prototype = {
