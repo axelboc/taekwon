@@ -20,6 +20,7 @@ define([
 		
 		// TODO: consider moving scoreboards to Judge module
 		// TODO: fix issue with judges entering/leaving ring during match (this.ring.judges?)
+		// TODO: compute total with maluses after golden point
 		
 		/**
 		 * Judge scoreboards
@@ -101,6 +102,8 @@ define([
 					values: totalScores
 				});
 			}, this);
+			
+			this._publish('totalComputed');
 		},
 		
 		computeWinner: function () {
@@ -250,6 +253,14 @@ define([
 		
 		eraseScoreboard: function (judgeId) {
 			delete this.scoreboards[judgeId];
+		},
+		
+		incrementPenalty: function (type, competitor) {
+			return this.penalties[this.state][type][competitor === Competitors.HONG ? 0 : 1] += 1;
+		},
+		
+		decrementPenalty: function (type, competitor) {
+			return this.penalties[this.state][type][competitor === Competitors.HONG ? 0 : 1] -= 1;
 		}
 		
 	};

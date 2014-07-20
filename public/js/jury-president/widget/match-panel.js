@@ -74,6 +74,16 @@ define([
 		
 		this.judgeScores = [];
 		this.judgeScoresById = {};
+		
+		// Penalties
+		this.penalties = this.root.querySelector('.penalties');
+		// Loop through penalty items
+		[].forEach.call(this.root.querySelectorAll('.pe-item'), function (item) {
+			// Use event delegation
+			item.addEventListener('click', this._onPenaltyItem.bind(this, item));
+			
+			// TODO: Control penalty buttons state
+		}, this);
 	}
 	
 	MatchPanel.prototype = {
@@ -108,9 +118,10 @@ define([
 			console.log("Match created");
 			this.match = match;
 			this._updateStateBtns(null, false);
-			this.matchResultBtn.classList.add("hidden");
-			this.stateStartBtn.classList.remove("hidden");
-			this.stateEndBtn.classList.remove("hidden");
+			this.matchResultBtn.classList.add('hidden');
+			this.stateStartBtn.classList.remove('hidden');
+			this.stateEndBtn.classList.remove('hidden');
+			this._resetPenalties();
 		},
 
 		_onStateChanged: function (state) {
@@ -138,6 +149,10 @@ define([
 
 			if (state !== MatchStates.BREAK) {
 				this.match.setScoringState(true);
+			}
+			
+			if (state === MatchStates.TIE_BREAKER || state === MatchStates.GOLDEN_POINT) {
+				this._resetPenalties();
 			}
 		},
 
@@ -192,7 +207,6 @@ define([
 		},
 		
 		_onSlotAdded: function (index) {
-			console.log(index);
 			var elem = document.createElement('div');
 			elem.className = 'sc-judge';
 			elem.innerHTML = this.judgeScoringTemplate({ index: index + 1 });
@@ -235,6 +249,34 @@ define([
 			var js = this.judgeScoresById[judgeId];
 			js.hong.textContent = scores[0];
 			js.chong.textContent = scores[1];
+		},
+		
+		_resetPenalties: function () {
+			[].forEach.call(this.penalties.querySelectorAll('.pe-value'), function (elem) {
+				elem.textContent = 0;
+			}, this);
+		},
+		
+		_onPenaltyItem: function (item, evt) {
+			var elem = evt.target;
+			if (!elem || elem.nodeName !== 'BUTTON') {
+				return;
+			}
+			
+			elem.blur();
+			var type = item.dataset.type;
+			var competitor = item.dataset.competitor;
+			var value;
+			
+			// Increment or decrement time
+			if (elem.classList.contains('pe-inc')) {
+				value = this.match.incrementPenalty(type, competitor);
+			} else if (elem.classList.contains('pe-dec')) {
+				value = this.match.decrementPenalty(type, competitor);
+			}
+			
+			// Display new value
+			item.querySelector('.pe-value').textContent = value;
 		}
 		
 	};

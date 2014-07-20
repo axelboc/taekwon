@@ -14,9 +14,9 @@ define([
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
 		this.newMatchBtn.addEventListener('click', this._publish.bind(this, 'newMatchBtn', this.newMatchBtn));
 		
-		// Loop through cnfiguration items
+		// Loop through configuration items
 		[].forEach.call(this.root.querySelectorAll('.config-item'), function (item) {
-			// Use event delegation on configuration items
+			// Use event delegation
 			var type = item.dataset.type;
 			var capType = type.charAt(0).toUpperCase() + type.slice(1);
 			item.addEventListener('click', this['_on' + capType + 'ConfigItem'].bind(this, item));
