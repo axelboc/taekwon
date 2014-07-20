@@ -1,7 +1,8 @@
 
 // TODO: Fix session restoration
 // TODO: Implement judges sidebar controls (buttons to add/remove judges)
-// TODO: use Full Screen API
+// TODO: Use Full Screen API
+// TODO: Fix issue: judges get duplicated in sidebar and match panel when connection with server is cut 
 
 /* Core set-up */
 

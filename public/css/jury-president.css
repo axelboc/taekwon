@@ -41,7 +41,6 @@
 .js-heading {
 	margin-top: 1.3em;
 	margin-bottom: 1.3em;
-	font-weight: normal;
 }
 
 .js-btns {
@@ -121,7 +120,6 @@
 .config-heading {
 	margin-top: 0;
 	text-align: center;
-	font-weight: normal;
 }
 
 .config-item { 
@@ -198,6 +196,10 @@
 	display: table-cell;
 	vertical-align: middle;
 	width: 50%;
+}
+
+.mp-row--bottom > .mp-cell {
+	vertical-align: top;
 }
 
 .time-keeping,
@@ -318,7 +320,53 @@
 /* Penalties */
 
 .penalties {
-	
+	padding-top: .4em;
+}
+
+.pe-heading {
+	margin-bottom: .5em;
+}
+
+.pe-inner {
+	margin-bottom: 1.5em;
+}
+
+.pe-inner--warnings {
+	font-size: 150%;
+}
+
+.pe-item {
+	display: inline-block;
+	text-align: center;
+	padding: 0 .5em;
+}
+
+.pe-value,
+.pe-btns {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.pe-value {
+	padding: 0 .3em;
+	line-height: 1.6;
+	font-size: 200%;
+}
+
+.pe-btn {
+	display: block;
+	width: 4rem;
+	border-radius: 5px;
+}
+
+.pe-inc {
+	margin-bottom: .2em;
+	line-height: 2.05;
+}
+
+.pe-dec {
+	line-height: 1;
+	font-size: 80%;
 }
 
 

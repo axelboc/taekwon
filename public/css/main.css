@@ -19,6 +19,10 @@ body {
 h1 {
 	margin: 1.4em 0 1.4em;
 	font-size: 400%;
+}
+
+h1,
+h2 {
 	font-weight: normal;
 }
 
