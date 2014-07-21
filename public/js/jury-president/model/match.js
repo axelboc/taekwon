@@ -256,11 +256,11 @@ define([
 		},
 		
 		incrementPenalty: function (type, competitor) {
-			return this.penalties[this.state][type][competitor === Competitors.HONG ? 0 : 1] += 1;
+			this.penalties[this.state][type][competitor === Competitors.HONG ? 0 : 1] += 1;
 		},
 		
 		decrementPenalty: function (type, competitor) {
-			return this.penalties[this.state][type][competitor === Competitors.HONG ? 0 : 1] -= 1;
+			this.penalties[this.state][type][competitor === Competitors.HONG ? 0 : 1] -= 1;
 		}
 		
 	};

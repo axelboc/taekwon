@@ -77,12 +77,12 @@ define([
 		
 		// Penalties
 		this.penalties = this.root.querySelector('.penalties');
+		this.penaltyBtns = this.penalties.querySelectorAll('.pe-btn');
+		
 		// Loop through penalty items
 		[].forEach.call(this.root.querySelectorAll('.pe-item'), function (item) {
 			// Use event delegation
 			item.addEventListener('click', this._onPenaltyItem.bind(this, item));
-			
-			// TODO: Control penalty buttons state
 		}, this);
 	}
 	
@@ -122,6 +122,7 @@ define([
 			this.stateStartBtn.classList.remove('hidden');
 			this.stateEndBtn.classList.remove('hidden');
 			this._resetPenalties();
+			this._enablePenaltyBtns(false);
 		},
 
 		_onStateChanged: function (state) {
@@ -149,6 +150,7 @@ define([
 
 			if (state !== MatchStates.BREAK) {
 				this.match.setScoringState(true);
+				this._enablePenaltyBtns(true);
 			}
 			
 			if (state === MatchStates.TIE_BREAKER || state === MatchStates.GOLDEN_POINT) {
@@ -163,6 +165,7 @@ define([
 
 			if (state !== MatchStates.BREAK) {
 				this.match.setScoringState(false);
+				this._enablePenaltyBtns(false);
 			}
 		},
 
@@ -255,6 +258,20 @@ define([
 			[].forEach.call(this.penalties.querySelectorAll('.pe-value'), function (elem) {
 				elem.textContent = 0;
 			}, this);
+			[].forEach.call(this.penalties.querySelectorAll('.pe-dec'), function (btn) {
+				btn.setAttribute('disabled', 'disabled');
+				btn.classList.add('pe-btn_disabled');
+			}, this);
+		},
+		
+		_enablePenaltyBtns: function (enable) {
+			[].forEach.call(this.penaltyBtns, function (btn) {
+				if (!enable) {
+					btn.setAttribute('disabled', 'disabled');
+				} else if (!btn.classList.contains('pe-btn_disabled')) {
+					btn.removeAttribute('disabled');
+				}
+			});
 		},
 		
 		_onPenaltyItem: function (item, evt) {
@@ -266,17 +283,31 @@ define([
 			elem.blur();
 			var type = item.dataset.type;
 			var competitor = item.dataset.competitor;
-			var value;
+			
+			var valueElem = item.querySelector('.pe-value');
+			var value = parseInt(valueElem.textContent);
 			
 			// Increment or decrement time
 			if (elem.classList.contains('pe-inc')) {
-				value = this.match.incrementPenalty(type, competitor);
+				this.match.incrementPenalty(type, competitor);
+				value += 1;
+				
+				if (value === 1) {
+					elem.nextElementSibling.removeAttribute('disabled');
+					elem.nextElementSibling.classList.remove('pe-btn_disabled');
+				}
 			} else if (elem.classList.contains('pe-dec')) {
-				value = this.match.decrementPenalty(type, competitor);
+				this.match.decrementPenalty(type, competitor);
+				value -= 1;
+				
+				if (value === 0) {
+					elem.setAttribute('disabled', 'disabled');
+					elem.classList.add('pe-btn_disabled');
+				}
 			}
 			
 			// Display new value
-			item.querySelector('.pe-value').textContent = value;
+			valueElem.textContent = value;
 		}
 		
 	};
