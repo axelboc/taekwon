@@ -89,28 +89,19 @@ define([
 			this.judgeById[id].setConnectionState(connected);
 		},
 		
-		judgeScored: function (id, competitor, score) {
-			this.judgeById[id].score(competitor, score);
-		},
-		
 		newMatch: function (config) {
 			var diff = this.judgeSlotCount - this.judgeCount;
 			if (diff > 0) {
 				alert("Waiting for " + diff + " more corner judge" + (diff > 1 ? "s" : "") + " to join the ring.");
 			} else {
-				var judges = this.judgeSlots.reduce(function (arr, slot) {
-					arr.push(slot.judge);
-					return arr;
-				}, []);
-
-				var unauthorisedCount = judges.filter(function (judge) {
-					return !judge.authorised;
+				var unauthorisedCount = this.judgeSlots.filter(function (slot) {
+					return !slot.judge.authorised;
 				}).length;
 				
 				if (unauthorisedCount > 0) {
 					alert(unauthorisedCount + " corner judge" + (unauthorisedCount > 1 ? "s are" : " is") + " awaiting your authorisation to join the ring.");
 				} else {
-					this.match = new Match(config, judges);
+					this.match = new Match(config, this);
 				}
 			}
 		}

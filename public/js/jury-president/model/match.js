@@ -6,9 +6,9 @@ define([
 
 ], function (PubSub, Competitors, MatchStates) {
 	
-	function Match(config, judges) {
+	function Match(config, ring) {
 		this.config = config;
-		this.judges = judges;
+		this.ring = ring;
 		
 		this.state = null;
 		this.states = [MatchStates.ROUND_1];
@@ -22,21 +22,7 @@ define([
 		// TODO: fix issue with judges entering/leaving ring during match (this.ring.judges?)
 		// TODO: compute total with maluses after golden point
 		
-		/**
-		 * Judge scoreboards
-		 * Each scoreboard is an array of objects representing the main columns of the scoreboard.
-		 * Each column object contains two keys: 'label' (string) and 'values' (array of two integers, for hong and chong).
-		 * Examples of column sequences for various matches:
-		 * - 1-round match: 		round-1, maluses, total
-		 * - 2-round match: 		round-1, round-2, maluses, total
-		 * - up to golden point: 	round-1, round-2, maluses, total, tie-breaker, maluses, total, golden point
-		 */
-		this.scoreboards = {};
-		this.judges.forEach(function (judge) {
-			this.scoreboards[judge.id] = [];
-		}, this);
-		
-		// Penalties ('warnings' and 'fouls') given at each state (except break states)
+		// Penalties ('warnings' and 'fouls') for each state (except break states)
 		this.penalties = {};
 
 		this._publish('created', this);
@@ -64,9 +50,17 @@ define([
 		},
 		
 		/**
-		 * Compute total maluses and scores for each judge and add them to their scoreboard
+		 * Ask each judge to compute total scores for last round(s)
 		 */
 		_computeTotal: function () {
+			// TODO: create unique keys for total columns and pass them to judges
+			// TODO: store total maluses in penalties object using these unique keys
+			var maluses = this._getMaluses(this.penalties[this.state]);
+			
+			Object.keys(this.ring.judgeById).forEach(function (judge) {
+				judge.computeTotal(maluses);
+			});
+			
 			Object.keys(this.scoreboards).forEach(function (judgeId) {
 				var scoreboard = this.scoreboards[judgeId];
 				
@@ -165,8 +159,14 @@ define([
 						break;
 					
 					case MatchStates.GOLDEN_POINT:
+						this._computeTotal();
 						this._endMatch();
-						return;
+						break;
+				}
+				
+				// If match ended, return
+				if (this.state === null) {
+					return;
 				}
 			}
 			
@@ -241,14 +241,8 @@ define([
 			this._publish('scoringStateChanged', enabled);
 		},
 		
-		score: function (judgeId, competitor, points) {
-			var scoreboard = this.scoreboards[judgeId];
-			var scores = scoreboard[scoreboard.length - 1].values;
-			var competitorIndex = (competitor === Competitors.HONG ? 0 : 1);
-			
-			scores[competitorIndex] += points;
-			
-			this._publish('judgeScoresUpdated', judgeId, scores.slice(0));
+		judgeScored: function (id, competitor, points) {
+			this.ring.judgeById[id].score(this.state, competitor, points);
 		},
 		
 		eraseScoreboard: function (judgeId) {

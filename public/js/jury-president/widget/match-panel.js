@@ -33,8 +33,10 @@ define([
 				stateEnded: this._onStateEnded,
 				injuryStarted: this._onInjuryStarted,
 				injuryEnded: this._onInjuryEnded,
-				scoringStateChanged: this._onScoringStateChanged,
-				judgeScoresUpdated: this._onJudgeScoresUpdated
+				scoringStateChanged: this._onScoringStateChanged
+			},
+			judge: {
+				scoresUpdated: this._onJudgeScoresUpdated
 			},
 			timer: {
 				tick: this._onTimerTick
@@ -245,7 +247,7 @@ define([
 		
 		_onCornerJudgeScored: function (score) {
 			console.log("Judge scored (points=" + score.points + ")");
-			this.match.score(score.judgeId, score.competitor, score.points);
+			this.match.judgeScored(score.judgeId, score.competitor, score.points);
 		},
 		
 		_onJudgeScoresUpdated: function (judgeId, scores) {

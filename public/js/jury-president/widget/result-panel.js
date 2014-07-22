@@ -52,6 +52,8 @@ define([
 			var match = this.ring.match;
 			var states = match.states;
 			
+			console.log(match.scoreboards);
+			
 			var context = {
 				match: {
 					hadTwoRounds: states.indexOf(MatchStates.ROUND_2) !== -1,
