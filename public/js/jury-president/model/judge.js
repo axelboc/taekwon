@@ -12,15 +12,6 @@ define(['minpubsub'], function (PubSub) {
 		// TODO: use unique key for total columns
 		// TODO: compute total here
 		
-		/**
-		 * Scoreboard
-		 * Array of objects representing the main columns of the scoreboard.
-		 * Each column has a 'label' (a match state or 'total') and a 'values' array (in order: hong, chong).
-		 * Examples of column sequences for various matches:
-		 * - 1-round match: 		round-1, total
-		 * - 2-round match: 		round-1, round-2, total
-		 * - up to golden point: 	round-1, round-2, total, tie-breaker, total, golden point, total
-		 */
 		this.resetScoreboard();
 		
 		this._publish('initialised', this);
@@ -47,19 +38,19 @@ define(['minpubsub'], function (PubSub) {
 		},
 		
 		resetScoreboard: function () {
-			this.scoreboard = [];
+			this.scoreboard = {};
 		},
 		
-		score: function (competitor, points) {
+		addScoreboardColumn: function (columnId) {
+			this.scoreboard[columnId] = [0, 0];
+		},
+		
+		score: function (columnId, competitor, points) {
 			var competitorIndex = (competitor === Competitors.HONG ? 0 : 1);
 			
-			var scores = this.scoreboard[state];
-			if (!scores) {
-				this.scoreboard[state] = scores = [0, 0];
-			}
-			
+			var scores = this.scoreboard[columnId];
 			scores[competitorIndex] += points;
-			this._publish('scoresUpdated', this.id, scores);
+			this._publish('scoresUpdated', scores);
 		}
 		
 	};

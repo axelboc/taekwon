@@ -20,9 +20,22 @@ define([
 		
 		// TODO: consider moving scoreboards to Judge module
 		// TODO: fix issue with judges entering/leaving ring during match (this.ring.judges?)
-		// TODO: compute total with maluses after golden point
 		
-		// Penalties ('warnings' and 'fouls') for each state (except break states)
+		/**
+		 * Columns in judges' scoreboards and penalties array
+		 * A column is added for each non-break state during the match, 
+		 * as well as when computing the total scores of previous rounds.
+		 * Examples of column ID sequences for various matches:
+		 * - 1-round match: 		round-1, total-1
+		 * - 2-round match: 		round-1, round-2, total-2
+		 * - up to golden point: 	round-1, round-2, total-2, tie-breaker, total-4, golden point, total-6
+		 */
+		this.scoreboardColumns = []
+		
+		/**
+		 * Penalties ('warnings' and 'fouls') for each scoreboard column (except break states)
+		 * Total maluses are stored against 'total' columns (as negative integers).
+		 */
 		this.penalties = {};
 
 		this._publish('created', this);
@@ -122,51 +135,32 @@ define([
 			return !this.computeWinner();
 		},
 		
-		_addExtraRoundOrEndMatch: function () {
-			this._computeTotal();
-			
-			var tbOrNull = this.config.tieBreaker ? MatchStates.TIE_BREAKER : null;
-			var gpOrNull = this.config.goldenPoint ? MatchStates.GOLDEN_POINT : null;
-			var eitherOrNull = tbOrNull ? tbOrNull : gpOrNull;
-
-			if (this._isTie()) {
-				var extraRound = this.state === MatchStates.TIE_BREAKER ? gpOrNull : eitherOrNull;
-				if (extraRound) {
-					this.states.push(MatchStates.BREAK, extraRound);
-					return;
-				}
-			}
-			
-			this._endMatch();
-		},
-		
 		_nextState: function () {
 			// If no more states in array, add more if appropriate or end match
 			if (this.stateIndex === this.states.length - 1) {
-				switch (this.state) {
-					case MatchStates.ROUND_1:
-						if (this.config.twoRounds) {
-							// If match has two rounds, add Break and Round 2 states
-							this.states.push(MatchStates.BREAK, MatchStates.ROUND_2);
-						} else {
-							this._addExtraRoundOrEndMatch();
-						}
-						break;
+				if (this.state === MatchStates.ROUND_1 & this.config.twoRounds) {
+					// Add Break and Round 2 states
+					this.states.push(MatchStates.BREAK, MatchStates.ROUND_2);
+				} else {
+					// Compute total with scores from previous round(s)
+					this._computeTotal();
+
+					if (this.state !== MatchStates.GOLDEN_POINT && this._isTie()) {
+						var tbOrNull = this.config.tieBreaker ? MatchStates.TIE_BREAKER : null;
+						var gpOrNull = this.config.goldenPoint ? MatchStates.GOLDEN_POINT : null;
+						var eitherOrNull = tbOrNull ? tbOrNull : gpOrNull;
 						
-					case MatchStates.ROUND_2:
-					case MatchStates.TIE_BREAKER:
-						this._addExtraRoundOrEndMatch();
-						break;
-					
-					case MatchStates.GOLDEN_POINT:
-						this._computeTotal();
+						var extraRound = this.state === MatchStates.TIE_BREAKER ? gpOrNull : eitherOrNull;
+						if (extraRound) {
+							this.states.push(MatchStates.BREAK, extraRound);
+						} else {
+							this._endMatch();
+							return;
+						}
+					} else {
 						this._endMatch();
-						break;
-				}
-				
-				// If match ended, return
-				if (this.state === null) {
-					return;
+						return;
+					}
 				}
 			}
 			
@@ -174,20 +168,22 @@ define([
 			this.state = this.states[this.stateIndex];
 
 			if (this.state !== MatchStates.BREAK) {
-				// Add a new column to each judge's scoreboard for the new state
-				Object.keys(this.scoreboards).forEach(function (judgeId) {
-					this.penalties[this.state] = {
-						warnings: [0, 0],
-						fouls: [0, 0]
-					};
-					
-					this.scoreboards[judgeId].push({
-						label: this.state,
-						values: [0, 0]
-					});
-					
-					this._publish('judgeScoresUpdated', judgeId, [0, 0]);
-				}, this);
+				var label = this.state.split('-').reduce(function (label, word) {
+					return label + " " + word.charAt(0).toUpperCase() + word.slice(1);
+				}, "");
+				
+				// Create new scoreboard column for the new state
+				this.scoreboardColumns.push({
+					id: this.state,
+					label: label
+				});
+				
+				// Initialise penalty arrays for new state
+				this.penalties[this.state] = {
+					warnings: [0, 0],
+					fouls: [0, 0]
+				};
+				this._publish('penaltiesReset', this.state);
 			}
 
 			this._publish('stateChanged', this.state);

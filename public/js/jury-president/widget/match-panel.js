@@ -33,7 +33,8 @@ define([
 				stateEnded: this._onStateEnded,
 				injuryStarted: this._onInjuryStarted,
 				injuryEnded: this._onInjuryEnded,
-				scoringStateChanged: this._onScoringStateChanged
+				scoringStateChanged: this._onScoringStateChanged,
+				penaltiesReset: this._onPenaltiesReset
 			},
 			judge: {
 				scoresUpdated: this._onJudgeScoresUpdated
@@ -123,12 +124,11 @@ define([
 			this.matchResultBtn.classList.add('hidden');
 			this.stateStartBtn.classList.remove('hidden');
 			this.stateEndBtn.classList.remove('hidden');
-			this._resetPenalties();
 			this._enablePenaltyBtns(false);
 		},
 
 		_onStateChanged: function (state) {
-			var stateStr = state.toLowerCase().replace('-', ' ');
+			var stateStr = state.replace('-', ' ');
 			console.log("State changed: " + stateStr);
 
 			// Reset round timer
@@ -153,10 +153,6 @@ define([
 			if (state !== MatchStates.BREAK) {
 				this.match.setScoringState(true);
 				this._enablePenaltyBtns(true);
-			}
-			
-			if (state === MatchStates.TIE_BREAKER || state === MatchStates.GOLDEN_POINT) {
-				this._resetPenalties();
 			}
 		},
 
@@ -256,14 +252,20 @@ define([
 			js.chong.textContent = scores[1];
 		},
 		
-		_resetPenalties: function () {
-			[].forEach.call(this.penalties.querySelectorAll('.pe-value'), function (elem) {
-				elem.textContent = 0;
-			}, this);
-			[].forEach.call(this.penalties.querySelectorAll('.pe-dec'), function (btn) {
-				btn.setAttribute('disabled', 'disabled');
-				btn.classList.add('pe-btn_disabled');
-			}, this);
+		_onPenaltiesReset: function (state) {
+			// If Round 2, keep penalties from Round 1 on screen
+			if (state !== MatchStates.ROUND_2) {
+				// Reset values
+				[].forEach.call(this.penalties.querySelectorAll('.pe-value'), function (elem) {
+					elem.textContent = 0;
+				}, this);
+				
+				// Disable decrement buttons
+				[].forEach.call(this.penalties.querySelectorAll('.pe-dec'), function (btn) {
+					btn.setAttribute('disabled', 'disabled');
+					btn.classList.add('pe-btn_disabled');
+				}, this);
+			}
 		},
 		
 		_enablePenaltyBtns: function (enable) {
