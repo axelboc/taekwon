@@ -1,5 +1,9 @@
 
-define(['minpubsub'], function (PubSub) {
+define([
+	'minpubsub',
+	'../../common/competitors'
+
+], function (PubSub, Competitors) {
 	
 	function Judge(id, index, name, authorised, connected) {
 		this.id = id;
@@ -41,16 +45,48 @@ define(['minpubsub'], function (PubSub) {
 			this.scoreboard = {};
 		},
 		
-		addScoreboardColumn: function (columnId) {
-			this.scoreboard[columnId] = [0, 0];
+		_initScoreboardColumn: function (columnId) {
+			return this.scoreboard[columnId] = [0, 0];
 		},
 		
 		score: function (columnId, competitor, points) {
 			var competitorIndex = (competitor === Competitors.HONG ? 0 : 1);
 			
 			var scores = this.scoreboard[columnId];
+			if (!scores) {
+				scores = this._initScoreboardColumn(columnId);
+			}
+			
 			scores[competitorIndex] += points;
 			this._publish('scoresUpdated', scores);
+		},
+		
+		computeTotal: function (totalColumnId, statesCovered, maluses) {
+			var totals = [0, 0];
+			
+			// Sum scores
+			statesCovered.forEach(function (state) {
+				var scores = this.scoreboard[state];
+				if (scores) {
+					totals[0] += scores[0];
+					totals[1] += scores[1];
+				} else {
+					this._initScoreboardColumn(state);
+				}
+			}, this);
+			
+			// Add maluses (negative integers)
+			totals[0] += maluses[0];
+			totals[1] += maluses[1];
+			
+			console.log("totals: ", totals);
+			// Store totals in scoreboard
+			this.scoreboard[totalColumnId] = totals;
+		},
+		
+		getWinner: function (totalColumnId) {
+			var totals = this.scoreboard[totalColumnId];
+			return totals[0] > totals[1] ? Competitors.HONG : (totals[1] > totals[0] ? Competitors.CHONG : null);
 		}
 		
 	};

@@ -18,8 +18,8 @@ define([
 		this.injuryStarted = false;
 		this.scoringEnabled = false;
 		
-		// TODO: consider moving scoreboards to Judge module
 		// TODO: fix issue with judges entering/leaving ring during match (this.ring.judges?)
+		// TODO: combine rounds 1 and 2 (score and penalties)
 		
 		/**
 		 * Columns in judges' scoreboards and penalties array
@@ -37,6 +37,8 @@ define([
 		 * Total maluses are stored against 'total' columns (as negative integers).
 		 */
 		this.penalties = {};
+		
+		this.winner = null;
 
 		this._publish('created', this);
 		this._nextState();
@@ -50,89 +52,71 @@ define([
 		},
 		
 		/**
-		 * Compute maluses from penalties, knowing that:
+		 * Compute maluses from one or more states' penalties, knowing that:
 		 * - 3 warnings = -1 pt
 		 * - 1 foul 	= -1 pt
 		 */
-		_getMaluses: function (penalties) {
-			var maluses = [];
-			for (var i = 0; i <= 1; i += 1) {
-				maluses.push(- Math.floor(penalties.warnings[i] / 3) - penalties.fouls[i]);
-			}
+		_computeMaluses: function (statesCovered) {
+			var maluses = [0, 0];
+			statesCovered.forEach(function (state) {
+				var penalties = this.penalties[state];
+				for (var i = 0; i <= 1; i += 1) {
+					maluses[i] -= Math.floor(penalties.warnings[i] / 3) + penalties.fouls[i];
+				}
+			}, this);
+			console.log("maluses: ", maluses);
 			return maluses;
 		},
 		
 		/**
-		 * Ask each judge to compute total scores for last round(s)
+		 * Ask judges to compute their total scores,
+		 * and compute total maluses for the last round(s)
 		 */
-		_computeTotal: function () {
-			// TODO: create unique keys for total columns and pass them to judges
-			// TODO: store total maluses in penalties object using these unique keys
-			var maluses = this._getMaluses(this.penalties[this.state]);
+		_computeTotals: function () {
+			// Create a unique key for the new total column
+			var totalColumnId = 'total-' + this.scoreboardColumns.length;
+			this.scoreboardColumns.push(totalColumnId);
 			
-			Object.keys(this.ring.judgeById).forEach(function (judge) {
-				judge.computeTotal(maluses);
-			});
+			// The states to include when computing the total scores and maluses (order doesn't matter)
+			var statesCovered = [this.state];
+			if (this.state === MatchStates.ROUND_2) {
+				statesCovered.push(MatchStates.ROUND_1);
+			}
 			
-			Object.keys(this.scoreboards).forEach(function (judgeId) {
-				var scoreboard = this.scoreboards[judgeId];
-				
-				// Get the last colum of the scoreboard and its corresponding penalties
-				var lastCol = scoreboard[scoreboard.length - 1];
-				
-				// Start computing total scores and maluses
-				var totalScores = lastCol.values.slice(0);
-				var totalMaluses = this._getMaluses(this.penalties[lastCol.label]);
-	
-				// If current state is round 2, then add scores and penalties from round 1 (the first column in the scoreboard)
-				if (this.state === MatchStates.ROUND_2) {
-					var firstCol = scoreboard[0];
-					var scores = firstCol.values;
-					var maluses = this._getMaluses(this.penalties[firstCol.label]);
-					for (var i = 0; i <= 1; i += 1) {
-						totalScores[i] += scores[i];
-						totalMaluses[i] += maluses[i];
-					}
-				}
-				
-				// Apply maluses to total
-				for (i = 0; i <= 1; i += 1) {
-					totalScores[i] -= totalMaluses[i];
-				}
-				
-				// Add total maluses and scores to scoreboard
-				scoreboard.push({
-					label: 'maluses',
-					values: totalMaluses
-				}, {
-					label: 'total',
-					values: totalScores
-				});
+			// Compute and store total maluses in penalties object
+			var maluses = this._computeMaluses(statesCovered);
+			this.penalties[totalColumnId] = maluses;
+			
+			// Ask judges to compute their total scores
+			Object.keys(this.ring.judgeById).forEach(function (judgeId) {
+				this.ring.judgeById[judgeId].computeTotal(totalColumnId, statesCovered, maluses);
 			}, this);
 			
-			this._publish('totalComputed');
+			this._publish('totalsComputed');
+			return totalColumnId;
 		},
 		
-		computeWinner: function () {
+		computeWinner: function (totalColumnId) {
 			var diff = 0;
 			
-			// Loop through the judges' scoreboards
-			Object.keys(this.scoreboards).forEach(function (judgeId) {
-				var scoreboard = this.scoreboards[judgeId];
+			// Ask judges to return their winner
+			Object.keys(this.ring.judgeById).forEach(function (judgeId) {
+				// Get winner
+				var winner = this.ring.judgeById[judgeId].getWinner(totalColumnId);
 				
-				// Look at the last column of the scoreboard (total or golden point)
-				var totals = scoreboard[scoreboard.length - 1].values;
-				
-				// +1 if hong wins, -1 if chong wins, 0 if tie
-				diff += (totals[0] > totals[1] ? 1 : (totals[0] < totals[1] ? -1 : 0));
+				// +1 if hong wins, -1 if chong wins, 0 if tie (null)
+				diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
 			}, this);
 			
-			return diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null);
+			// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
+			var winner = diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null);
+			this.winner = winner;
+			return winner;
 		},
 		
-		_isTie: function () {
+		_isTie: function (totalColumnId) {
 			// If tie, computeWinner returns null
-			return !this.computeWinner();
+			return !this.computeWinner(totalColumnId);
 		},
 		
 		_nextState: function () {
@@ -143,9 +127,9 @@ define([
 					this.states.push(MatchStates.BREAK, MatchStates.ROUND_2);
 				} else {
 					// Compute total with scores from previous round(s)
-					this._computeTotal();
+					var totalColumnId = this._computeTotals();
 
-					if (this.state !== MatchStates.GOLDEN_POINT && this._isTie()) {
+					if (this.state !== MatchStates.GOLDEN_POINT && this._isTie(totalColumnId)) {
 						var tbOrNull = this.config.tieBreaker ? MatchStates.TIE_BREAKER : null;
 						var gpOrNull = this.config.goldenPoint ? MatchStates.GOLDEN_POINT : null;
 						var eitherOrNull = tbOrNull ? tbOrNull : gpOrNull;

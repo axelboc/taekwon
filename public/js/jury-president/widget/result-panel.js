@@ -38,7 +38,7 @@ define([
 		},
 		
 		_showWinner: function () {
-			var winner = this.ring.match.computeWinner();
+			var winner = this.ring.match.winner;
 			if (winner) {
 				this.winner.className = 'rp-winner ' + winner + '-col';
 				this.winner.textContent = winner.charAt(0).toUpperCase() + winner.slice(1) + " wins";
@@ -51,8 +51,6 @@ define([
 		_populateScoreboard: function () {
 			var match = this.ring.match;
 			var states = match.states;
-			
-			console.log(match.scoreboards);
 			
 			var context = {
 				match: {
