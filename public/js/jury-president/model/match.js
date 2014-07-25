@@ -18,7 +18,7 @@ define([
 		this.injuryStarted = false;
 		this.scoringEnabled = false;
 		
-		// TODO: fix issue with judges entering/leaving ring during match (this.ring.judges?)
+		// TODO: fix issue with judges leaving ring during match
 		// TODO: combine rounds 1 and 2 (score and penalties)
 		
 		/**
@@ -223,10 +223,6 @@ define([
 		
 		judgeScored: function (id, competitor, points) {
 			this.ring.judgeById[id].score(this.state, competitor, points);
-		},
-		
-		eraseScoreboard: function (judgeId) {
-			delete this.scoreboards[judgeId];
 		},
 		
 		incrementPenalty: function (type, competitor) {

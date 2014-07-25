@@ -106,14 +106,20 @@ define([
 		},
 		
 		_onMatchCreated: function () {
+			// Ask judges to reset their scoreboard
+			this.ring.resetScoreboards();
+			
+			// Show match panel
 			this._showPanel(this.matchPanel);
 		},
 		
 		_onMatchConfigBtn: function () {
+			// Show config panel
 			this._showPanel(this.configPanel);
 		},
 		
 		_onMatchResultBtn: function () {
+			// Show result panel
 			this._showPanel(this.resultPanel);
 		}
 		

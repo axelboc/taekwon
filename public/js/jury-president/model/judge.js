@@ -43,10 +43,13 @@ define([
 		
 		resetScoreboard: function () {
 			this.scoreboard = {};
+			this._publish('scoreboardReset');
 		},
 		
 		_initScoreboardColumn: function (columnId) {
-			return this.scoreboard[columnId] = [0, 0];
+			var scores = [0, 0];
+			this.scoreboard[columnId] = scores;
+			return scores;
 		},
 		
 		score: function (columnId, competitor, points) {

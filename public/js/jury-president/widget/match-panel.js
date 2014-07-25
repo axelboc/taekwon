@@ -8,6 +8,7 @@ define([
 	'../model/timer'
 
 ], function (PubSub, Handlebars, Helpers, IO, MatchStates, Timer) {
+	// TODO: display match state in heading, above buttons
 	
 	function MatchPanel(ring) {
 		this.ring = ring;
@@ -37,7 +38,8 @@ define([
 				penaltiesReset: this._onPenaltiesReset
 			},
 			judge: {
-				scoresUpdated: this._onJudgeScoresUpdated
+				scoresUpdated: this._onJudgeScoresUpdated,
+				scoreboardReset: this._onJudgeScoreboardReset
 			},
 			timer: {
 				tick: this._onTimerTick
@@ -233,7 +235,10 @@ define([
 		},
 		
 		_onJudgeDetached: function (judge) {
-			this.judgeScores[judge.index].name.textContent = "Judge #" + (judge.index + 1);
+			var js = this.judgeScores[judge.index];
+			js.name.textContent = "Judge #" + (judge.index + 1);
+			js.hong.textContent = "0";
+			js.chong.textContent = "0";
 			delete this.judgeScoresById[judge.id];
 		},
 		
@@ -250,6 +255,12 @@ define([
 			var js = this.judgeScoresById[judgeId];
 			js.hong.textContent = scores[0];
 			js.chong.textContent = scores[1];
+		},
+		
+		_onJudgeScoreboardReset: function (judgeId) {
+			if (this.judgeScoresById[judgeId]) {
+				this._onJudgeScoresUpdated(judgeId, [0, 0]);
+			}
 		},
 		
 		_onPenaltiesReset: function (state) {

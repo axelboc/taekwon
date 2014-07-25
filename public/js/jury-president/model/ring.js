@@ -76,12 +76,6 @@ define([
 			delete this.judgeById[id];
 			this.judgeSlots[judge.index].judge = null;
 			this.judgeCount -= 1;
-			
-			if (this.match) {
-				// Erase judge's scoreboard
-				this.match.eraseScoreboard(id);
-			}
-			
 			this._publish('judgeDetached', judge);
 		},
 		
@@ -104,6 +98,13 @@ define([
 					this.match = new Match(config, this);
 				}
 			}
+		},
+		
+		resetScoreboards: function () {
+			// Ask judges to reset their scoreboard
+			Object.keys(this.judgeById).forEach(function (judgeId) {
+				this.judgeById[judgeId].resetScoreboard();
+			}, this);
 		}
 		
 	};
