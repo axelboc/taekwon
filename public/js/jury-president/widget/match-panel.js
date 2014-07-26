@@ -35,11 +35,11 @@ define([
 				injuryStarted: this._onInjuryStarted,
 				injuryEnded: this._onInjuryEnded,
 				scoringStateChanged: this._onScoringStateChanged,
+				scoresReset: this._onScoresReset,
 				penaltiesReset: this._onPenaltiesReset
 			},
 			judge: {
-				scoresUpdated: this._onJudgeScoresUpdated,
-				scoreboardReset: this._onJudgeScoreboardReset
+				scoresUpdated: this._onJudgeScoresUpdated
 			},
 			timer: {
 				tick: this._onTimerTick
@@ -251,16 +251,19 @@ define([
 			this.match.judgeScored(score.judgeId, score.competitor, score.points);
 		},
 		
-		_onJudgeScoresUpdated: function (judgeId, scores) {
-			var js = this.judgeScoresById[judgeId];
+		_updateJudgeScores: function (js, scores) {
 			js.hong.textContent = scores[0];
 			js.chong.textContent = scores[1];
 		},
 		
-		_onJudgeScoreboardReset: function (judgeId) {
-			if (this.judgeScoresById[judgeId]) {
-				this._onJudgeScoresUpdated(judgeId, [0, 0]);
-			}
+		_onJudgeScoresUpdated: function (judgeId, scores) {
+			this._updateJudgeScores(this.judgeScoresById[judgeId], scores);
+		},
+		
+		_onScoresReset: function (newScoreboardColumnId) {
+			this.judgeScores.forEach(function (js) {
+				this._updateJudgeScores(js, [0, 0]);
+			}, this);
 		},
 		
 		_onPenaltiesReset: function (state) {

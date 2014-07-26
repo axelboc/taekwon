@@ -16,6 +16,7 @@ define([
 		// TODO: use unique key for total columns
 		// TODO: compute total here
 		
+		this.scoreboard;
 		this.resetScoreboard();
 		
 		this._publish('initialised', this);
@@ -43,10 +44,9 @@ define([
 		
 		resetScoreboard: function () {
 			this.scoreboard = {};
-			this._publish('scoreboardReset');
 		},
 		
-		_initScoreboardColumn: function (columnId) {
+		_addScoreboardColumn: function (columnId) {
 			var scores = [0, 0];
 			this.scoreboard[columnId] = scores;
 			return scores;
@@ -56,33 +56,27 @@ define([
 			var competitorIndex = (competitor === Competitors.HONG ? 0 : 1);
 			
 			var scores = this.scoreboard[columnId];
+			// TODO: move this to function (duplicated below)
 			if (!scores) {
-				scores = this._initScoreboardColumn(columnId);
+				scores = this._addScoreboardColumn(columnId);
 			}
 			
 			scores[competitorIndex] += points;
 			this._publish('scoresUpdated', scores);
 		},
 		
-		computeTotal: function (totalColumnId, statesCovered, maluses) {
-			var totals = [0, 0];
+		computeTotal: function (columnId, totalColumnId, maluses) {
+			var scores = this.scoreboard[columnId];
 			
-			// Sum scores
-			statesCovered.forEach(function (state) {
-				var scores = this.scoreboard[state];
-				if (scores) {
-					totals[0] += scores[0];
-					totals[1] += scores[1];
-				} else {
-					this._initScoreboardColumn(state);
-				}
-			}, this);
+			// If column doesn't exist, add it
+			if (!scores) {
+				scores = this._addScoreboardColumn(columnId);
+			}
 			
-			// Add maluses (negative integers)
-			totals[0] += maluses[0];
-			totals[1] += maluses[1];
-			
+			// Sum scores and maluses (negative integers)
+			var totals = [scores[0] + maluses[0], scores[1] + maluses[1]];
 			console.log("totals: ", totals);
+			
 			// Store totals in scoreboard
 			this.scoreboard[totalColumnId] = totals;
 		},

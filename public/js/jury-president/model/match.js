@@ -9,6 +9,7 @@ define([
 	function Match(config, ring) {
 		this.config = config;
 		this.ring = ring;
+		this.winner = null;
 		
 		this.state = null;
 		this.states = [MatchStates.ROUND_1];
@@ -22,7 +23,7 @@ define([
 		// TODO: combine rounds 1 and 2 (score and penalties)
 		
 		/**
-		 * Columns in judges' scoreboards and penalties array
+		 * Columns in judges' scoreboards and penalties array.
 		 * A column is added for each non-break state during the match, 
 		 * as well as when computing the total scores of previous rounds.
 		 * Examples of column ID sequences for various matches:
@@ -30,15 +31,15 @@ define([
 		 * - 2-round match: 		round-1, round-2, total-2
 		 * - up to golden point: 	round-1, round-2, total-2, tie-breaker, total-4, golden point, total-6
 		 */
-		this.scoreboardColumns = []
+		this.scoreboardColumns = [];
+		// The latest scoreboard column created
+		this.scoreboardColumnId;
 		
 		/**
-		 * Penalties ('warnings' and 'fouls') for each scoreboard column (except break states)
+		 * Penalties ('warnings' and 'fouls') for each scoreboard column (except break states).
 		 * Total maluses are stored against 'total' columns (as negative integers).
 		 */
 		this.penalties = {};
-		
-		this.winner = null;
 
 		this._publish('created', this);
 		this._nextState();
@@ -52,19 +53,19 @@ define([
 		},
 		
 		/**
-		 * Compute maluses from one or more states' penalties, knowing that:
+		 * Compute maluses from one or more scoreboard columns' penalties, knowing that:
 		 * - 3 warnings = -1 pt
 		 * - 1 foul 	= -1 pt
 		 */
-		_computeMaluses: function (statesCovered) {
+		_computeMaluses: function (columnId) {
+			var penalties = this.penalties[columnId];
+			
 			var maluses = [0, 0];
-			statesCovered.forEach(function (state) {
-				var penalties = this.penalties[state];
-				for (var i = 0; i <= 1; i += 1) {
-					maluses[i] -= Math.floor(penalties.warnings[i] / 3) + penalties.fouls[i];
-				}
-			}, this);
+			for (var i = 0; i <= 1; i += 1) {
+				maluses[i] -= Math.floor(penalties.warnings[i] / 3) + penalties.fouls[i];
+			}
 			console.log("maluses: ", maluses);
+			
 			return maluses;
 		},
 		
@@ -77,19 +78,13 @@ define([
 			var totalColumnId = 'total-' + this.scoreboardColumns.length;
 			this.scoreboardColumns.push(totalColumnId);
 			
-			// The states to include when computing the total scores and maluses (order doesn't matter)
-			var statesCovered = [this.state];
-			if (this.state === MatchStates.ROUND_2) {
-				statesCovered.push(MatchStates.ROUND_1);
-			}
-			
 			// Compute and store total maluses in penalties object
-			var maluses = this._computeMaluses(statesCovered);
+			var maluses = this._computeMaluses(this.scoreboardColumnId);
 			this.penalties[totalColumnId] = maluses;
 			
 			// Ask judges to compute their total scores
 			Object.keys(this.ring.judgeById).forEach(function (judgeId) {
-				this.ring.judgeById[judgeId].computeTotal(totalColumnId, statesCovered, maluses);
+				this.ring.judgeById[judgeId].computeTotal(this.scoreboardColumnId, totalColumnId, maluses);
 			}, this);
 			
 			this._publish('totalsComputed');
@@ -150,20 +145,15 @@ define([
 			
 			this.stateIndex += 1;
 			this.state = this.states[this.stateIndex];
-
-			if (this.state !== MatchStates.BREAK) {
-				var label = this.state.split('-').reduce(function (label, word) {
-					return label + " " + word.charAt(0).toUpperCase() + word.slice(1);
-				}, "");
-				
-				// Create new scoreboard column for the new state
-				this.scoreboardColumns.push({
-					id: this.state,
-					label: label
-				});
+			
+			if (this.state !== MatchStates.BREAK && this.state !== MatchStates.ROUND_2) {
+				// Add a new column to the judges' scoreboards
+				this.scoreboardColumnId = this.state === MatchStates.ROUND_1 ? 'main' : this.state;
+				this.scoreboardColumns.push(this.scoreboardColumnId);
+				this._publish('scoresReset', this.scoreboardColumnId);
 				
 				// Initialise penalty arrays for new state
-				this.penalties[this.state] = {
+				this.penalties[this.scoreboardColumnId] = {
 					warnings: [0, 0],
 					fouls: [0, 0]
 				};
@@ -207,6 +197,7 @@ define([
 			}
 		},
 		
+		// TODO: change references to this.state to this.scoreboardColumnId where appropriate
 		startEndInjury: function () {
 			this.injuryStarted = !this.injuryStarted;
 			if (this.injuryStarted) {
@@ -222,15 +213,15 @@ define([
 		},
 		
 		judgeScored: function (id, competitor, points) {
-			this.ring.judgeById[id].score(this.state, competitor, points);
+			this.ring.judgeById[id].score(this.scoreboardColumnId, competitor, points);
 		},
 		
 		incrementPenalty: function (type, competitor) {
-			this.penalties[this.state][type][competitor === Competitors.HONG ? 0 : 1] += 1;
+			this.penalties[this.scoreboardColumnId][type][competitor === Competitors.HONG ? 0 : 1] += 1;
 		},
 		
 		decrementPenalty: function (type, competitor) {
-			this.penalties[this.state][type][competitor === Competitors.HONG ? 0 : 1] -= 1;
+			this.penalties[this.scoreboardColumnId][type][competitor === Competitors.HONG ? 0 : 1] -= 1;
 		}
 		
 	};
