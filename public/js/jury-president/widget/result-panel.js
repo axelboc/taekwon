@@ -27,8 +27,9 @@ define([
 		this.matchConfigBtn.addEventListener('click', this._publish.bind(this, 'matchConfigBtn'));
 		
 		// Scoreboard
-		this.scoreboardWrap = this.root.querySelector('.scoreboard-wrap');
-		this.scoreboardTemplate = Handlebars.compile(document.getElementById('scoreboard-tmpl').innerHTML);
+		this.scoreboard = this.root.querySelector('.scoreboard');
+		this.sbHeaderRow = this.scoreboard.querySelector('.sb-header-row');
+		this.sbBody = this.scoreboard.querySelector('.sb-body');
 	}
 	
 	ResultPanel.prototype = {
@@ -48,33 +49,47 @@ define([
 			}
 		},
 		
+		_buildHeaderRow: function (columns, twoRounds) {
+			// First cell is empty
+			this.sbHeaderRow.appendChild(document.createElement('th'));
+
+			columns.forEach(function (columnId) {
+				var cell = document.createElement('th');
+				cell.setAttribute('scope', 'col');
+				cell.setAttribute('colspan', '2');
+				
+				var label;
+				if (columnId === 'main') {
+					label = twoRounds ? "Rounds 1 & 2" : "Round 1";
+				} else if (/^total/.test(columnId)) {
+					label = "Total"
+				} else {
+					// TODO: provide both an ID and a name for states in MatchStates module 
+					label = columnId.split('-').reduce(function (label, part) {
+						return label += part.charAt(0).toUpperCase() + part.slice(1) + " ";
+					}, "").slice(0, -1);
+				}
+				
+				cell.textContent = label;
+				this.sbHeaderRow.appendChild(cell);
+			}, this);
+		},
+		
 		_populateScoreboard: function () {
 			var match = this.ring.match;
-			var states = match.states;
+			var columns = match.scoreboardColumns;
 			
-			var context = {
-				match: {
-					hadTwoRounds: states.indexOf(MatchStates.ROUND_2) !== -1,
-					hadTieBreaker: states.indexOf(MatchStates.TIE_BREAKER) !== -1,
-					hadGoldenPoint: states.indexOf(MatchStates.GOLDEN_POINT) !== -1
-				},
-				judges: [{
-					name: "Axel",
-					results: [23, 25, 12, 34, 45, 46]
-				}, {
-					name: "Judge #2",
-					results: [23, 25, 12, 34, 45, 46]
-				}, {
-					name: "Judge #3",
-					results: [23, 25, 12, 34, 45, 46]
-				}, {
-					name: "Judge #4",
-					results: [23, 25, 12, 34, 45, 46]
-				}]
-			};
+			// Clear scoreboard table first
+			this.sbHeaderRow.innerHTML = '';
+			this.sbBody.innerHTML = '';
+		
+			// Build header row
+			this._buildHeaderRow(columns, match.config.twoRounds);
+			
+			// Build penalties row
 
 			// Evaluate scoreboard template with context
-			this.scoreboardWrap.innerHTML = this.scoreboardTemplate(context);
+			/*this.scoreboardWrap.innerHTML = this.scoreboardTemplate(context);
 
 			// Get scoreboard and cells
 			var scoreboard = this.scoreboardWrap.querySelector('.scoreboard');
@@ -90,7 +105,7 @@ define([
 			var cellsPerRow = context.judges[0].results.length;
 			[].forEach.call(scoreboardCells, function (cell, index) {
 				cell.classList.add(((index % cellsPerRow) % 2 === 0 ? 'hong-sbg' : 'chong-sbg'));
-			})
+			})*/
 		},
 		
 		_onMatchEnded: function () {

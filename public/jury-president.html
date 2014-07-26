@@ -155,11 +155,17 @@
 				<button type="button" class="match-btn match-btn--config btn btn--minor">Change match configuration</button>
 				<button type="button" class="match-btn match-btn--new btn btn--major">New match</button>
 			</div>
-			<div class="scoreboard-wrap"></div>
-			<script id="scoreboard-tmpl" type="text/x-handlebars-template">
+			<div class="scoreboard-wrap">
 				<table class="scoreboard">
 					<thead class="sb-head">
-						<tr>
+						<tr class="sb-header-row">
+						</tr>
+					</thead>
+					<tbody class="sb-body">
+					</tbody>
+				</table>
+			</div>
+			<script id="scoreboard-tmpl" type="text/x-handlebars-template">
 							<th scope="col" class="hidden--view">Judge</th>
 							<th scope="col" colspan="2">Round 1</th>
 							{{#if match.hadTwoRounds}}<th scope="col" colspan="2">Round 2</th>{{/if}}
@@ -172,6 +178,7 @@
 						</tr>
 					</thead>
 					<tbody class="sb-body">
+					
 						{{#each judges}}
 						<tr>
 							<th scope="row">{{name}}</th>
@@ -180,8 +187,6 @@
 							{{/each}}
 						</tr>
 						{{/each}}
-					</tbody>
-				</table>
 			</script>
 		</div>
 	</div>

@@ -117,7 +117,7 @@ define([
 		_nextState: function () {
 			// If no more states in array, add more if appropriate or end match
 			if (this.stateIndex === this.states.length - 1) {
-				if (this.state === MatchStates.ROUND_1 & this.config.twoRounds) {
+				if (this.state === MatchStates.ROUND_1 && this.config.twoRounds) {
 					// Add Break and Round 2 states
 					this.states.push(MatchStates.BREAK, MatchStates.ROUND_2);
 				} else {
