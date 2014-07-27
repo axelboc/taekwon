@@ -16,12 +16,18 @@ define(['minpubsub'], function (PubSub) {
 		'newCornerJudge',
 		'cornerJudgeStateChanged',
 		'cornerJudgeScored',
-		'restoreSession'
+		'restoreSession',
+		'connect'
 	];
 
 	function init() {
 		console.log("Connecting to server");
 		socket = io.connect();
+		
+		// If server is disconnected, reload the page to show error (workaround for heartbeat reconnections)
+		socket.on('disconnect', function () {
+			window.location.reload();
+		});
 
 		// Bind events
 		events.forEach(function (evt) {

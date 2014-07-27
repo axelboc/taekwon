@@ -1,6 +1,5 @@
 
 // TODO: combine rejection events (ring is full, not authorised, match in progress, does not exist)
-// TODO: fix issue with backdrop in IE
 define([
 	'minpubsub',
 	'../common/helpers',

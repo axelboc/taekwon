@@ -7,9 +7,11 @@
     "type": "git",
     "url": "http://github.com/axelboc/taekwon"
   },
-  "devDependencies": {
-    "socket.io": "~0.9.16",
-    "express": "~3.4.7",
-    "cookie": "~0.1.1"
+  "dependencies": {
+    "cookie": "*",
+    "cookie-parser": "*",
+    "socket.io": "~1.0.6",
+    "express": "~4.7.1",
+    "express-session": "~1.7.1"
   }
 }

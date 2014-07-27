@@ -42,8 +42,10 @@ Ring.getRingAllocation = function (index) {
 };
 
 Ring.delete = function (ring) {
-	rings[ring.index] = null;
-    ringAllocations[ring.index].allocated = false;
+	if (ring) {
+		rings[ring.index] = null;
+		ringAllocations[ring.index].allocated = false;
+	}
 };
 
 

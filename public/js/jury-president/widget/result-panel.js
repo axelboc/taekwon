@@ -113,7 +113,7 @@ define([
 			
 			columns.forEach(function (columnId) {
 				var isTotalCol = /^total/.test(columnId);
-				var scores = scoreboard[columnId];
+				var scores = scoreboard[columnId] || [0, 0];
 				var diff = scores[0] - scores[1];
 				
 				this._appendBodyCell(row, isTotalCol && diff >= 0 ? 'hong-bg' : 'hong-sbg', scores[0]);
