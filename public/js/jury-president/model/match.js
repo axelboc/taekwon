@@ -86,27 +86,29 @@ define([
 			return totalColumnId;
 		},
 		
-		computeWinner: function (totalColumnId) {
+		_computeWinner: function (totalColumnId) {
 			var diff = 0;
 			
 			// Ask judges to return their winner
 			Object.keys(this.ring.judgeById).forEach(function (judgeId) {
 				// Get winner
 				var winner = this.ring.judgeById[judgeId].getWinner(totalColumnId);
+				console.log(winner);
 				
 				// +1 if hong wins, -1 if chong wins, 0 if tie (null)
 				diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
 			}, this);
 			
 			// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
-			var winner = diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null);
-			this.winner = winner;
-			return winner;
+			var globalWinner = diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null);
+			console.log(globalWinner);
+			this.winner = globalWinner;
+			return globalWinner;
 		},
 		
 		_isTie: function (totalColumnId) {
 			// If tie, computeWinner returns null
-			return !this.computeWinner(totalColumnId);
+			return !this._computeWinner(totalColumnId);
 		},
 		
 		_nextState: function () {
@@ -132,6 +134,7 @@ define([
 							return;
 						}
 					} else {
+						this._computeWinner(totalColumnId);
 						this._endMatch();
 						return;
 					}

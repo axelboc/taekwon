@@ -40,12 +40,6 @@ define([
 				ringSelected: this._onRingSelected
 			}
 		});
-		
-		// DEBUG
-		//IO.debug();
-		/*setTimeout(function () {
-			IO.sendId('tkd')
-		}, 200);*/
 	}
 	
 	Controller.prototype = {

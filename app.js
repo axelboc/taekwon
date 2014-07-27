@@ -42,11 +42,11 @@ app.use(session({
 
 // Initialise Socket.IO
 var io = socket(server);
+//io.set('origins', 'http://taekwon.do:80');
 
 // Configure Socket.IO
 io.use(function (socket, next) {
 	var req = socket.request;
-	console.log(req.session);
 	
 	if (!req.headers.cookie) {
 		next(new Error("No cookie transmitted."));
@@ -54,7 +54,6 @@ io.use(function (socket, next) {
 
 	// Parse and store cookies
 	req.cookie = cookie.parse(req.headers.cookie);
-	console.log(req.cookie);
 	// Decode Express session ID
 	req.sessionId = cookieParser.signedCookie(req.cookie[Config.cookieKey], Config.cookieSecret);
 

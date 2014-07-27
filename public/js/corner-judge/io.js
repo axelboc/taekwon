@@ -2,7 +2,11 @@
 /**
  * Corner Judge 'IO' module for socket communication.
  */
-define(['minpubsub'], function (PubSub) {
+define([
+	'minpubsub',
+	'../common/config'
+
+], function (PubSub, config) {
 		
 	var socket;
 	var events = [
@@ -23,7 +27,9 @@ define(['minpubsub'], function (PubSub) {
 
 	function init() {
 		console.log("Connecting to server");
-		socket = io.connect();
+		socket = io.connect(config.isProd ? config.prodUrl : config.devUrl, {
+			path: '/socket.io'
+		});
 		
 		// If server is disconnected, reload the page to show error (workaround for heartbeat reconnections)
 		socket.on('disconnect', function () {
