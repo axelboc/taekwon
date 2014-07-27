@@ -45,8 +45,28 @@ define([
 				this.winner.textContent = winner.charAt(0).toUpperCase() + winner.slice(1) + " wins";
 			} else {
 				this.winner.className = 'rp-winner';
-				this.winner.textContent = "Match is a tie";
+				this.winner.textContent = "Draw";
 			}
+		},
+		
+		_appendHeaderCell: function (parent, scope, colspan, className, label) {
+			var cell = document.createElement('th');
+			cell.setAttribute('scope', 'col');
+			if (colspan > 1) {
+				cell.setAttribute('colspan', colspan.toString(10));
+			}
+			cell.className = className;
+			cell.textContent = label;
+			parent.appendChild(cell);
+			return cell;
+		},
+		
+		_appendBodyCell: function (parent, className, label) {
+			var cell = document.createElement('td');
+			cell.className = className;
+			cell.textContent = label;
+			parent.appendChild(cell);
+			return cell;
 		},
 		
 		_buildHeaderRow: function (columns, twoRounds) {
@@ -54,10 +74,6 @@ define([
 			this.sbHeaderRow.appendChild(document.createElement('th'));
 
 			columns.forEach(function (columnId) {
-				var cell = document.createElement('th');
-				cell.setAttribute('scope', 'col');
-				cell.setAttribute('colspan', '2');
-				
 				var label;
 				if (columnId === 'main') {
 					label = twoRounds ? "Rounds 1 & 2" : "Round 1";
@@ -70,8 +86,39 @@ define([
 					}, "").slice(0, -1);
 				}
 				
-				cell.textContent = label;
-				this.sbHeaderRow.appendChild(cell);
+				this._appendHeaderCell(this.sbHeaderRow, 'col', 2, '', label);
+			}, this);
+		},
+		
+		_buildPenaltiesRow: function (columns, penalties, type) {
+			var row = document.createElement('tr');
+			row.className = 'sb-row--' + type;
+			this._appendHeaderCell(row, 'row', 1, '', type.charAt(0).toUpperCase() + type.slice(1));
+			this.sbBody.appendChild(row);
+			
+			columns.forEach(function (columnId) {
+				if (penalties[columnId][type]) {
+					this._appendBodyCell(row, 'hong-sbg', penalties[columnId][type][0]);
+					this._appendBodyCell(row, 'chong-sbg', penalties[columnId][type][1]);
+				} else if (type === 'warnings') {
+					this._appendBodyCell(row, 'hong-sbg', penalties[columnId][0]).setAttribute('rowspan', '2');
+					this._appendBodyCell(row, 'chong-sbg', penalties[columnId][1]).setAttribute('rowspan', '2');
+				}
+			}, this);
+		},
+		
+		_buildJudgeRow: function (columns, name, scoreboard) {
+			var row = document.createElement('tr');
+			this._appendHeaderCell(row, 'row', 1, '', name);
+			this.sbBody.appendChild(row);
+			
+			columns.forEach(function (columnId) {
+				var isTotalCol = /^total/.test(columnId);
+				var scores = scoreboard[columnId];
+				var diff = scores[0] - scores[1];
+				
+				this._appendBodyCell(row, isTotalCol && diff >= 0 ? 'hong-bg' : 'hong-sbg', scores[0]);
+				this._appendBodyCell(row, isTotalCol && diff <= 0 ? 'chong-bg' : 'chong-sbg', scores[1]);
 			}, this);
 		},
 		
@@ -87,25 +134,14 @@ define([
 			this._buildHeaderRow(columns, match.config.twoRounds);
 			
 			// Build penalties row
+			this._buildPenaltiesRow(columns, match.penalties, 'warnings');
+			this._buildPenaltiesRow(columns, match.penalties, 'fouls');
 
-			// Evaluate scoreboard template with context
-			/*this.scoreboardWrap.innerHTML = this.scoreboardTemplate(context);
-
-			// Get scoreboard and cells
-			var scoreboard = this.scoreboardWrap.querySelector('.scoreboard');
-			var scoreboardCells = scoreboard.querySelectorAll('td');
-
-			// Add classes to scoreboard root
-			var mc = context.match;
-			scoreboard.classList.toggle('sb--2-rounds', mc.hadTwoRounds);
-			scoreboard.classList.toggle('sb--tie', mc.hadTieBreaker);
-			scoreboard.classList.toggle('sb--golden-pt', mc.hadGoldenPoint);
-
-			// Add classes to cells
-			var cellsPerRow = context.judges[0].results.length;
-			[].forEach.call(scoreboardCells, function (cell, index) {
-				cell.classList.add(((index % cellsPerRow) % 2 === 0 ? 'hong-sbg' : 'chong-sbg'));
-			})*/
+			// Build judge rows
+			Object.keys(this.ring.judgeById).forEach(function (judgeId) { 
+				var judge = this.ring.judgeById[judgeId];
+				this._buildJudgeRow(columns, judge.name, judge.scoreboard);
+			}, this);
 		},
 		
 		_onMatchEnded: function () {

@@ -106,19 +106,19 @@
 /* ===== Configuration panel ===== */
 
 #config-panel {
-	padding-top: 4em;
+	padding-top: 4.5em;
 }
 
 .config {
 	max-width: 45em;
-	margin: 3em auto 4em;
+	margin: 3.5em auto 4em;
 	padding-bottom: 0;
-	font-size: 120%;
+	font-size: 110%;
 	text-align: left;
 }
 
 .config-heading {
-	margin-top: 0;
+	margin: 0 0 1em;
 	text-align: center;
 }
 
@@ -382,13 +382,12 @@
 }
 
 .scoreboard-wrap {
-	margin-top: 2.5em;
+	margin: 2em 0 3em;
 	font-size: 120%;
 }
 
 .scoreboard {
-	margin: 1em auto 3em;
-	font-size: 95%;
+	margin: 0 auto;
 }
 
 .scoreboard th,
@@ -396,16 +395,29 @@
 	padding: .3em .5em;
 }
 
-.scoreboard th {
-	font-weight: normal;
-}
-
 .sb-body th {
 	text-align: right;
 }
 
+.sb-row--warnings,
+.sb-row--fouls {
+	font-size: 90%;
+}
+
+.sb-row--fouls > th,
+.sb-row--fouls > td,
+.sb-row--warnings > td[rowspan="2"] {
+	border-bottom: 10px solid #fff;
+}
+
+.sb-row--warnings > th,
+.sb-row--fouls > th {
+	font-weight: normal;
+}
+
 .sb-head th:not(:first-child),
-.sb-body .hong-sbg {
+.sb-body .hong-sbg,
+.sb-body .hong-bg {
 	border-left: 10px solid #fff;
 }
 

@@ -49,7 +49,7 @@
 		</div>
 		<div class="main">
 			<div id="config-panel" class="panel">
-				<button type="button" class="match-btn match-btn--new btn btn--major">New match</button>
+				<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
 				<div class="config action">
 					<h2 class="config-heading">Match Configuration</h2>
 					<div class="config-item" data-name="roundTime" data-type="time">
@@ -92,10 +92,10 @@
 					</div>
 					<div class="mp-cell state-management">
 						<div class="sm-inner">
-							<button class="sm-btn sm-btn--start match-btn btn" type="button">Start round 1</button>
-							<button class="sm-btn sm-btn--end match-btn btn" type="button">End round 1</button>
-							<button class="sm-btn sm-btn--result match-btn btn btn--major hidden" type="button">See result</button>
-							<button class="sm-btn sm-btn--injury match-btn btn btn--minor" type="button">Start injury</button>
+							<button class="sm-btn sm-btn--start match-btn btn" type="button">Start</button>
+							<button class="sm-btn sm-btn--end match-btn btn" type="button">End</button>
+							<button class="sm-btn sm-btn--result match-btn btn btn--major hidden" type="button">See Result</button>
+							<button class="sm-btn sm-btn--injury match-btn btn btn--minor" type="button">Start Injury</button>
 						</div>
 					</div>
 				</div>
@@ -152,8 +152,8 @@
 		<div id="result-panel" class="panel hidden">
 			<p class="rp-winner"></p>
 			<div>
-				<button type="button" class="match-btn match-btn--config btn btn--minor">Change match configuration</button>
-				<button type="button" class="match-btn match-btn--new btn btn--major">New match</button>
+				<button type="button" class="match-btn match-btn--config btn btn--minor">Match Configuration</button>
+				<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
 			</div>
 			<div class="scoreboard-wrap">
 				<table class="scoreboard">
@@ -165,29 +165,6 @@
 					</tbody>
 				</table>
 			</div>
-			<script id="scoreboard-tmpl" type="text/x-handlebars-template">
-							<th scope="col" class="hidden--view">Judge</th>
-							<th scope="col" colspan="2">Round 1</th>
-							{{#if match.hadTwoRounds}}<th scope="col" colspan="2">Round 2</th>{{/if}}
-							<th scope="col" colspan="2">Total</th>
-							{{#if match.hadTieBreaker}}
-							<th scope="col" colspan="2">Tie breaker</th>
-							<th scope="col" colspan="2">Total</th>
-							{{/if}}
-							{{#if match.hadGoldenPoint}}<th scope="col" colspan="2">Golden point</th>{{/if}}
-						</tr>
-					</thead>
-					<tbody class="sb-body">
-					
-						{{#each judges}}
-						<tr>
-							<th scope="row">{{name}}</th>
-							{{#each results}}
-							<td>{{this}}</td>
-							{{/each}}
-						</tr>
-						{{/each}}
-			</script>
 		</div>
 	</div>
 </body>
