@@ -20,7 +20,6 @@ define([
 	
 	Ring.prototype = {
 		
-		// TODO: subscribe to errors in main module
 		_publish: function (subTopic) {
 			PubSub.publish('ring.' + subTopic, [].slice.call(arguments, 1));
 		},

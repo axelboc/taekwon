@@ -128,7 +128,6 @@ define([
 			delete this.slotsById[id]
 			slot.judge = null;
 			this._updateSlot(slot);
-			// TODO: use direct reference to parent view instead of event
 			this._publish('judgeDetached', id, slot.index);
 		},
 		

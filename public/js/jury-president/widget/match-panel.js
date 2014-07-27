@@ -8,7 +8,6 @@ define([
 	'../model/timer'
 
 ], function (PubSub, Handlebars, Helpers, IO, MatchStates, Timer) {
-	// TODO: display match state in heading, above buttons
 	
 	function MatchPanel(ring) {
 		this.ring = ring;
@@ -67,7 +66,6 @@ define([
 		};
 		
 		// Match state management
-		// TODO: bindEvents helper
 		this.stateStartBtn = this.root.querySelector('.sm-btn--start');
 		this.stateEndBtn = this.root.querySelector('.sm-btn--end');
 		this.matchResultBtn = this.root.querySelector('.sm-btn--result');

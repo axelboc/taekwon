@@ -11,6 +11,7 @@ define([
 
 ], function (PubSub, Helpers, IO, defaults, PwdView, RingListView, Ring, RingView) {
 	
+	// TODO: manage errors (subscribe to error event)
 	function Controller() {
 		// Initialise socket connection with server
 		IO.init();

@@ -74,6 +74,7 @@ Ring.prototype.juryPresidentStateChanged = function (connected) {
 
 Ring.prototype.scoringStateChanged = function (enabled) {
 	this.scoringEnabled = enabled;
+	// TODO: fix 'scoringStateChanged' event not emitted after disconnection and restoration of CJ
 	this.io.sockets.in(this.roomId).emit('scoringStateChanged', enabled);
 };
 

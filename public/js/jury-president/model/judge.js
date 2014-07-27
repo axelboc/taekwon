@@ -12,10 +12,6 @@ define([
 		this.connected = connected;
 		this.authorised = authorised;
 		
-		// TODO: store columns as key/value pairs in scoreboard (not array)
-		// TODO: use unique key for total columns
-		// TODO: compute total here
-		
 		this.scoreboard;
 		this.resetScoreboard();
 		
@@ -46,36 +42,28 @@ define([
 			this.scoreboard = {};
 		},
 		
-		_addScoreboardColumn: function (columnId) {
-			var scores = [0, 0];
-			this.scoreboard[columnId] = scores;
+		_getCurrentScores: function (columnId) {
+			var scores = this.scoreboard[columnId];
+			
+			// If column doesn't exist, create it
+			if (!scores) {
+				scores = this.scoreboard[columnId] = [0, 0];
+			}
+			
 			return scores;
 		},
 		
 		score: function (columnId, competitor, points) {
+			var scores = this._getCurrentScores(columnId);
 			var competitorIndex = (competitor === Competitors.HONG ? 0 : 1);
-			
-			var scores = this.scoreboard[columnId];
-			// TODO: move this to function (duplicated below)
-			if (!scores) {
-				scores = this._addScoreboardColumn(columnId);
-			}
-			
 			scores[competitorIndex] += points;
 			this._publish('scoresUpdated', scores);
 		},
 		
 		computeTotal: function (columnId, totalColumnId, maluses) {
-			var scores = this.scoreboard[columnId];
-			
-			// If column doesn't exist, add it
-			if (!scores) {
-				scores = this._addScoreboardColumn(columnId);
-			}
-			
 			// Sum scores and maluses (negative integers)
+			var scores = this._getCurrentScores(columnId);
 			var totals = [scores[0] + maluses[0], scores[1] + maluses[1]];
-			console.log("totals: ", totals);
 			
 			// Store totals in scoreboard
 			this.scoreboard[totalColumnId] = totals;

@@ -44,7 +44,6 @@ define([
 	
 	Match.prototype = {
 		
-		// TODO: subscribe to errors in main module
 		_publish: function (subTopic) {
 			PubSub.publish('match.' + subTopic, [].slice.call(arguments, 1));
 		},
@@ -61,7 +60,6 @@ define([
 			for (var i = 0; i <= 1; i += 1) {
 				maluses[i] -= Math.floor(penalties.warnings[i] / 3) + penalties.fouls[i];
 			}
-			console.log("maluses: ", maluses);
 			
 			return maluses;
 		},

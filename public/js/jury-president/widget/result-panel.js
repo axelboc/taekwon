@@ -80,7 +80,6 @@ define([
 				} else if (/^total/.test(columnId)) {
 					label = "Total"
 				} else {
-					// TODO: provide both an ID and a name for states in MatchStates module 
 					label = columnId.split('-').reduce(function (label, part) {
 						return label += part.charAt(0).toUpperCase() + part.slice(1) + " ";
 					}, "").slice(0, -1);
