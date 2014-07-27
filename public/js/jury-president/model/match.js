@@ -19,9 +19,6 @@ define([
 		this.injuryStarted = false;
 		this.scoringEnabled = false;
 		
-		// TODO: fix issue with judges leaving ring during match
-		// TODO: combine rounds 1 and 2 (score and penalties)
-		
 		/**
 		 * Columns in judges' scoreboards and penalties array.
 		 * A column is added for each non-break state during the match, 
@@ -197,7 +194,6 @@ define([
 			}
 		},
 		
-		// TODO: change references to this.state to this.scoreboardColumnId where appropriate
 		startEndInjury: function () {
 			this.injuryStarted = !this.injuryStarted;
 			if (this.injuryStarted) {

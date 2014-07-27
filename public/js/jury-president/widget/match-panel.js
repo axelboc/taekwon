@@ -46,8 +46,14 @@ define([
 			}
 		});
 		
+		// Match state
+		this.mpState = this.root.querySelector('.mp-state');
+		
 		// Time keeping
+		this.timersSliding = false;
 		this.timeKeeping = this.root.querySelector('.time-keeping');
+		this.tkInner = this.timeKeeping.querySelector('.tk-inner');
+		
 		this.roundTimer = {
 			timer: new Timer('round'),
 			min: this.timeKeeping.querySelector('.tk-timer--round > .tk-timer-min'),
@@ -111,12 +117,31 @@ define([
 
 		_onStateEndBtn: function (evt) {
 			evt.target.blur();
-			this.match.endState();
+			
+			if (!this.timersSliding) {
+				this.match.endState();
+			}
+		},
+		
+		_timersSlidingEnd: function () {
+			// Timer intervals start after a delay of 600ms:
+			// 300ms to account for the sliding transition, plus 300ms for usability purposes
+			window.setTimeout(function () {
+				this.timersSliding = false;
+			}.bind(this), 300);
+			this.tkInner.removeEventListener('transitionend', this._timersSlidingEnd);
 		},
 
 		_onInjuryBtn: function (evt) {
 			evt.target.blur();
-			this.match.startEndInjury();
+			
+			if (!this.timersSliding) {
+				// Prevent action on buttons while timers are sliding
+				this.timersSliding = true;
+				this.tkInner.addEventListener('transitionend', this._timersSlidingEnd.bind(this));
+
+				this.match.startEndInjury();
+			}
 		},
 		
 		_onMatchCreated: function (match) {
@@ -130,16 +155,16 @@ define([
 		},
 
 		_onStateChanged: function (state) {
-			var stateStr = state.replace('-', ' ');
-			console.log("State changed: " + stateStr);
-
+			console.log("State changed: " + state);
+			
 			// Reset round timer
 			this.roundTimer.timer.reset((state === MatchStates.BREAK ? this.match.config.breakTime :
 								(state === MatchStates.GOLDEN_POINT ? 0 : this.match.config.roundTime)));
 
-			// Update text of start and end buttons
-			this.stateStartBtn.textContent = "Start " + stateStr;
-			this.stateEndBtn.textContent = "End " + stateStr;
+			// Update state text
+			this.mpState.textContent = state.split('-').reduce(function (label, part) {
+				return label += part.charAt(0).toUpperCase() + part.slice(1) + " ";
+			}, "").slice(0, -1);
 
 			// Mark start button as major on non-BREAK states
 			this.stateStartBtn.classList.toggle('btn--major', state !== MatchStates.BREAK);
@@ -188,7 +213,7 @@ define([
 
 		_onInjuryStarted: function () {
 			Helpers.enableBtn(this.stateEndBtn, false);
-			this.injuryBtn.textContent = "End injury";
+			this.injuryBtn.textContent = "End Injury";
 			this.timeKeeping.classList.add('tk_injury');
 
 			this.injuryTimer.timer.reset(this.match.config.injuryTime);
@@ -200,7 +225,7 @@ define([
 
 		_onInjuryEnded: function (state) {
 			Helpers.enableBtn(this.stateEndBtn, true);
-			this.injuryBtn.textContent = "Start injury";
+			this.injuryBtn.textContent = "Start Injury";
 			this.timeKeeping.classList.remove('tk_injury');
 
 			this.injuryTimer.timer.stop();

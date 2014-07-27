@@ -178,13 +178,24 @@
 
 /* ===== Match panel ===== */
 
+.mp-state {
+	position: relative;
+	z-index: 10;
+	margin: 0 auto;
+	line-height: 1.5;
+	background-color: #555;
+	color: #fff;
+	font-size: 250%;
+}
+
 .mp-row {
 	display: table;
 	width: 100%;
+	padding: 0 1em;
 }
 
 .mp-row--top {
-	height: 15em;
+	height: 14em;
 	border-bottom: solid 1px #ccc;
 }
 

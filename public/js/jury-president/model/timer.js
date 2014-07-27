@@ -40,6 +40,8 @@ define(['minpubsub'], function (PubSub) {
 
 			var tickFunc = (down ? this._tickDown : this._tickUp).bind(this);
 			
+			// Timer intervals may start after a delay of 600ms:
+			// 300ms to account for the sliding transition, plus 300ms for usability purposes
 			window.setTimeout((function () {
 				tickFunc();
 				this.intervalId = window.setInterval(tickFunc, 1000);
