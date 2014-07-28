@@ -13,8 +13,13 @@ require.config({
 	}
 });
 
-// Jury President 'main' module
-define(['../lib/domReady!', 'fastclick', './controller'], function (document, FastClick, Controller) {
+// Main entry point
+require([
+	'../lib/domReady!',
+	'fastclick',
+	'./controller'
+
+], function (document, FastClick, Controller) {
 	
 	// Start controller
 	var controller = new Controller();
