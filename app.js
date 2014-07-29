@@ -7,12 +7,14 @@
 /* Core set-up */
 
 // Import core modules
-var express = require('express');
 var http = require('http');
-var socket = require('socket.io');
-var cookie = require('cookie');
-var cookieParser = require('cookie-parser');
+var express = require('express');
 var session = require('express-session');
+var cookieParser = require('cookie-parser');
+var cookie = require('cookie');
+var Primus = require('primus');
+var Emit = require('primus-emit');
+var Rooms = require('primus-rooms');
 
 // Import app modules
 var Config = require('./app/config');
@@ -23,11 +25,14 @@ var Ring = require('./app/ring').Ring;
 // Keep track of clients
 var clients = {};
 
-// Initialise Express
+
+/*
+ * Initialise Express
+ */
 var app = express();
 var server = http.Server(app);
 
-// Express middlewares
+// Add middlewares
 app.use(express.static(__dirname + '/public'));
 app.use(cookieParser(Config.cookieSecret));
 app.use(session({
@@ -40,14 +45,20 @@ app.use(session({
 	}
 }));
 
-// Initialise Socket.IO
-var io = socket(server);
-//io.set('origins', 'http://taekwon.do:80');
 
-// Configure Socket.IO
-io.use(function (socket, next) {
-	var req = socket.request;
-	
+/**
+ * Initialise Primus
+ */
+var primus = new Primus(server, {
+	transformer: 'sockjs'
+});
+
+// Add plugin
+primus.use('emit', Emit);
+primus.use('rooms', Rooms);
+
+// Add middleware
+primus.before('session', function (req, res, next) {
 	if (!req.headers.cookie) {
 		next(new Error("No cookie transmitted."));
 	}
@@ -59,10 +70,6 @@ io.use(function (socket, next) {
 
 	next();
 });
-
-
-// Start server
-server.listen(80);
 
 
 /* Routes */
@@ -80,12 +87,13 @@ app.get('/jury', function (request, response) {
 
 /* Socket events */
 
-io.sockets.on('connection', function (socket) {
-	var req = socket.request;
+// Client connection
+primus.on('connection', function (spark) {
+	var req = spark.request;
 	var session = req.session;
 	var sessionId = req.sessionId;
 	var client = clients[sessionId];
-	var isJury = socket.handshake.headers.referer.indexOf('/jury') !== -1;
+	var isJury = req.path.indexOf('/jury') !== -1;
 	console.log("New socket connection with session ID: " + sessionId + ".");
 	
 	// If returning client, restore session automatically
@@ -94,16 +102,26 @@ io.sockets.on('connection', function (socket) {
 		if (isJury && client instanceof JuryPresident ||
 			!isJury && client instanceof CornerJudge) {
 			// Restore session
-			client.restoreSession(socket);
+			client.restoreSession(spark);
 		} else {
 			// Client has switched role; remove its old instance from the system and wait for ID
 			// TODO: implement exit functions of JP and CJ
 			client.exit();
-			waitForId(socket, sessionId);
+			waitForId(spark, sessionId);
 		}
 	} else {
-		waitForId(socket, sessionId);
+		waitForId(spark, sessionId);
 	}
+});
+
+// Client disconnection
+primus.on('disconnection', function (spark) {
+	console.log("Socket disconnection", spark);
+});
+		
+// Log message
+primus.on('log', function (msg) {
+	console.log('Primus log:', msg);
 });
 
 /* Request and wait for client identification */
@@ -122,7 +140,7 @@ function onJPConnection(socket, sessionId, password) {
 	// Check password
 	if (password === Config.masterPwd) {
 		// Initialise JuryPresident
-		clients[sessionId] = new JuryPresident(io, socket, sessionId);
+		clients[sessionId] = new JuryPresident(primus, socket, sessionId);
 		console.log("> Jury president accepted: valid password");
 	} else {
 		// Send failure message to client
@@ -134,6 +152,13 @@ function onJPConnection(socket, sessionId, password) {
 /* Handle new Corner Judge connection */
 function onCJConnection(socket, sessionId, name) {
 	// Initialise CornerJudge
-	clients[sessionId] = new CornerJudge(io, socket, sessionId, name);
+	clients[sessionId] = new CornerJudge(primus, socket, sessionId, name);
 	console.log("> Corner judge identified: " + name);
 }
+
+
+/**
+ * Start server
+ */
+server.listen(80);
+

@@ -38,7 +38,9 @@ JuryPresident.prototype.onCreateRing = function (index) {
 		this.ring = new Ring(this.io, index, this);
 		this.debug("> Ring created");
 		this.socket.emit('ringCreated', index);
-		this.io.sockets.emit('ringAllocationChanged', Ring.getRingAllocation(index));
+		this.io.forEach(function (spark) {
+			spark.emit('ringAllocationChanged', Ring.getRingAllocation(index));
+		});
 	} else {
 		this.debug("> Ring already exists");
 		this.socket.emit('ringAlreadyExists', index);

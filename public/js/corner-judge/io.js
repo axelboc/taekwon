@@ -8,7 +8,7 @@ define([
 
 ], function (PubSub, config) {
 		
-	var socket;
+	var primus;
 	var events = [
 		'waitingForId',
 		'idSuccess',
@@ -27,18 +27,57 @@ define([
 
 	function init() {
 		console.log("Connecting to server");
-		socket = io.connect(config.isProd ? config.prodUrl : config.devUrl, {
-			path: '/socket.io'
+		primus = new Primus(config.isProd ? config.prodUrl : config.devUrl, {});
+		
+		// Listen for opening of connection
+		primus.on('open', function open() {
+			console.log('Connection is alive and kicking');
 		});
 		
-		// If server is disconnected, reload the page to show error (workaround for heartbeat reconnections)
-		socket.on('disconnect', function () {
-			window.location.reload();
+		// Listen for incoming data
+		primus.on('data', function data(data) {
+			PubSub.publish('io.' + data.event, data.value);
+		});
+		
+		// Listen for errors
+		primus.on('error', function error(err) {
+			console.error('Something horrible has happened', err.stack);
+		});
+		
+		// Listen for when Primus attempts to reconnect
+		primus.on('reconnect', function reconnect() {
+			console.log('Reconnect attempt started');
+		});
+		
+		// Listen for when Primus plans on reconnecting
+		primus.on('reconnecting', function reconnecting(opts) {
+			console.log('Reconnecting in %d ms', opts.timeout);
+			console.log('This is attempt %d out of %d', opts.attempt, opts.retries);
+		});
+		
+		// Listen for timeouts
+		primus.on('timeout', function timeout(msg) {
+			console.log('Timeout!', msg);
+		});
+		
+		// Listen for closing of connection
+		primus.on('end', function end() {
+			console.log('Connection closed');
+		});
+		
+		// Regained network connection
+		primus.on('online', function online(msg) {
+			console.log('Online!', msg);
+		});
+		
+		// Lost network connection
+		primus.on('offline', function offline(msg) {
+			console.log('Offline!', msg);
 		});
 		
 		// Bind events
 		events.forEach(function (evt) {
-			socket.on(evt, _publish.bind(this, evt));
+			primus.on(evt, _publish.bind(this, evt));
 		});
 	}
 
@@ -47,22 +86,22 @@ define([
 	}
 
 	function sendId(name) {
-		socket.emit('cornerJudge', name);
+		primus.emit('cornerJudge', name);
 	}
 
 	function joinRing(index) {
-		socket.emit('joinRing', index);
+		primus.emit('joinRing', index);
 	}
 
 	function score(competitor, points) {
-		socket.emit('score', {
+		primus.emit('score', {
 			competitor: competitor,
 			points: points
 		});
 	}
 
 	function sessionRestored() {
-		socket.emit('sessionRestored');
+		primus.emit('sessionRestored');
 	}
 
 
