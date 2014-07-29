@@ -9,6 +9,11 @@ define([
 		this.root = document.getElementById('name');
 		this.field = this.root.querySelector('.name-field');
 		
+		// Cancel form submission
+		this.root.querySelector('.name-form').addEventListener('submit', function (evt) {
+			evt.preventDefault();
+		});
+		
 		this.field.addEventListener('keypress', this._onNameField.bind(this));
 	}
 	
@@ -35,6 +40,7 @@ define([
 			// If Enter key was pressed...
 			if (evt.which === 13 || evt.keyCode === 13) {
 				if (this.field.value.length > 0) {
+					this.field.blur();
 					this._publish('nameSubmitted', this.field.value);
 				} else {
 					this._invalidName();

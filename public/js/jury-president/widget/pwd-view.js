@@ -10,6 +10,11 @@ define([
 		this.instr = this.root.querySelector('.pwd-instr');
 		this.field = this.root.querySelector('.pwd-field');
 		
+		// Cancel form submission
+		this.root.querySelector('.pwd-form').addEventListener('submit', function (evt) {
+			evt.preventDefault();
+		});
+		
 		this.field.addEventListener('keypress', this._onPwdField.bind(this));
 	}
 	

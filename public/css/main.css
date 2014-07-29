@@ -67,7 +67,7 @@ button::-moz-focus-inner {
 	padding: .2em 0 .6em;
 	border-width: 0 8px;
 	border-style: solid;
-	border-color: hsl(357, 85%, 51%);
+	border-color: #ec1822;
 	-webkit-transform: translate3d(0, 0, 0);
 	transform: translate3d(0, 0, 0);
 }
@@ -96,6 +96,7 @@ button::-moz-focus-inner {
 /* ===== Buttons ===== */
 
 .btn {
+	background-image: none;
     background-color: #555;
     color: #fff;
     border: 1px solid #555;
