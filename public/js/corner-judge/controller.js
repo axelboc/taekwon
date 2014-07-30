@@ -132,6 +132,9 @@ define([
 			this.isScoringEnabled = data.scoringEnabled;
 			this.isJPConnected = data.jpConnected;
 			this._updateBackdrops();
+			
+			// Update page title to show ring number
+			document.title = "Corner Judge | Ring " + (data.ringIndex + 1);
 		},
 
 		_onRingNotJoined: function(index) {
@@ -198,12 +201,7 @@ define([
 
 			// If JP was authorised by CJ to join a ring, show round view
 			} else {
-				this._swapView(null, this.roundView);
-
-				// Retrieve scoring and JP states and toggle backdrops
-				this.isScoringEnabled = data.scoringEnabled;
-				this.isJPConnected = data.jpConnected;
-				this._updateBackdrops();
+				this._onRingJoined(data);
 			}
 
 			IO.sessionRestored();
