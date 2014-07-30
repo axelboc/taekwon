@@ -91,6 +91,9 @@ define([
 			// Initialise ring model, view and controller
 			var ring = new Ring(index, defaults.judgesPerRing);
 			this.ringView = new RingView(ring);
+			
+			// Update page title to show ring number
+			document.title = "Jury President | Ring " + (index + 1);
 		},
 
 		_onRingCreated: function(index) {

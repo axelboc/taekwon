@@ -3,6 +3,7 @@
 /* ===== Round view (score buttons) ===== */
 
 #round {
+	max-width: none;
 	height: 100%;
 	padding-bottom: 0;
 }
