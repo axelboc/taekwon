@@ -77,9 +77,14 @@ JuryPresident.prototype.onCornerJudgeAuthorisation = function (accepted, cornerJ
 };
 
 JuryPresident.prototype.onRingIsFull = function (cornerJudgeId) {
-	this.waitingList[cornerJudgeId].ringIsFull(this.ring);
-	// Remove corner judge from waiting list
-	delete this.waitingList[cornerJudgeId];
+	var judge = this.waitingList[cornerJudgeId];
+	if (judge) {
+		judge.ringIsFull(this.ring);
+		// Remove corner judge from waiting list
+		delete this.waitingList[cornerJudgeId];
+	} else {
+		console.error("Corner Judge with ID=" + cornerJudgeId + " missing from waiting list");
+	}
 };
 
 JuryPresident.prototype.onMatchInProgress = function (cornerJudgeId) {
