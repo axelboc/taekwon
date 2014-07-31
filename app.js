@@ -17,7 +17,8 @@ var Emit = require('primus-emit');
 var Rooms = require('primus-rooms');
 
 // Import app modules
-var Config = require('./app/config');
+var config = require('./app/config');
+var Tournament = require('./app/config').Tournament;
 var JuryPresident = require('./app/jury-president').JuryPresident;
 var CornerJudge = require('./app/corner-judge').CornerJudge;
 var Ring = require('./app/ring').Ring;
@@ -34,10 +35,10 @@ var server = http.Server(app);
 
 // Add middlewares
 app.use(express.static(__dirname + '/public'));
-app.use(cookieParser(Config.cookieSecret));
+app.use(cookieParser(config.cookieSecret));
 app.use(session({
-	name: Config.cookieKey,
-	secret: Config.cookieSecret,
+	name: config.cookieKey,
+	secret: config.cookieSecret,
 	saveUninitialized: true,
 	resave: true,
 	cookie: {
@@ -66,7 +67,7 @@ primus.before('session', function (req, res, next) {
 	// Parse and store cookies
 	req.cookie = cookie.parse(req.headers.cookie);
 	// Decode Express session ID
-	req.sessionId = cookieParser.signedCookie(req.cookie[Config.cookieKey], Config.cookieSecret);
+	req.sessionId = cookieParser.signedCookie(req.cookie[config.cookieKey], config.cookieSecret);
 
 	next();
 });
@@ -138,7 +139,7 @@ function waitForId(socket, sessionId) {
 /* Handle new Jury President connection */
 function onJPConnection(socket, sessionId, password) {
 	// Check password
-	if (password === Config.masterPwd) {
+	if (password === config.masterPwd) {
 		// Initialise JuryPresident
 		clients[sessionId] = new JuryPresident(primus, socket, sessionId);
 		console.log("> Jury president accepted: valid password");
@@ -155,6 +156,12 @@ function onCJConnection(socket, sessionId, name) {
 	clients[sessionId] = new CornerJudge(primus, socket, sessionId, name);
 	console.log("> Corner judge identified: " + name);
 }
+
+
+/**
+ * Initialise Tournament
+ */
+var tournament = new Tournament(primus);
 
 
 /**

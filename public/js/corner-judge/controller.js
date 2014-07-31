@@ -59,11 +59,6 @@ define([
 		this.backdropWrap = document.getElementById('backdrop-wrap');
 		this.disconnectedBackdrop = document.getElementById('disconnected-backdrop');
 		this.waitingBackdrop = document.getElementById('waiting-backdrop');
-		
-		// DEBUG
-		/*setTimeout(function () {
-			IO.sendId('Axel')
-		}, 200);*/
 	}
 	
 	Controller.prototype = {
