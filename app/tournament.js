@@ -2,6 +2,8 @@
 // Modules
 var config = require('config');
 var Ring = require('ring').Ring;
+var JuryPresident = require('jury-president').JuryPresident;
+var CornerJudge = require('corner-judge').CornerJudge;
 
 
 function Tournament(primus) {
@@ -18,13 +20,14 @@ function Tournament(primus) {
 	
 	// Socket events
 	this.primus = primus;
-	primus.on('connection', this._onUserConnection.bind(this));
+	primus.on('connection', this._onConnection.bind(this));
+	primus.on('disconnection', this._onDisconnection.bind(this));
 }
 
 
 Tournament.prototype = {
 	
-	_onUserConnection: function (spark) {
+	_onConnection: function (spark) {
 		var request = spark.request;
 		var sessionId = request.sessionId;
 		
@@ -48,6 +51,17 @@ Tournament.prototype = {
 				// Create new user
 				this.users[sessionId] = isJuryURL ? new JuryPresident(spark) : new CornerJudge(spark);
 			}
+		}
+	},
+	
+	_onDisconnection: function (spark) {
+		var sessionId = spark.request.sessionId;
+		var user = this.users[];
+		if (user) {
+			console.log("User with ID=" + sessionId + " disconnected.");
+			user.disconnected();
+		} else {
+			console.error("Spark disonnection error: user with ID=" + sessionId + " doesn't exist.");
 		}
 	}
 	
