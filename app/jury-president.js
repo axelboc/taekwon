@@ -1,20 +1,17 @@
 
 // Modules
-var config = require('config');
+var util = require('util');
+var config = require('./config');
+var User = require('./user').User;
 
 
-function JuryPresident(primus) {
-	this.primus = primus;
-	this.connected = true;
+function JuryPresident(primus, spark, sessionId) {
+	// Call parent constructor
+	User.apply(this, arguments);
 }
 
-JuryPresident.prototype = {
-	
-	
-	disconnected: function () {
-		this.connected = false;
-	}
-	
-};
+// Inherit from User
+util.inherits(JuryPresident, User);
+
 
 exports.JuryPresident = JuryPresident;
