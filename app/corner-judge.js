@@ -17,12 +17,43 @@ util.inherits(CornerJudge, User);
 parent = CornerJudge.super_.prototype;
 
 
+CornerJudge.prototype.getInfo = function () {
+	return {
+		id: this.id,
+		name: this.name
+	};
+};
+
 CornerJudge.prototype.initSpark = function (spark) {
 	parent.initSpark.call(this, spark);
+	spark.on('joinRing', this._onJoinRing.bind(this));
+};
+
+CornerJudge.prototype._onJoinRing = function (index) {
+	this._debug("Joining ring #" + (index + 1));
+	
+	var ring = this.tournament.getRing(index);
+	if (ring) {
+		// TODO: implement judge slots and check whether ring is full on the server's side
+		ring.join(this);
+		this.ring = ring;
+		this.spark.emit('waitingForAuthorisation', index);
+	}
+};
+
+CornerJudge.prototype._onLeaveRing = function () {
+	// TODO: let Corner Judges leave the ring they joined
+};
+
+CornerJudge.prototype.jpStateChanged = function (connected) {
+	this.spark.emit('juryPresidentStateChanged', connected);
+};
+
+CornerJudge.prototype.ringClosed = function () {
+	this.spark.emit('ringClosed');
 };
 
 CornerJudge.prototype.restoreSession = function (spark) {
-	this._debug("Restoring session");
 	var restorationData = parent.restoreSession.call(this, spark);
 	restorationData.authorised = this.authorised;
 	
@@ -30,8 +61,14 @@ CornerJudge.prototype.restoreSession = function (spark) {
 	this.spark.emit('restoreSession', restorationData);
 };
 
+CornerJudge.prototype.connectionStateChanged = function () {
+	if (this.ring) {
+		// Let Jury President know that Corner Judge is reconnected
+		this.ring.cjStateChanged(this, this.connected);
+	}
+};
+
 CornerJudge.prototype.remove = function () {
-	this._debug("Removing Corner Judge from system");
 	parent.remove.call(this);
 };
 

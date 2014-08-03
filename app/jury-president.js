@@ -17,26 +17,36 @@ parent = JuryPresident.super_.prototype;
 
 JuryPresident.prototype.initSpark = function (spark) {
 	parent.initSpark.call(this, spark);
-	this.spark.on('allocateRing', this._onAllocateRing.bind(this));
+	this.spark.on('openRing', this._onOpenRing.bind(this));
 };
 
-JuryPresident.prototype._onAllocateRing = function (index) {
-	this._debug("Allocating ring #" + (index + 1));
+JuryPresident.prototype._onOpenRing = function (index) {
+	this._debug("Opening ring #" + (index + 1));
 	var ring = this.tournament.getRing(index);
 	if (ring) {
-		if (ring.allocate(this)) {
+		if (ring.open(this)) {
+			this._debug("> Ring opened");
 			this.ring = ring;
-			this._debug("> Ring allocated");
-			this.spark.emit('ringAllocated', index);
+			this.spark.emit('ringOpened', index);
 		} else {
-			this._debug("> Ring already allocated");
-			this.spark.emit('ringAlreadyAllocated', index);
+			this._debug("> Ring already open");
+			this.spark.emit('ringAlreadyOpen', index);
 		}
 	}
 };
 
+JuryPresident.prototype.authoriseCornerJudge = function (name) {
+	this._debug("");
+};
+
+JuryPresident.prototype.cjStateChanged = function (cornerJudge, connected) {
+	this.spark.emit('cornerJudgeStateChanged', {
+		id: cornerJudge.id,
+		connected: connected
+	});
+};
+
 JuryPresident.prototype.restoreSession = function (spark) {
-	this._debug("Restoring session");
 	var restorationData = parent.restoreSession.call(this, spark);
 	restorationData.cornerJudges = [];
 	
@@ -64,14 +74,21 @@ JuryPresident.prototype.restoreSession = function (spark) {
 	this.spark.emit('restoreSession', restorationData);
 };
 
+JuryPresident.prototype.connectionStateChanged = function () {
+	if (this.ring) {
+		// Let Corner Judges know that Jury President is reconnected
+		this.ring.jpStateChanged(this.connected);
+	}
+};
+
 JuryPresident.prototype.remove = function () {
-	this._debug("Removing Jury President from system");
+	this._debug("Removing from system");
 	parent.remove.call(this);
 	
-	// Deallocate ring
+	// Close ring
 	if (this.ring) {
-		this.ring.deallocate();
-		this._debug("> Ring #" + this.ring.number + " deallocated");
+		this.ring.close();
+		this._debug("> Ring #" + this.ring.number + " closed");
 	}
 };
 

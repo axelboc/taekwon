@@ -28,10 +28,10 @@ define([
 				idSuccess: this._onIdSuccess,
 				idFail: this._onIdFail,
 				confirmIdentity: this._onConfirmIdentity,
-				ringAllocations: this._onRingAllocations,
-				ringAllocationChanged: this._onRingAllocationChanged,
-				ringAllocated: this._onRingAllocated,
-				ringAlreadyAllocated: this._onRingAlreadyAllocated,
+				ringStates: this._onRingStates,
+				ringStateChanged: this._onRingStateChanged,
+				ringOpened: this._onRingOpened,
+				ringAlreadyOpen: this._onRingAlreadyOpen,
 				restoreSession: this._onRestoreSession
 			},
 			pwdView: {
@@ -77,20 +77,20 @@ define([
 			IO.sendIdentityConfirmation();
 		},
 		
-		_onRingAllocations: function(allocations) {
-			console.log("Ring allocations received (count=\"" + allocations.length + "\")");
-			this.ringListView.init(allocations);
+		_onRingStates: function(states) {
+			console.log("Ring states received (count=\"" + states.length + "\")");
+			this.ringListView.init(states);
 			this._swapView(this.pwdView, this.ringListView);
 		},
 
-		_onRingAllocationChanged: function(allocation) {
-			console.log("Ring allocation changed (index=\"" + allocation.index + "\")");
-			this.ringListView.updateRingBtn(allocation.index, !allocation.allocated);
+		_onRingStateChanged: function(state) {
+			console.log("Ring state changed (index=\"" + state.index + "\")");
+			this.ringListView.updateRingBtn(state.index, !state.open);
 		},
 
 		_onRingSelected: function(index) {
-			console.log("Allocating ring (index=" + index + ")");
-			IO.allocateRing(index);
+			console.log("Opening ring (index=" + index + ")");
+			IO.openRing(index);
 		},
 
 		_initRing: function(index) {
@@ -102,21 +102,21 @@ define([
 			document.title = "Jury President | Ring " + (index + 1);
 		},
 
-		_onRingAllocated: function(index) {
-			console.log("Ring allocated (index=" + index + ")");
+		_onRingOpened: function(index) {
+			console.log("Ring opened (index=" + index + ")");
 			this._initRing(index);
 			this._swapView(this.ringListView, this.ringView);
 		},
 
-		_onRingAlreadyAllocated: function(index) {
-			console.error("Ring already allocated (index=" + index + ")");
+		_onRingAlreadyOpen: function(index) {
+			console.error("Ring already open (index=" + index + ")");
 		},
 
 		_onRestoreSession: function(data) {
 			console.log("Restoring session");
 
-			// Init ring list view with ring allocation data
-			this.ringListView.init(data.ringAllocations);
+			// Init ring list view with ring state data
+			this.ringListView.init(data.ringStates);
 
 			// If no ring was created, show ring list view
 			if (data.ringIndex === -1) {

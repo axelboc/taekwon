@@ -21,16 +21,17 @@ define([
 				idSuccess: this._onIdSuccess,
 				idFail: this._onIdFail,
 				confirmIdentity: this._onConfirmIdentity,
-				ringAllocations: this._onRingAllocations,
-				ringAllocationChanged: this._onRingAllocationChanged,
+				ringStates: this._onRingStates,
+				ringStateChanged: this._onRingStateChanged,
+				waitingForAuthorisation: this._onWaitingForAuthorisation,
 				ringJoined: this._onRingJoined,
 				ringNotJoined: this._onRingNotJoined,
-				ringDoesNotExist: this._onRingDoesNotExist,
 				ringIsFull: this._onRingIsFull,
 				matchInProgress: this._onMatchInProgress,
 				juryPresidentStateChanged: this._onJuryPresidentStateChanged,
 				scoringStateChanged: this._onScoringStateChanged,
 				removedFromRing: this._onRemovedFromRing,
+				ringClosed: this._onRingClosed,
 				restoreSession: this._onRestoreSession
 			},
 			nameView: {
@@ -111,20 +112,23 @@ define([
 			IO.sendIdentityConfirmation();
 		},
 
-		_onRingAllocations: function(allocations) {
-			console.log("Ring allocations received (count=\"" + allocations.length + "\")");
-			this.ringListView.init(allocations);
+		_onRingStates: function(states) {
+			console.log("Ring states received (count=\"" + states.length + "\")");
+			this.ringListView.init(states);
 			this._swapView(this.nameView, this.ringListView);
 		},
 
-		_onRingAllocationChanged: function(allocation) {
-			console.log("Ring allocation changed (index=\"" + allocation.index + "\")");
-			this.ringListView.updateRingBtn(allocation.index, allocation.allocated);
+		_onRingStateChanged: function(state) {
+			console.log("Ring state changed (index=\"" + state.index + "\")");
+			this.ringListView.updateRingBtn(state.index, state.open);
 		},
 
 		_onRingSelected: function(index) {
 			console.log("Joining ring (index=" + index + ")");
 			IO.joinRing(index);
+		},
+		
+		_onWaitingForAuthorisation: function (index) {
 			console.log("Waiting for authorisation to join ring");
 			this._swapView(this.ringListView, this.authorisationView);
 		},
@@ -147,12 +151,6 @@ define([
 		_onRingNotJoined: function(index) {
 			console.log("Ring not joined (index=" + index + ")");
 			this.ringListView.updateInstr("Not authorised to join ring");
-			this._swapView(this.authorisationView, this.ringListView);
-		},
-
-		_onRingDoesNotExist: function(index) {
-			console.error("Ring does not exist (index=" + index + ")");
-			this.ringListView.updateInstr("Sorry, an error occured");
 			this._swapView(this.authorisationView, this.ringListView);
 		},
 
@@ -186,17 +184,24 @@ define([
 		},
 
 		_onRemovedFromRing: function(index) {
-			console.log("Ring is full (index=" + index + ")");
+			console.log("Removed from ring (index=" + index + ")");
 			this.ringListView.updateInstr("Removed from ring");
 			this._swapView(this.roundView, this.ringListView);
+			this._updateBackdrops();
+		},
+		
+		_onRingClosed: function () {
+			this.ringListView.updateInstr("Ring closed");
+			this._swapView(this.roundView, this.ringListView);
+			// TODO: here and above: when judge hasn't been authorised yet, the view to hide is this.authorisationView
 			this._updateBackdrops();
 		},
 
 		_onRestoreSession: function(data) {
 			console.log("Restoring session");
 
-			// Init ring list view with ring allocation data
-			this.ringListView.init(data.ringAllocations);
+			// Init ring list view with ring state data
+			this.ringListView.init(data.ringStates);
 
 			// If no ring was joined yet, show ring list view
 			if (data.ringIndex === -1) {

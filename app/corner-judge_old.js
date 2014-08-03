@@ -12,8 +12,8 @@ function CornerJudge(io, socket, id, name) {
 	this.ring = null;
 	this.authorised = false;
 	
-	// Send ring allocations and success events to client
-	socket.emit('ringAllocations', Ring.getRingAllocations());
+	// Send ring states and success events to client
+	socket.emit('ringStates', Ring.getRingStates());
 	socket.emit('idSuccess', true);
 	
 	// Listen to client events

@@ -8,56 +8,111 @@ function Ring(primus, index) {
 	this.index = index;
 	this.number = index + 1;
 	this.roomId = 'ring' + index;
-	this.allocated = false;
-	this.juryPresident = null
+	this.isOpen = false;
+	this.juryPresident = null;
+	this.cornerJudges = [];
 }
 
 Ring.prototype = {
 	
-	getAllocation: function () {
+	/**
+	 * Return an object representing the state of the ring (open/close).
+	 */
+	getState: function () {
 		return {
 			index: this.index,
 			number: this.number,
-			allocated: this.allocated
+			open: this.isOpen
 		};
 	},
 	
-	_allocationChanged: function () {
-		// Notify all users that the allocation state of the ring has changed
+	/**
+	 * Broadcast to all users that the state of the ring has changed.
+	 */
+	_stateChanged: function () {
 		this.primus.forEach(function (spark) {
-			spark.emit('ringAllocationChanged', this.getAllocation());
+			spark.emit('ringStateChanged', this.getState());
 		}.bind(this));
 	},
 	
 	/**
-	 * Allocate a Jury President to the ring.
-	 * Return true if the allocation was successful; false otherwise (ring already allocated).
+	 * Open the ring.
+	 * Return true if the process was successful; false otherwise (ring already open).
 	 */
-	allocate: function (juryPresident) {
-		if (!this.allocated) {
-			this.allocated = true;
+	open: function (juryPresident) {
+		if (!this.isOpen) {
+			this.isOpen = true;
 			this.juryPresident = juryPresident;
-			this._allocationChanged();
+			this._stateChanged();
 			
 			// Success
 			return true;
 		}
 		
-		// Ring already allocated
+		// Ring already open
+		this._debug("Error: ring is already open.");
 		return false;
 	},
 	
 	/**
-	 * Deallocate the ring's Jury President and remove all Corner Judges.
+	 * Close the ring.
 	 */
-	deallocate: function () {
-		if (this.allocated) {
-			this.allocated = false;
+	close: function () {
+		if (this.isOpen) {
+			this.isOpen = false;
 			this.juryPresident = null;
-			this._allocationChanged();
+			this._stateChanged();
 			
-			// TODO: remove corner judges
+			// Notify Corner Judges that they must leave the ring.
+			this.cornerJudges.forEach(function (cj) {
+				cj.ringClosed();
+			}, this);
+		} else {
+			this._debug("Error: ring is already closed.");
 		}
+	},
+	
+	/**
+	 * Let a Corner Judge join the ring.
+	 */
+	join: function (cornerJudge) {
+		this.cornerJudges.push(cornerJudge);
+		if (this.juryPresident) {
+			this.juryPresident.authoriseCornerJudge(cornerJudge.name);
+		} else {
+			this._debug("Error: a Corner Judge cannot join a closed ring.");
+		}
+	},
+	
+	/**
+	 * Let a Corner Judge leave the ring.
+	 */
+	leave: function (cornerJudge) {
+		
+	},
+	
+	/**
+	 * Broadcast to all Corner Judges that the Jury President connection state has changed.
+	 */
+	jpStateChanged: function (connected) {
+		this.cornerJudges.forEach(function (cj) {
+			cj.jpStateChanged(connected);
+		}, this);
+	},
+	
+	/**
+	 * Notify the Jury President that the connection state of a Corner Judge has changed
+	 */
+	cjStateChanged: function (cornerJudge, connected) {
+		if (this.juryPresident) {
+			this.juryPresident.cjStateChanged(cornerJudge, connected);
+		} else {
+			this._debug("Error: ring is closed.");
+		}
+	},
+
+	_debug: function (msg) {
+		console.log("[Ring] " + msg);
 	}
 	
 };

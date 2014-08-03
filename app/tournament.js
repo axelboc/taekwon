@@ -110,7 +110,7 @@ Tournament.prototype = {
 	_sendIdResult: function (spark, success) {
 		if (success) {
 			spark.emit('idSuccess');
-			spark.emit('ringAllocations', this.getRingAllocations());
+			spark.emit('ringStates', this.getRingStates());
 		} else {
 			spark.emit('idFail');
 		}
@@ -153,11 +153,11 @@ Tournament.prototype = {
 	},
 	
 	/**
-	 * Build and return an array of ring allocations.
+	 * Build and return an array of the rings' states.
 	 */
-	getRingAllocations: function () {
+	getRingStates: function () {
 		return this.rings.reduce(function (arr, ring) {
-			arr.push(ring.getAllocation());
+			arr.push(ring.getState());
 			return arr;
 		}, []);
 	},
