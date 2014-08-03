@@ -12,6 +12,8 @@ define([
 	var events = [
 		'waitingForId',
 		'idSuccess',
+		'idFail',
+		'confirmIdentity',
 		'ringAllocations',
 		'ringAllocationChanged',
 		'ringJoined',
@@ -88,6 +90,10 @@ define([
 	function sendId(name) {
 		primus.emit('cornerJudge', name);
 	}
+	
+	function sendIdentityConfirmation() {
+		primus.emit('identityConfirmation', 'cornerJudge');
+	}
 
 	function joinRing(index) {
 		primus.emit('joinRing', index);
@@ -108,6 +114,7 @@ define([
 	return {
 		init: init,
 		sendId: sendId,
+		sendIdentityConfirmation: sendIdentityConfirmation,
 		joinRing: joinRing,
 		score: score,
 		sessionRestored: sessionRestored

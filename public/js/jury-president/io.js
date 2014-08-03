@@ -13,10 +13,11 @@ define([
 		'waitingForId',
 		'idSuccess',
 		'idFail',
+		'confirmIdentity',
 		'ringAllocations',
 		'ringAllocationChanged',
-		'ringCreated',
-		'ringAlreadyExists',
+		'ringAllocated',
+		'ringAlreadyAllocated',
 		'newCornerJudge',
 		'cornerJudgeStateChanged',
 		'cornerJudgeScored',
@@ -86,9 +87,13 @@ define([
 	function sendId(pwd) {
 		primus.emit('juryPresident', pwd);
 	}
+	
+	function sendIdentityConfirmation() {
+		primus.emit('identityConfirmation', 'juryPresident');
+	}
 
-	function createRing(index) {
-		primus.emit('createRing', index);
+	function allocateRing(index) {
+		primus.emit('allocateRing', index);
 	}
 	
 	function ringIsFull(cornerJudgeId) {
@@ -123,7 +128,8 @@ define([
 	return {
 		init: init,
 		sendId: sendId,
-		createRing: createRing,
+		sendIdentityConfirmation: sendIdentityConfirmation,
+		allocateRing: allocateRing,
 		ringIsFull: ringIsFull,
 		matchInProgress: matchInProgress,
 		authoriseCornerJudge: authoriseCornerJudge,

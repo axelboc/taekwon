@@ -29,7 +29,7 @@ define([
 			}.bind(this), 100);
 		},
 		
-		_invalidName: function () {
+		invalidName: function () {
 			// Reset field
 			this.field.value = "";
 			// Shake field
@@ -43,7 +43,7 @@ define([
 					this.field.blur();
 					this._publish('nameSubmitted', this.field.value);
 				} else {
-					this._invalidName();
+					this.invalidName();
 				}
 			}
 		},

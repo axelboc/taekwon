@@ -19,6 +19,8 @@ define([
 			io: {
 				waitingForId: this._onWaitingForId,
 				idSuccess: this._onIdSuccess,
+				idFail: this._onIdFail,
+				confirmIdentity: this._onConfirmIdentity,
 				ringAllocations: this._onRingAllocations,
 				ringAllocationChanged: this._onRingAllocationChanged,
 				ringJoined: this._onRingJoined,
@@ -99,6 +101,16 @@ define([
 			console.log("Identification succeeded");
 		},
 
+		_onIdFail: function() {
+			console.log("Identification failed");
+			this.nameView.invalidName();
+		},
+
+		_onConfirmIdentity: function () {
+			console.log("Server waiting for identity confirmation");
+			IO.sendIdentityConfirmation();
+		},
+
 		_onRingAllocations: function(allocations) {
 			console.log("Ring allocations received (count=\"" + allocations.length + "\")");
 			this.ringListView.init(allocations);
@@ -107,7 +119,7 @@ define([
 
 		_onRingAllocationChanged: function(allocation) {
 			console.log("Ring allocation changed (index=\"" + allocation.index + "\")");
-			this.ringListView.updateRingBtn(allocation.index - 1, allocation.allocated);
+			this.ringListView.updateRingBtn(allocation.index, allocation.allocated);
 		},
 
 		_onRingSelected: function(index) {

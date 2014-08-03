@@ -27,10 +27,11 @@ define([
 				waitingForId: this._onWaitingForId,
 				idSuccess: this._onIdSuccess,
 				idFail: this._onIdFail,
+				confirmIdentity: this._onConfirmIdentity,
 				ringAllocations: this._onRingAllocations,
 				ringAllocationChanged: this._onRingAllocationChanged,
-				ringCreated: this._onRingCreated,
-				ringAlreadyExists: this._onRingAlreadyExists,
+				ringAllocated: this._onRingAllocated,
+				ringAlreadyAllocated: this._onRingAlreadyAllocated,
 				restoreSession: this._onRestoreSession
 			},
 			pwdView: {
@@ -71,6 +72,11 @@ define([
 			this.pwdView.invalidPwd();
 		},
 
+		_onConfirmIdentity: function () {
+			console.log("Server waiting for identity confirmation");
+			IO.sendIdentityConfirmation();
+		},
+		
 		_onRingAllocations: function(allocations) {
 			console.log("Ring allocations received (count=\"" + allocations.length + "\")");
 			this.ringListView.init(allocations);
@@ -79,12 +85,12 @@ define([
 
 		_onRingAllocationChanged: function(allocation) {
 			console.log("Ring allocation changed (index=\"" + allocation.index + "\")");
-			this.ringListView.updateRingBtn(allocation.index - 1, !allocation.allocated);
+			this.ringListView.updateRingBtn(allocation.index, !allocation.allocated);
 		},
 
 		_onRingSelected: function(index) {
-			console.log("Creating ring (index=" + index + ")");
-			IO.createRing(index);
+			console.log("Allocating ring (index=" + index + ")");
+			IO.allocateRing(index);
 		},
 
 		_initRing: function(index) {
@@ -96,14 +102,14 @@ define([
 			document.title = "Jury President | Ring " + (index + 1);
 		},
 
-		_onRingCreated: function(index) {
-			console.log("Ring initialised (index=" + index + ")");
-			this._initRing(index, defaults.judgesPerRing);
+		_onRingAllocated: function(index) {
+			console.log("Ring allocated (index=" + index + ")");
+			this._initRing(index);
 			this._swapView(this.ringListView, this.ringView);
 		},
 
-		_onRingAlreadyExists: function(index) {
-			console.error("Ring already exists (index=" + index + ")");
+		_onRingAlreadyAllocated: function(index) {
+			console.error("Ring already allocated (index=" + index + ")");
 		},
 
 		_onRestoreSession: function(data) {

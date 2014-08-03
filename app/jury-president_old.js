@@ -19,7 +19,7 @@ function JuryPresident(io, socket, id) {
 }
 
 JuryPresident.prototype.initSocket = function () {
-	this.socket.on('createRing', this.onCreateRing.bind(this));
+	this.socket.on('allocateRing', this.onAllocateRing.bind(this));
 	this.socket.on('authoriseCornerJudge', this.onCornerJudgeAuthorisation.bind(this, true));
 	this.socket.on('ringIsFull', this.onRingIsFull.bind(this));
 	this.socket.on('matchInProgress', this.onMatchInProgress.bind(this));
@@ -31,7 +31,7 @@ JuryPresident.prototype.initSocket = function () {
 };
 
 
-JuryPresident.prototype.onCreateRing = function (index) {
+JuryPresident.prototype.onAllocateRing = function (index) {
 	this.debug("Creating ring #" + (index + 1));
 	
 	if (!Ring.get(index)) {
