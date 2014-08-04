@@ -18,6 +18,7 @@ parent = JuryPresident.super_.prototype;
 JuryPresident.prototype.initSpark = function (spark) {
 	parent.initSpark.call(this, spark);
 	this.spark.on('openRing', this._onOpenRing.bind(this));
+	this.spark.on('cornerJudgeAuthorised', this._onCornerJudgeAuthorised.bind(this));
 };
 
 JuryPresident.prototype._onOpenRing = function (index) {
@@ -35,8 +36,22 @@ JuryPresident.prototype._onOpenRing = function (index) {
 	}
 };
 
-JuryPresident.prototype.authoriseCornerJudge = function (name) {
-	this._debug("");
+JuryPresident.prototype.authoriseCornerJudge = function (judge) {
+	this._debug("Authorising Corner Judge to join ring");
+	this.spark.emit('newCornerJudge', {
+		id: judge.id,
+		name: judge.name,
+		connected: judge.connected
+	});
+};
+
+JuryPresident.prototype._onCornerJudgeAuthorised = function (judgeId) {
+	this._debug("> Corner Judge authorised");
+	if (this.ring) {
+		this.ring.cjAuthorised(judgeId);
+	} else {
+		this._debug("Error: Jury President doesn't have a ring.");
+	}
 };
 
 JuryPresident.prototype.cjStateChanged = function (cornerJudge, connected) {
@@ -90,10 +105,6 @@ JuryPresident.prototype.remove = function () {
 		this.ring.close();
 		this._debug("> Ring #" + this.ring.number + " closed");
 	}
-};
-
-JuryPresident.prototype._debug = function (msg) {
-	console.log("[Jury President] " + msg);
 };
 
 

@@ -11,6 +11,7 @@ function Ring(primus, index) {
 	this.isOpen = false;
 	this.juryPresident = null;
 	this.cornerJudges = [];
+	this.scoringEnabled = false;
 }
 
 Ring.prototype = {
@@ -78,7 +79,7 @@ Ring.prototype = {
 	join: function (cornerJudge) {
 		this.cornerJudges.push(cornerJudge);
 		if (this.juryPresident) {
-			this.juryPresident.authoriseCornerJudge(cornerJudge.name);
+			this.juryPresident.authoriseCornerJudge(cornerJudge);
 		} else {
 			this._debug("Error: a Corner Judge cannot join a closed ring.");
 		}
@@ -89,6 +90,27 @@ Ring.prototype = {
 	 */
 	leave: function (cornerJudge) {
 		
+	},
+	
+	/**
+	 * A Corner Judge has been authorised by the Jury President.
+	 */
+	cjAuthorised: function (id) {
+		var cornerJudge = this.cornerJudges.filter(function (cj) {
+			return cj.id === id;
+		}, this);
+		
+		if (cornerJudge.length === 1) {
+			cornerJudge[0].ringJoined({
+				ringIndex: this.index,
+				scoringEnabled: this.scoringEnabled,
+				jpConnected: this.juryPresident.connected
+			});
+		} else  if (cornerJudge.length === 0) {
+			this._debug("Error: authorised Corner Judge has left ring.");
+		} else {
+			this._debug("Error: " + cornerJudge.length + " Corner Judges with ID=" + id);
+		}
 	},
 	
 	/**
@@ -115,6 +137,8 @@ Ring.prototype = {
 		console.log("[Ring] " + msg);
 	}
 	
+	
+	// TODO: log error when an unauthorised or disconnected judge scores
 };
 
 exports.Ring = Ring;

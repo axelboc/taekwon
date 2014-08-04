@@ -45,7 +45,7 @@ User.prototype = {
 	},
 
 	_debug: function (msg) {
-		console.log("[" + this.constructor + "] " + msg);
+		console.log("[" + this.constructor.name + "] " + msg);
 	}
 	
 };

@@ -41,6 +41,14 @@ CornerJudge.prototype._onJoinRing = function (index) {
 	}
 };
 
+CornerJudge.prototype.ringJoined = function (data) {
+	this._debug("> Ring joined");
+	this.authorised = true;
+	this.spark.emit('ringJoined', data);
+};
+
+// TODO: rejected from ring and ring is full events
+
 CornerJudge.prototype._onLeaveRing = function () {
 	// TODO: let Corner Judges leave the ring they joined
 };
@@ -70,10 +78,6 @@ CornerJudge.prototype.connectionStateChanged = function () {
 
 CornerJudge.prototype.remove = function () {
 	parent.remove.call(this);
-};
-
-CornerJudge.prototype._debug = function (msg) {
-	console.log("[Corner Judge] " + msg);
 };
 
 

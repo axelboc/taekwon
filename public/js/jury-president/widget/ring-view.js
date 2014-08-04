@@ -66,7 +66,7 @@ define([
 		
 		_onNewCornerJudge: function (judge) {
 			console.log("New corner judge (id=" + judge.id + ")");
-			this.ring.newJudge(judge.id, judge.name, false, true);
+			this.ring.newJudge(judge.id, judge.name, false, judge.connected);
 		},
 		
 		_onRingFull: function (judgeId) {
@@ -81,7 +81,7 @@ define([
 		
 		_onJudgeAuthorised: function (id) {
 			console.log("Judge authorised (id=" + id + ")");
-			IO.authoriseCornerJudge(id);
+			IO.cornerJudgeAuthorised(id);
 		},
 		
 		_onJudgeDetached: function (id) {

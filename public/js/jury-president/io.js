@@ -104,8 +104,8 @@ define([
 		primus.emit('matchInProgress', cornerJudgeId);
 	}
 
-	function authoriseCornerJudge(id) {
-		primus.emit('authoriseCornerJudge', id);
+	function cornerJudgeAuthorised(id) {
+		primus.emit('cornerJudgeAuthorised', id);
 	}
 	
 	function rejectCornerJudge(id) {
@@ -132,7 +132,7 @@ define([
 		openRing: openRing,
 		ringIsFull: ringIsFull,
 		matchInProgress: matchInProgress,
-		authoriseCornerJudge: authoriseCornerJudge,
+		cornerJudgeAuthorised: cornerJudgeAuthorised,
 		rejectCornerJudge: rejectCornerJudge,
 		removeCornerJudge: removeCornerJudge,
 		sessionRestored: sessionRestored,
