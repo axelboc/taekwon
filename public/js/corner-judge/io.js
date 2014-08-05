@@ -19,8 +19,6 @@ define([
 		'waitingForAuthorisation',
 		'ringJoined',
 		'ringNotJoined',
-		'ringIsFull',
-		'matchInProgress',
 		'juryPresidentStateChanged',
 		'ringClosed',
 		'scoringStateChanged',

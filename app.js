@@ -7,7 +7,6 @@ var cookieParser = require('cookie-parser');
 var cookie = require('cookie');
 var Primus = require('primus');
 var Emit = require('primus-emit');
-var Rooms = require('primus-rooms');
 
 // Import app modules
 var config = require('./app/config');
@@ -46,7 +45,6 @@ var primus = new Primus(server, {
 
 // Add plugin
 primus.use('emit', Emit);
-primus.use('rooms', Rooms);
 
 // Add middleware
 primus.before('session', function (req, res, next) {
@@ -55,6 +53,7 @@ primus.before('session', function (req, res, next) {
 	}
 
 	// Parse and store cookies
+	console.log(req.headers.cookie);
 	req.cookie = cookie.parse(req.headers.cookie);
 	// Decode Express session ID
 	req.sessionId = cookieParser.signedCookie(req.cookie[config.cookieKey], config.cookieSecret);

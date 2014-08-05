@@ -27,6 +27,20 @@ Ring.prototype = {
 		};
 	},
 	
+	_getCornerJudgeById: function (id) {
+		var cornerJudge = this.cornerJudges.filter(function (cj) {
+			return cj.id === id;
+		}, this);
+		
+		if (cornerJudge.length === 0) {
+			this._debug("Error: no Corner Judge with ID=" + id + " in ring #" + this.number + ".");
+		} else if (cornerJudge.length > 1) {
+			this._debug("Error: " + cornerJudge.length + " Corner Judges share the same ID=" + id + " in ring #" + this.number + ".");
+		}
+		
+		return cornerJudge.length > 0 ? cornerJudge[0] : null;
+	},
+	
 	/**
 	 * Broadcast to all users that the state of the ring has changed.
 	 */
@@ -96,20 +110,27 @@ Ring.prototype = {
 	 * A Corner Judge has been authorised by the Jury President.
 	 */
 	cjAuthorised: function (id) {
-		var cornerJudge = this.cornerJudges.filter(function (cj) {
-			return cj.id === id;
-		}, this);
-		
-		if (cornerJudge.length === 1) {
-			cornerJudge[0].ringJoined({
+		var cornerJudge = this._getCornerJudgeById(id);
+		if (cornerJudge) {
+			cornerJudge.ringJoined({
 				ringIndex: this.index,
 				scoringEnabled: this.scoringEnabled,
 				jpConnected: this.juryPresident.connected
 			});
-		} else  if (cornerJudge.length === 0) {
-			this._debug("Error: authorised Corner Judge has left ring.");
-		} else {
-			this._debug("Error: " + cornerJudge.length + " Corner Judges with ID=" + id);
+		}
+	},
+	
+	/**
+	 * A Corner Judge's request to join a ring has been rejected.
+	 * Possible reasons:
+	 * - Not authorised by Jury President
+	 * - Ring full
+	 * - Match in progress
+	 */
+	cjRejected: function (id, message) {
+		var cornerJudge = this._getCornerJudgeById(id);
+		if (cornerJudge) {
+			cornerJudge.ringNotJoined(this.index, message);
 		}
 	},
 	

@@ -95,21 +95,13 @@ define([
 	function openRing(index) {
 		primus.emit('openRing', index);
 	}
-	
-	function ringIsFull(cornerJudgeId) {
-		primus.emit('ringIsFull', cornerJudgeId);
-	}
-	
-	function matchInProgress(cornerJudgeId) {
-		primus.emit('matchInProgress', cornerJudgeId);
-	}
 
 	function cornerJudgeAuthorised(id) {
 		primus.emit('cornerJudgeAuthorised', id);
 	}
 	
-	function rejectCornerJudge(id) {
-		primus.emit('rejectCornerJudge', id);
+	function cornerJudgeRejected(id, msg) {
+		primus.emit('cornerJudgeRejected', id, msg);
 	}
 	
 	function removeCornerJudge(id) {
@@ -130,10 +122,8 @@ define([
 		sendId: sendId,
 		sendIdentityConfirmation: sendIdentityConfirmation,
 		openRing: openRing,
-		ringIsFull: ringIsFull,
-		matchInProgress: matchInProgress,
 		cornerJudgeAuthorised: cornerJudgeAuthorised,
-		rejectCornerJudge: rejectCornerJudge,
+		cornerJudgeRejected: cornerJudgeRejected,
 		removeCornerJudge: removeCornerJudge,
 		sessionRestored: sessionRestored,
 		enableScoring: enableScoring

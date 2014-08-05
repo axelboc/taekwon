@@ -59,10 +59,10 @@ CornerJudge.prototype.ringNotJoined = function (ring) {
 	this.socket.emit('ringNotJoined', ring.index);
 };
 
-CornerJudge.prototype.ringIsFull = function (ring) {
+CornerJudge.prototype.ringFull = function (ring) {
 	this.debug("> Ring is full");
 	this.ring = null;
-	this.socket.emit('ringIsFull', ring.index);
+	this.socket.emit('ringFull', ring.index);
 };
 
 CornerJudge.prototype.matchInProgress = function (ring) {

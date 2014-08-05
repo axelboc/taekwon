@@ -1,5 +1,4 @@
 
-// TODO: combine rejection events (ring is full, not authorised, match in progress, does not exist)
 define([
 	'minpubsub',
 	'../common/helpers',
@@ -26,8 +25,6 @@ define([
 				waitingForAuthorisation: this._onWaitingForAuthorisation,
 				ringJoined: this._onRingJoined,
 				ringNotJoined: this._onRingNotJoined,
-				ringIsFull: this._onRingIsFull,
-				matchInProgress: this._onMatchInProgress,
 				juryPresidentStateChanged: this._onJuryPresidentStateChanged,
 				scoringStateChanged: this._onScoringStateChanged,
 				removedFromRing: this._onRemovedFromRing,
@@ -148,21 +145,9 @@ define([
 			document.title = "Corner Judge | Ring " + (data.ringIndex + 1);
 		},
 
-		_onRingNotJoined: function(index) {
-			console.log("Ring not joined (index=" + index + ")");
-			this.ringListView.updateInstr("Not authorised to join ring");
-			this._swapView(this.authorisationView, this.ringListView);
-		},
-
-		_onRingIsFull: function(index) {
-			console.log("Ring is full (index=" + index + ")");
-			this.ringListView.updateInstr("Ring is full");
-			this._swapView(this.authorisationView, this.ringListView);
-		},
-
-		_onMatchInProgress: function(index) {
-			console.log("Match in progress (index=" + index + ")");
-			this.ringListView.updateInstr("Match in progress");
+		_onRingNotJoined: function(index, message) {
+			console.log(message + " (index=" + index + ")");
+			this.ringListView.updateInstr(message);
 			this._swapView(this.authorisationView, this.ringListView);
 		},
 

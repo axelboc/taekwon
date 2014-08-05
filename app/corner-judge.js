@@ -47,7 +47,11 @@ CornerJudge.prototype.ringJoined = function (data) {
 	this.spark.emit('ringJoined', data);
 };
 
-// TODO: rejected from ring and ring is full events
+CornerJudge.prototype.ringNotJoined = function (ringIndex, message) {
+	this._debug("> " + message);
+	this.ring = null;
+	this.spark.emit('ringNotJoined', ringIndex, message);
+};
 
 CornerJudge.prototype._onLeaveRing = function () {
 	// TODO: let Corner Judges leave the ring they joined

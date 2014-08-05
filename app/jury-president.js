@@ -19,6 +19,7 @@ JuryPresident.prototype.initSpark = function (spark) {
 	parent.initSpark.call(this, spark);
 	this.spark.on('openRing', this._onOpenRing.bind(this));
 	this.spark.on('cornerJudgeAuthorised', this._onCornerJudgeAuthorised.bind(this));
+	this.spark.on('cornerJudgeRejected', this._onCornerJudgeRejected.bind(this));
 };
 
 JuryPresident.prototype._onOpenRing = function (index) {
@@ -49,6 +50,15 @@ JuryPresident.prototype._onCornerJudgeAuthorised = function (judgeId) {
 	this._debug("> Corner Judge authorised");
 	if (this.ring) {
 		this.ring.cjAuthorised(judgeId);
+	} else {
+		this._debug("Error: Jury President doesn't have a ring.");
+	}
+};
+
+JuryPresident.prototype._onCornerJudgeRejected = function (judgeId, message) {
+	this._debug("> Corner Judge rejected: " + message);
+	if (this.ring) {
+		this.ring.cjRejected(judgeId, message);
 	} else {
 		this._debug("Error: Jury President doesn't have a ring.");
 	}
