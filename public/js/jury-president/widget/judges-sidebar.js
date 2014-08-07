@@ -138,7 +138,7 @@ define([
 		_onRejectBtn: function (index) {
 			console.log("Judge rejected");
 			var slot = this.slots[index];
-			IO.cornerJudgeRejected(slot.judge.id, "Not authorised to join ring");
+			IO.rejectCJ(slot.judge.id, "Not authorised to join ring");
 			this._detachJudge(slot);
 		},
 		
@@ -148,7 +148,7 @@ define([
 			if (!this.ring.match || this.ring.match.hasEnded() || confirm(confirmText)) {
 				console.log("Judge disconnected");
 				var slot = this.slots[index];
-				IO.removeCornerJudge(slot.judge.id);
+				IO.removeCJ(slot.judge.id);
 				this._detachJudge(slot);
 			}
 		}

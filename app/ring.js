@@ -88,22 +88,27 @@ Ring.prototype = {
 	},
 	
 	/**
-	 * Let a Corner Judge join the ring.
+	 * Add a Corner Judge to the ring.
 	 */
-	join: function (cornerJudge) {
+	addCJ: function (cornerJudge) {
 		this.cornerJudges.push(cornerJudge);
 		if (this.juryPresident) {
-			this.juryPresident.authoriseCornerJudge(cornerJudge);
+			// Request authorisation from Jury PResident
+			this.juryPresident.authoriseCJ(cornerJudge);
 		} else {
 			this._debug("Error: a Corner Judge cannot join a closed ring.");
 		}
 	},
 	
 	/**
-	 * Let a Corner Judge leave the ring.
+	 * Remove a Corner Judge from the ring.
 	 */
-	leave: function (cornerJudge) {
-		
+	removeCJ: function (id, message) {
+		var cornerJudge = this._getCornerJudgeById(id);
+		if (cornerJudge) {
+			this.cornerJudges.splice(this.cornerJudges.indexOf(cornerJudge), 1);
+			cornerJudge.ringLeft(this.index, message);
+		}
 	},
 	
 	/**
@@ -117,20 +122,6 @@ Ring.prototype = {
 				scoringEnabled: this.scoringEnabled,
 				jpConnected: this.juryPresident.connected
 			});
-		}
-	},
-	
-	/**
-	 * A Corner Judge's request to join a ring has been rejected.
-	 * Possible reasons:
-	 * - Not authorised by Jury President
-	 * - Ring full
-	 * - Match in progress
-	 */
-	cjRejected: function (id, message) {
-		var cornerJudge = this._getCornerJudgeById(id);
-		if (cornerJudge) {
-			cornerJudge.ringNotJoined(this.index, message);
 		}
 	},
 	

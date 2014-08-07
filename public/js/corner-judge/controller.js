@@ -24,11 +24,9 @@ define([
 				ringStateChanged: this._onRingStateChanged,
 				waitingForAuthorisation: this._onWaitingForAuthorisation,
 				ringJoined: this._onRingJoined,
-				ringNotJoined: this._onRingNotJoined,
-				juryPresidentStateChanged: this._onJuryPresidentStateChanged,
+				ringLeft: this._onRingLeft,
+				jpStateChanged: this._onJPStateChanged,
 				scoringStateChanged: this._onScoringStateChanged,
-				removedFromRing: this._onRemovedFromRing,
-				ringClosed: this._onRingClosed,
 				restoreSession: this._onRestoreSession
 			},
 			nameView: {
@@ -43,6 +41,7 @@ define([
 		});
 		
 		// Flags
+		this.isAuthorised = false;
 		this.isJPConnected = false;
 		this.isScoringEnabled = false;
 		
@@ -76,9 +75,7 @@ define([
 			this.waitingBackdrop.classList.toggle('hidden', !this.isJPConnected || this.isScoringEnabled);
 
 			// Determine whether backdrop wrapper should be shown or hidden
-			var hideWrapper = this.roundView.root.classList.contains('hidden') 
-					|| this.isJPConnected
-					&& (!this.isJPConnected || this.isScoringEnabled);
+			var hideWrapper = !this.isAuthorised || this.isJPConnected && this.isScoringEnabled;
 			
 			// Toggle backdrop wrapper
 			this.backdropWrap.classList.toggle('hidden', hideWrapper);
@@ -136,22 +133,35 @@ define([
 			// Show round view
 			this._swapView(this.authorisationView, this.roundView);
 
-			// Update scoring and JP states and toggle backdrops
+			// Update flags and backdrop
+			this.isAuthorised = true;
 			this.isScoringEnabled = data.scoringEnabled;
 			this.isJPConnected = data.jpConnected;
 			this._updateBackdrops();
 			
 			// Update page title to show ring number
-			document.title = "Corner Judge | Ring " + (data.ringIndex + 1);
+			document.title += " | Ring " + (data.ringIndex + 1);
 		},
 
-		_onRingNotJoined: function(index, message) {
+		/**
+		 * Corner Judge has left the ring, willingly or not.
+		 */
+		_onRingLeft: function(index, message) {
 			console.log(message + " (index=" + index + ")");
+			
+			// Show ring list view with custom message. 
 			this.ringListView.updateInstr(message);
-			this._swapView(this.authorisationView, this.ringListView);
+			this._swapView(this.isAuthorised ? this.roundView : this.authorisationView, this.ringListView);
+			
+			// Update flag and backdrop
+			this.isAuthorised = false;
+			this._updateBackdrops();
+			
+			// Reset page title
+			document.title = "Corner Judge";
 		},
 
-		_onJuryPresidentStateChanged: function(connected) {
+		_onJPStateChanged: function(connected) {
 			console.log("Jury president " + (connected ? "connected" : "disconnected"));
 			this.isJPConnected = connected;
 			this._updateBackdrops();

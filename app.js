@@ -53,7 +53,6 @@ primus.before('session', function (req, res, next) {
 	}
 
 	// Parse and store cookies
-	console.log(req.headers.cookie);
 	req.cookie = cookie.parse(req.headers.cookie);
 	// Decode Express session ID
 	req.sessionId = cookieParser.signedCookie(req.cookie[config.cookieKey], config.cookieSecret);

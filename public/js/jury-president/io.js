@@ -19,8 +19,8 @@ define([
 		'ringOpened',
 		'ringAlreadyOpen',
 		'newCornerJudge',
-		'cornerJudgeStateChanged',
-		'cornerJudgeScored',
+		'cjStateChanged',
+		'cjScored',
 		'restoreSession'
 	];
 
@@ -96,16 +96,16 @@ define([
 		primus.emit('openRing', index);
 	}
 
-	function cornerJudgeAuthorised(id) {
-		primus.emit('cornerJudgeAuthorised', id);
+	function authoriseCJ(id) {
+		primus.emit('authoriseCJ', id);
 	}
 	
-	function cornerJudgeRejected(id, msg) {
-		primus.emit('cornerJudgeRejected', id, msg);
+	function rejectCJ(id, msg) {
+		primus.emit('rejectCJ', id, msg);
 	}
 	
-	function removeCornerJudge(id) {
-		primus.emit('removeCornerJudge', id);
+	function removeCJ(id) {
+		primus.emit('removeCJ', id);
 	}
 
 	function sessionRestored() {
@@ -122,9 +122,9 @@ define([
 		sendId: sendId,
 		sendIdentityConfirmation: sendIdentityConfirmation,
 		openRing: openRing,
-		cornerJudgeAuthorised: cornerJudgeAuthorised,
-		cornerJudgeRejected: cornerJudgeRejected,
-		removeCornerJudge: removeCornerJudge,
+		authoriseCJ: authoriseCJ,
+		rejectCJ: rejectCJ,
+		removeCJ: removeCJ,
 		sessionRestored: sessionRestored,
 		enableScoring: enableScoring
 	};

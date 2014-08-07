@@ -35,7 +35,7 @@ CornerJudge.prototype._onJoinRing = function (index) {
 	var ring = this.tournament.getRing(index);
 	if (ring) {
 		// TODO: implement judge slots and check whether ring is full on the server's side
-		ring.join(this);
+		ring.addCJ(this);
 		this.ring = ring;
 		this.spark.emit('waitingForAuthorisation', index);
 	}
@@ -47,22 +47,14 @@ CornerJudge.prototype.ringJoined = function (data) {
 	this.spark.emit('ringJoined', data);
 };
 
-CornerJudge.prototype.ringNotJoined = function (ringIndex, message) {
-	this._debug("> " + message);
+CornerJudge.prototype.ringLeft = function (ringIndex, message) {
+	this._debug("> Ring left: " + message);
 	this.ring = null;
-	this.spark.emit('ringNotJoined', ringIndex, message);
-};
-
-CornerJudge.prototype._onLeaveRing = function () {
-	// TODO: let Corner Judges leave the ring they joined
+	this.spark.emit('ringLeft', ringIndex, message);
 };
 
 CornerJudge.prototype.jpStateChanged = function (connected) {
 	this.spark.emit('juryPresidentStateChanged', connected);
-};
-
-CornerJudge.prototype.ringClosed = function () {
-	this.spark.emit('ringClosed');
 };
 
 CornerJudge.prototype.restoreSession = function (spark) {

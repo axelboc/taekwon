@@ -18,8 +18,9 @@ parent = JuryPresident.super_.prototype;
 JuryPresident.prototype.initSpark = function (spark) {
 	parent.initSpark.call(this, spark);
 	this.spark.on('openRing', this._onOpenRing.bind(this));
-	this.spark.on('cornerJudgeAuthorised', this._onCornerJudgeAuthorised.bind(this));
-	this.spark.on('cornerJudgeRejected', this._onCornerJudgeRejected.bind(this));
+	['authoriseCJ', 'rejectCJ', 'removeCJ'].forEach(function (event) {
+		this.spark.on(event, this['_on' + event.charAt(0).toUpperCase() + event.slice(1)].bind(this));
+	}, this);
 };
 
 JuryPresident.prototype._onOpenRing = function (index) {
@@ -37,7 +38,33 @@ JuryPresident.prototype._onOpenRing = function (index) {
 	}
 };
 
-JuryPresident.prototype.authoriseCornerJudge = function (judge) {
+JuryPresident.prototype._onAuthoriseCJ = function (id) {
+	if (this.ring) {
+		this.ring.cjAuthorised(id);
+	} else {
+		this._debug("Error: Jury President doesn't have a ring.");
+	}
+};
+
+JuryPresident.prototype._onRejectCJ = function (id, message) {
+	if (this.ring) {
+		// Remove Corner Judge from ring
+		this.ring.removeCJ(id, message);
+	} else {
+		this._debug("Error: Jury President doesn't have a ring.");
+	}
+};
+
+JuryPresident.prototype._onRemoveCJ = function (id) {
+	if (this.ring) {
+		// Remove Corner Judge from ring
+		this.ring.removeCJ(id, "Removed from ring");
+	} else {
+		this._debug("Error: Jury President doesn't have a ring.");
+	}
+};
+
+JuryPresident.prototype.authoriseCJ = function (judge) {
 	this._debug("Authorising Corner Judge to join ring");
 	this.spark.emit('newCornerJudge', {
 		id: judge.id,
@@ -46,26 +73,8 @@ JuryPresident.prototype.authoriseCornerJudge = function (judge) {
 	});
 };
 
-JuryPresident.prototype._onCornerJudgeAuthorised = function (judgeId) {
-	this._debug("> Corner Judge authorised");
-	if (this.ring) {
-		this.ring.cjAuthorised(judgeId);
-	} else {
-		this._debug("Error: Jury President doesn't have a ring.");
-	}
-};
-
-JuryPresident.prototype._onCornerJudgeRejected = function (judgeId, message) {
-	this._debug("> Corner Judge rejected: " + message);
-	if (this.ring) {
-		this.ring.cjRejected(judgeId, message);
-	} else {
-		this._debug("Error: Jury President doesn't have a ring.");
-	}
-};
-
 JuryPresident.prototype.cjStateChanged = function (cornerJudge, connected) {
-	this.spark.emit('cornerJudgeStateChanged', {
+	this.spark.emit('cjStateChanged', {
 		id: cornerJudge.id,
 		connected: connected
 	});

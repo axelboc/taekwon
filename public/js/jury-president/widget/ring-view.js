@@ -25,7 +25,7 @@ define([
 		Helpers.subscribeToEvents(this, {
 			io: {
 				newCornerJudge: this._onNewCornerJudge,
-				cornerJudgeStateChanged: this._onCornerJudgeStateChanged
+				cjStateChanged: this._onCJStateChanged
 			},
 			ring: {
 				full: this._onRingFull,
@@ -71,17 +71,17 @@ define([
 		
 		_onRingFull: function (judgeId) {
 			console.log("Ring full");
-			IO.cornerJudgeRejected(judgeId, "Ring full");
+			IO.rejectCJ(judgeId, "Ring full");
 		},
 		
 		_onMatchInProgress: function (judgeId) {
 			console.log("Cannot join ring: match in progress");
-			IO.cornerJudgeRejected(judgeId, "Match in progress");
+			IO.rejectCJ(judgeId, "Match in progress");
 		},
 		
 		_onJudgeAuthorised: function (id) {
 			console.log("Judge authorised (id=" + id + ")");
-			IO.cornerJudgeAuthorised(id);
+			IO.authoriseCJ(id);
 		},
 		
 		_onJudgeDetached: function (id) {
@@ -89,7 +89,7 @@ define([
 			this.ring.judgeDetached(id);
 		},
 		
-		_onCornerJudgeStateChanged: function (judge) {
+		_onCJStateChanged: function (judge) {
 			console.log("Setting judge connection state (connected=" + judge.connected + ")");
 			this.ring.judgeStateChanged(judge.id, judge.connected);
 		},

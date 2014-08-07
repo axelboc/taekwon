@@ -18,11 +18,9 @@ define([
 		'ringStateChanged',
 		'waitingForAuthorisation',
 		'ringJoined',
-		'ringNotJoined',
-		'juryPresidentStateChanged',
-		'ringClosed',
+		'ringLeft',
+		'jpStateChanged',
 		'scoringStateChanged',
-		'removedFromRing',
 		'restoreSession'
 	];
 
