@@ -17,8 +17,8 @@ body {
 }
 
 h1 {
-	margin: 1.4em 0 1.4em;
-	font-size: 400%;
+	margin: 1.2em 0 .8em;
+	font-size: 250%;
 }
 
 h1,
@@ -50,6 +50,12 @@ button::-moz-focus-inner {
     margin: 0 .5em;
 }
 
+/* Font-size transitions when device orientation changes or browser is resized */
+h1,
+.instr {
+    transition: font-size .2s ease-in-out;
+}
+
 
 /* ===== Components ===== */
 
@@ -78,8 +84,9 @@ button::-moz-focus-inner {
 
 /* Instruction paragraph */
 .instr {
-	margin-top: 0;
-	font-size: 170%;
+	margin: 0;
+	padding: 0 1em;
+	font-size: 140%;
 	font-style: italic;
 }
 
@@ -181,9 +188,54 @@ button::-moz-focus-inner {
 
 /* ===== Ring list view ===== */
 
+.rl-list {
+	max-width: 18em;
+	margin: 0 auto;
+}
+
 .rl-btn {
     min-width: 2.8em;
     min-height: 2.8em;
-    font-size: 230%;
+	margin-top: .7em;
+    font-size: 180%;
+}
+
+
+/* ===== Media queries ===== */
+
+@media (min-width: 30em) {
+	
+	.rl-list {
+		max-width: none;
+	}
+	
+}
+
+@media (min-height: 25em) {
+	
+	h1 {
+		margin: 1.4em 0 1.2em;
+	}
+	
+}
+
+@media (min-width: 35em) and (min-height: 25em) {
+	
+	.instr {
+		font-size: 170%;
+	}
+	
+	.rl-btn {
+		font-size: 230%;
+	}
+	
+}
+
+@media (min-width: 45em) and (min-height: 32em) {
+	
+	h1 {
+		font-size: 400%;
+	}
+	
 }
 
