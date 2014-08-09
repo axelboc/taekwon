@@ -113,6 +113,17 @@ Ring.prototype = {
 	},
 	
 	/**
+	 * Enable/disable scoring and notify Corner Judges
+	 */
+	enableScoring: function (enable) {
+		this._debug("Scoring " + (enable ? "enabled" : "disabled"));
+		this.scoringEnabled = enable;
+		this.cornerJudges.forEach(function (cj) {
+			cj.scoringStateChanged(enable);
+		}, this);
+	},
+	
+	/**
 	 * A Corner Judge has been authorised by the Jury President.
 	 */
 	cjAuthorised: function (id) {
@@ -127,12 +138,15 @@ Ring.prototype = {
 	},
 	
 	/**
-	 * Broadcast to all Corner Judges that the Jury President connection state has changed.
+	 * Notify all Corner Judges that the Jury President connection state has changed.
 	 */
 	jpStateChanged: function (connected) {
 		this.cornerJudges.forEach(function (cj) {
 			cj.jpStateChanged(connected);
 		}, this);
+		
+		// Disable scoring
+		this.enableScoring(false);
 	},
 	
 	/**

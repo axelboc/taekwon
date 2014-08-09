@@ -53,8 +53,12 @@ CornerJudge.prototype.ringLeft = function (ringIndex, message) {
 	this.spark.emit('ringLeft', ringIndex, message);
 };
 
+CornerJudge.prototype.scoringStateChanged = function (enabled) {
+	this.spark.emit('scoringStateChanged', enabled);
+};
+
 CornerJudge.prototype.jpStateChanged = function (connected) {
-	this.spark.emit('juryPresidentStateChanged', connected);
+	this.spark.emit('jpStateChanged', connected);
 };
 
 CornerJudge.prototype.restoreSession = function (spark) {

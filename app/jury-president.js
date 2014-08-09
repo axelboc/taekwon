@@ -18,6 +18,7 @@ parent = JuryPresident.super_.prototype;
 JuryPresident.prototype.initSpark = function (spark) {
 	parent.initSpark.call(this, spark);
 	this.spark.on('openRing', this._onOpenRing.bind(this));
+	this.spark.on('enableScoring', this._onEnableScoring.bind(this));
 	['authoriseCJ', 'rejectCJ', 'removeCJ'].forEach(function (event) {
 		this.spark.on(event, this['_on' + event.charAt(0).toUpperCase() + event.slice(1)].bind(this));
 	}, this);
@@ -35,6 +36,14 @@ JuryPresident.prototype._onOpenRing = function (index) {
 			this._debug("> Ring already open");
 			this.spark.emit('ringAlreadyOpen', index);
 		}
+	}
+};
+
+JuryPresident.prototype._onEnableScoring = function (enable) {
+	if (this.ring) {
+		this.ring.enableScoring(enable);
+	} else {
+		this._debug("Error: Jury President doesn't have a ring.");
 	}
 };
 
