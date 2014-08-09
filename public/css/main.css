@@ -92,6 +92,7 @@ h1,
 
 /* Text field */
 .field {
+	margin-top: .8em;
 	padding: .2em;
 	border: 1px solid #555;
 	border-radius: 4px;
@@ -211,7 +212,7 @@ h1,
 	
 }
 
-@media (min-height: 25em) {
+@media (min-height: 22em) {
 	
 	h1 {
 		margin: 1.4em 0 1.2em;
@@ -219,10 +220,14 @@ h1,
 	
 }
 
-@media (min-width: 35em) and (min-height: 25em) {
+@media (min-width: 35em) and (min-height: 26em) {
+	
+	h1 {
+		font-size: 300%;
+	}
 	
 	.instr {
-		font-size: 170%;
+		font-size: 150%;
 	}
 	
 	.rl-btn {
@@ -235,6 +240,10 @@ h1,
 	
 	h1 {
 		font-size: 400%;
+	}
+	
+	.instr {
+		font-size: 170%;
 	}
 	
 }
