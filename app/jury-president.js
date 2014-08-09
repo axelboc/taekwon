@@ -115,9 +115,8 @@ JuryPresident.prototype.connectionStateChanged = function () {
 	}
 };
 
-JuryPresident.prototype.remove = function () {
-	this._debug("Removing from system");
-	parent.remove.call(this);
+JuryPresident.prototype.exit = function () {
+	parent.exit.call(this);
 	
 	// Close ring
 	if (this.ring) {

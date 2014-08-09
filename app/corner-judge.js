@@ -72,8 +72,14 @@ CornerJudge.prototype.connectionStateChanged = function () {
 	}
 };
 
-CornerJudge.prototype.remove = function () {
-	parent.remove.call(this);
+CornerJudge.prototype.exit = function () {
+	parent.exit.call(this);
+	
+	// Leave ring
+	if (this.ring) {
+		this.ring.removeCJ(this);
+		this._debug("> Ring #" + this.ring.number + " left");
+	}
 };
 
 

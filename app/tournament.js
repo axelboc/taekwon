@@ -53,7 +53,7 @@ Tournament.prototype = {
 		var user = this.users[sessionId];
 		if (user) {
 			this._debug("User with ID=" + sessionId + " disconnected.");
-			user.disconnected();
+			user.disconnect();
 		}
 	},
 	

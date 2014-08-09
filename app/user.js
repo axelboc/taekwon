@@ -12,8 +12,12 @@ function User(tournament, primus, spark, sessionId) {
 User.prototype = {
 	
 	initSpark: function (spark) {
-		this.spark = spark;
-		spark.on('sessionRestored', this._onSessionRestored.bind(this));
+		if (spark) {
+			this.spark = spark;
+			spark.on('sessionRestored', this._onSessionRestored.bind(this));
+		} else {
+			this._debug("Error: spark is " + spark + ".");
+		}
 	},
 	
 	restoreSession: function (spark) {
@@ -33,15 +37,16 @@ User.prototype = {
 		this.connectionStateChanged();
 	},
 	
-	disconnected: function () {
-		this._debug("Disconnected");
+	disconnect: function () {
+		this._debug("Disconnecting");
 		this.connected = false;
+		this.spark = null;
 		this.connectionStateChanged();
 	},
 	
-	remove: function () {
-		this._debug("Removing from system");
-		
+	exit: function () {
+		this._debug("Exiting");
+		this.disconnect();
 	},
 
 	_debug: function (msg) {
