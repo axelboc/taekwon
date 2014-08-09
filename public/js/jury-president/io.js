@@ -21,6 +21,7 @@ define([
 		'newCornerJudge',
 		'cjStateChanged',
 		'cjScored',
+		'cjExited',
 		'restoreSession'
 	];
 

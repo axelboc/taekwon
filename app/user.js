@@ -40,13 +40,12 @@ User.prototype = {
 	disconnect: function () {
 		this._debug("Disconnecting");
 		this.connected = false;
-		this.spark = null;
 		this.connectionStateChanged();
 	},
 	
 	exit: function () {
 		this._debug("Exiting");
-		this.disconnect();
+		this.connected = false;
 	},
 
 	_debug: function (msg) {

@@ -145,7 +145,7 @@ Tournament.prototype = {
 			} else {
 				// Switching; remove user from system and request identification from new user
 				this._debug("Switching user with ID=" + sessionId + ".");
-				user.remove();
+				user.exit();
 				delete this.users[sessionId];
 				this._waitForId(spark, sessionId);
 			}

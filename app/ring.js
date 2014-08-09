@@ -142,7 +142,16 @@ Ring.prototype = {
 		if (this.juryPresident) {
 			this.juryPresident.cjStateChanged(cornerJudge, connected);
 		} else {
-			this._debug("Error: ring is closed.");
+			this._debug("Error: ring doesn't have a Jury President.");
+		}
+	},
+	
+	cjExited: function (cornerJudge) {
+		if (this.juryPresident) {
+			this.removeCJ(cornerJudge, "Exited system");
+			this.juryPresident.cjExited(cornerJudge);
+		} else {
+			this._debug("Error: ring doesn't have a Jury President.");
 		}
 	},
 

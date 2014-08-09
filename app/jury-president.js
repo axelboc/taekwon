@@ -80,37 +80,33 @@ JuryPresident.prototype.cjStateChanged = function (cornerJudge, connected) {
 	});
 };
 
+JuryPresident.prototype.cjExited = function (cornerJudge) {
+	this.spark.emit('cjExited', cornerJudge.id);
+};
+
 JuryPresident.prototype.restoreSession = function (spark) {
-	var restorationData = parent.restoreSession.call(this, spark);
-	restorationData.cornerJudges = [];
+	var data = parent.restoreSession.call(this, spark);
+	data.cornerJudges = [];
 	
 	// Add corner judges
-	/*if (this.ring) {
-		var addJudge = function (judge) {
-			restorationData.cornerJudges.push({
+	if (this.ring) {
+		this.ring.cornerJudges.forEach(function (judge) {
+			data.cornerJudges.push({
 				id: judge.id,
 				name: judge.name,
 				connected: judge.connected,
 				authorised: judge.authorised
 			});
-		}
-		
-		// Add authorised judges
-		this.ring.cornerJudges.forEach(addJudge, this);
-		// Add judges waiting for authorisation
-		Object.keys(this.waitingList).forEach(function (id) {
-			addJudge(this.waitingList[id]);
 		}, this);
-		
-	}*/
+	}
 	
 	// Send session restore event with all the required data
-	this.spark.emit('restoreSession', restorationData);
+	this.spark.emit('restoreSession', data);
 };
 
 JuryPresident.prototype.connectionStateChanged = function () {
 	if (this.ring) {
-		// Let Corner Judges know that Jury President is reconnected
+		// Let Corner Judges know that Jury President is disconnected/reconnected
 		this.ring.jpStateChanged(this.connected);
 	}
 };
@@ -121,7 +117,7 @@ JuryPresident.prototype.exit = function () {
 	// Close ring
 	if (this.ring) {
 		this.ring.close();
-		this._debug("> Ring #" + this.ring.number + " closed");
+		this.ring = null;
 	}
 };
 

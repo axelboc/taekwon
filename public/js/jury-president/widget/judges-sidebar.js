@@ -131,6 +131,10 @@ define([
 			this._publish('judgeDetached', id, slot.index);
 		},
 		
+		detachJudgeWithId: function (id) {
+			this._detachJudge(this.slotsById[id]);
+		},
+		
 		_onAcceptBtn: function (index) {
 			this.slots[index].judge.authorise();
 		},

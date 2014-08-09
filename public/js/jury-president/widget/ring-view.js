@@ -25,7 +25,8 @@ define([
 		Helpers.subscribeToEvents(this, {
 			io: {
 				newCornerJudge: this._onNewCornerJudge,
-				cjStateChanged: this._onCJStateChanged
+				cjStateChanged: this._onCJStateChanged,
+				cjExited: this._onCJExited
 			},
 			ring: {
 				full: this._onRingFull,
@@ -90,8 +91,14 @@ define([
 		},
 		
 		_onCJStateChanged: function (judge) {
-			console.log("Setting judge connection state (connected=" + judge.connected + ")");
+			console.log("Judge connection state changed (connected=" + judge.connected + ")");
 			this.ring.judgeStateChanged(judge.id, judge.connected);
+		},
+		
+		_onCJExited: function (judgeId) {
+			console.log("Judge exited");
+			// Detach judge
+			this.judgesSidebar.detachJudgeWithId(judgeId);
 		},
 		
 		_showPanel: function (panel) {
