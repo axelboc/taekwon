@@ -9,7 +9,7 @@
 	<link rel="apple-touch-icon-precomposed" href="/favicon-57.png">
 	<link rel="stylesheet" href="/css/main.css">
 	<link rel="stylesheet" href="/css/corner-judge.css">
-	<script src="http://taekwon.do/socket.io/socket.io.js"></script>
+	<script src="http://taekwon.do/primus/primus.js"></script>
 	<script src="/js/lib/require.js" data-main="/js/main.js"></script>
 </head>
 <body>
@@ -28,7 +28,7 @@
 		</div>
 		<script id="rl-ring-tmpl" type="x-handlebars-template">
 			{{#each rings}}
-			<li><button type="button" class="btn rl-btn"{{#unless allocated}} disabled{{/unless}}>{{index}}</button></li>
+			<li><button type="button" class="btn rl-btn"{{#unless open}} disabled{{/unless}}>{{number}}</button></li>
 			{{/each}}
 		</script>
 	</div>

@@ -131,6 +131,10 @@ define([
 			this._publish('judgeDetached', id, slot.index);
 		},
 		
+		detachJudgeWithId: function (id) {
+			this._detachJudge(this.slotsById[id]);
+		},
+		
 		_onAcceptBtn: function (index) {
 			this.slots[index].judge.authorise();
 		},
@@ -138,7 +142,7 @@ define([
 		_onRejectBtn: function (index) {
 			console.log("Judge rejected");
 			var slot = this.slots[index];
-			IO.rejectCornerJudge(slot.judge.id);
+			IO.rejectCJ(slot.judge.id, "Not authorised to join ring");
 			this._detachJudge(slot);
 		},
 		
@@ -148,7 +152,7 @@ define([
 			if (!this.ring.match || this.ring.match.hasEnded() || confirm(confirmText)) {
 				console.log("Judge disconnected");
 				var slot = this.slots[index];
-				IO.removeCornerJudge(slot.judge.id);
+				IO.removeCJ(slot.judge.id);
 				this._detachJudge(slot);
 			}
 		}

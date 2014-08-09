@@ -1,38 +1,33 @@
 
-// TODO: Fix session restoration
-// TODO: Implement judges sidebar controls (buttons to add/remove judges)
-// TODO: Use Full Screen API
-// TODO: Fix issue: judges get duplicated in sidebar and match panel when connection with server is cut 
-
-/* Core set-up */
-
 // Import core modules
-var express = require('express');
 var http = require('http');
-var socket = require('socket.io');
-var cookie = require('cookie');
-var cookieParser = require('cookie-parser');
+var express = require('express');
 var session = require('express-session');
+var cookieParser = require('cookie-parser');
+var cookie = require('cookie');
+var Primus = require('primus');
+var Emit = require('primus-emit');
 
 // Import app modules
-var Config = require('./app/config');
+var config = require('./app/config');
+var Tournament = require('./app/tournament').Tournament;
 var JuryPresident = require('./app/jury-president').JuryPresident;
 var CornerJudge = require('./app/corner-judge').CornerJudge;
 var Ring = require('./app/ring').Ring;
 
-// Keep track of clients
-var clients = {};
 
-// Initialise Express
+/*
+ * Initialise Express
+ */
 var app = express();
 var server = http.Server(app);
 
-// Express middlewares
+// Add middlewares
 app.use(express.static(__dirname + '/public'));
-app.use(cookieParser(Config.cookieSecret));
+app.use(cookieParser(config.cookieSecret));
 app.use(session({
-	name: Config.cookieKey,
-	secret: Config.cookieSecret,
+	name: config.cookieKey,
+	secret: config.cookieSecret,
 	saveUninitialized: true,
 	resave: true,
 	cookie: {
@@ -40,14 +35,19 @@ app.use(session({
 	}
 }));
 
-// Initialise Socket.IO
-var io = socket(server);
-//io.set('origins', 'http://taekwon.do:80');
 
-// Configure Socket.IO
-io.use(function (socket, next) {
-	var req = socket.request;
-	
+/**
+ * Initialise Primus
+ */
+var primus = new Primus(server, {
+	transformer: 'sockjs'
+});
+
+// Add plugin
+primus.use('emit', Emit);
+
+// Add middleware
+primus.before('session', function (req, res, next) {
 	if (!req.headers.cookie) {
 		next(new Error("No cookie transmitted."));
 	}
@@ -55,17 +55,15 @@ io.use(function (socket, next) {
 	// Parse and store cookies
 	req.cookie = cookie.parse(req.headers.cookie);
 	// Decode Express session ID
-	req.sessionId = cookieParser.signedCookie(req.cookie[Config.cookieKey], Config.cookieSecret);
+	req.sessionId = cookieParser.signedCookie(req.cookie[config.cookieKey], config.cookieSecret);
 
 	next();
 });
 
 
-// Start server
-server.listen(80);
-
-
-/* Routes */
+/**
+ * Routes
+ */
 
 // Corner Judge
 app.get('/', function (request, response) {
@@ -78,62 +76,14 @@ app.get('/jury', function (request, response) {
 });
 
 
-/* Socket events */
+/**
+ * Initialise Tournament
+ */
+var tournament = new Tournament(primus);
 
-io.sockets.on('connection', function (socket) {
-	var req = socket.request;
-	var session = req.session;
-	var sessionId = req.sessionId;
-	var client = clients[sessionId];
-	var isJury = socket.handshake.headers.referer.indexOf('/jury') !== -1;
-	console.log("New socket connection with session ID: " + sessionId + ".");
-	
-	// If returning client, restore session automatically
-	if (typeof client !== "undefined") {
-		// Check that client hasn't switched role (from CornerJudge to JuryPresident and vice versa)
-		if (isJury && client instanceof JuryPresident ||
-			!isJury && client instanceof CornerJudge) {
-			// Restore session
-			client.restoreSession(socket);
-		} else {
-			// Client has switched role; remove its old instance from the system and wait for ID
-			// TODO: implement exit functions of JP and CJ
-			client.exit();
-			waitForId(socket, sessionId);
-		}
-	} else {
-		waitForId(socket, sessionId);
-	}
-});
 
-/* Request and wait for client identification */
-function waitForId(socket, sessionId) {
-	// Listen for jury president and corner judge identification
-	socket.on('juryPresident', onJPConnection.bind(this, socket, sessionId));
-	socket.on('cornerJudge', onCJConnection.bind(this, socket, sessionId));
+/**
+ * Start server
+ */
+server.listen(80);
 
-	// Inform client that we're waiting for an identification
-	socket.emit('waitingForId');
-	console.log("Waiting for identification...");
-}
-
-/* Handle new Jury President connection */
-function onJPConnection(socket, sessionId, password) {
-	// Check password
-	if (password === Config.masterPwd) {
-		// Initialise JuryPresident
-		clients[sessionId] = new JuryPresident(io, socket, sessionId);
-		console.log("> Jury president accepted: valid password");
-	} else {
-		// Send failure message to client
-		console.log("> Jury president rejected: wrong password");
-		socket.emit('idFail');
-	}
-}
-
-/* Handle new Corner Judge connection */
-function onCJConnection(socket, sessionId, name) {
-	// Initialise CornerJudge
-	clients[sessionId] = new CornerJudge(io, socket, sessionId, name);
-	console.log("> Corner judge identified: " + name);
-}

@@ -1,5 +1,4 @@
 
-// TODO: combine rejection events (ring is full, not authorised, match in progress, does not exist)
 define([
 	'minpubsub',
 	'../common/helpers',
@@ -19,16 +18,15 @@ define([
 			io: {
 				waitingForId: this._onWaitingForId,
 				idSuccess: this._onIdSuccess,
-				ringAllocations: this._onRingAllocations,
-				ringAllocationChanged: this._onRingAllocationChanged,
+				idFail: this._onIdFail,
+				confirmIdentity: this._onConfirmIdentity,
+				ringStates: this._onRingStates,
+				ringStateChanged: this._onRingStateChanged,
+				waitingForAuthorisation: this._onWaitingForAuthorisation,
 				ringJoined: this._onRingJoined,
-				ringNotJoined: this._onRingNotJoined,
-				ringDoesNotExist: this._onRingDoesNotExist,
-				ringIsFull: this._onRingIsFull,
-				matchInProgress: this._onMatchInProgress,
-				juryPresidentStateChanged: this._onJuryPresidentStateChanged,
+				ringLeft: this._onRingLeft,
+				jpStateChanged: this._onJPStateChanged,
 				scoringStateChanged: this._onScoringStateChanged,
-				removedFromRing: this._onRemovedFromRing,
 				restoreSession: this._onRestoreSession
 			},
 			nameView: {
@@ -43,6 +41,7 @@ define([
 		});
 		
 		// Flags
+		this.isAuthorised = false;
 		this.isJPConnected = false;
 		this.isScoringEnabled = false;
 		
@@ -59,11 +58,6 @@ define([
 		this.backdropWrap = document.getElementById('backdrop-wrap');
 		this.disconnectedBackdrop = document.getElementById('disconnected-backdrop');
 		this.waitingBackdrop = document.getElementById('waiting-backdrop');
-		
-		// DEBUG
-		/*setTimeout(function () {
-			IO.sendId('Axel')
-		}, 200);*/
 	}
 	
 	Controller.prototype = {
@@ -81,9 +75,7 @@ define([
 			this.waitingBackdrop.classList.toggle('hidden', !this.isJPConnected || this.isScoringEnabled);
 
 			// Determine whether backdrop wrapper should be shown or hidden
-			var hideWrapper = this.roundView.root.classList.contains('hidden') 
-					|| this.isJPConnected
-					&& (!this.isJPConnected || this.isScoringEnabled);
+			var hideWrapper = !this.isAuthorised || this.isJPConnected && this.isScoringEnabled;
 			
 			// Toggle backdrop wrapper
 			this.backdropWrap.classList.toggle('hidden', hideWrapper);
@@ -104,20 +96,33 @@ define([
 			console.log("Identification succeeded");
 		},
 
-		_onRingAllocations: function(allocations) {
-			console.log("Ring allocations received (count=\"" + allocations.length + "\")");
-			this.ringListView.init(allocations);
+		_onIdFail: function() {
+			console.log("Identification failed");
+			this.nameView.invalidName();
+		},
+
+		_onConfirmIdentity: function () {
+			console.log("Server waiting for identity confirmation");
+			IO.sendIdentityConfirmation();
+		},
+
+		_onRingStates: function(states) {
+			console.log("Ring states received (count=\"" + states.length + "\")");
+			this.ringListView.init(states);
 			this._swapView(this.nameView, this.ringListView);
 		},
 
-		_onRingAllocationChanged: function(allocation) {
-			console.log("Ring allocation changed (index=\"" + allocation.index + "\")");
-			this.ringListView.updateRingBtn(allocation.index - 1, allocation.allocated);
+		_onRingStateChanged: function(state) {
+			console.log("Ring state changed (index=\"" + state.index + "\")");
+			this.ringListView.updateRingBtn(state.index, state.open);
 		},
 
 		_onRingSelected: function(index) {
 			console.log("Joining ring (index=" + index + ")");
 			IO.joinRing(index);
+		},
+		
+		_onWaitingForAuthorisation: function (index) {
 			console.log("Waiting for authorisation to join ring");
 			this._swapView(this.ringListView, this.authorisationView);
 		},
@@ -128,40 +133,35 @@ define([
 			// Show round view
 			this._swapView(this.authorisationView, this.roundView);
 
-			// Update scoring and JP states and toggle backdrops
+			// Update flags and backdrop
+			this.isAuthorised = true;
 			this.isScoringEnabled = data.scoringEnabled;
 			this.isJPConnected = data.jpConnected;
 			this._updateBackdrops();
 			
 			// Update page title to show ring number
-			document.title = "Corner Judge | Ring " + (data.ringIndex + 1);
+			document.title += " | Ring " + (data.ringIndex + 1);
 		},
 
-		_onRingNotJoined: function(index) {
-			console.log("Ring not joined (index=" + index + ")");
-			this.ringListView.updateInstr("Not authorised to join ring");
-			this._swapView(this.authorisationView, this.ringListView);
+		/**
+		 * Corner Judge has left the ring, willingly or not.
+		 */
+		_onRingLeft: function(index, message) {
+			console.log(message + " (index=" + index + ")");
+			
+			// Show ring list view with custom message. 
+			this.ringListView.updateInstr(message);
+			this._swapView(this.isAuthorised ? this.roundView : this.authorisationView, this.ringListView);
+			
+			// Update flag and backdrop
+			this.isAuthorised = false;
+			this._updateBackdrops();
+			
+			// Reset page title
+			document.title = "Corner Judge";
 		},
 
-		_onRingDoesNotExist: function(index) {
-			console.error("Ring does not exist (index=" + index + ")");
-			this.ringListView.updateInstr("Sorry, an error occured");
-			this._swapView(this.authorisationView, this.ringListView);
-		},
-
-		_onRingIsFull: function(index) {
-			console.log("Ring is full (index=" + index + ")");
-			this.ringListView.updateInstr("Ring is full");
-			this._swapView(this.authorisationView, this.ringListView);
-		},
-
-		_onMatchInProgress: function(index) {
-			console.log("Match in progress (index=" + index + ")");
-			this.ringListView.updateInstr("Match in progress");
-			this._swapView(this.authorisationView, this.ringListView);
-		},
-
-		_onJuryPresidentStateChanged: function(connected) {
+		_onJPStateChanged: function(connected) {
 			console.log("Jury president " + (connected ? "connected" : "disconnected"));
 			this.isJPConnected = connected;
 			this._updateBackdrops();
@@ -177,19 +177,12 @@ define([
 			console.log("Scoring " + points + " points for " + competitor);
 			IO.score(competitor, points);
 		},
-
-		_onRemovedFromRing: function(index) {
-			console.log("Ring is full (index=" + index + ")");
-			this.ringListView.updateInstr("Removed from ring");
-			this._swapView(this.roundView, this.ringListView);
-			this._updateBackdrops();
-		},
-
+		
 		_onRestoreSession: function(data) {
 			console.log("Restoring session");
 
-			// Init ring list view with ring allocation data
-			this.ringListView.init(data.ringAllocations);
+			// Init ring list view with ring state data
+			this.ringListView.init(data.ringStates);
 
 			// If no ring was joined yet, show ring list view
 			if (data.ringIndex === -1) {

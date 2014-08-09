@@ -10,6 +10,7 @@ define([
 		this.instr = this.root.querySelector('.rl-instr');
 		this.btns = null;
 		this.template = Handlebars.compile(document.getElementById('rl-ring-tmpl').innerHTML);
+		this.initialised = false;
 	}
 	
 	RingListView.prototype = {
@@ -30,6 +31,9 @@ define([
 			[].forEach.call(this.btns, function (btn, index) {
 				btn.addEventListener('click', this._onBtn.bind(this, btn, index));
 			}, this);
+			
+			// Mark view as initialised
+			this.initialised = true;
 		},
 		
 		_onBtn: function (btn, index) {
@@ -38,6 +42,10 @@ define([
 		},
 		
 		updateRingBtn: function (index, enable) {
+			if (!this.initialised) {
+				return;
+			}
+			
 			var btn = this.btns[index];
 			if (enable) {
 				btn.removeAttribute("disabled");

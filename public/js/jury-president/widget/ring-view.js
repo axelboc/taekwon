@@ -25,7 +25,8 @@ define([
 		Helpers.subscribeToEvents(this, {
 			io: {
 				newCornerJudge: this._onNewCornerJudge,
-				cornerJudgeStateChanged: this._onCornerJudgeStateChanged
+				cjStateChanged: this._onCJStateChanged,
+				cjExited: this._onCJExited
 			},
 			ring: {
 				full: this._onRingFull,
@@ -66,22 +67,22 @@ define([
 		
 		_onNewCornerJudge: function (judge) {
 			console.log("New corner judge (id=" + judge.id + ")");
-			this.ring.newJudge(judge.id, judge.name, false, true);
+			this.ring.newJudge(judge.id, judge.name, false, judge.connected);
 		},
 		
 		_onRingFull: function (judgeId) {
-			console.log("Ring is full");
-			IO.ringIsFull(judgeId);
+			console.log("Ring full");
+			IO.rejectCJ(judgeId, "Ring full");
 		},
 		
 		_onMatchInProgress: function (judgeId) {
 			console.log("Cannot join ring: match in progress");
-			IO.matchInProgress(judgeId);
+			IO.rejectCJ(judgeId, "Match in progress");
 		},
 		
 		_onJudgeAuthorised: function (id) {
 			console.log("Judge authorised (id=" + id + ")");
-			IO.authoriseCornerJudge(id);
+			IO.authoriseCJ(id);
 		},
 		
 		_onJudgeDetached: function (id) {
@@ -89,9 +90,15 @@ define([
 			this.ring.judgeDetached(id);
 		},
 		
-		_onCornerJudgeStateChanged: function (judge) {
-			console.log("Setting judge connection state (connected=" + judge.connected + ")");
+		_onCJStateChanged: function (judge) {
+			console.log("Judge connection state changed (connected=" + judge.connected + ")");
 			this.ring.judgeStateChanged(judge.id, judge.connected);
+		},
+		
+		_onCJExited: function (judgeId) {
+			console.log("Judge exited");
+			// Detach judge
+			this.judgesSidebar.detachJudgeWithId(judgeId);
 		},
 		
 		_showPanel: function (panel) {
