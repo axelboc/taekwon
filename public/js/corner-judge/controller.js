@@ -140,7 +140,7 @@ define([
 			this._updateBackdrops();
 			
 			// Update page title to show ring number
-			document.title += " | Ring " + (data.ringIndex + 1);
+			document.title = "Corner Judge | Ring " + (data.ringIndex + 1);
 		},
 
 		/**
