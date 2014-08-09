@@ -51,6 +51,7 @@ CornerJudge.prototype.ringJoined = function (data) {
 CornerJudge.prototype.ringLeft = function (ringIndex, message) {
 	this._debug("> Ring left: " + message);
 	this.ring = null;
+	this.authorised = false;
 	this.spark.emit('ringLeft', ringIndex, message);
 };
 
