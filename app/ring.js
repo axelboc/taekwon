@@ -93,10 +93,10 @@ Ring.prototype = {
 	addCJ: function (cornerJudge) {
 		this.cornerJudges.push(cornerJudge);
 		if (this.juryPresident) {
-			// Request authorisation from Jury PResident
+			// Request authorisation from Jury President
 			this.juryPresident.authoriseCJ(cornerJudge);
 		} else {
-			this._debug("Error: a Corner Judge cannot join a closed ring.");
+			this._debug("Error: ring doesn't have a Jury President.");
 		}
 	},
 	
@@ -113,6 +113,20 @@ Ring.prototype = {
 	},
 	
 	/**
+	 * A Corner Judge has been authorised by the Jury President.
+	 */
+	cjAuthorised: function (id) {
+		var cornerJudge = this._getCornerJudgeById(id);
+		if (cornerJudge) {
+			cornerJudge.ringJoined({
+				ringIndex: this.index,
+				scoringEnabled: this.scoringEnabled,
+				jpConnected: this.juryPresident.connected
+			});
+		}
+	},
+	
+	/**
 	 * Enable/disable scoring and notify Corner Judges
 	 */
 	enableScoring: function (enable) {
@@ -124,16 +138,14 @@ Ring.prototype = {
 	},
 	
 	/**
-	 * A Corner Judge has been authorised by the Jury President.
+	 * A Corner Judge scored.
+	 * Notify the Jury President.
 	 */
-	cjAuthorised: function (id) {
-		var cornerJudge = this._getCornerJudgeById(id);
-		if (cornerJudge) {
-			cornerJudge.ringJoined({
-				ringIndex: this.index,
-				scoringEnabled: this.scoringEnabled,
-				jpConnected: this.juryPresident.connected
-			});
+	cjScored: function (cornerJudge, score) {
+		if (this.juryPresident) {
+			this.juryPresident.cjScored(cornerJudge, score);
+		} else {
+			this._debug("Error: ring doesn't have a Jury President.");
 		}
 	},
 	
@@ -160,6 +172,10 @@ Ring.prototype = {
 		}
 	},
 	
+	/**
+	 * A Corner Judge exited the ring.
+	 * Remove the judge from the ring and notify the Jury President.
+	 */
 	cjExited: function (cornerJudge) {
 		if (this.juryPresident) {
 			this.removeCJ(cornerJudge, "Exited system");

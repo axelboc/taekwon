@@ -17,7 +17,7 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
-				cornerJudgeScored: this._onCornerJudgeScored
+				cjScored: this._onCJScored
 			},
 			ring: {
 				slotAdded: this._onSlotAdded,
@@ -269,7 +269,7 @@ define([
 			IO.enableScoring(enabled);
 		},
 		
-		_onCornerJudgeScored: function (score) {
+		_onCJScored: function (score) {
 			console.log("Judge scored (points=" + score.points + ")");
 			this.match.judgeScored(score.judgeId, score.competitor, score.points);
 		},

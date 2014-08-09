@@ -27,6 +27,7 @@ CornerJudge.prototype.getInfo = function () {
 CornerJudge.prototype.initSpark = function (spark) {
 	parent.initSpark.call(this, spark);
 	spark.on('joinRing', this._onJoinRing.bind(this));
+	spark.on('score', this._onScore.bind(this));
 };
 
 CornerJudge.prototype._onJoinRing = function (index) {
@@ -51,6 +52,15 @@ CornerJudge.prototype.ringLeft = function (ringIndex, message) {
 	this._debug("> Ring left: " + message);
 	this.ring = null;
 	this.spark.emit('ringLeft', ringIndex, message);
+};
+
+CornerJudge.prototype._onScore = function (score) {
+	if (this.ring) {
+		this._debug("Scored " + score.points + " for " + score.competitor);
+		this.ring.cjScored(this, score);
+	} else {
+		this._debug("Error: Corner Judge hasn't joined a ring.");
+	}
 };
 
 CornerJudge.prototype.scoringStateChanged = function (enabled) {

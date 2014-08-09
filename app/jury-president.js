@@ -82,6 +82,11 @@ JuryPresident.prototype.authoriseCJ = function (judge) {
 	});
 };
 
+JuryPresident.prototype.cjScored = function (cornerJudge, score) {
+	score.judgeId = cornerJudge.id;
+	this.spark.emit('cjScored', score);
+};
+
 JuryPresident.prototype.cjStateChanged = function (cornerJudge, connected) {
 	this.spark.emit('cjStateChanged', {
 		id: cornerJudge.id,
