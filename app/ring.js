@@ -80,7 +80,7 @@ Ring.prototype = {
 			
 			// Notify Corner Judges that they must leave the ring.
 			this.cornerJudges.forEach(function (cj) {
-				cj.ringClosed();
+				this.removeCJ(cj, "Ring closed");
 			}, this);
 		} else {
 			this._debug("Error: ring is already closed.");
@@ -102,9 +102,10 @@ Ring.prototype = {
 	
 	/**
 	 * Remove a Corner Judge from the ring.
+	 * Function accepts an ID or a Corner Judge object as first parameter.
 	 */
-	removeCJ: function (id, message) {
-		var cornerJudge = this._getCornerJudgeById(id);
+	removeCJ: function (cj, message) {
+		var cornerJudge = typeof cj === 'string' ? this._getCornerJudgeById(cj) : cj;
 		if (cornerJudge) {
 			this.cornerJudges.splice(this.cornerJudges.indexOf(cornerJudge), 1);
 			cornerJudge.ringLeft(this.index, message);

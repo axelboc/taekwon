@@ -8,94 +8,12 @@ function JuryPresident(io, socket, id) {
 	this.connected = true;
 	this.id = id;
 	this.ring = null;
-	this.waitingList = {};
-
-	// Send ring allocations and success events to client
-	socket.emit('ringAllocations', Ring.getRingAllocations());
-	socket.emit('idSuccess', true);
-	
-	// Listen to client events
-	this.initSocket();
 }
 
 JuryPresident.prototype.initSocket = function () {
-	this.socket.on('allocateRing', this.onAllocateRing.bind(this));
-	this.socket.on('authoriseCornerJudge', this.onCornerJudgeAuthorisation.bind(this, true));
-	this.socket.on('ringFull', this.onRingFull.bind(this));
-	this.socket.on('matchInProgress', this.onMatchInProgress.bind(this));
-	this.socket.on('rejectCornerJudge', this.onCornerJudgeAuthorisation.bind(this, false));
-	this.socket.on('removeCornerJudge', this.onRemoveCornerJudge.bind(this));
 	this.socket.on('enableScoring', this.onEnableScoring.bind(this));
 	this.socket.on('disconnect', this.onDisconnect.bind(this));
 	this.socket.on('sessionRestored', this.onSessionRestored.bind(this));
-};
-
-
-JuryPresident.prototype.onAllocateRing = function (index) {
-	this.debug("Creating ring #" + (index + 1));
-	
-	if (!Ring.get(index)) {
-		this.ring = new Ring(this.io, index, this);
-		this.debug("> Ring created");
-		this.socket.emit('ringCreated', index);
-		this.io.forEach(function (spark) {
-			spark.emit('ringAllocationChanged', Ring.getRingAllocation(index));
-		});
-	} else {
-		this.debug("> Ring already exists");
-		this.socket.emit('ringAlreadyExists', index);
-	}
-};
-
-JuryPresident.prototype.authoriseCornerJudge = function (cornerJudge) {
-	this.debug("Authorising corner judge with id=" + cornerJudge.id);
-	
-	// Adding corner judge to waiting list
-	this.waitingList[cornerJudge.id] = cornerJudge;
-	this.debug(cornerJudge.id);
-	
-	// Requesting authorisation from client
-	this.socket.emit('newCornerJudge', {
-		id: cornerJudge.id,
-		name: cornerJudge.name
-	});
-};
-
-JuryPresident.prototype.onCornerJudgeAuthorisation = function (accepted, cornerJudgeId) {
-	this.debug("> Corner judge " + (accepted ? "accepted" : "rejected"));
-
-	if (accepted) {
-		// Add corner judge to ring
-		this.ring.addCornerJudge(this.waitingList[cornerJudgeId]);
-	} else {
-		this.debug(cornerJudgeId);
-		this.waitingList[cornerJudgeId].ringNotJoined(this.ring);
-	}
-	
-	// Remove corner judge from waiting list
-	delete this.waitingList[cornerJudgeId];
-};
-
-JuryPresident.prototype.onRingFull = function (cornerJudgeId) {
-	var judge = this.waitingList[cornerJudgeId];
-	if (judge) {
-		judge.ringFull(this.ring);
-		// Remove corner judge from waiting list
-		delete this.waitingList[cornerJudgeId];
-	} else {
-		console.error("Corner Judge with ID=" + cornerJudgeId + " missing from waiting list");
-	}
-};
-
-JuryPresident.prototype.onMatchInProgress = function (cornerJudgeId) {
-	this.waitingList[cornerJudgeId].matchInProgress(this.ring);
-	// Remove corner judge from waiting list
-	delete this.waitingList[cornerJudgeId];
-};
-
-JuryPresident.prototype.onRemoveCornerJudge = function (cornerJudgeId) {
-	this.debug("> Corner judge removed from ring");
-	this.ring.removeCornerJudge(cornerJudgeId);
 };
 
 JuryPresident.prototype.onEnableScoring = function (enable) {
@@ -180,10 +98,3 @@ JuryPresident.prototype.exit = function () {
 	Ring.delete(this.ring);
 	this.ring = null;
 }
-
-JuryPresident.prototype.debug = function (msg) {
-	console.log("[Jury President] " + msg);
-};
-
-
-exports.JuryPresident = JuryPresident;

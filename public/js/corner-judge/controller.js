@@ -177,21 +177,7 @@ define([
 			console.log("Scoring " + points + " points for " + competitor);
 			IO.score(competitor, points);
 		},
-
-		_onRemovedFromRing: function(index) {
-			console.log("Removed from ring (index=" + index + ")");
-			this.ringListView.updateInstr("Removed from ring");
-			this._swapView(this.roundView, this.ringListView);
-			this._updateBackdrops();
-		},
 		
-		_onRingClosed: function () {
-			this.ringListView.updateInstr("Ring closed");
-			this._swapView(this.roundView, this.ringListView);
-			// TODO: here and above: when judge hasn't been authorised yet, the view to hide is this.authorisationView
-			this._updateBackdrops();
-		},
-
 		_onRestoreSession: function(data) {
 			console.log("Restoring session");
 
