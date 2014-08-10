@@ -112,6 +112,11 @@ h1,
 	font: inherit;
     cursor: pointer;
     transition: all .2s ease-in-out;
+	outline: 0px dashed #666;
+}
+
+.btn:focus {
+	outline-width: 1px;
 }
 
 .btn[disabled],
@@ -137,19 +142,15 @@ h1,
     color: #fff;
 }
 
-.btn:hover,
-.btn:focus {
+.btn:hover {
     background-color: #ddd;
     border-color: #bbb;
     color: #444;
 }
 
 .btn--minor:hover,
-.btn--minor:focus,
 .btn--major:hover,
-.btn--major:focus,
-.btn--toggle:hover,
-.btn--toggle:focus {
+.btn--toggle:hover {
     background-color: #555;
     border-color: #555;
     color: #fff;
