@@ -11,8 +11,11 @@ define([
 		this.hongScoreBtns = this.root.querySelectorAll('.score-btns--hong > .score-btn');
 		this.chongScoreBtns = this.root.querySelectorAll('.score-btns--chong > .score-btn');
 		
-		[].forEach.call(this.hongScoreBtns, this._bindScoreBtn.bind(this, Competitors.HONG)); 
-		[].forEach.call(this.chongScoreBtns, this._bindScoreBtn.bind(this, Competitors.CHONG)); 
+		// 'touchstart' if supported; otherwise, 'click'
+		var eventName = 'ontouchstart' in document.documentElement ? 'touchstart' : 'click';
+		
+		[].forEach.call(this.hongScoreBtns, this._bindScoreBtn.bind(this, eventName, Competitors.HONG)); 
+		[].forEach.call(this.chongScoreBtns, this._bindScoreBtn.bind(this, eventName, Competitors.CHONG)); 
 	}
 	
 	RoundView.prototype = {
@@ -21,8 +24,8 @@ define([
 			PubSub.publish('roundView.' + subTopic, [].slice.call(arguments, 1));
 		},
 		
-		_bindScoreBtn: function (competitor, btn, index) {
-			btn.addEventListener('click', this.onScoreBtn.bind(this, btn, competitor, index * -1 + 5));
+		_bindScoreBtn: function (eventName, competitor, btn, index) {
+			btn.addEventListener(eventName, this.onScoreBtn.bind(this, btn, competitor, index * -1 + 5));
 		},
 		
 		onScoreBtn: function(btn, competitor, points) {
