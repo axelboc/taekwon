@@ -142,7 +142,7 @@ h1,
     color: #fff;
 }
 
-.btn:hover {
+.btn:not(.btn--no-hover):hover {
     background-color: #ddd;
     border-color: #bbb;
     color: #444;
