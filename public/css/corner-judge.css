@@ -64,6 +64,57 @@
 }
 
 
+/* ===== Scoring feedback (falling numbers) ===== */
+
+.feedback {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 50%;
+	width: 14%;
+	margin-left: -7%;
+	overflow: hidden;
+}
+
+.fdb {
+	position: absolute;
+	top: 0;
+	width: 1.5em;
+	height: 1.5em;
+	line-height: 1.5;
+	border-radius: 50%;
+	font-size: 90%;
+	font-weight: bold;
+	text-align: center;
+	transform: translate3d(0, -100%, 0);
+	transition: transform 10s linear;
+	opacity: .8;
+}
+
+.no3d > .fdb {
+	top: -1.5em;
+	transition: top 10s linear;
+}
+
+.fdb--hong { left: 0; }
+.fdb--chong { right: 0; }
+
+@media (min-width: 30em) {
+	
+	.fdb {
+		width: 2em;
+		height: 2em;
+		line-height: 2;
+		font-size: 100%;
+	}
+	
+	.no3d > .fdb {
+		top: -2em;
+	}
+	
+}
+
+
 /* ===== Backdrop ===== */
 
 .backdrop-wrap {

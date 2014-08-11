@@ -9,7 +9,7 @@ require.config({
 	},
 	shim: {
 		fastclick: { exports: 'FastClick' },
-		handlebars: { exports: 'Handlebars' },
+		handlebars: { exports: 'Handlebars' }
 	}
 });
 
