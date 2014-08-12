@@ -51,11 +51,9 @@ define([
 			}
 			
 			this._publish('score', competitor, points);
-			
-			this.feedbackReceived(competitor, points);
 		},
 		
-		feedbackReceived: function (competitor, points) {
+		scoreConfirmed: function (competitor, points) {
 			// Clone and customise the default fdb element
 			var fdb = this.fdb.cloneNode();
 			fdb.classList.add('fdb--' + competitor, competitor + '-bg');

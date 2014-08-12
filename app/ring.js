@@ -144,6 +144,7 @@ Ring.prototype = {
 	cjScored: function (cornerJudge, score) {
 		if (this.juryPresident) {
 			this.juryPresident.cjScored(cornerJudge, score);
+			cornerJudge.scoreConfirmed(score);
 		} else {
 			this._debug("Error: ring doesn't have a Jury President.");
 		}
