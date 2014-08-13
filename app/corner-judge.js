@@ -64,6 +64,11 @@ CornerJudge.prototype._onScore = function (score) {
 	}
 };
 
+CornerJudge.prototype.scoreConfirmed = function (score) {
+	this._debug("> Score confirmed");
+	this.spark.emit('scoreConfirmed', score);
+};
+
 CornerJudge.prototype.scoringStateChanged = function (enabled) {
 	this.spark.emit('scoringStateChanged', enabled);
 };

@@ -20,6 +20,7 @@ define([
 		'ringJoined',
 		'ringLeft',
 		'jpStateChanged',
+		'scoreConfirmed',
 		'scoringStateChanged',
 		'restoreSession'
 	];
