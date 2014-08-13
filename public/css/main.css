@@ -106,9 +106,9 @@ h1,
 .btn {
 	background-image: none;
     background-color: #555;
-    color: #fff;
     border: 1px solid #555;
     border-radius: 10px;
+    color: #fff;
 	font: inherit;
     cursor: pointer;
     transition: all .2s ease-in-out;
@@ -142,7 +142,7 @@ h1,
     color: #fff;
 }
 
-.btn:not(.btn--no-hover):hover {
+.btn:hover {
     background-color: #ddd;
     border-color: #bbb;
     color: #444;
@@ -153,6 +153,12 @@ h1,
 .btn--toggle:hover {
     background-color: #555;
     border-color: #555;
+    color: #fff;
+}
+
+.btn--no-hover:hover {
+    background-color: #555;
+    border: 1px solid #555;
     color: #fff;
 }
 
