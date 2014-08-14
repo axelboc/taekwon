@@ -8,6 +8,17 @@
 	padding-bottom: 0;
 }
 
+.undo-btn {
+	position: relative;
+	z-index: 20;
+	width: 100%;
+	height: 2em; /* same height as falling numbers */
+	border-radius: 0;
+	font-size: 110%;
+	letter-spacing: .1em;
+	text-transform: uppercase;
+}
+
 .score-btns {
 	float: left;
 	width: 40%;
@@ -86,7 +97,7 @@
 	font-size: 90%;
 	font-weight: bold;
 	text-align: center;
-	transform: translate3d(0, -100%, 0);
+	transform: translate3d(0, 0, 0);
 	transition: transform 10s linear;
 	opacity: .8;
 }
@@ -119,6 +130,7 @@
 
 .backdrop-wrap {
 	position: absolute;
+	z-index: 50;
 	top: 0;
 	left: 0;
 	width: 100%;

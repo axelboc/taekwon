@@ -104,6 +104,7 @@ h1,
 /* ===== Buttons ===== */
 
 .btn {
+	padding: 0;
 	background-image: none;
     background-color: #555;
     border: 1px solid #555;
@@ -128,6 +129,10 @@ h1,
     opacity: .4;
 }
 
+.no-hover {
+	transition: all .3s ease-out 0s;
+}
+
 .btn--minor,
 .btn--toggle {
     background-color: #ddd;
@@ -142,23 +147,25 @@ h1,
     color: #fff;
 }
 
-.btn:hover {
+.btn:not(.no-hover):hover,
+.no-hover:active {
     background-color: #ddd;
     border-color: #bbb;
     color: #444;
 }
 
-.btn--minor:hover,
-.btn--major:hover,
-.btn--toggle:hover {
-    background-color: #555;
-    border-color: #555;
-    color: #fff;
+.no-hover:active {
+	transition-duration: 0s;
 }
 
-.btn--no-hover:hover {
+.btn--minor:not(.no-hover):hover,
+.btn--major:not(.no-hover):hover,
+.btn--toggle:not(.no-hover):hover,
+.btn--minor.no-hover:active,
+.btn--major.no-hover:active,
+.btn--toggle.no-hover:active {
     background-color: #555;
-    border: 1px solid #555;
+    border-color: #555;
     color: #fff;
 }
 

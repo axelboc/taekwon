@@ -28,7 +28,7 @@
 		</div>
 		<script id="rl-ring-tmpl" type="x-handlebars-template">
 			{{#each rings}}
-			<li><button type="button" class="btn btn--no-hover rl-btn"{{#unless open}} disabled{{/unless}}>{{number}}</button></li>
+			<li><button type="button" class="btn no-hover rl-btn"{{#unless open}} disabled{{/unless}}>{{number}}</button></li>
 			{{/each}}
 		</script>
 	</div>
@@ -39,19 +39,20 @@
 		</div>
 	</div>
 	<div id="round" class="view hidden">
+		<button type="button" class="undo-btn btn btn--minor no-hover">Undo</button>
 		<div class="score-btns score-btns--hong">
-			<button class="score-btn score-btn--5 hong-bg">5</button>
-			<button class="score-btn score-btn--4 hong-bg">4</button>
-			<button class="score-btn score-btn--3 hong-bg">3</button>
-			<button class="score-btn score-btn--2 hong-bg">2</button>
-			<button class="score-btn score-btn--1 hong-bg">1</button>
+			<button type="button" class="score-btn score-btn--5 hong-bg">5</button>
+			<button type="button" class="score-btn score-btn--4 hong-bg">4</button>
+			<button type="button" class="score-btn score-btn--3 hong-bg">3</button>
+			<button type="button" class="score-btn score-btn--2 hong-bg">2</button>
+			<button type="button" class="score-btn score-btn--1 hong-bg">1</button>
 		</div>
 		<div class="score-btns score-btns--chong">
-			<button class="score-btn score-btn--5 chong-bg">5</button>
-			<button class="score-btn score-btn--4 chong-bg">4</button>
-			<button class="score-btn score-btn--3 chong-bg">3</button>
-			<button class="score-btn score-btn--2 chong-bg">2</button>
-			<button class="score-btn score-btn--1 chong-bg">1</button>
+			<button type="button" class="score-btn score-btn--5 chong-bg">5</button>
+			<button type="button" class="score-btn score-btn--4 chong-bg">4</button>
+			<button type="button" class="score-btn score-btn--3 chong-bg">3</button>
+			<button type="button" class="score-btn score-btn--2 chong-bg">2</button>
+			<button type="button" class="score-btn score-btn--1 chong-bg">1</button>
 		</div>
 		<div class="feedback"></div>
 	</div>
