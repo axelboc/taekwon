@@ -26,18 +26,11 @@ define([
 				ringJoined: this._onRingJoined,
 				ringLeft: this._onRingLeft,
 				jpStateChanged: this._onJPStateChanged,
-				scoreConfirmed: this._onScoreConfirmed,
 				scoringStateChanged: this._onScoringStateChanged,
 				restoreSession: this._onRestoreSession
 			},
-			nameView: {
-				nameSubmitted: this._onNameSubmitted
-			},
 			ringListView: {
 				ringSelected: this._onRingSelected
-			},
-			roundView: {
-				score: this._onScore
 			}
 		});
 		
@@ -88,11 +81,6 @@ define([
 			this.nameView.init();
 		},
 
-		_onNameSubmitted: function(name) {
-			console.log("Sending identification (name=\"" + name + "\")");
-			IO.sendId(name);
-		},
-
 		_onIdSuccess: function() {
 			console.log("Identification succeeded");
 		},
@@ -131,6 +119,9 @@ define([
 		_onRingJoined: function(data) {
 			console.log("Joined ring (index=" + data.ringIndex + ")");
 
+			// Enable/disable undo button
+			Helpers.enableBtn(this.roundView.undoBtn, data.canUndo);
+			
 			// Show round view
 			this._swapView(this.authorisationView, this.roundView);
 
@@ -172,16 +163,6 @@ define([
 			console.log("Scoring " + (enabled ? "enabled" : "disabled"));
 			this.isScoringEnabled = enabled;
 			this._updateBackdrops();
-		},
-
-		_onScore: function(competitor, points) {
-			console.log("Scoring " + points + " points for " + competitor);
-			IO.score(competitor, points);
-		},
-		
-		_onScoreConfirmed: function (score) {
-			console.log("Score confirmed");
-			this.roundView.scoreConfirmed(score.competitor, score.points);
 		},
 		
 		_onRestoreSession: function(data) {

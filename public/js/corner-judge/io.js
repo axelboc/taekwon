@@ -22,6 +22,8 @@ define([
 		'jpStateChanged',
 		'scoreConfirmed',
 		'scoringStateChanged',
+		'canUndo',
+		'undoConfirmed',
 		'restoreSession'
 	];
 
@@ -104,6 +106,10 @@ define([
 		});
 	}
 
+	function undo() {
+		primus.emit('undo');
+	}
+	
 	function sessionRestored() {
 		primus.emit('sessionRestored');
 	}
@@ -115,6 +121,7 @@ define([
 		sendIdentityConfirmation: sendIdentityConfirmation,
 		joinRing: joinRing,
 		score: score,
+		undo: undo,
 		sessionRestored: sessionRestored
 	};
 	

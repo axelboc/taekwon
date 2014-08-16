@@ -1,9 +1,10 @@
 
 define([
 	'minpubsub',
-	'handlebars'
+	'handlebars',
+	'../io'
 
-], function (PubSub, Handlebars) {
+], function (PubSub, Handlebars, IO) {
 	
 	function NameView() {
 		this.root = document.getElementById('name');
@@ -39,9 +40,11 @@ define([
 		_onNameField: function (evt) {
 			// If Enter key was pressed...
 			if (evt.which === 13 || evt.keyCode === 13) {
-				if (this.field.value.length > 0) {
+				var name = this.field.value;
+				if (name.length > 0) {
 					this.field.blur();
-					this._publish('nameSubmitted', this.field.value);
+					console.log("Sending identification (name=\"" + name + "\")");
+					IO.sendId(name);
 				} else {
 					this.invalidName();
 				}

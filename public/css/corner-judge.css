@@ -107,6 +107,11 @@
 	transition: top 10s linear;
 }
 
+.fdb--undo {
+	background-color: #555;
+	color: #fff;
+}
+
 .fdb--hong { left: 0; }
 .fdb--chong { right: 0; }
 
