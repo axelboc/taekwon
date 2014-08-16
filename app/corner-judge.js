@@ -10,6 +10,9 @@ function CornerJudge(tournament, primus, spark, sessionId, name) {
 	User.apply(this, arguments);
 	this.name = name;
 	this.authorised = false;
+	
+	// Store scores for undo feature
+	this.scores = [];
 }
 
 // Inherit from User
@@ -28,6 +31,7 @@ CornerJudge.prototype.initSpark = function (spark) {
 	parent.initSpark.call(this, spark);
 	spark.on('joinRing', this._onJoinRing.bind(this));
 	spark.on('score', this._onScore.bind(this));
+	spark.on('undo', this._onUndo.bind(this));
 };
 
 CornerJudge.prototype._onJoinRing = function (index) {
@@ -57,7 +61,7 @@ CornerJudge.prototype.ringLeft = function (ringIndex, message) {
 
 CornerJudge.prototype._onScore = function (score) {
 	if (this.ring) {
-		this._debug("Scored " + score.points + " for " + score.competitor);
+		this._debug("Scoring " + score.points + " for " + score.competitor);
 		this.ring.cjScored(this, score);
 	} else {
 		this._debug("Error: Corner Judge hasn't joined a ring.");
@@ -66,11 +70,46 @@ CornerJudge.prototype._onScore = function (score) {
 
 CornerJudge.prototype.scoreConfirmed = function (score) {
 	this._debug("> Score confirmed");
+	this.scores.push(score);
 	this.spark.emit('scoreConfirmed', score);
+	
+	if (this.scores.length === 1){
+		this.spark.emit('canUndo', true);
+	}
 };
 
 CornerJudge.prototype.scoringStateChanged = function (enabled) {
 	this.spark.emit('scoringStateChanged', enabled);
+};
+
+CornerJudge.prototype._onUndo = function () {
+	if (this.scores.length > 0) {
+		// Retrieve latest score
+		var score = this.scores.pop();
+		
+		// Propagate like a normal score
+		if (this.ring) {
+			this._debug("Undoing score of " + score.points + " for " + score.competitor);
+			
+			// Negate points value
+			score.points *= -1;
+			
+			this.ring.cjScored(this, score, true);
+		} else {
+			this._debug("Error: Corner Judge hasn't joined a ring.");
+		}
+		
+		if (this.scores.length === 0) {
+			this.spark.emit('canUndo', false);
+		}
+	} else {
+		this._debug("Error: nothing to undo");
+	}
+};
+
+CornerJudge.prototype.undoConfirmed = function (score) {
+	this._debug("> Undo confirmed");
+	this.spark.emit('undoConfirmed', score);
 };
 
 CornerJudge.prototype.jpStateChanged = function (connected) {
@@ -81,6 +120,7 @@ CornerJudge.prototype.restoreSession = function (spark) {
 	var data = parent.restoreSession.call(this, spark);
 	data.authorised = this.authorised;
 	data.scoringEnabled = this.ring && this.ring.scoringEnabled;
+	data.canUndo = this.scores.length > 0;
 	data.jpConnected = this.ring && this.ring.juryPresident && this.ring.juryPresident.connected;
 	
 	// Send session restore event with all the required data

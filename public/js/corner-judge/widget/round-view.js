@@ -2,20 +2,33 @@
 define([
 	'minpubsub',
 	'handlebars',
+	'../../common/helpers',
+	'../io',
 	'../../common/competitors'
 
-], function (PubSub, Handlebars, Competitors) {
+], function (PubSub, Handlebars, Helpers, IO, Competitors) {
 	
 	function RoundView() {
 		this.root = document.getElementById('round');
 		
-		// Scoring buttons
+		// Subscribe to events
+		Helpers.subscribeToEvents(this, {
+			io: {
+				scoreConfirmed: this._onScoreConfirmed,
+				canUndo: this._onCanUndo,
+				undoConfirmed: this._onUndoConfirmed
+			}
+		});
+		
+		// Undo and scoring buttons
+		this.undoBtn = this.root.querySelector('.undo-btn');
 		this.hongScoreBtns = this.root.querySelectorAll('.score-btns--hong > .score-btn');
 		this.chongScoreBtns = this.root.querySelectorAll('.score-btns--chong > .score-btn');
 		
 		// 'touchstart' if supported; otherwise, 'click'
 		var eventName = 'ontouchstart' in document.documentElement ? 'touchstart' : 'click';
 		
+		this.undoBtn.addEventListener('click', this._onUndoBtn.bind(this));
 		[].forEach.call(this.hongScoreBtns, this._bindScoreBtn.bind(this, eventName, Competitors.HONG)); 
 		[].forEach.call(this.chongScoreBtns, this._bindScoreBtn.bind(this, eventName, Competitors.CHONG));
 		document.addEventListener('transitionend', this._onTransitionEnd.bind(this));
@@ -42,22 +55,51 @@ define([
 		},
 		
 		_bindScoreBtn: function (eventName, competitor, btn, index) {
-			btn.addEventListener(eventName, this.onScoreBtn.bind(this, btn, competitor, index * -1 + 5));
+			btn.addEventListener(eventName, this._onScoreBtn.bind(this, btn, competitor, index * -1 + 5));
 		},
 		
-		onScoreBtn: function(btn, competitor, points) {
+		_onScoreBtn: function(btn, competitor, points) {
+			console.log("Scoring " + points + " points for " + competitor);
+			
 			if (window.navigator.vibrate) {
 				window.navigator.vibrate(100);
 			}
 			
-			this._publish('score', competitor, points);
+			IO.score(competitor, points);
 		},
 		
-		scoreConfirmed: function (competitor, points) {
+		_onScoreConfirmed: function (score) {
+			console.log("> Score confirmed");
+			this._newFdb([
+				'fdb--' + score.competitor,
+				score.competitor + '-bg'
+			], score.points);
+		},
+		
+		_onCanUndo: function (canUndo) {
+			console.log((canUndo ? "Can" : "Cannot") + " undo");
+			Helpers.enableBtn(this.undoBtn, canUndo);
+		},
+		
+		_onUndoBtn: function () {
+			console.log("Undoing previous score");
+			this.undoBtn.blur();
+			IO.undo();
+		},
+		
+		_onUndoConfirmed: function (score) {
+			console.log("> Undo confirmed");
+			this._newFdb([
+				'fdb--' + score.competitor,
+				'fdb--undo'
+			], score.points * -1);
+		},
+		
+		_newFdb: function (classArr, value) {
 			// Clone and customise the default fdb element
 			var fdb = this.fdb.cloneNode();
-			fdb.classList.add('fdb--' + competitor, competitor + '-bg');
-			fdb.textContent = points;
+			fdb.classList.add.apply(fdb.classList, classArr);
+			fdb.textContent = value;
 			
 			// Add fdb element to the DOM
 			this.feedback.appendChild(fdb);
