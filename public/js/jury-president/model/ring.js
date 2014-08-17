@@ -83,18 +83,30 @@ define([
 		},
 		
 		newMatch: function (config) {
+			// Check for empty slots
 			var diff = this.judgeSlotCount - this.judgeCount;
 			if (diff > 0) {
 				alert("Waiting for " + diff + " more corner judge" + (diff > 1 ? "s" : "") + " to join the ring.");
 			} else {
-				var unauthorisedCount = this.judgeSlots.filter(function (slot) {
+				// Check for unauthorised Corner Judges
+				var unauthorised = this.judgeSlots.filter(function (slot) {
 					return !slot.judge.authorised;
 				}).length;
 				
-				if (unauthorisedCount > 0) {
-					alert(unauthorisedCount + " corner judge" + (unauthorisedCount > 1 ? "s are" : " is") + " awaiting your authorisation to join the ring.");
+				if (unauthorised > 0) {
+					alert(unauthorised + " corner judge" + (unauthorised > 1 ? "s are" : " is") + " awaiting your authorisation to join the ring.");
 				} else {
-					this.match = new Match(config, this);
+					// Check for disconnected Corner Judges
+					var disconnected = this.judgeSlots.filter(function (slot) {
+						return !slot.judge.connected;
+					}).length;
+					
+					if (disconnected > 0) {
+						alert(disconnected + " corner judge" + (disconnected > 1 ? "s are" : " is") + " disconnected.");
+					} else {
+						// All Corner Judges are connected and authorised; create the Match
+						this.match = new Match(config, this);
+					}
 				}
 			}
 		},
