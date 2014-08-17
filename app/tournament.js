@@ -34,14 +34,18 @@ Tournament.prototype = {
 		var request = spark.request;
 		var sessionId = request.sessionId;
 		
-		var user = this.users[sessionId];
-		if (!user) {
-			// Request identification from new user
-			this._debug("New user with ID=" + sessionId + ".");
-			this._waitForId(spark, sessionId);
+		if (sessionId) {
+			var user = this.users[sessionId];
+			if (!user) {
+				// Request identification from new user
+				this._debug("New user with ID=" + sessionId + ".");
+				this._waitForId(spark, sessionId);
+			} else {
+				// If existing user, confirm user identity
+				this._confirmIdentity(spark, sessionId, user);
+			}
 		} else {
-			// If existing user, confirm user identity
-			this._confirmIdentity(spark, sessionId, user);
+			this._debug("Error: no session ID available (cookies not transmitted).");
 		}
 	},
 	

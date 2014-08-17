@@ -49,14 +49,13 @@ primus.use('emit', Emit);
 // Add middleware
 primus.before('session', function (req, res, next) {
 	if (!req.headers.cookie) {
-		next(new Error("No cookie transmitted."));
+		req.sessionId = null;
+	} else {
+		// Parse and store cookies
+		req.cookie = cookie.parse(req.headers.cookie);
+		// Decode Express session ID
+		req.sessionId = cookieParser.signedCookie(req.cookie[config.cookieKey], config.cookieSecret);
 	}
-
-	// Parse and store cookies
-	req.cookie = cookie.parse(req.headers.cookie);
-	// Decode Express session ID
-	req.sessionId = cookieParser.signedCookie(req.cookie[config.cookieKey], config.cookieSecret);
-
 	next();
 });
 
