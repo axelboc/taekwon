@@ -24,6 +24,9 @@ define([
 		'cjExited',
 		'restoreSession'
 	];
+	
+	// Flag set to true when server crashes
+	var errorOccurred = false;
 
 	function init() {
 		console.log("Connecting to server");
@@ -32,6 +35,9 @@ define([
 		// Listen for opening of connection
 		primus.on('open', function open() {
 			console.log('Connection is alive and kicking');
+			if (errorOccurred) {
+				location.reload();
+			}
 		});
 		
 		// Listen for incoming data
@@ -41,6 +47,10 @@ define([
 		
 		// Listen for errors
 		primus.on('error', function error(err) {
+			if (!errorOccurred) {
+				errorOccurred = true;
+				alert("Server crashed: stop the match now, take note of the current time and scores, and notify the system administrator.");
+			}
 			console.error('Something horrible has happened', err.stack);
 		});
 		

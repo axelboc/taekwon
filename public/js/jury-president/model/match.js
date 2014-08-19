@@ -93,7 +93,6 @@ define([
 			Object.keys(this.ring.judgeById).forEach(function (judgeId) {
 				// Get winner
 				var winner = this.ring.judgeById[judgeId].getWinner(totalColumnId);
-				console.log(winner);
 				
 				// +1 if hong wins, -1 if chong wins, 0 if tie (null)
 				diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
@@ -101,7 +100,6 @@ define([
 			
 			// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
 			var globalWinner = diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null);
-			console.log(globalWinner);
 			this.winner = globalWinner;
 			return globalWinner;
 		},
