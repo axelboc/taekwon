@@ -21,6 +21,11 @@ define(['minpubsub'], function (PubSub) {
 			if (this.value > 0) {
 				this.value -= 1;
 				this._update();
+				
+				if (this.value === 0) {
+					this._publish('zero', this.name);
+					this.stop();
+				}
 			}
 		},
 		

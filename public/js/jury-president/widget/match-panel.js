@@ -41,7 +41,8 @@ define([
 				scoresUpdated: this._onJudgeScoresUpdated
 			},
 			timer: {
-				tick: this._onTimerTick
+				tick: this._onTimerTick,
+				zero: this._onTimerZero
 			}
 		});
 		
@@ -51,6 +52,7 @@ define([
 		// Time keeping
 		this.timersSliding = false;
 		this.timeKeeping = this.root.querySelector('.time-keeping');
+		this.tkBeeps = document.getElementById('tk-beeps');
 		this.tkInner = this.timeKeeping.querySelector('.tk-inner');
 		
 		this.roundTimer = {
@@ -106,6 +108,10 @@ define([
 			var sec = value % 60
 			timer.sec.textContent = (sec < 10 ? '0' : '') + sec;
 			timer.min.textContent = Math.floor(value / 60);
+		},
+		
+		_onTimerZero: function () {
+			this.tkBeeps.play();
 		},
 
 		_onStateStartBtn: function (evt) {
