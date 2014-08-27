@@ -82,10 +82,12 @@ define([
 				this.ring.judgeById[judgeId].computeTotal(this.scoreboardColumnId, totalColumnId, maluses);
 			}, this);
 			
-			this._publish('totalsComputed');
 			return totalColumnId;
 		},
 		
+		/**
+		 * Compute the winner for the last round(s).
+		 */
 		_computeWinner: function (totalColumnId) {
 			var diff = 0;
 			
@@ -101,12 +103,14 @@ define([
 			// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
 			var globalWinner = diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null);
 			this.winner = globalWinner;
-			return globalWinner;
 		},
 		
-		_isTie: function (totalColumnId) {
-			// If tie, computeWinner returns null
-			return !this._computeWinner(totalColumnId);
+		/**
+		 * Compute the winner, maluses and total scores for the last round(s).
+		 */
+		_computeResult: function () {
+			this._computeWinner(this._computeTotals());
+			this._publish('resultsComputed');
 		},
 		
 		_nextState: function () {
@@ -116,10 +120,11 @@ define([
 					// Add Break and Round 2 states
 					this.states.push(MatchStates.BREAK, MatchStates.ROUND_2);
 				} else {
-					// Compute total with scores from previous round(s)
-					var totalColumnId = this._computeTotals();
+					// Compute the result for the last round(s)
+					this._computeResult();
+					var isTie = this.winner === null;
 
-					if (this.state !== MatchStates.GOLDEN_POINT && this._isTie(totalColumnId)) {
+					if (this.state !== MatchStates.GOLDEN_POINT && isTie) {
 						var tbOrNull = this.config.tieBreaker ? MatchStates.TIE_BREAKER : null;
 						var gpOrNull = this.config.goldenPoint ? MatchStates.GOLDEN_POINT : null;
 						var eitherOrNull = tbOrNull ? tbOrNull : gpOrNull;
@@ -132,7 +137,6 @@ define([
 							return;
 						}
 					} else {
-						this._computeWinner(totalColumnId);
 						this._endMatch();
 						return;
 					}
