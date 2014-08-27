@@ -149,7 +149,7 @@ define([
 		_onDisconnectBtn: function (index) {
 			var confirmText = "Match in progress. If you continue, this judge's scoreboard will be erased completely. Disconnect anyway?";
 			
-			if (!this.ring.match || this.ring.match.hasEnded() || confirm(confirmText)) {
+			if (!this.ring.match || !this.ring.match.isInProgress() || confirm(confirmText)) {
 				console.log("Judge disconnected");
 				var slot = this.slots[index];
 				IO.removeCJ(slot.judge.id);

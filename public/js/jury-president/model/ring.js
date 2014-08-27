@@ -59,7 +59,7 @@ define([
 			var index = this._findFreeJudgeSlot();
 			if (index === -1) {
 				this._publish('full', id);
-			} else if (this.match && !this.match.hasEnded()) {
+			} else if (this.match && this.match.isInProgress()) {
 				this._publish('matchInProgress', id);
 			} else {
 				var judge = new Judge(id, index, name, authorised, connected);

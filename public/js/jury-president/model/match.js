@@ -164,8 +164,8 @@ define([
 			this._publish('ended');
 		},
 		
-		hasEnded: function () {
-			return this.state === null;
+		isInProgress: function () {
+			return this.state !== null && (this.stateStarted || this.stateIndex > 0);
 		},
 		
 		startState: function () {
