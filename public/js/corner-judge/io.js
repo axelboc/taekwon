@@ -51,7 +51,7 @@ define([
 		primus.on('error', function error(err) {
 			if (!errorOccurred) {
 				errorOccurred = true;
-				alert("Server crashed. Please wait for instructions.");
+				alert("An error occurred. Please wait for instructions.");
 			}
 			console.error('Something horrible has happened', err.stack);
 		});

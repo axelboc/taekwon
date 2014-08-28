@@ -49,7 +49,7 @@ define([
 		primus.on('error', function error(err) {
 			if (!errorOccurred) {
 				errorOccurred = true;
-				alert("Server crashed: stop the match now, take note of the current time and scores, and notify the system administrator.");
+				alert("An error occurred. Interrupt the match now, take note of the current time and scores, and notify the system administrator.");
 			}
 			console.error('Something horrible has happened', err.stack);
 		});
