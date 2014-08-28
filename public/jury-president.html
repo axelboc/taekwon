@@ -102,7 +102,6 @@
 						<div class="sm-inner">
 							<button class="sm-btn sm-btn--start match-btn btn" type="button">Start</button>
 							<button class="sm-btn sm-btn--end match-btn btn" type="button">End</button>
-							<button class="sm-btn sm-btn--result match-btn btn btn--major hidden" type="button">See Result</button>
 							<button class="sm-btn sm-btn--injury match-btn btn btn--minor" type="button">Start Injury</button>
 						</div>
 					</div>
@@ -159,7 +158,11 @@
 		</div>
 		<div id="result-panel" class="panel hidden">
 			<p class="rp-winner"></p>
-			<div>
+			<div id="rp-buttons--continue">
+				<button type="button" class="match-btn match-btn--config btn btn--minor">End Match</button>
+				<button type="button" class="match-btn match-btn--continue btn btn--major">Continue Match</button>
+			</div>
+			<div id="rp-buttons--end">
 				<button type="button" class="match-btn match-btn--config btn btn--minor">Match Configuration</button>
 				<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
 			</div>

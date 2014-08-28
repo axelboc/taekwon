@@ -293,12 +293,8 @@
 	margin-right: 4%;
 }
 
-.sm-btn--result,
 .sm-btn--injury {
 	width: 100%;
-}
-
-.sm-btn--injury {
 	margin-top: .6em;
 	font-size: 120%;
 }

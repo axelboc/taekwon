@@ -33,7 +33,8 @@ define([
 				matchInProgress: this._onMatchInProgress
 			},
 			match: {
-				created: this._onMatchCreated
+				created: this._onMatchCreated,
+				resultsComputed: this._onResultsComputed
 			},
 			judge: {
 				authorised: this._onJudgeAuthorised
@@ -44,11 +45,9 @@ define([
 			configPanel: {
 				newMatchBtn: this._onNewMatchBtn
 			},
-			matchPanel: {
-				matchResultBtn: this._onMatchResultBtn
-			},
 			resultPanel: {
 				matchConfigBtn: this._onMatchConfigBtn,
+				continueMatchBtn: this._onContinueMatchBtn,
 				newMatchBtn: this._onNewMatchBtn
 			}
 		});
@@ -120,14 +119,19 @@ define([
 			this._showPanel(this.matchPanel);
 		},
 		
+		_onResultsComputed: function () {
+			// Show result panel
+			this._showPanel(this.resultPanel);
+		},
+		
 		_onMatchConfigBtn: function () {
 			// Show config panel
 			this._showPanel(this.configPanel);
 		},
 		
-		_onMatchResultBtn: function () {
-			// Show result panel
-			this._showPanel(this.resultPanel);
+		_onContinueMatchBtn: function () {
+			// Show match panel
+			this._showPanel(this.matchPanel);
 		}
 		
 	};
