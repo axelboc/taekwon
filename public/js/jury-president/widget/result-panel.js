@@ -15,16 +15,23 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			match: {
+				resultsComputed: this._onResultsComputed,
 				ended: this._onMatchEnded
 			}
 		});
 		
 		this.winner = this.root.querySelector('.rp-winner');
+		this.continueBtnsWrap = document.getElementById('rp-buttons--continue');
+		this.endBtnsWrap = document.getElementById('rp-buttons--end');
+		this.matchConfigBtns = this.root.querySelectorAll('.match-btn--config');
+		this.continueMatchBtn = this.root.querySelector('.match-btn--continue');
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
-		this.matchConfigBtn = this.root.querySelector('.match-btn--config');
 		
+		[].forEach.call(this.matchConfigBtns, function (btn) {
+			btn.addEventListener('click', this._publish.bind(this, 'matchConfigBtn'));
+		}, this);
+		this.continueMatchBtn.addEventListener('click', this._publish.bind(this, 'continueMatchBtn'));
 		this.newMatchBtn.addEventListener('click', this._publish.bind(this, 'newMatchBtn', this.newMatchBtn));
-		this.matchConfigBtn.addEventListener('click', this._publish.bind(this, 'matchConfigBtn'));
 		
 		// Scoreboard
 		this.scoreboard = this.root.querySelector('.scoreboard');
@@ -143,9 +150,16 @@ define([
 			}, this);
 		},
 		
-		_onMatchEnded: function () {
+		_onResultsComputed: function () {
 			this._showWinner();
+			this.continueBtnsWrap.classList.remove('hidden');
+			this.endBtnsWrap.classList.add('hidden');
 			this._populateScoreboard();
+		},
+		
+		_onMatchEnded: function () {
+			this.continueBtnsWrap.classList.add('hidden');
+			this.endBtnsWrap.classList.remove('hidden');
 		}
 		
 	};

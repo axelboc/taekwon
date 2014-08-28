@@ -70,12 +70,10 @@ define([
 		// Match state management
 		this.stateStartBtn = this.root.querySelector('.sm-btn--start');
 		this.stateEndBtn = this.root.querySelector('.sm-btn--end');
-		this.matchResultBtn = this.root.querySelector('.sm-btn--result');
 		this.injuryBtn = this.root.querySelector('.sm-btn--injury');
 		
 		this.stateStartBtn.addEventListener('click', this._onStateStartBtn.bind(this));
 		this.stateEndBtn.addEventListener('click', this._onStateEndBtn.bind(this));
-		this.matchResultBtn.addEventListener('click', this._publish.bind(this, 'matchResultBtn'));
 		this.injuryBtn.addEventListener('click', this._onInjuryBtn.bind(this));
 		
 		// Scoring
@@ -152,7 +150,6 @@ define([
 			console.log("Match created");
 			this.match = match;
 			this._updateStateBtns(null, false);
-			this.matchResultBtn.classList.add('hidden');
 			this.stateStartBtn.classList.remove('hidden');
 			this.stateEndBtn.classList.remove('hidden');
 			this._enablePenaltyBtns(false);
@@ -211,7 +208,6 @@ define([
 			console.log("Match ended");
 			this.stateStartBtn.classList.add("hidden");
 			this.stateEndBtn.classList.add("hidden");
-			this.matchResultBtn.classList.remove("hidden");
 			this.roundTimer.timer.reset(0);
 		},
 
