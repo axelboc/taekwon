@@ -90,26 +90,34 @@ define([
 		 */
 		_computeWinner: function (totalColumnId) {
 			var diff = 0;
+			var ties = 0;
 			
 			// Ask judges to return their winner
-			Object.keys(this.ring.judgeById).forEach(function (judgeId) {
+			var judgeIds = Object.keys(this.ring.judgeById);
+			judgeIds.forEach(function (judgeId) {
 				// Get winner
 				var winner = this.ring.judgeById[judgeId].getWinner(totalColumnId);
 				
 				// +1 if hong wins, -1 if chong wins, 0 if tie (null)
 				diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
+				ties += (!winner ? 1 : 0);
 			}, this);
+			console.log(ties);
 			
-			// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
-			var globalWinner = diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null);
-			this.winner = globalWinner;
+			// If majority of ties, match is also a tie
+			if (judgeIds.length/ > 2 && ties > Math.floor(judgeIds.length % 2)) {
+				return = null;
+			} else {
+				// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
+				return (diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null));
+			}
 		},
 		
 		/**
 		 * Compute the winner, maluses and total scores for the last round(s).
 		 */
 		_computeResult: function () {
-			this._computeWinner(this._computeTotals());
+			this.winner = this._computeWinner(this._computeTotals());
 			this._publish('resultsComputed');
 		},
 		
