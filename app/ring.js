@@ -1,6 +1,8 @@
 
 // Modules
+var assert = require('assert');
 var config = require('./config');
+var CornerJudge = require('./corner-judge').CornerJudge;
 
 
 function Ring(primus, index) {
@@ -91,13 +93,14 @@ Ring.prototype = {
 	 * Add a Corner Judge to the ring.
 	 */
 	addCJ: function (cornerJudge) {
+		assert(cornerJudge instanceof CornerJudge, "argument 'cornerJudge' must be a valid CornerJudge object");
+		assert(this.juryPresident, "ring must have Jury President");
+		
+		// Add Corner Judge to array
 		this.cornerJudges.push(cornerJudge);
-		if (this.juryPresident) {
-			// Request authorisation from Jury President
-			this.juryPresident.authoriseCJ(cornerJudge);
-		} else {
-			this._debug("Error: ring doesn't have a Jury President.");
-		}
+		
+		// Request authorisation from Jury President
+		this.juryPresident.authoriseCJ(cornerJudge);
 	},
 	
 	/**

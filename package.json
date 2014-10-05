@@ -7,6 +7,9 @@
     "type": "git",
     "url": "http://github.com/axelboc/taekwon"
   },
+  "scripts": {
+    "test": "mocha tests --require tests/helpers/common.js"
+  },
   "dependencies": {
     "express": "~4.7.1",
     "express-session": "~1.7.1",
@@ -14,6 +17,12 @@
     "cookie": "~0.1.2",
     "primus": "~2.4.0",
     "primus-emit": "~0.1.0",
-    "sockjs": "~0.3.9"
+    "sockjs": "~0.3.9",
+    "mocha": "~1.21.4"
+  },
+  "devDependencies": {
+    "chai": "~1.9.2",
+    "sinon": "~1.10.3",
+    "mocha": "~1.21.4"
   }
 }
