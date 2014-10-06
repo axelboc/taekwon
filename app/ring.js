@@ -30,17 +30,17 @@ Ring.prototype = {
 	},
 	
 	_getCornerJudgeById: function (id) {
+		assert(typeof id === 'string', "argument 'id' must be a string");
+		
+		// Find the Corner Judge with the given ID
 		var cornerJudge = this.cornerJudges.filter(function (cj) {
 			return cj.id === id;
 		}, this);
 		
-		if (cornerJudge.length === 0) {
-			this._debug("Error: no Corner Judge with ID=" + id + " in ring #" + this.number + ".");
-		} else if (cornerJudge.length > 1) {
-			this._debug("Error: " + cornerJudge.length + " Corner Judges share the same ID=" + id + " in ring #" + this.number + ".");
-		}
-		
-		return cornerJudge.length > 0 ? cornerJudge[0] : null;
+		assert(cornerJudge.length > 0, "no Corner Judge with ID=" + id + " in ring #" + this.number);
+		assert(cornerJudge.length === 1, cornerJudge.length + " Corner Judges share the same ID=" + id + " in ring #" + this.number);
+
+		return cornerJudge[0];
 	},
 	
 	/**
