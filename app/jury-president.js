@@ -28,6 +28,7 @@ JuryPresident.prototype._onOpenRing = function (index) {
 	this._debug("Opening ring #" + (index + 1));
 	var ring = this.tournament.getRing(index);
 	if (ring) {
+		// TODO: ring.open() doesn't return a boolean anymore
 		if (ring.open(this)) {
 			this._debug("> Ring opened");
 			this.ring = ring;

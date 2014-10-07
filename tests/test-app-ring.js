@@ -2,6 +2,7 @@
 
 var Ring = require('../app/ring').Ring;
 var CornerJudge = require('../app/corner-judge').CornerJudge;
+var JuryPresident = require('../app/jury-president').JuryPresident;
 
 describe('Ring', function () {
 	
@@ -42,6 +43,36 @@ describe('Ring', function () {
 			ring.cornerJudges = [{ id: 'foo' }, { id: 'bar' }];
 			var cj = ring._getCornerJudgeById('bar');
 			expect(cj.id).to.equal('bar');
+		});
+	});
+	
+	describe('#open', function () {
+		it("should only accept a valid JuryPresident instance", function () {
+			var ring = new Ring(null, 0);
+			var func = ring.open.bind(ring, {});
+			expect(func).to.throw(/argument 'juryPresident' must be a valid JuryPresident object/);
+		});
+		
+		it("should throw if Ring is already open (already has a Jury President)", function () {
+			var ring = new Ring(null, 0);
+			ring.juryPresident = {};
+			var func = ring.open.bind(ring, sinon.createStubInstance(JuryPresident));
+			expect(func).to.throw(/ring is already open/);
+		});
+		
+		it("should open ring", function () {
+			var ring = new Ring(null, 0);
+			ring._stateChanged = sinon.spy();
+			ring.open(sinon.createStubInstance(JuryPresident));
+			expect(ring.getState().open).to.be.true;
+		});
+		
+		it("should trigger state changed event", function () {
+			var ring = new Ring(null, 0);
+			var _stateChanged = sinon.spy();
+			ring._stateChanged = _stateChanged;
+			ring.open(sinon.createStubInstance(JuryPresident));
+			expect(_stateChanged.called).to.be.true;
 		});
 	});
 	

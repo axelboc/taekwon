@@ -3,6 +3,7 @@
 var assert = require('assert');
 var config = require('./config');
 var CornerJudge = require('./corner-judge').CornerJudge;
+var JuryPresident = require('./jury-president').JuryPresident;
 
 
 function Ring(primus, index) {
@@ -10,7 +11,6 @@ function Ring(primus, index) {
 	this.index = index;
 	this.number = index + 1;
 	this.roomId = 'ring' + index;
-	this.isOpen = false;
 	this.juryPresident = null;
 	this.cornerJudges = [];
 	this.scoringEnabled = false;
@@ -25,7 +25,7 @@ Ring.prototype = {
 		return {
 			index: this.index,
 			number: this.number,
-			open: this.isOpen
+			open: this.juryPresident !== null
 		};
 	},
 	
@@ -53,28 +53,21 @@ Ring.prototype = {
 	},
 	
 	/**
-	 * Open the ring.
-	 * Return true if the process was successful; false otherwise (ring already open).
+	 * Open the ring by assigning it a Jury President.
 	 */
 	open: function (juryPresident) {
-		if (!this.isOpen) {
-			this.isOpen = true;
-			this.juryPresident = juryPresident;
-			this._stateChanged();
-			
-			// Success
-			return true;
-		}
-		
-		// Ring already open
-		this._debug("Error: ring is already open.");
-		return false;
+		assert(juryPresident instanceof JuryPresident, "argument 'juryPresident' must be a valid JuryPresident object");
+		assert(!this.juryPresident, "ring is already open");
+
+		this.juryPresident = juryPresident;
+		this._stateChanged();
 	},
 	
 	/**
 	 * Close the ring.
 	 */
 	close: function () {
+		// TODO: isOpen removed
 		if (this.isOpen) {
 			this.isOpen = false;
 			this.juryPresident = null;
