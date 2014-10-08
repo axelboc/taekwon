@@ -76,6 +76,42 @@ describe('Ring', function () {
 		});
 	});
 	
+	describe('#close', function () {
+		it("should throw if Ring is already closed (doesn't have a Jury President)", function () {
+			var ring = new Ring(null, 0);
+			expect(ring.close).to.throw(/ring is already closed/);
+		});
+		
+		it("should close ring", function () {
+			var ring = new Ring(null, 0);
+			ring.juryPresident = {};
+			ring._stateChanged = sinon.spy();
+			ring.close();
+			expect(ring.getState().open).to.be.false;
+		});
+		
+		it("should trigger state changed event", function () {
+			var ring = new Ring(null, 0);
+			ring.juryPresident = {};
+			var _stateChanged = sinon.spy();
+			ring._stateChanged = _stateChanged;
+			ring.close();
+			expect(_stateChanged.called).to.be.true;
+		});
+		
+		it("should remove all Corner Judges from ring", function () {
+			var ring = new Ring(null, 0);
+			ring.juryPresident = {};
+			ring._stateChanged = sinon.spy();
+			var removeCJ = sinon.spy();
+			ring.removeCJ = removeCJ;
+			var cj = {};
+			ring.cornerJudges = [cj];
+			ring.close();
+			expect(removeCJ.calledWith(cj)).to.be.true;
+		});
+	});
+	
 	describe('#addCJ', function () {
 		it("should only accept a valid CornerJudge instance", function () {
 			var ring = new Ring(null, 0);

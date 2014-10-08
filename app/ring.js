@@ -20,6 +20,7 @@ Ring.prototype = {
 	
 	/**
 	 * Return an object representing the state of the ring (open/close).
+	 * @return {array}
 	 */
 	getState: function () {
 		return {
@@ -29,6 +30,12 @@ Ring.prototype = {
 		};
 	},
 	
+	/**
+	 * Return the ring's Corner Judge with the given ID.
+	 * @private
+	 * @param {string} id
+	 * @return {CornerJudge}
+	 */
 	_getCornerJudgeById: function (id) {
 		assert(typeof id === 'string', "argument 'id' must be a string");
 		
@@ -45,6 +52,7 @@ Ring.prototype = {
 	
 	/**
 	 * Broadcast to all users that the state of the ring has changed.
+	 * @private
 	 */
 	_stateChanged: function () {
 		this.primus.forEach(function (spark) {
@@ -54,6 +62,7 @@ Ring.prototype = {
 	
 	/**
 	 * Open the ring by assigning it a Jury President.
+	 * @param {JuryPresident} juryPresident
 	 */
 	open: function (juryPresident) {
 		assert(juryPresident instanceof JuryPresident, "argument 'juryPresident' must be a valid JuryPresident object");
@@ -67,19 +76,15 @@ Ring.prototype = {
 	 * Close the ring.
 	 */
 	close: function () {
-		// TODO: isOpen removed
-		if (this.isOpen) {
-			this.isOpen = false;
-			this.juryPresident = null;
-			this._stateChanged();
+		assert(this.juryPresident, "ring is already closed");
+
+		this.juryPresident = null;
+		this._stateChanged();
 			
-			// Notify Corner Judges that they must leave the ring.
-			this.cornerJudges.forEach(function (cj) {
-				this.removeCJ(cj, "Ring closed");
-			}, this);
-		} else {
-			this._debug("Error: ring is already closed.");
-		}
+		// Notify Corner Judges that they must leave the ring.
+		this.cornerJudges.forEach(function (cj) {
+			this.removeCJ(cj, "Ring closed");
+		}, this);
 	},
 	
 	/**
