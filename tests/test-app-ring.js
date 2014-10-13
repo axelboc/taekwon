@@ -18,7 +18,7 @@ describe('Ring', function () {
 	});
 	
 	describe('#_getCornerJudgeById', function () {
-		it("should only accept an identifer of type string", function () {
+		it("should only accept a string identifer", function () {
 			var ring = new Ring(null, 0);
 			var func = ring._getCornerJudgeById.bind(ring, 1);
 			expect(func).to.throw(/argument 'id' must be a string/);
@@ -50,7 +50,7 @@ describe('Ring', function () {
 		it("should only accept a valid JuryPresident instance", function () {
 			var ring = new Ring(null, 0);
 			var func = ring.open.bind(ring, {});
-			expect(func).to.throw(/argument 'juryPresident' must be a valid JuryPresident object/);
+			expect(func).to.throw(/argument 'jp' must be a valid JuryPresident object/);
 		});
 		
 		it("should throw if Ring is already open (already has a Jury President)", function () {
@@ -116,7 +116,7 @@ describe('Ring', function () {
 		it("should only accept a valid CornerJudge instance", function () {
 			var ring = new Ring(null, 0);
 			var func = ring.addCJ.bind(ring, null);
-			expect(func).to.throw(/argument 'cornerJudge' must be a valid CornerJudge object/);
+			expect(func).to.throw(/argument 'cj' must be a valid CornerJudge object/);
 		});
 		
 		it("should throw if Ring doesn't have a JP", function () {
@@ -141,6 +141,57 @@ describe('Ring', function () {
 			ring.juryPresident = { authoriseCJ: authoriseCJ };
 			ring.addCJ(sinon.createStubInstance(CornerJudge));
 			expect(authoriseCJ.called).to.be.true;
+		});
+	});
+	
+	describe('#removeCJ', function () {
+		it("should only accept a string identifer or a valid CornerJudge instance", function () {
+			var ring = new Ring(null, 0);
+			var func = ring.removeCJ.bind(ring, null);
+			expect(func).to.throw(/argument 'cj' must be a string or a valid CornerJudge object/);
+		});
+		
+		it("should only accept a message of type string", function () {
+			var ring = new Ring(null, 0);
+			var func = ring.removeCJ.bind(ring, 'foo', null);
+			expect(func).to.throw(/argument 'message' must be a string/);
+		});
+		
+		it("should throw if CJ is not in the ring", function () {
+			var ring = new Ring(null, 0);
+			var func = ring.removeCJ.bind(ring, sinon.createStubInstance(CornerJudge), '');
+			expect(func).to.throw(/Corner Judge is not in the ring/);
+		});
+		
+		it("should remove CJ from ring", function () {
+			var ring = new Ring(null, 0);
+			var cj = sinon.createStubInstance(CornerJudge);
+			cj.id = 'foo';
+			cj.ringLeft = function () {};
+			ring.cornerJudges = [cj];
+			ring.removeCJ(cj, '');
+			expect(ring.cornerJudges).to.have.length(0);
+		});
+		
+		it("should remove CJ from ring with its identifer", function () {
+			var ring = new Ring(null, 0);
+			ring.cornerJudges = [{
+				id: 'foo',
+				ringLeft: function () {}
+			}];
+			ring.removeCJ('foo', '');
+			expect(ring.cornerJudges).to.have.length(0);
+		});
+		
+		it("should ackonwledge removal of CJ", function () {
+			var ring = new Ring(null, 0);
+			var ringLeft = sinon.spy();
+			ring.cornerJudges = [{
+				id: 'foo',
+				ringLeft: ringLeft
+			}];
+			ring.removeCJ('foo', '');
+			expect(ringLeft.called).to.be.true;
 		});
 	});
 	

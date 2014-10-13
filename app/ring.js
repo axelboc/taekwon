@@ -32,6 +32,7 @@ Ring.prototype = {
 	
 	/**
 	 * Return the ring's Corner Judge with the given ID.
+	 * The function throws if the ID is not associated with any Corner Judge.
 	 * @private
 	 * @param {string} id
 	 * @return {CornerJudge}
@@ -62,13 +63,13 @@ Ring.prototype = {
 	
 	/**
 	 * Open the ring by assigning it a Jury President.
-	 * @param {JuryPresident} juryPresident
+	 * @param {JuryPresident} jp
 	 */
-	open: function (juryPresident) {
-		assert(juryPresident instanceof JuryPresident, "argument 'juryPresident' must be a valid JuryPresident object");
+	open: function (jp) {
+		assert(jp instanceof JuryPresident, "argument 'jp' must be a valid JuryPresident object");
 		assert(!this.juryPresident, "ring is already open");
 
-		this.juryPresident = juryPresident;
+		this.juryPresident = jp;
 		this._stateChanged();
 	},
 	
@@ -89,28 +90,42 @@ Ring.prototype = {
 	
 	/**
 	 * Add a Corner Judge to the ring.
+	 * @param {CornerJudge} cj
 	 */
-	addCJ: function (cornerJudge) {
-		assert(cornerJudge instanceof CornerJudge, "argument 'cornerJudge' must be a valid CornerJudge object");
+	addCJ: function (cj) {
+		assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
 		assert(this.juryPresident, "ring must have Jury President");
 		
 		// Add Corner Judge to array
-		this.cornerJudges.push(cornerJudge);
+		this.cornerJudges.push(cj);
 		
 		// Request authorisation from Jury President
-		this.juryPresident.authoriseCJ(cornerJudge);
+		this.juryPresident.authoriseCJ(cj);
 	},
 	
 	/**
 	 * Remove a Corner Judge from the ring.
-	 * Function accepts an ID or a Corner Judge object as first parameter.
+	 * @param {string|CornerJudge} cj - the ID of the Corner Judge or the CornerJudge object to remove
+	 * @param {string} message - the reason for the removal, which will be shown to the Corner Judge
 	 */
 	removeCJ: function (cj, message) {
-		var cornerJudge = typeof cj === 'string' ? this._getCornerJudgeById(cj) : cj;
-		if (cornerJudge) {
-			this.cornerJudges.splice(this.cornerJudges.indexOf(cornerJudge), 1);
-			cornerJudge.ringLeft(this.index, message);
+		assert(typeof cj === 'string' || cj instanceof CornerJudge, "argument 'cj' must be a string or a valid CornerJudge object");
+		assert(typeof message === 'string', "argument 'message' must be a string");
+		
+		// If an ID is passed, get the corresponding Corner Judge
+		if (typeof cj === 'string') {
+			cj = this._getCornerJudgeById(cj);
 		}
+		
+		// Make sure the Corner Judge actually is in the ring
+		var index = this.cornerJudges.indexOf(cj);
+		assert(index > -1, "Corner Judge is not in the ring");
+		
+		// Remove the Corner Judge from the ring
+		this.cornerJudges.splice(index, 1);
+		
+		// Ackonwledge removal
+		cj.ringLeft(this.index, message);
 	},
 	
 	/**
