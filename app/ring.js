@@ -19,39 +19,6 @@ function Ring(primus, index) {
 Ring.prototype = {
 	
 	/**
-	 * Return an object representing the state of the ring (open/close).
-	 * @return {array}
-	 */
-	getState: function () {
-		return {
-			index: this.index,
-			number: this.number,
-			open: this.juryPresident !== null
-		};
-	},
-	
-	/**
-	 * Return the ring's Corner Judge with the given ID.
-	 * The function throws if the ID is not associated with any Corner Judge.
-	 * @private
-	 * @param {string} id
-	 * @return {CornerJudge}
-	 */
-	_getCornerJudgeById: function (id) {
-		assert(typeof id === 'string', "argument 'id' must be a string");
-		
-		// Find the Corner Judge with the given ID
-		var cornerJudge = this.cornerJudges.filter(function (cj) {
-			return cj.id === id;
-		}, this);
-		
-		assert(cornerJudge.length > 0, "no Corner Judge with ID=" + id + " in ring #" + this.number);
-		assert(cornerJudge.length === 1, cornerJudge.length + " Corner Judges share the same ID=" + id + " in ring #" + this.number);
-
-		return cornerJudge[0];
-	},
-	
-	/**
 	 * Broadcast to all users that the state of the ring has changed.
 	 * @private
 	 */
@@ -59,6 +26,18 @@ Ring.prototype = {
 		this.primus.forEach(function (spark) {
 			spark.emit('ringStateChanged', this.getState());
 		}.bind(this));
+	},
+	
+	/**
+	 * Return an object representing the state of the ring (open/close).
+	 * @return {Array}
+	 */
+	getState: function () {
+		return {
+			index: this.index,
+			number: this.number,
+			open: this.juryPresident !== null
+		};
 	},
 	
 	/**
@@ -89,6 +68,27 @@ Ring.prototype = {
 	},
 	
 	/**
+	 * Return the ring's Corner Judge with the given ID.
+	 * The function throws if the ID is not associated with any Corner Judge.
+	 * @private
+	 * @param {String} id
+	 * @return {CornerJudge}
+	 */
+	_getCornerJudgeById: function (id) {
+		assert(typeof id === 'string', "argument 'id' must be a string");
+		
+		// Find the Corner Judge with the given ID
+		var cornerJudge = this.cornerJudges.filter(function (cj) {
+			return cj.id === id;
+		}, this);
+		
+		assert(cornerJudge.length > 0, "no Corner Judge with ID=" + id + " in ring #" + this.number);
+		assert(cornerJudge.length === 1, cornerJudge.length + " Corner Judges share the same ID=" + id + " in ring #" + this.number);
+
+		return cornerJudge[0];
+	},
+	
+	/**
 	 * Add a Corner Judge to the ring.
 	 * @param {CornerJudge} cj
 	 */
@@ -105,8 +105,8 @@ Ring.prototype = {
 	
 	/**
 	 * Remove a Corner Judge from the ring.
-	 * @param {string|CornerJudge} cj - the ID of the Corner Judge or the CornerJudge object to remove
-	 * @param {string} message - the reason for the removal, which will be shown to the Corner Judge
+	 * @param {String|CornerJudge} cj - the ID of the Corner Judge or the CornerJudge object to remove
+	 * @param {String} message - the reason for the removal, which will be shown to the Corner Judge
 	 */
 	removeCJ: function (cj, message) {
 		assert(typeof cj === 'string' || cj instanceof CornerJudge, "argument 'cj' must be a string or a valid CornerJudge object");
@@ -129,28 +129,30 @@ Ring.prototype = {
 	},
 	
 	/**
-	 * A Corner Judge has been authorised by the Jury President.
-	 */
-	cjAuthorised: function (id) {
-		var cornerJudge = this._getCornerJudgeById(id);
-		if (cornerJudge) {
-			cornerJudge.ringJoined({
-				ringIndex: this.index,
-				scoringEnabled: this.scoringEnabled,
-				jpConnected: this.juryPresident.connected
-			});
-		}
-	},
-	
-	/**
 	 * Enable/disable scoring and notify Corner Judges
+	 * @param {Boolean} enable - `true` to enable; `false` to disable
 	 */
 	enableScoring: function (enable) {
-		this._debug("Scoring " + (enable ? "enabled" : "disabled"));
+		assert(typeof enable === 'boolean', "argument 'enable' must be a boolean");
+		
 		this.scoringEnabled = enable;
 		this.cornerJudges.forEach(function (cj) {
 			cj.scoringStateChanged(enable);
 		}, this);
+	},
+	
+	/**
+	 * A Corner Judge has been authorised by the Jury President.
+	 * @param {String} id - the ID of the Corner Judge who has been authorised
+	 */
+	cjAuthorised: function (id) {
+		assert(typeof id === 'string', "argument 'id' must be a string");
+		
+		this._getCornerJudgeById(id).ringJoined({
+			ringIndex: this.index,
+			scoringEnabled: this.scoringEnabled,
+			jpConnected: this.juryPresident.connected
+		});
 	},
 	
 	/**
@@ -172,7 +174,21 @@ Ring.prototype = {
 	},
 	
 	/**
+	 * A Corner Judge exited the ring.
+	 * Remove the judge from the ring and notify the Jury President.
+	 */
+	cjExited: function (cornerJudge) {
+		if (this.juryPresident) {
+			this.removeCJ(cornerJudge, "Exited system");
+			this.juryPresident.cjExited(cornerJudge);
+		} else {
+			this._debug("Error: ring doesn't have a Jury President.");
+		}
+	},
+	
+	/**
 	 * Notify all Corner Judges that the Jury President connection state has changed.
+	 * TODO rename to jpConnectionStateChanged
 	 */
 	jpStateChanged: function (connected) {
 		this.cornerJudges.forEach(function (cj) {
@@ -189,19 +205,6 @@ Ring.prototype = {
 	cjStateChanged: function (cornerJudge, connected) {
 		if (this.juryPresident) {
 			this.juryPresident.cjStateChanged(cornerJudge, connected);
-		} else {
-			this._debug("Error: ring doesn't have a Jury President.");
-		}
-	},
-	
-	/**
-	 * A Corner Judge exited the ring.
-	 * Remove the judge from the ring and notify the Jury President.
-	 */
-	cjExited: function (cornerJudge) {
-		if (this.juryPresident) {
-			this.removeCJ(cornerJudge, "Exited system");
-			this.juryPresident.cjExited(cornerJudge);
 		} else {
 			this._debug("Error: ring doesn't have a Jury President.");
 		}

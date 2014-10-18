@@ -17,43 +17,14 @@ describe('Ring', function () {
 		});
 	});
 	
-	describe('#_getCornerJudgeById', function () {
-		it("should only accept a string identifer", function () {
-			var ring = new Ring(null, 0);
-			var func = ring._getCornerJudgeById.bind(ring, 1);
-			expect(func).to.throw(/argument 'id' must be a string/);
-		});
-		
-		it("should throw if no CJ is found", function () {
-			var ring = new Ring(null, 0);
-			var func = ring._getCornerJudgeById.bind(ring, 'foo');
-			expect(func).to.throw(/no Corner Judge with ID=foo in ring #1/);
-		});
-		
-		it("should throw if more than one CJ is found", function () {
-			var ring = new Ring(null, 0);
-			var cj = { id: 'foo' };
-			ring.cornerJudges = [cj, cj];
-			var func = ring._getCornerJudgeById.bind(ring, 'foo');
-			expect(func).to.throw(/2 Corner Judges share the same ID=foo in ring #1/);
-		});
-		
-		it("should return CJ with given ID", function () {
-			var ring = new Ring(null, 0);
-			ring.cornerJudges = [{ id: 'foo' }, { id: 'bar' }];
-			var cj = ring._getCornerJudgeById('bar');
-			expect(cj.id).to.equal('bar');
-		});
-	});
-	
 	describe('#open', function () {
-		it("should only accept a valid JuryPresident instance", function () {
+		it("should only accept a valid JuryPresident object", function () {
 			var ring = new Ring(null, 0);
 			var func = ring.open.bind(ring, {});
 			expect(func).to.throw(/argument 'jp' must be a valid JuryPresident object/);
 		});
 		
-		it("should throw if Ring is already open (already has a Jury President)", function () {
+		it("should throw if Ring is already open (already has a JP)", function () {
 			var ring = new Ring(null, 0);
 			ring.juryPresident = {};
 			var func = ring.open.bind(ring, sinon.createStubInstance(JuryPresident));
@@ -67,7 +38,7 @@ describe('Ring', function () {
 			expect(ring.getState().open).to.be.true;
 		});
 		
-		it("should trigger state changed event", function () {
+		it("should request state changed event to be triggered", function () {
 			var ring = new Ring(null, 0);
 			var _stateChanged = sinon.spy();
 			ring._stateChanged = _stateChanged;
@@ -99,7 +70,7 @@ describe('Ring', function () {
 			expect(_stateChanged.called).to.be.true;
 		});
 		
-		it("should remove all Corner Judges from ring", function () {
+		it("should remove all CJs from ring", function () {
 			var ring = new Ring(null, 0);
 			ring.juryPresident = {};
 			ring._stateChanged = sinon.spy();
@@ -109,6 +80,35 @@ describe('Ring', function () {
 			ring.cornerJudges = [cj];
 			ring.close();
 			expect(removeCJ.calledWith(cj)).to.be.true;
+		});
+	});
+	
+	describe('#_getCornerJudgeById', function () {
+		it("should only accept a string identifer", function () {
+			var ring = new Ring(null, 0);
+			var func = ring._getCornerJudgeById.bind(ring, 1);
+			expect(func).to.throw(/argument 'id' must be a string/);
+		});
+		
+		it("should throw if no CJ is found", function () {
+			var ring = new Ring(null, 0);
+			var func = ring._getCornerJudgeById.bind(ring, 'foo');
+			expect(func).to.throw(/no Corner Judge with ID=foo in ring #1/);
+		});
+		
+		it("should throw if more than one CJ is found", function () {
+			var ring = new Ring(null, 0);
+			var cj = { id: 'foo' };
+			ring.cornerJudges = [cj, cj];
+			var func = ring._getCornerJudgeById.bind(ring, 'foo');
+			expect(func).to.throw(/2 Corner Judges share the same ID=foo in ring #1/);
+		});
+		
+		it("should return CJ with given ID", function () {
+			var ring = new Ring(null, 0);
+			ring.cornerJudges = [{ id: 'foo' }, { id: 'bar' }];
+			var cj = ring._getCornerJudgeById('bar');
+			expect(cj.id).to.equal('bar');
 		});
 	});
 	
@@ -145,7 +145,7 @@ describe('Ring', function () {
 	});
 	
 	describe('#removeCJ', function () {
-		it("should only accept a string identifer or a valid CornerJudge instance", function () {
+		it("should only accept a string identifer or a valid CornerJudge object", function () {
 			var ring = new Ring(null, 0);
 			var func = ring.removeCJ.bind(ring, null);
 			expect(func).to.throw(/argument 'cj' must be a string or a valid CornerJudge object/);
@@ -195,4 +195,47 @@ describe('Ring', function () {
 		});
 	});
 	
+	describe('#enableScoring', function () {
+		it("should only accept a boolean", function () {
+			var ring = new Ring(null, 0);
+			var func = ring.enableScoring.bind(ring, 1);
+			expect(func).to.throw(/argument 'enable' must be a boolean/);
+		});
+		
+		it("should enable scoring", function () {
+			var ring = new Ring(null, 0);
+			ring.enableScoring(true);
+			expect(ring.scoringEnabled).to.be.true;
+		});
+		
+		it("should notify CJs that scoring state has changed", function () {
+			var ring = new Ring(null, 0);
+			var cj = {
+				scoringStateChanged: sinon.spy()
+			};
+			ring.cornerJudges = [cj];
+			ring.enableScoring(true);
+			expect(cj.scoringStateChanged.called).to.be.true;
+		});
+	});
+	
+	describe('#cjAuthorised', function () {
+		it("should only accept a string identifer", function () {
+			var ring = new Ring(null, 0);
+			var func = ring.cjAuthorised.bind(ring, 1);
+			expect(func).to.throw(/argument 'id' must be a string/);
+		});
+		
+		it("should notify CJ", function () {
+			var ring = new Ring(null, 0);
+			var cj = {
+				ringJoined: sinon.spy()
+			};
+			ring._getCornerJudgeById = sinon.stub().returns(cj);
+			ring.juryPresident = {};
+			ring.cornerJudges = [cj];
+			ring.cjAuthorised('');
+			expect(cj.ringJoined.called).to.be.true;
+		});
+	});
 });
