@@ -62,7 +62,7 @@ CornerJudge.prototype.ringLeft = function (ringIndex, message) {
 CornerJudge.prototype._onScore = function (score) {
 	if (this.ring) {
 		this._debug("Scoring " + score.points + " for " + score.competitor);
-		this.ring.cjScored(this, score);
+		this.ring.cjScored(this, score, this.scoreConfirmed.bind(this, score));
 	} else {
 		this._debug("Error: Corner Judge hasn't joined a ring.");
 	}
@@ -94,7 +94,7 @@ CornerJudge.prototype._onUndo = function () {
 			// Negate points value
 			score.points *= -1;
 			
-			this.ring.cjScored(this, score, true);
+			this.ring.cjScored(this, score, this.undoConfirmed.bind(this, score));
 		} else {
 			this._debug("Error: Corner Judge hasn't joined a ring.");
 		}

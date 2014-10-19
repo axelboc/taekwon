@@ -74,12 +74,12 @@ JuryPresident.prototype._onRemoveCJ = function (id) {
 	}
 };
 
-JuryPresident.prototype.authoriseCJ = function (judge) {
+JuryPresident.prototype.authoriseCJ = function (cj) {
 	this._debug("Authorising Corner Judge to join ring");
 	this.spark.emit('newCornerJudge', {
-		id: judge.id,
-		name: judge.name,
-		connected: judge.connected
+		id: cj.id,
+		name: cj.name,
+		connected: cj.connected
 	});
 };
 

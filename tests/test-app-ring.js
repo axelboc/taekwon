@@ -7,7 +7,7 @@ var JuryPresident = require('../app/jury-president').JuryPresident;
 describe('Ring', function () {
 	
 	describe('#getState', function () {
-		it('should return state of new ring', function () {
+		it('should return Ring\'s state', function () {
 			var ring = new Ring(null, 0);
 			expect(ring.getState()).to.deep.equal({
 				index: 0,
@@ -18,7 +18,7 @@ describe('Ring', function () {
 	});
 	
 	describe('#open', function () {
-		it("should only accept a valid JuryPresident object", function () {
+		it("should only accept a JuryPresident object as argument (jp)", function () {
 			var ring = new Ring(null, 0);
 			var func = ring.open.bind(ring, {});
 			expect(func).to.throw(/argument 'jp' must be a valid JuryPresident object/);
@@ -31,14 +31,14 @@ describe('Ring', function () {
 			expect(func).to.throw(/ring is already open/);
 		});
 		
-		it("should open ring", function () {
+		it("should open Ring", function () {
 			var ring = new Ring(null, 0);
 			ring._stateChanged = sinon.spy();
 			ring.open(sinon.createStubInstance(JuryPresident));
 			expect(ring.getState().open).to.be.true;
 		});
 		
-		it("should request state changed event to be triggered", function () {
+		it("should request state changed event to be broadcasted", function () {
 			var ring = new Ring(null, 0);
 			var _stateChanged = sinon.spy();
 			ring._stateChanged = _stateChanged;
@@ -53,7 +53,7 @@ describe('Ring', function () {
 			expect(ring.close).to.throw(/ring is already closed/);
 		});
 		
-		it("should close ring", function () {
+		it("should close Ring", function () {
 			var ring = new Ring(null, 0);
 			ring.juryPresident = {};
 			ring._stateChanged = sinon.spy();
@@ -61,7 +61,7 @@ describe('Ring', function () {
 			expect(ring.getState().open).to.be.false;
 		});
 		
-		it("should trigger state changed event", function () {
+		it("should request state changed event to be broadcasted", function () {
 			var ring = new Ring(null, 0);
 			ring.juryPresident = {};
 			var _stateChanged = sinon.spy();
@@ -70,7 +70,7 @@ describe('Ring', function () {
 			expect(_stateChanged.called).to.be.true;
 		});
 		
-		it("should remove all CJs from ring", function () {
+		it("should remove all CJs from Ring", function () {
 			var ring = new Ring(null, 0);
 			ring.juryPresident = {};
 			ring._stateChanged = sinon.spy();
@@ -84,7 +84,7 @@ describe('Ring', function () {
 	});
 	
 	describe('#_getCornerJudgeById', function () {
-		it("should only accept a string identifer", function () {
+		it("should only accept a string as argument (id)", function () {
 			var ring = new Ring(null, 0);
 			var func = ring._getCornerJudgeById.bind(ring, 1);
 			expect(func).to.throw(/argument 'id' must be a string/);
@@ -104,7 +104,7 @@ describe('Ring', function () {
 			expect(func).to.throw(/2 Corner Judges share the same ID=foo in ring #1/);
 		});
 		
-		it("should return CJ with given ID", function () {
+		it("should return CJ", function () {
 			var ring = new Ring(null, 0);
 			ring.cornerJudges = [{ id: 'foo' }, { id: 'bar' }];
 			var cj = ring._getCornerJudgeById('bar');
@@ -113,7 +113,7 @@ describe('Ring', function () {
 	});
 	
 	describe('#addCJ', function () {
-		it("should only accept a valid CornerJudge instance", function () {
+		it("should only accept a CornerJudge object as argument (cj)", function () {
 			var ring = new Ring(null, 0);
 			var func = ring.addCJ.bind(ring, null);
 			expect(func).to.throw(/argument 'cj' must be a valid CornerJudge object/);
@@ -126,7 +126,7 @@ describe('Ring', function () {
 			expect(func).to.throw(/ring must have Jury President/);
 		});
 		
-		it("should add CJ to ring", function () {
+		it("should add CJ to Ring", function () {
 			var ring = new Ring(null, 0);
 			ring.juryPresident = {
 				authoriseCJ: function () {}
@@ -145,25 +145,25 @@ describe('Ring', function () {
 	});
 	
 	describe('#removeCJ', function () {
-		it("should only accept a string identifer or a valid CornerJudge object", function () {
+		it("should only accept a string or CornerJudge object as first argument (cj)", function () {
 			var ring = new Ring(null, 0);
 			var func = ring.removeCJ.bind(ring, null);
 			expect(func).to.throw(/argument 'cj' must be a string or a valid CornerJudge object/);
 		});
 		
-		it("should only accept a message of type string", function () {
+		it("should only accept a string as second argument (message)", function () {
 			var ring = new Ring(null, 0);
 			var func = ring.removeCJ.bind(ring, 'foo', null);
 			expect(func).to.throw(/argument 'message' must be a string/);
 		});
 		
-		it("should throw if CJ is not in the ring", function () {
+		it("should throw if CJ is not in Ring", function () {
 			var ring = new Ring(null, 0);
 			var func = ring.removeCJ.bind(ring, sinon.createStubInstance(CornerJudge), '');
 			expect(func).to.throw(/Corner Judge is not in the ring/);
 		});
 		
-		it("should remove CJ from ring", function () {
+		it("should remove CJ from Ring (by reference)", function () {
 			var ring = new Ring(null, 0);
 			var cj = sinon.createStubInstance(CornerJudge);
 			cj.id = 'foo';
@@ -173,7 +173,7 @@ describe('Ring', function () {
 			expect(ring.cornerJudges).to.have.length(0);
 		});
 		
-		it("should remove CJ from ring with its identifer", function () {
+		it("should remove CJ from Ring (by ID)", function () {
 			var ring = new Ring(null, 0);
 			ring.cornerJudges = [{
 				id: 'foo',
@@ -183,7 +183,7 @@ describe('Ring', function () {
 			expect(ring.cornerJudges).to.have.length(0);
 		});
 		
-		it("should ackonwledge removal of CJ", function () {
+		it("should notify CJ who has been removed", function () {
 			var ring = new Ring(null, 0);
 			var ringLeft = sinon.spy();
 			ring.cornerJudges = [{
@@ -196,7 +196,7 @@ describe('Ring', function () {
 	});
 	
 	describe('#enableScoring', function () {
-		it("should only accept a boolean", function () {
+		it("should only accept a boolean as argument (enable)", function () {
 			var ring = new Ring(null, 0);
 			var func = ring.enableScoring.bind(ring, 1);
 			expect(func).to.throw(/argument 'enable' must be a boolean/);
@@ -210,9 +210,7 @@ describe('Ring', function () {
 		
 		it("should notify CJs that scoring state has changed", function () {
 			var ring = new Ring(null, 0);
-			var cj = {
-				scoringStateChanged: sinon.spy()
-			};
+			var cj = { scoringStateChanged: sinon.spy() };
 			ring.cornerJudges = [cj];
 			ring.enableScoring(true);
 			expect(cj.scoringStateChanged.called).to.be.true;
@@ -220,17 +218,15 @@ describe('Ring', function () {
 	});
 	
 	describe('#cjAuthorised', function () {
-		it("should only accept a string identifer", function () {
+		it("should only accept a string as argument (id)", function () {
 			var ring = new Ring(null, 0);
 			var func = ring.cjAuthorised.bind(ring, 1);
 			expect(func).to.throw(/argument 'id' must be a string/);
 		});
 		
-		it("should notify CJ", function () {
+		it("should notify CJ who has been authorised", function () {
 			var ring = new Ring(null, 0);
-			var cj = {
-				ringJoined: sinon.spy()
-			};
+			var cj = { ringJoined: sinon.spy() };
 			ring._getCornerJudgeById = sinon.stub().returns(cj);
 			ring.juryPresident = {};
 			ring.cornerJudges = [cj];
@@ -238,4 +234,43 @@ describe('Ring', function () {
 			expect(cj.ringJoined.called).to.be.true;
 		});
 	});
+	
+	describe('#cjScored', function () {
+		it("should only accept a CornerJudge object as first argument (cj)", function () {
+			var ring = new Ring(null, 0);
+			var func = ring.cjScored.bind(ring, null);
+			expect(func).to.throw(/argument 'cj' must be a valid CornerJudge object/);
+		});
+		
+		it("should only accept a function as third argument (callback)", function () {
+			var ring = new Ring(null, 0);
+			var cj = sinon.createStubInstance(CornerJudge);
+			var func = ring.cjScored.bind(ring, cj, {}, null);
+			expect(func).to.throw(/argument 'callback' must be a function/);
+		});
+		
+		it("should throw if Ring doesn't have a JP", function () {
+			var ring = new Ring(null, 0);
+			var cj = sinon.createStubInstance(CornerJudge);
+			var func = ring.cjScored.bind(ring, cj, {}, function () {});
+			expect(func).to.throw(/ring must have Jury President/);
+		});
+		
+		it("should notify JP", function () {
+			var ring = new Ring(null, 0);
+			var cjScored = sinon.spy();
+			ring.juryPresident = { cjScored: cjScored };
+			ring.cjScored(sinon.createStubInstance(CornerJudge), {}, function () {});
+			expect(cjScored.called).to.be.true;
+		});
+		
+		it("should confirm back to CJ that score has been processed", function () {
+			var ring = new Ring(null, 0);
+			var callback = sinon.spy();
+			ring.juryPresident = { cjScored: function () {} };
+			ring.cjScored(sinon.createStubInstance(CornerJudge), {}, callback);
+			expect(callback.called).to.be.true;
+		});
+	});
+	
 });

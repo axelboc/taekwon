@@ -69,7 +69,7 @@ Ring.prototype = {
 	
 	/**
 	 * Return the ring's Corner Judge with the given ID.
-	 * The function throws if the ID is not associated with any Corner Judge.
+	 * The function throws if the ID is not associated with exactly one Corner Judge.
 	 * @private
 	 * @param {String} id
 	 * @return {CornerJudge}
@@ -156,21 +156,21 @@ Ring.prototype = {
 	},
 	
 	/**
-	 * A Corner Judge scored.
-	 * Notify the Jury President.
+	 * A Corner Judge scored (or undid a previous score.)
+	 * @param {CornerJudge} cj
+	 * @param {Object} score
+	 * @param {Function} callback
 	 */
-	cjScored: function (cornerJudge, score, isUndo) {
-		if (this.juryPresident) {
-			this.juryPresident.cjScored(cornerJudge, score);
-			
-			if (!isUndo) {
-				cornerJudge.scoreConfirmed(score);
-			} else {
-				cornerJudge.undoConfirmed(score);
-			}
-		} else {
-			this._debug("Error: ring doesn't have a Jury President.");
-		}
+	cjScored: function (cj, score, callback) {
+		assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
+		assert(typeof callback === 'function', "argument 'callback' must be a function");
+		assert(this.juryPresident, "ring must have Jury President");
+		
+		// Notify Jury President
+		this.juryPresident.cjScored(cj, score);
+		
+		// Confirm that the score has been processed
+		callback()
 	},
 	
 	/**
