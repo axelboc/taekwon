@@ -273,4 +273,36 @@ describe('Ring', function () {
 		});
 	});
 	
+	describe('#cjExited', function () {
+		it("should only accept a CornerJudge object as argument (cj)", function () {
+			var ring = new Ring(null, 0);
+			var func = ring.cjExited.bind(ring, null);
+			expect(func).to.throw(/argument 'cj' must be a valid CornerJudge object/);
+		});
+		
+		it("should throw if Ring doesn't have a JP", function () {
+			var ring = new Ring(null, 0);
+			var cj = sinon.createStubInstance(CornerJudge);
+			var func = ring.cjExited.bind(ring, sinon.createStubInstance(CornerJudge));
+			expect(func).to.throw(/ring must have Jury President/);
+		});
+		
+		it("should remove CJ from Ring", function () {
+			var ring = new Ring(null, 0);
+			ring.removeCJ = sinon.spy();
+			ring.juryPresident = { cjExited: function () {} };
+			ring.cjExited(sinon.createStubInstance(CornerJudge));
+			expect(ring.removeCJ.called).to.be.true;
+		});
+		
+		it("should notify JP", function () {
+			var ring = new Ring(null, 0);
+			var cjExited = sinon.spy();
+			ring.removeCJ = function () {};
+			ring.juryPresident = { cjExited: cjExited };
+			ring.cjExited(sinon.createStubInstance(CornerJudge));
+			expect(cjExited.called).to.be.true;
+		});
+		
+	});
 });

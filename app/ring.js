@@ -175,15 +175,17 @@ Ring.prototype = {
 	
 	/**
 	 * A Corner Judge exited the ring.
-	 * Remove the judge from the ring and notify the Jury President.
+	 * @param {CornerJudge} cj
 	 */
-	cjExited: function (cornerJudge) {
-		if (this.juryPresident) {
-			this.removeCJ(cornerJudge, "Exited system");
-			this.juryPresident.cjExited(cornerJudge);
-		} else {
-			this._debug("Error: ring doesn't have a Jury President.");
-		}
+	cjExited: function (cj) {
+		assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
+		assert(this.juryPresident, "ring must have Jury President");
+		
+		// Remove Corner Judge from ring
+		this.removeCJ(cj, "Exited system");
+		
+		// Notify Jury President
+		this.juryPresident.cjExited(cj);
 	},
 	
 	/**
