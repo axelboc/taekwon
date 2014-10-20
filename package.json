@@ -8,7 +8,7 @@
     "url": "http://github.com/axelboc/taekwon"
   },
   "scripts": {
-    "test": "mocha tests --require tests/helpers/common.js"
+    "test": "mocha tests --require tests/helpers/common.js & pause"
   },
   "dependencies": {
     "express": "~4.7.1",
