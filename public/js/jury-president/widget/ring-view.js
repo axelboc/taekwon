@@ -25,7 +25,7 @@ define([
 		Helpers.subscribeToEvents(this, {
 			io: {
 				newCornerJudge: this._onNewCornerJudge,
-				cjStateChanged: this._onCJStateChanged,
+				cjConnectionStateChanged: this._onCJConnectionStateChanged,
 				cjExited: this._onCJExited
 			},
 			ring: {
@@ -89,7 +89,7 @@ define([
 			this.ring.judgeDetached(id);
 		},
 		
-		_onCJStateChanged: function (judge) {
+		_onCJConnectionStateChanged: function (judge) {
 			console.log("Judge connection state changed (connected=" + judge.connected + ")");
 			this.ring.judgeStateChanged(judge.id, judge.connected);
 		},

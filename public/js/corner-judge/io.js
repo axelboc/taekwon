@@ -19,7 +19,7 @@ define([
 		'waitingForAuthorisation',
 		'ringJoined',
 		'ringLeft',
-		'jpStateChanged',
+		'jpConnectionStateChanged',
 		'scoreConfirmed',
 		'scoringStateChanged',
 		'canUndo',

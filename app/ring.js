@@ -129,13 +129,15 @@ Ring.prototype = {
 	},
 	
 	/**
-	 * Enable/disable scoring and notify Corner Judges
+	 * Enable/disable scoring.
 	 * @param {Boolean} enable - `true` to enable; `false` to disable
 	 */
 	enableScoring: function (enable) {
 		assert(typeof enable === 'boolean', "argument 'enable' must be a boolean");
 		
 		this.scoringEnabled = enable;
+		
+		// Notify Corner Judges
 		this.cornerJudges.forEach(function (cj) {
 			cj.scoringStateChanged(enable);
 		}, this);
@@ -156,7 +158,7 @@ Ring.prototype = {
 	},
 	
 	/**
-	 * A Corner Judge scored (or undid a previous score.)
+	 * A Corner Judge has scored or undone a previous score.
 	 * @param {CornerJudge} cj
 	 * @param {Object} score
 	 * @param {Function} callback
@@ -170,11 +172,11 @@ Ring.prototype = {
 		this.juryPresident.cjScored(cj, score);
 		
 		// Confirm that the score has been processed
-		callback()
+		callback();
 	},
 	
 	/**
-	 * A Corner Judge exited the ring.
+	 * A Corner Judge has exited the ring.
 	 * @param {CornerJudge} cj
 	 */
 	cjExited: function (cj) {
@@ -189,35 +191,36 @@ Ring.prototype = {
 	},
 	
 	/**
-	 * Notify all Corner Judges that the Jury President connection state has changed.
-	 * TODO rename to jpConnectionStateChanged
+	 * The connection state of the Jury President has changed.
+	 * @param {Boolean} connected - `true` for connected; `false` for disconnected
 	 */
-	jpStateChanged: function (connected) {
-		this.cornerJudges.forEach(function (cj) {
-			cj.jpStateChanged(connected);
-		}, this);
+	jpConnectionStateChanged: function (connected) {
+		assert(typeof connected === 'boolean', "argument 'connected' must be a boolean");
 		
-		// Disable scoring
-		this.enableScoring(false);
+		// Notify the Corner Judges
+		this.cornerJudges.forEach(function (cj) {
+			cj.jpConnectionStateChanged(connected);
+		}, this);
 	},
 	
 	/**
-	 * Notify the Jury President that the connection state of a Corner Judge has changed
+	 * The connection state of a Corner Judge has changed.
+	 * @param {CornerJudge} cj
+	 * @param {Boolean} connected - `true` for connected; `false` for disconnected
 	 */
-	cjStateChanged: function (cornerJudge, connected) {
-		if (this.juryPresident) {
-			this.juryPresident.cjStateChanged(cornerJudge, connected);
-		} else {
-			this._debug("Error: ring doesn't have a Jury President.");
-		}
+	cjConnectionStateChanged: function (cj, connected) {
+		assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
+		assert(typeof connected === 'boolean', "argument 'connected' must be a boolean");
+		assert(this.juryPresident, "ring must have Jury President");
+		
+		// Notify the Jury President
+		this.juryPresident.cjConnectionStateChanged(cj, connected);
 	},
 
 	_debug: function (msg) {
 		console.log("[Ring] " + msg);
 	}
 	
-	
-	// TODO: log error when an unauthorised or disconnected judge scores
 };
 
 exports.Ring = Ring;

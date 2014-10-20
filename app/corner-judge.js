@@ -59,6 +59,7 @@ CornerJudge.prototype.ringLeft = function (ringIndex, message) {
 	this.spark.emit('ringLeft', ringIndex, message);
 };
 
+// TODO: log error when an unauthorised or disconnected judge scores/undoes a score
 CornerJudge.prototype._onScore = function (score) {
 	if (this.ring) {
 		this._debug("Scoring " + score.points + " for " + score.competitor);
@@ -112,8 +113,8 @@ CornerJudge.prototype.undoConfirmed = function (score) {
 	this.spark.emit('undoConfirmed', score);
 };
 
-CornerJudge.prototype.jpStateChanged = function (connected) {
-	this.spark.emit('jpStateChanged', connected);
+CornerJudge.prototype.jpConnectionStateChanged = function (connected) {
+	this.spark.emit('jpConnectionStateChanged', connected);
 };
 
 CornerJudge.prototype.restoreSession = function (spark) {
@@ -130,7 +131,7 @@ CornerJudge.prototype.restoreSession = function (spark) {
 CornerJudge.prototype.connectionStateChanged = function () {
 	if (this.ring) {
 		// Let Jury President know that Corner Judge is disconnected/reconnected
-		this.ring.cjStateChanged(this, this.connected);
+		this.ring.cjConnectionStateChanged(this, this.connected);
 	}
 };
 

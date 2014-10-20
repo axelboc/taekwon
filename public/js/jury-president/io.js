@@ -20,7 +20,7 @@ define([
 		'ringAlreadyOpen',
 		'newCornerJudge',
 		'cjScored',
-		'cjStateChanged',
+		'cjConnectionStateChanged',
 		'cjExited',
 		'restoreSession'
 	];

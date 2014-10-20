@@ -88,8 +88,8 @@ JuryPresident.prototype.cjScored = function (cornerJudge, score) {
 	this.spark.emit('cjScored', score);
 };
 
-JuryPresident.prototype.cjStateChanged = function (cornerJudge, connected) {
-	this.spark.emit('cjStateChanged', {
+JuryPresident.prototype.cjConnectionStateChanged = function (cornerJudge, connected) {
+	this.spark.emit('cjConnectionStateChanged', {
 		id: cornerJudge.id,
 		connected: connected
 	});
@@ -122,7 +122,7 @@ JuryPresident.prototype.restoreSession = function (spark) {
 JuryPresident.prototype.connectionStateChanged = function () {
 	if (this.ring) {
 		// Let Corner Judges know that Jury President is disconnected/reconnected
-		this.ring.jpStateChanged(this.connected);
+		this.ring.jpConnectionStateChanged(this.connected);
 	}
 };
 

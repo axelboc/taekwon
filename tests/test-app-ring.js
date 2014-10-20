@@ -303,6 +303,51 @@ describe('Ring', function () {
 			ring.cjExited(sinon.createStubInstance(CornerJudge));
 			expect(cjExited.called).to.be.true;
 		});
+	});
+	
+	describe('#jpConnectionStateChanged', function () {
+		it("should only accept a boolean as argument (connected)", function () {
+			var ring = new Ring(null, 0);
+			var func = ring.jpConnectionStateChanged.bind(ring, 1);
+			expect(func).to.throw(/argument 'connected' must be a boolean/);
+		});
 		
+		it("should notify CJs that JP connection state has changed", function () {
+			var ring = new Ring(null, 0);
+			var cj = { jpConnectionStateChanged: sinon.spy() };
+			ring.cornerJudges = [cj];
+			ring.jpConnectionStateChanged(true);
+			expect(cj.jpConnectionStateChanged.called).to.be.true;
+		});
+	});
+	
+	describe('#cjConnectionStateChanged', function () {
+		it("should only accept a CornerJudge object as first argument (cj)", function () {
+			var ring = new Ring(null, 0);
+			var func = ring.cjConnectionStateChanged.bind(ring, null);
+			expect(func).to.throw(/argument 'cj' must be a valid CornerJudge object/);
+		});
+		
+		it("should only accept a boolean as second argument (connected)", function () {
+			var ring = new Ring(null, 0);
+			var cj = sinon.createStubInstance(CornerJudge);
+			var func = ring.cjConnectionStateChanged.bind(ring, cj, 1);
+			expect(func).to.throw(/argument 'connected' must be a boolean/);
+		});
+		
+		it("should throw if Ring doesn't have a JP", function () {
+			var ring = new Ring(null, 0);
+			var cj = sinon.createStubInstance(CornerJudge);
+			var func = ring.cjConnectionStateChanged.bind(ring, cj, true);
+			expect(func).to.throw(/ring must have Jury President/);
+		});
+		
+		it("should notify JP", function () {
+			var ring = new Ring(null, 0);
+			var cjConnectionStateChanged = sinon.spy();
+			ring.juryPresident = { cjConnectionStateChanged: cjConnectionStateChanged };
+			ring.cjConnectionStateChanged(sinon.createStubInstance(CornerJudge), true);
+			expect(cjConnectionStateChanged.called).to.be.true;
+		});
 	});
 });

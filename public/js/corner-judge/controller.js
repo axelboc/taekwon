@@ -25,7 +25,7 @@ define([
 				waitingForAuthorisation: this._onWaitingForAuthorisation,
 				ringJoined: this._onRingJoined,
 				ringLeft: this._onRingLeft,
-				jpStateChanged: this._onJPStateChanged,
+				jpConnectionStateChanged: this._onJPConnectionStateChanged,
 				scoringStateChanged: this._onScoringStateChanged,
 				restoreSession: this._onRestoreSession
 			},
@@ -153,7 +153,7 @@ define([
 			document.title = "Corner Judge";
 		},
 
-		_onJPStateChanged: function(connected) {
+		_onJPConnectionStateChanged: function(connected) {
 			console.log("Jury president " + (connected ? "connected" : "disconnected"));
 			this.isJPConnected = connected;
 			this._updateBackdrops();
