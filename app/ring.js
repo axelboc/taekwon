@@ -7,6 +7,10 @@ var JuryPresident = require('./jury-president').JuryPresident;
 
 
 function Ring(primus, index) {
+	assert(primus, "argument 'primus' must be provided");
+	assert(typeof index === 'number' && index >= 0 && index % 2 === 0, 
+		   "argument 'index' must be a positive integer");
+	
 	this.primus = primus;
 	this.index = index;
 	this.number = index + 1;
@@ -82,8 +86,10 @@ Ring.prototype = {
 			return cj.id === id;
 		}, this);
 		
-		assert(cornerJudge.length > 0, "no Corner Judge with ID=" + id + " in ring #" + this.number);
-		assert(cornerJudge.length === 1, cornerJudge.length + " Corner Judges share the same ID=" + id + " in ring #" + this.number);
+		assert(cornerJudge.length > 0, 
+			   "no Corner Judge with ID=" + id + " in ring #" + this.number);
+		assert(cornerJudge.length === 1, cornerJudge.length + 
+			   " Corner Judges share the same ID=" + id + " in ring #" + this.number);
 
 		return cornerJudge[0];
 	},
@@ -109,7 +115,8 @@ Ring.prototype = {
 	 * @param {String} message - the reason for the removal, which will be shown to the Corner Judge
 	 */
 	removeCJ: function (cj, message) {
-		assert(typeof cj === 'string' || cj instanceof CornerJudge, "argument 'cj' must be a string or a valid CornerJudge object");
+		assert(typeof cj === 'string' || cj instanceof CornerJudge, 
+			   "argument 'cj' must be a string or a valid CornerJudge object");
 		assert(typeof message === 'string', "argument 'message' must be a string");
 		
 		// If an ID is passed, get the corresponding Corner Judge
