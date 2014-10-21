@@ -11,13 +11,15 @@ function User(tournament, primus, spark, sessionId) {
 
 User.prototype = {
 	
+	/**
+	 * Register event handlers on the spark.
+	 * @param {Spark} spark
+	 */
 	initSpark: function (spark) {
-		if (spark) {
-			this.spark = spark;
-			spark.on('sessionRestored', this._onSessionRestored.bind(this));
-		} else {
-			this._debug("Error: spark is " + spark + ".");
-		}
+		assert(spark, "argument 'spark' must be provided");
+		
+		this.spark = spark;
+		spark.on('sessionRestored', this._onSessionRestored.bind(this));
 	},
 	
 	restoreSession: function (spark) {
