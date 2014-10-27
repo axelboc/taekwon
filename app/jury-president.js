@@ -29,14 +29,15 @@ JuryPresident.prototype._onOpenRing = function (index) {
 	var ring = this.tournament.getRing(index);
 	if (ring) {
 		// TODO: ring.open() doesn't return a boolean anymore
-		if (ring.open(this)) {
+		//if (ring.open(this)) {
+			ring.open(this);
 			this._debug("> Ring opened");
 			this.ring = ring;
 			this.spark.emit('ringOpened', index);
-		} else {
-			this._debug("> Ring already open");
-			this.spark.emit('ringAlreadyOpen', index);
-		}
+		//} else {
+			//this._debug("> Ring already open");
+			//this.spark.emit('ringAlreadyOpen', index);
+		//}
 	}
 };
 
