@@ -102,11 +102,10 @@ define([
 				diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
 				ties += (!winner ? 1 : 0);
 			}, this);
-			console.log(ties);
 			
 			// If majority of ties, match is also a tie
-			if (judgeIds.length/ > 2 && ties > Math.floor(judgeIds.length % 2)) {
-				return = null;
+			if (judgeIds.length > 2 && ties > Math.floor(judgeIds.length % 2)) {
+				return null;
 			} else {
 				// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
 				return (diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null));
