@@ -97,7 +97,9 @@ define([
 	}
 
 	function sendId(name) {
-		primus.emit('cornerJudge', name);
+		primus.emit('cornerJudge', {
+			name: name
+		});
 	}
 	
 	function sendIdentityConfirmation() {

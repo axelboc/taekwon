@@ -96,7 +96,9 @@ define([
 	}
 
 	function sendId(pwd) {
-		primus.emit('juryPresident', pwd);
+		primus.emit('juryPresident', {
+			password: pwd
+		});
 	}
 	
 	function sendIdentityConfirmation() {
