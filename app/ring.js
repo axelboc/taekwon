@@ -6,9 +6,14 @@ var CornerJudge = require('./corner-judge').CornerJudge;
 var JuryPresident = require('./jury-president').JuryPresident;
 
 
+/**
+ * A ring.
+ * @param {Primus} primus
+ * @param {Number} index - the index of the ring, as a positive integer
+ */
 function Ring(primus, index) {
 	assert(primus, "argument 'primus' must be provided");
-	assert(typeof index === 'number' && index >= 0 && index % 2 === 0, 
+	assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 
 		   "argument 'index' must be a positive integer");
 	
 	this.primus = primus;
