@@ -31,7 +31,6 @@ define([
 				ringStates: this._onRingStates,
 				ringStateChanged: this._onRingStateChanged,
 				ringOpened: this._onRingOpened,
-				ringAlreadyOpen: this._onRingAlreadyOpen,
 				restoreSession: this._onRestoreSession
 			},
 			pwdView: {
