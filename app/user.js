@@ -4,8 +4,8 @@ var assert = require('assert');
 
 
 /**
- * A user of the system.
- * JuryPresident or CornerJudge inherit this prototype.
+ * User of the application.
+ * JuryPresident and CornerJudge inherit from this prototype.
  * @param {Tournament} tournament
  * @param {Primus} primus
  * @param {Spark} spark

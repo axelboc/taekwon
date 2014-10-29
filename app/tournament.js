@@ -9,7 +9,7 @@ var CornerJudge = require('./corner-judge').CornerJudge;
 
 
 /**
- * A tournament.
+ * Tournament; the root of the application.
  * @param {Primus} primus
  */
 function Tournament(primus) {

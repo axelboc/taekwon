@@ -6,7 +6,7 @@ var User = require('./user').User;
 
 
 function CornerJudge(tournament, primus, spark, sessionId, name) {
-	// Call parent constructor
+	// Call parent constructor, which will assert the arguments
 	User.apply(this, arguments);
 	this.name = name;
 	this.authorised = false;
@@ -17,6 +17,7 @@ function CornerJudge(tournament, primus, spark, sessionId, name) {
 
 // Inherit from User
 util.inherits(CornerJudge, User);
+// Keep a pointer to the parent prototype
 parent = CornerJudge.super_.prototype;
 
 
@@ -27,8 +28,14 @@ CornerJudge.prototype.getInfo = function () {
 	};
 };
 
+/**
+ * Register event handlers on the spark.
+ * @param {Spark} spark
+ */
 CornerJudge.prototype.initSpark = function (spark) {
+	// Call parent function, which will assert the argument
 	parent.initSpark.call(this, spark);
+	
 	spark.on('joinRing', this._onJoinRing.bind(this));
 	spark.on('score', this._onScore.bind(this));
 	spark.on('undo', this._onUndo.bind(this));

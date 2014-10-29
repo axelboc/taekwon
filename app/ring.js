@@ -7,7 +7,7 @@ var JuryPresident = require('./jury-president').JuryPresident;
 
 
 /**
- * A ring.
+ * Ring.
  * @param {Primus} primus
  * @param {Number} index - the index of the ring, as a positive integer
  */

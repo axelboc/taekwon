@@ -5,18 +5,32 @@ var config = require('./config');
 var User = require('./user').User;
 
 
+/**
+ * Jury President.
+ * @param {Tournament} tournament
+ * @param {Primus} primus
+ * @param {Spark} spark
+ * @param {String} sessionId
+ */
 function JuryPresident(tournament, primus, spark, sessionId) {
-	// Call parent constructor
+	// Call parent constructor, which will assert the arguments
 	User.apply(this, arguments);
 }
 
 // Inherit from User
 util.inherits(JuryPresident, User);
+// Keep a pointer to the parent prototype
 parent = JuryPresident.super_.prototype;
 
 
+/**
+ * Register event handlers on the spark.
+ * @param {Spark} spark
+ */
 JuryPresident.prototype.initSpark = function (spark) {
+	// Call parent function, which will assert the argument
 	parent.initSpark.call(this, spark);
+	
 	this.spark.on('openRing', this._onOpenRing.bind(this));
 	this.spark.on('enableScoring', this._onEnableScoring.bind(this));
 	['authoriseCJ', 'rejectCJ', 'removeCJ'].forEach(function (event) {
@@ -24,21 +38,25 @@ JuryPresident.prototype.initSpark = function (spark) {
 	}, this);
 };
 
+/**
+ * Open a ring.
+ * @param {Number} index - the index of the ring, as a positive integer
+ */
 JuryPresident.prototype._onOpenRing = function (index) {
 	this._debug("Opening ring #" + (index + 1));
+	assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 
+		   "argument 'index' must be a positive integer");
+	
+	// Retrieve the ring at the given index
 	var ring = this.tournament.getRing(index);
-	if (ring) {
-		// TODO: ring.open() doesn't return a boolean anymore
-		//if (ring.open(this)) {
-			ring.open(this);
-			this._debug("> Ring opened");
-			this.ring = ring;
-			this.spark.emit('ringOpened', index);
-		//} else {
-			//this._debug("> Ring already open");
-			//this.spark.emit('ringAlreadyOpen', index);
-		//}
-	}
+	
+	// Open the ring
+	ring.open(this);
+	this.ring = ring;
+
+	// Acknowledge that the ring has been opened
+	this.spark.emit('ringOpened', index);
+	this._debug("> Ring opened");
 };
 
 JuryPresident.prototype._onEnableScoring = function (enable) {
