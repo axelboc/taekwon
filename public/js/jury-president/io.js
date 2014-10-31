@@ -105,19 +105,28 @@ define([
 	}
 
 	function openRing(index) {
-		primus.emit('openRing', index);
+		primus.emit('openRing', {
+			index: index
+		});
 	}
 
 	function authoriseCJ(id) {
-		primus.emit('authoriseCJ', id);
+		primus.emit('authoriseCJ', {
+			id: id
+		});
 	}
 	
-	function rejectCJ(id, msg) {
-		primus.emit('rejectCJ', id, msg);
+	function rejectCJ(id, message) {
+		primus.emit('rejectCJ', {
+			id: id,
+			message: message
+		});
 	}
 	
 	function removeCJ(id) {
-		primus.emit('removeCJ', id);
+		primus.emit('removeCJ', {
+			id: id
+		});
 	}
 
 	function sessionRestored() {
@@ -126,7 +135,9 @@ define([
 	
 	function enableScoring(enable) {
 		console.log((enable ? "Enable" : "Disable") + " scoring");
-		primus.emit('enableScoring', enable);
+		primus.emit('enableScoring', {
+			enable: enable
+		});
 	}
 
 	return {

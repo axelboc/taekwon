@@ -156,7 +156,7 @@ Ring.prototype = {
 	},
 	
 	/**
-	 * A Corner Judge has been authorised by the Jury President.
+	 * A Corner Judge's request to join the ring has been authorised by the Jury President.
 	 * @param {String} id - the ID of the Corner Judge who has been authorised
 	 */
 	cjAuthorised: function (id) {
@@ -167,6 +167,30 @@ Ring.prototype = {
 			scoringEnabled: this.scoringEnabled,
 			jpConnected: this.juryPresident.connected
 		});
+	},
+	
+	/**
+	 * A Corner Judge's request to join the ring has been rejected by the Jury President.
+	 * @param {String} id - the ID of the Corner Judge who has been authorised
+	 * @param {String} message - the reason for the rejection
+	 */
+	cjRejected: function (id, message) {
+		assert(typeof id === 'string', "argument 'id' must be a string");
+		assert(typeof message === 'string', "argument 'message' must be a string");
+		
+		// Remove Corner Judge from ring
+		this.removeCJ(id, message);
+	},
+	
+	/**
+	 * A Corner Judge has been removed from the ring by the Jury President.
+	 * @param {String} id - the ID of the Corner Judge who has been removed
+	 */
+	cjRemoved: function (id) {
+		assert(typeof id === 'string', "argument 'id' must be a string");
+		
+		// Remove Corner Judge from ring
+		this.removeCJ(id, "Removed from ring");
 	},
 	
 	/**

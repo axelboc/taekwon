@@ -31,67 +31,95 @@ JuryPresident.prototype.initSpark = function (spark) {
 	// Call parent function, which will assert the argument
 	parent.initSpark.call(this, spark);
 	
-	this.spark.on('openRing', this._onOpenRing.bind(this));
-	this.spark.on('enableScoring', this._onEnableScoring.bind(this));
-	['authoriseCJ', 'rejectCJ', 'removeCJ'].forEach(function (event) {
-		this.spark.on(event, this['_on' + event.charAt(0).toUpperCase() + event.slice(1)].bind(this));
+	['openRing', 'enableScoring', 'authoriseCJ', 'rejectCJ', 'removeCJ'].forEach(function (evt) {
+		this.spark.on(evt, this['_on' + evt.charAt(0).toUpperCase() + evt.slice(1)].bind(this));
 	}, this);
 };
 
+
+/*
+ * ==============================
+ * Inbound spark events
+ * ==============================
+ */
+
 /**
  * Open a ring.
- * @param {Number} index - the index of the ring, as a positive integer
+ * @param {Object} data
+ * 		  {Number} data.index - the index of the ring, as a positive integer
  */
-JuryPresident.prototype._onOpenRing = function (index) {
-	this._debug("Opening ring #" + (index + 1));
-	assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 
-		   "argument 'index' must be a positive integer");
+JuryPresident.prototype._onOpenRing = function (data) {
+	assert(typeof data === 'object', "argument 'data' must be an object");
+	assert(typeof data.index === 'number' && data.index >= 0 && data.index % 1 === 0, 
+		   "'data.index' must be a positive integer");
 	
 	// Retrieve the ring at the given index
-	var ring = this.tournament.getRing(index);
+	var ring = this.tournament.getRing(data.index);
 	
 	// Open the ring
 	ring.open(this);
 	this.ring = ring;
 
 	// Acknowledge that the ring has been opened
-	this.spark.emit('ringOpened', index);
-	this._debug("> Ring opened");
+	this.spark.emit('ringOpened', data.index);
+	this._debug("Opened ring #" + (data.index + 1));
 };
 
-JuryPresident.prototype._onEnableScoring = function (enable) {
-	if (this.ring) {
-		this.ring.enableScoring(enable);
-	} else {
-		this._debug("Error: Jury President doesn't have a ring.");
-	}
+/**
+ * Enable or disable scoring on the ring.
+ * @param {Object}  data
+ * 		  {Boolean} data.enable - `true` to enable; `false` to disable
+ */
+JuryPresident.prototype._onEnableScoring = function (data) {
+	assert(typeof data === 'object', "argument 'data' must be an object");
+	assert(typeof data.enable === 'boolean', "'data.enable' must be a boolean");
+	assert(this.ring, "no ring opened");
+	
+	this.ring.enableScoring(data.enable);
 };
 
-JuryPresident.prototype._onAuthoriseCJ = function (id) {
-	if (this.ring) {
-		this.ring.cjAuthorised(id);
-	} else {
-		this._debug("Error: Jury President doesn't have a ring.");
-	}
+/**
+ * Authorise a Corner Judge's request to join the ring.
+ * @param {Object} data
+ * 		  {String} data.id - the ID of the Corner Judge to authorise
+ */
+JuryPresident.prototype._onAuthoriseCJ = function (data) {
+	assert(typeof data === 'object', "argument 'data' must be an object");
+	assert(typeof data.id === 'string', "'data.id' must be a string");
+	assert(this.ring, "no ring opened");
+	
+	this.ring.cjAuthorised(data.id);
 };
 
-JuryPresident.prototype._onRejectCJ = function (id, message) {
-	if (this.ring) {
-		// Remove Corner Judge from ring
-		this.ring.removeCJ(id, message);
-	} else {
-		this._debug("Error: Jury President doesn't have a ring.");
-	}
+/**
+ * Reject a Corner Judge's request to join the ring.
+ * @param {Object} data
+ * 		  {String} data.id - the ID of the Corner Judge to reject
+ * 		  {String} data.message - the reason for the rejection
+ */
+JuryPresident.prototype._onRejectCJ = function (data) {
+	assert(typeof data === 'object', "argument 'data' must be an object");
+	assert(typeof data.id === 'string', "'data.id' must be a string");
+	assert(typeof data.message === 'string', "'data.message' must be a string");
+	assert(this.ring, "no ring opened");
+	
+	this.ring.cjRejected(data.id, data.message);
 };
 
-JuryPresident.prototype._onRemoveCJ = function (id) {
-	if (this.ring) {
-		// Remove Corner Judge from ring
-		this.ring.removeCJ(id, "Removed from ring");
-	} else {
-		this._debug("Error: Jury President doesn't have a ring.");
-	}
+/**
+ * Remove a Corner Judge from the ring.
+ * @param {Object} data
+ * 		  {String} data.id - the ID of the Corner Judge to remove
+ */
+JuryPresident.prototype._onRemoveCJ = function (data) {
+	assert(typeof data === 'object', "argument 'data' must be an object");
+	assert(typeof data.id === 'string', "'data.id' must be a string");
+	assert(this.ring, "no ring opened");
+	
+	this.ring.cjRemoved(data.id);
 };
+
+
 
 JuryPresident.prototype.authoriseCJ = function (cj) {
 	this._debug("Authorising Corner Judge to join ring");
