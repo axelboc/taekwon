@@ -103,7 +103,9 @@ define([
 	}
 	
 	function sendIdentityConfirmation() {
-		primus.emit('identityConfirmation', 'cornerJudge');
+		primus.emit('identityConfirmation', {
+			identity: 'cornerJudge'
+		});
 	}
 
 	function joinRing(index) {
