@@ -79,10 +79,12 @@ Tournament.prototype = {
 		
 		// Look for the user with this session ID
 		var user = this.users[sessionId];
-		assert(user, "no user found with ID=" + sessionId);
-		
-		this._debug("User with ID=" + sessionId + " disconnected.");
-		user.disconnected();
+
+		// If the user exists (has been successfully identified), notify it of the disconnection
+		if (user) {
+			this._debug("User with ID=" + sessionId + " disconnected.");
+			user.disconnected();
+		}
 	},
 	
 	/**
@@ -219,11 +221,11 @@ Tournament.prototype = {
 		var isJP = data.identity === 'juryPresident';
 		if (isJP && user instanceof JuryPresident || !isJP && user instanceof CornerJudge) {
 			// Not switching; restore session
-			this._debug(">> Identity confirmed: " + data.identity + ". Restoring session...");
+			this._debug("> Identity confirmed: " + data.identity + ". Restoring session...");
 			user.restoreSession(spark);
 		} else {
 			// Switching; remove user from system and request identification from new user
-			this._debug(">> User has changed identity. Starting new identification process...");
+			this._debug("> User has changed identity. Starting new identification process...");
 			user.exit();
 			delete this.users[sessionId];
 			this._waitForId(spark, sessionId);
