@@ -101,7 +101,9 @@ define([
 	}
 	
 	function sendIdentityConfirmation() {
-		primus.emit('identityConfirmation', 'juryPresident');
+		primus.emit('identityConfirmation', {
+			identity: 'juryPresident'
+		});
 	}
 
 	function openRing(index) {
