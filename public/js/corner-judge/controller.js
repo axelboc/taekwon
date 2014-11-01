@@ -3,11 +3,12 @@ define([
 	'minpubsub',
 	'../common/helpers',
 	'./io',
+	'../common/session-conflict-view',
 	'./widget/name-view',
 	'../common/ring-list-view',
 	'./widget/round-view'
 
-], function (PubSub, Helpers, IO, NameView, RingListView, RoundView) {
+], function (PubSub, Helpers, IO, SessionConflictView, NameView, RingListView, RoundView) {
 	
 	function Controller() {
 		// Initialise socket connection with server
@@ -16,6 +17,7 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
+				sessionConflict: this._onSessionConflict,
 				waitingForId: this._onWaitingForId,
 				idSuccess: this._onIdSuccess,
 				idFail: this._onIdFail,
@@ -40,6 +42,7 @@ define([
 		this.isScoringEnabled = false;
 		
 		// Initialise views
+		this.sessionConflictView = new SessionConflictView();
 		this.nameView = new NameView();
 		this.ringListView = new RingListView();
 		// Authorisation view doesn't need to be defined as a separate module
@@ -73,6 +76,11 @@ define([
 			
 			// Toggle backdrop wrapper
 			this.backdropWrap.classList.toggle('hidden', hideWrapper);
+		},
+		
+		_onSessionConflict: function () {
+			console.log("Session conflict");
+			this._swapView(this.nameView, this.sessionConflictView);
 		},
 		
 		_onWaitingForId: function() {

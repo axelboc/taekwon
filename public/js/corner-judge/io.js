@@ -10,6 +10,7 @@ define([
 		
 	var primus;
 	var events = [
+		'sessionConflict',
 		'waitingForId',
 		'idSuccess',
 		'idFail',

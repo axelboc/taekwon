@@ -2,6 +2,7 @@
 // Modules
 var assert = require('assert');
 var config = require('./config');
+var Spark = require('primus').Spark;
 var Ring = require('./ring').Ring;
 var User = require('./user').User;
 var JuryPresident = require('./jury-president').JuryPresident;
@@ -54,12 +55,21 @@ Tournament.prototype = {
 		
 		if (!user) {
 			// Request identification from new user
-			this._debug("New user with ID=" + sessionId + ". Waiting for identification...");
+			this._debug("New user with ID=" + sessionId);
+			this._debug("> Waiting for identification...");
 			this._waitForId(spark, sessionId);
 		} else {
-			// If existing user, ask user to confirm its identity
-			this._debug("Existing user with ID=" + sessionId + ". Confirming identity...");
-			this._confirmIdentity(spark, sessionId, user);
+			// If existing user, check whether its previous spark is still open
+			this._debug("Existing user with ID=" + sessionId);
+			if (user.spark.readyState === Spark.OPEN) {
+				// Inform client that a session conflict has been detected
+				this._debug("> Session conflict detected");
+				spark.emit('sessionConflict');
+			} else {
+				// Ask user to confirm its identity
+				this._debug("> Confirming identity...");
+				this._confirmIdentity(spark, sessionId, user);
+			}
 		}
 	},
 	
@@ -97,8 +107,9 @@ Tournament.prototype = {
 		assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
 		
 		// Listen for identification
-		spark.on('juryPresident', this._onJPConnection.bind(this, spark, sessionId));
-		spark.on('cornerJudge', this._onCJConnection.bind(this, spark, sessionId));
+		['juryPresident', 'cornerJudge'].forEach(function (evt) {
+			spark.on(evt, this._onId.bind(this, spark, sessionId, evt));
+		}, this);
 
 		// Inform user that we're waiting for an identification
 		this._debug("> Waiting for identification...");
@@ -106,80 +117,68 @@ Tournament.prototype = {
 	},
 
 	/**
-	 * Handle new Jury President connection.
+	 * Identification received.
 	 * @param {Spark} spark
 	 * @param {String} sessionId
+	 * @param {String} type - `cornerJudge` or `juryPresident`
 	 * @param {Object} data
 	 * 		  {String} data.password - the master password
 	 */
-	_onJPConnection: function (spark, sessionId, data) {
+	_onId: function (spark, sessionId, type, data) {
 		assert(spark, "argument 'spark' must be provided");
 		assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
-		assert(typeof data === 'object', "argument 'data' must be an object");
-		assert(typeof data.password === 'string', "'data.password' must be a string");
 		
-		// Check password
-		if (data.password === config.masterPwd) {
-			// Initialise Jury President
-			this._debug("> Jury President identified");
-			this.users[sessionId] = new JuryPresident(this, this.primus, spark, sessionId);
-			
-			// Notify client of successful identification
-			this._sendIdResult(spark, true);
-		} else {
-			// Notify client of failed identification
-			this._debug("> Jury President identified but rejected (wrong password)");
-			this._sendIdResult(spark, false);
+		// If another user has logged in with the same sessionID since the 'waitingForId' 
+		// notification was sent, inform client that a session conflict has been detected
+		if (this.users[sessionId]) {
+			this._debug("> Session conflict detected");
+			spark.emit('sessionConflict');
+			return;
 		}
-	},
-
-	/**
-	 * Handle new Corner Judge connection.
-	 * @param {Spark} spark
-	 * @param {String} sessionId
-	 * @param {Object} data
-	 * 		  {String} data.password - the corner judge's name
-	 */
-	_onCJConnection: function (spark, sessionId, data) {
-		assert(spark, "argument 'spark' must be provided");
-		assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
+		
+		assert(typeof type === 'string', "argument 'type' must be a string");
+		assert(type === 'cornerJudge' || type === 'juryPresident',
+			   "argument 'type' must be 'cornerJudge' or 'juryPresident'");
 		assert(typeof data === 'object', "argument 'data' must be an object");
-		assert(typeof data.name === 'string', "'data.name' must be a string");
 		
-		// Check name
-		if (data.name.length > 0) {
-			// Initialise Corner Judge
-			this._debug("> Corner Judge identified: " + data.name);
-			this.users[sessionId] = new CornerJudge(this, this.primus, spark, sessionId, data.name);
-			
-			// Notify client of successful identification
-			this._sendIdResult(spark, true);
-		} else {
-			// Notify client of failed identification
-			this._debug("> Corner Judge identified but rejected (name not provided)");
-			this._sendIdResult(spark, false);
+		var user;
+		switch (type) {
+			case 'juryPresident':
+				// Check password
+				assert(typeof data.password === 'string', "'data.password' must be a string");
+				if (data.password === config.masterPwd) {
+					// Initialise Jury President
+					user = new JuryPresident(this, this.primus, spark, sessionId);
+				}
+				break;
+			case 'cornerJudge':
+				// Check name
+				assert(typeof data.name === 'string', "'data.name' must be a string");
+				if (data.name.length > 0) {
+					// Initialise Corner Judge
+					user = new CornerJudge(this, this.primus, spark, sessionId, data.name);
+				}
+				break;
 		}
-	},
-	
-	/**
-	 * Notify the user of the result of the identification process.
-	 * @param {Spark} spark
-	 * @param {Boolean} success
-	 */
-	_sendIdResult: function (spark, success) {
-		assert(spark, "argument 'spark' must be provided");
-		assert(typeof success === 'boolean', "argument 'success' must be a boolean");
 		
-		if (success) {
+		if (user) {
+			// Store user
+			this.users[sessionId] = user;
+			
+			// Notify client of success
+			this._debug("> " + type + " identified");
 			spark.emit('idSuccess');
 			
 			// Send ring states right away
 			spark.emit('ringStates', this.getRingStates());
+			
 		} else {
+			// Notify client of failure
+			this._debug("> " + type + " identified but rejected");
 			spark.emit('idFail');
 		}
 	},
-	
+		
 	/**
 	 * Ask a user to confirm its identity.
 	 * @param {Spark} spark

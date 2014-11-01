@@ -201,6 +201,15 @@ h1,
 }
 
 
+/* ===== Session conflict view ===== */
+
+.scf-btn {
+	padding: .5em 1em;
+	margin-top: 1em;
+    font-size: 140%;
+}
+
+
 /* ===== Ring list view ===== */
 
 .rl-list {
