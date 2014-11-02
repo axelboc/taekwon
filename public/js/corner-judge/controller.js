@@ -42,6 +42,7 @@ define([
 		this.isScoringEnabled = false;
 		
 		// Initialise views
+		this.curentView = null;
 		this.sessionConflictView = new SessionConflictView();
 		this.nameView = new NameView();
 		this.ringListView = new RingListView();
@@ -59,11 +60,15 @@ define([
 	
 	Controller.prototype = {
 
-		_swapView: function(oldView, newView) {
-			newView.root.classList.remove('hidden');
-			if (oldView) {
-				oldView.root.classList.add('hidden');
+		_showView: function(view) {
+			// Hide the previously visible view
+			if (this.curentView) {
+				this.curentView.root.classList.add('hidden');
 			}
+			
+			// Show the new view
+			newView.root.classList.remove('hidden');
+			this.curentView = newView;
 		},
 
 		_updateBackdrops: function() {
@@ -80,12 +85,12 @@ define([
 		
 		_onSessionConflict: function () {
 			console.log("Session conflict");
-			this._swapView(this.nameView, this.sessionConflictView);
+			this._showView(this.sessionConflictView);
 		},
 		
 		_onWaitingForId: function() {
 			console.log("Server waiting for identification");
-			this._swapView(null, this.nameView);
+			this._showView(this.nameView);
 			this.nameView.init();
 		},
 
@@ -106,7 +111,7 @@ define([
 		_onRingStates: function(states) {
 			console.log("Ring states received (count=\"" + states.length + "\")");
 			this.ringListView.init(states);
-			this._swapView(this.nameView, this.ringListView);
+			this._showView(this.ringListView);
 		},
 
 		_onRingStateChanged: function(state) {
@@ -121,7 +126,7 @@ define([
 		
 		_onWaitingForAuthorisation: function (index) {
 			console.log("Waiting for authorisation to join ring");
-			this._swapView(this.ringListView, this.authorisationView);
+			this._showView(this.authorisationView);
 		},
 
 		_onRingJoined: function(data) {
@@ -131,7 +136,7 @@ define([
 			Helpers.enableBtn(this.roundView.undoBtn, data.canUndo);
 			
 			// Show round view
-			this._swapView(this.authorisationView, this.roundView);
+			this._showView(this.roundView);
 
 			// Update flags and backdrop
 			this.isAuthorised = true;
@@ -146,12 +151,12 @@ define([
 		/**
 		 * Corner Judge has left the ring, willingly or not.
 		 */
-		_onRingLeft: function(index, message) {
-			console.log(message + " (index=" + index + ")");
+		_onRingLeft: function(data) {
+			console.log(data.message);
 			
 			// Show ring list view with custom message. 
-			this.ringListView.updateInstr(message);
-			this._swapView(this.isAuthorised ? this.roundView : this.authorisationView, this.ringListView);
+			this.ringListView.updateInstr(data.message);
+			this._showView(this.ringListView);
 			
 			// Update flag and backdrop
 			this.isAuthorised = false;
@@ -181,11 +186,11 @@ define([
 
 			// If no ring was joined yet, show ring list view
 			if (data.ringIndex === -1) {
-				this._swapView(null, this.ringListView);
+				this._showView(this.ringListView);
 
 			// If a ring was joined, but JP had not authorised the request yet, show authorisation view
 			} else if (!data.authorised) {
-				this._swapView(null, this.authorisationView);
+				this._showView(this.authorisationView);
 
 			// If JP was authorised by CJ to join a ring, show round view
 			} else {

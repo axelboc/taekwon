@@ -18,6 +18,7 @@ define([
 		IO.init();
 		
 		// Initialise views
+		this.currentView = null;
 		this.sessionConflictView = new SessionConflictView();
 		this.pwdView = new PwdView();
 		this.ringListView = new RingListView();
@@ -47,21 +48,25 @@ define([
 	
 	Controller.prototype = {
 	
-		_swapView: function(oldView, newView) {
-			newView.root.classList.remove('hidden');
-			if (oldView) {
-				oldView.root.classList.add('hidden');
+		_showView: function(newView) {
+			// Hide the previously visible view
+			if (this.curentView) {
+				this.curentView.root.classList.add('hidden');
 			}
+			
+			// Show the new view
+			newView.root.classList.remove('hidden');
+			this.curentView = newView;
 		},
 		
 		_onSessionConflict: function () {
 			console.log("Session conflict");
-			this._swapView(this.pwdView, this.sessionConflictView);
+			this._showView(this.sessionConflictView);
 		},
 		
 		_onWaitingForId: function () {
 			console.log("Server waiting for identification");
-			this._swapView(null, this.pwdView);
+			this._showView(this.pwdView);
 			this.pwdView.init();
 		},
 	
@@ -87,7 +92,7 @@ define([
 		_onRingStates: function(states) {
 			console.log("Ring states received (count=\"" + states.length + "\")");
 			this.ringListView.init(states);
-			this._swapView(this.pwdView, this.ringListView);
+			this._showView(this.ringListView);
 		},
 
 		_onRingStateChanged: function(state) {
@@ -109,10 +114,10 @@ define([
 			document.title = "Jury President | Ring " + (index + 1);
 		},
 
-		_onRingOpened: function(index) {
-			console.log("Ring opened (index=" + index + ")");
-			this._initRing(index);
-			this._swapView(this.ringListView, this.ringView);
+		_onRingOpened: function(data) {
+			console.log("Ring opened (index=" + data.index + ")");
+			this._initRing(data.index);
+			this._showView(this.ringView);
 		},
 
 		_onRingAlreadyOpen: function(index) {
@@ -127,7 +132,7 @@ define([
 
 			// If no ring was created, show ring list view
 			if (data.ringIndex === -1) {
-				this._swapView(null, this.ringListView);
+				this._showView(this.ringListView);
 
 			// If a ring was created, initialise it then add corner judges and show authorisation view
 			} else {
@@ -138,7 +143,7 @@ define([
 					this.ringView.ring.newJudge(judge.id, judge.name, judge.authorised, judge.connected);
 				}
 
-				this._swapView(null, this.ringView);
+				this._showView(this.ringView);
 			}
 
 			IO.sessionRestored();
