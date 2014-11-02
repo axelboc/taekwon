@@ -11,17 +11,17 @@
     "test": "mocha tests --require tests/helpers/common.js & pause"
   },
   "dependencies": {
-    "express": "~4.7.4",
-    "express-session": "~1.7.6",
-    "cookie-parser": "~1.3.2",
+    "express": "~4.10.1",
+    "express-session": "~1.9.1",
+    "cookie-parser": "~1.3.3",
     "cookie": "~0.1.2",
-    "primus": "~2.4.0",
-    "primus-emit": "~0.1.0",
-    "sockjs": "~0.3.9"
+    "primus": "~2.4.10",
+    "primus-emit": "~0.1.2",
+    "sockjs": "~0.3.10"
   },
   "devDependencies": {
     "chai": "~1.9.2",
-    "sinon": "~1.10.3",
-    "mocha": "~1.21.4"
+    "sinon": "~1.11.1",
+    "mocha": "~2.0.1"
   }
 }
