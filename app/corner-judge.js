@@ -48,12 +48,8 @@ CornerJudge.prototype.getInfo = function () {
  * @param {Spark} spark
  */
 CornerJudge.prototype.initSpark = function (spark) {
-	// Call parent function, which will assert the argument
-	parent.initSpark.call(this, spark);
-	
-	['joinRing', 'score', 'undo'].forEach(function (evt) {
-		this.spark.on(evt, this['_on' + evt.charAt(0).toUpperCase() + evt.slice(1)].bind(this));
-	}, this);
+	// Call parent function
+	parent.initSpark.call(this, spark, ['joinRing', 'score', 'undo']);
 };
 
 
@@ -69,7 +65,7 @@ CornerJudge.prototype.initSpark = function (spark) {
  * 		  {Number} data.index - the index of the ring, as a positive integer
  */
 CornerJudge.prototype._onJoinRing = function (data) {
-	assert(typeof data === 'object', "argument 'data' must be an object");
+	assert(typeof data === 'object' && data, "argument 'data' must be an object");
 	assert(typeof data.index === 'number' && data.index >= 0 && data.index % 1 === 0, 
 		   "'data.index' must be a positive integer");
 	

@@ -29,12 +29,8 @@ parent = JuryPresident.super_.prototype;
  * @param {Spark} spark
  */
 JuryPresident.prototype.initSpark = function (spark) {
-	// Call parent function, which will assert the argument
-	parent.initSpark.call(this, spark);
-	
-	['openRing', 'enableScoring', 'authoriseCJ', 'rejectCJ', 'removeCJ'].forEach(function (evt) {
-		this.spark.on(evt, this['_on' + evt.charAt(0).toUpperCase() + evt.slice(1)].bind(this));
-	}, this);
+	// Call parent function
+	parent.initSpark.call(this, spark, ['openRing', 'enableScoring', 'authoriseCJ', 'rejectCJ', 'removeCJ']);
 };
 
 
@@ -50,7 +46,7 @@ JuryPresident.prototype.initSpark = function (spark) {
  * 		  {Number} data.index - the index of the ring, as a positive integer
  */
 JuryPresident.prototype._onOpenRing = function (data) {
-	assert(typeof data === 'object', "argument 'data' must be an object");
+	assert(typeof data === 'object' && data, "argument 'data' must be an object");
 	assert(typeof data.index === 'number' && data.index >= 0 && data.index % 1 === 0, 
 		   "'data.index' must be a positive integer");
 	
@@ -72,7 +68,7 @@ JuryPresident.prototype._onOpenRing = function (data) {
  * 		  {Boolean} data.enable - `true` to enable; `false` to disable
  */
 JuryPresident.prototype._onEnableScoring = function (data) {
-	assert(typeof data === 'object', "argument 'data' must be an object");
+	assert(typeof data === 'object' && data, "argument 'data' must be an object");
 	assert(typeof data.enable === 'boolean', "'data.enable' must be a boolean");
 	assert(this.ring, "no ring opened");
 	
@@ -85,7 +81,7 @@ JuryPresident.prototype._onEnableScoring = function (data) {
  * 		  {String} data.id - the ID of the Corner Judge to authorise
  */
 JuryPresident.prototype._onAuthoriseCJ = function (data) {
-	assert(typeof data === 'object', "argument 'data' must be an object");
+	assert(typeof data === 'object' && data, "argument 'data' must be an object");
 	assert(typeof data.id === 'string', "'data.id' must be a string");
 	assert(this.ring, "no ring opened");
 	
@@ -99,7 +95,7 @@ JuryPresident.prototype._onAuthoriseCJ = function (data) {
  * 		  {String} data.message - the reason for the rejection
  */
 JuryPresident.prototype._onRejectCJ = function (data) {
-	assert(typeof data === 'object', "argument 'data' must be an object");
+	assert(typeof data === 'object' && data, "argument 'data' must be an object");
 	assert(typeof data.id === 'string', "'data.id' must be a string");
 	assert(typeof data.message === 'string', "'data.message' must be a string");
 	assert(this.ring, "no ring opened");
@@ -113,7 +109,7 @@ JuryPresident.prototype._onRejectCJ = function (data) {
  * 		  {String} data.id - the ID of the Corner Judge to remove
  */
 JuryPresident.prototype._onRemoveCJ = function (data) {
-	assert(typeof data === 'object', "argument 'data' must be an object");
+	assert(typeof data === 'object' && data, "argument 'data' must be an object");
 	assert(typeof data.id === 'string', "'data.id' must be a string");
 	assert(this.ring, "no ring opened");
 	

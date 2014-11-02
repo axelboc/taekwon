@@ -31,12 +31,22 @@ User.prototype = {
 	/**
 	 * Register event handlers on the spark.
 	 * @param {Spark} spark
+	 * @param {Array} events
 	 */
-	initSpark: function (spark) {
+	initSpark: function (spark, events) {
 		assert(spark, "argument 'spark' must be provided");
+		assert(Array.isArray(events), "argument 'events' must be an array");
 		
+		// Store the spark
 		this.spark = spark;
-		spark.on('sessionRestored', this._onSessionRestored.bind(this));
+		
+		// Add events shared by both user types
+		events.push('sessionRestored');
+		
+		// Loop through the events and register their handlers
+		events.forEach(function (evt) {
+			this.spark.on(evt, this['_on' + evt.charAt(0).toUpperCase() + evt.slice(1)].bind(this));
+		}, this);
 	},
 	
 	/**

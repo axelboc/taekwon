@@ -139,7 +139,7 @@ Tournament.prototype = {
 		assert(typeof type === 'string', "argument 'type' must be a string");
 		assert(type === 'cornerJudge' || type === 'juryPresident',
 			   "argument 'type' must be 'cornerJudge' or 'juryPresident'");
-		assert(typeof data === 'object', "argument 'data' must be an object");
+		assert(typeof data === 'object' && data, "argument 'data' must be an object");
 		
 		var user;
 		switch (type) {
@@ -211,7 +211,7 @@ Tournament.prototype = {
 		assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
 		assert(user instanceof User, "argument 'user' must be a valid User object");
 		assert(this.users[sessionId] === user, "user has already switched role");
-		assert(typeof data === 'object', "argument 'data' must be an object");
+		assert(typeof data === 'object' && data, "argument 'data' must be an object");
 		assert(typeof data.identity === 'string', "'data.identity' must be a string");
 		assert(data.identity === 'juryPresident' || data.identity === 'cornerJudge',
 			   "identity must be either 'juryPresident' or 'cornerJudge'");
