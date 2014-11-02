@@ -21,7 +21,7 @@ function Tournament(primus) {
 	this.ringCount = config.ringCount;
 	
 	for (var i = 0; i < this.ringCount; i += 1) {
-		this.rings.push(new Ring(primus, i));
+		this.rings.push(new Ring(this, i));
 	}
 	
 	// Users
@@ -240,6 +240,21 @@ Tournament.prototype = {
 			arr.push(ring.getState());
 			return arr;
 		}, []);
+	},
+	
+	/**
+	 * Broadcast to all users that the state of a ring (open/closed) has changed.
+	 * @param {Ring} ring
+	 */
+	ringStateChanged: function (ring) {
+		assert(ring instanceof Ring, "argument 'ring' must be a valid Ring object");
+		
+		// Retrieve the state of the ring
+		var state = ring.getState();
+		
+		this.primus.forEach(function (spark) {
+			spark.emit('ringStateChanged', state);
+		}.bind(this));
 	},
 	
 	/**

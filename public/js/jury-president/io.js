@@ -18,7 +18,7 @@ define([
 		'ringStates',
 		'ringStateChanged',
 		'ringOpened',
-		'newCornerJudge',
+		'cjAdded',
 		'cjScored',
 		'cjConnectionStateChanged',
 		'cjExited',

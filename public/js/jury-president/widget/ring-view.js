@@ -24,7 +24,7 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
-				newCornerJudge: this._onNewCornerJudge,
+				cjAdded: this._onCJAdded,
 				cjConnectionStateChanged: this._onCJConnectionStateChanged,
 				cjExited: this._onCJExited
 			},
@@ -64,7 +64,7 @@ define([
 			PubSub.publish('ringView.' + subTopic, [].slice.call(arguments, 1));
 		},
 		
-		_onNewCornerJudge: function (judge) {
+		_onCJAdded: function (judge) {
 			console.log("New corner judge (id=" + judge.id + ")");
 			this.ring.newJudge(judge.id, judge.name, false, judge.connected);
 		},
@@ -94,10 +94,10 @@ define([
 			this.ring.judgeStateChanged(judge.id, judge.connected);
 		},
 		
-		_onCJExited: function (judgeId) {
+		_onCJExited: function (data) {
 			console.log("Judge exited");
 			// Detach judge
-			this.judgesSidebar.detachJudgeWithId(judgeId);
+			this.judgesSidebar.detachJudgeWithId(data.i);
 		},
 		
 		_showPanel: function (panel) {

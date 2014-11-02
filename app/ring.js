@@ -11,12 +11,12 @@ var JuryPresident = require('./jury-president').JuryPresident;
  * @param {Primus} primus
  * @param {Number} index - the index of the ring, as a positive integer
  */
-function Ring(primus, index) {
-	assert(primus, "argument 'primus' must be provided");
+function Ring(tournament, index) {
+	assert(tournament, "argument 'tournament' must be provided");
 	assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 
 		   "argument 'index' must be a positive integer");
 	
-	this.primus = primus;
+	this.tournament = tournament;
 	this.index = index;
 	this.number = index + 1;
 	this.roomId = 'ring' + index;
@@ -26,16 +26,6 @@ function Ring(primus, index) {
 }
 
 Ring.prototype = {
-	
-	/**
-	 * Broadcast to all users that the state of the ring has changed.
-	 * @private
-	 */
-	_stateChanged: function () {
-		this.primus.forEach(function (spark) {
-			spark.emit('ringStateChanged', this.getState());
-		}.bind(this));
-	},
 	
 	/**
 	 * Return an object representing the state of the ring (open/close).
@@ -55,20 +45,24 @@ Ring.prototype = {
 	 */
 	open: function (jp) {
 		assert(jp instanceof JuryPresident, "argument 'jp' must be a valid JuryPresident object");
+		assert(this.tournament, "not part of a tournament");
 		assert(!this.juryPresident, "ring is already open");
 
 		this.juryPresident = jp;
-		this._stateChanged();
+		this.tournament.ringStateChanged(this);
+		this._debug("Opened");
 	},
 	
 	/**
 	 * Close the ring.
 	 */
 	close: function () {
+		assert(this.tournament, "not part of a tournament");
 		assert(this.juryPresident, "ring is already closed");
 
 		this.juryPresident = null;
-		this._stateChanged();
+		this.tournament.ringStateChanged(this);
+		this._debug("Closed");
 			
 		// Notify Corner Judges that they must leave the ring.
 		this.cornerJudges.forEach(function (cj) {
@@ -111,7 +105,7 @@ Ring.prototype = {
 		this.cornerJudges.push(cj);
 		
 		// Request authorisation from Jury President
-		this.juryPresident.authoriseCJ(cj);
+		this.juryPresident.cjAdded(cj);
 	},
 	
 	/**
@@ -162,11 +156,7 @@ Ring.prototype = {
 	cjAuthorised: function (id) {
 		assert(typeof id === 'string', "argument 'id' must be a string");
 		
-		this._getCornerJudgeById(id).ringJoined({
-			ringIndex: this.index,
-			scoringEnabled: this.scoringEnabled,
-			jpConnected: this.juryPresident.connected
-		});
+		this._getCornerJudgeById(id).ringJoined();
 	},
 	
 	/**
@@ -197,22 +187,17 @@ Ring.prototype = {
 	 * A Corner Judge has scored or undone a previous score.
 	 * @param {CornerJudge} cj
 	 * @param {Object} score
-	 * @param {Function} callback
 	 */
-	cjScored: function (cj, score, callback) {
+	cjScored: function (cj, score) {
 		assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
-		assert(typeof callback === 'function', "argument 'callback' must be a function");
 		assert(this.juryPresident, "ring must have Jury President");
 		
 		// Notify Jury President
 		this.juryPresident.cjScored(cj, score);
-		
-		// Confirm that the score has been processed
-		callback();
 	},
 	
 	/**
-	 * A Corner Judge has exited the ring.
+	 * A Corner Judge has exited the system.
 	 * @param {CornerJudge} cj
 	 */
 	cjExited: function (cj) {
