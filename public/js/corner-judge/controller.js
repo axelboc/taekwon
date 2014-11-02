@@ -67,8 +67,8 @@ define([
 			}
 			
 			// Show the new view
-			newView.root.classList.remove('hidden');
-			this.curentView = newView;
+			view.root.classList.remove('hidden');
+			this.curentView = view;
 		},
 
 		_updateBackdrops: function() {
