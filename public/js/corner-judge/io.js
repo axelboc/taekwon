@@ -28,9 +28,6 @@ define([
 		'restoreSession'
 	];
 	
-	// Flag set to true when server crashes
-	var errorOccurred = false;
-
 	function init() {
 		console.log("Connecting to server");
 		primus = new Primus(config.isProd ? config.prodUrl : config.devUrl, {});
@@ -38,9 +35,6 @@ define([
 		// Listen for opening of connection
 		primus.on('open', function open() {
 			console.log('Connection is alive and kicking');
-			if (errorOccurred) {
-				location.reload();
-			}
 		});
 		
 		// Listen for incoming data
@@ -50,9 +44,6 @@ define([
 		
 		// Listen for errors
 		primus.on('error', function error(err) {
-			if (!errorOccurred) {
-				errorOccurred = true;
-			}
 			console.error('Something horrible has happened', err.stack);
 		});
 		
