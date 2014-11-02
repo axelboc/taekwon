@@ -56,7 +56,6 @@ Tournament.prototype = {
 		if (!user) {
 			// Request identification from new user
 			this._debug("New user with ID=" + sessionId);
-			this._debug("> Waiting for identification...");
 			this._waitForId(spark, sessionId);
 		} else {
 			// If existing user, check whether its previous spark is still open

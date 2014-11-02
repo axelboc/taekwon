@@ -131,7 +131,7 @@ Ring.prototype = {
 		this.cornerJudges.splice(index, 1);
 		
 		// Ackonwledge removal
-		cj.ringLeft(this.index, message);
+		cj.ringLeft(message);
 	},
 	
 	/**

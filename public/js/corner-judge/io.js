@@ -101,7 +101,9 @@ define([
 	}
 
 	function joinRing(index) {
-		primus.emit('joinRing', index);
+		primus.emit('joinRing', {
+			index: index
+		});
 	}
 
 	function score(competitor, points) {

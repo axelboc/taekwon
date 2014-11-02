@@ -119,10 +119,10 @@ CornerJudge.prototype._onScore = function (data) {
 	this._debug("Scored " + data.points + " for " + data.competitor);
 	
 	// Acknowledge that the score has been processed
-	this.spark.emit('scoreConfirmed', score);
+	this.spark.emit('scoreConfirmed', data);
 	
 	// Store the score so it can be undone
-	this.scores.push(score);
+	this.scores.push(data);
 	
 	// When relevant, notify the client that the undo feature can be used
 	if (this.scores.length === 1){
