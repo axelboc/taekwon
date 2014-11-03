@@ -27,7 +27,9 @@ define([
 	
 	function init() {
 		console.log("Connecting to server");
-		primus = new Primus(config.isProd ? config.prodUrl : config.devUrl, {});
+		primus = new Primus(config.isProd ? config.prodUrl : config.devUrl, {
+			strategy: ['online', 'disconnect']
+		});
 		
 		// Listen for opening of connection
 		primus.on('open', function open() {
@@ -41,7 +43,7 @@ define([
 		
 		// Listen for errors
 		primus.on('error', function error(err) {
-			console.error('Something horrible has happened', err.stack);
+			console.error('Error:', err.reason);
 		});
 		
 		// Listen for when Primus attempts to reconnect

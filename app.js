@@ -50,13 +50,14 @@ primus.use('emit', Emit);
 primus.before('session', function (req, res, next) {
 	if (!req.headers.cookie) {
 		req.sessionId = null;
+		next('Session cookie not transmitted');
 	} else {
 		// Parse and store cookies
 		req.cookie = cookie.parse(req.headers.cookie);
 		// Decode Express session ID
 		req.sessionId = cookieParser.signedCookie(req.cookie[config.cookieKey], config.cookieSecret);
+		next(null, true);
 	}
-	next();
 });
 
 
@@ -66,12 +67,12 @@ primus.before('session', function (req, res, next) {
 
 // Corner Judge
 app.get('/', function (request, response) {
-	response.sendfile('corner-judge.html', {root: './public'});
+	response.sendFile('corner-judge.html', { root: './public' });
 });
 
 // Jury President
 app.get('/jury', function (request, response) {
-	response.sendfile('jury-president.html', {root: './public'});
+	response.sendFile('jury-president.html', { root: './public' });
 });
 
 
