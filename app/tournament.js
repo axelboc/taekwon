@@ -63,7 +63,10 @@ Tournament.prototype = {
 			if (user.spark.readyState === Spark.OPEN) {
 				// Inform client that a session conflict has been detected
 				this._debug("> Session conflict detected");
-				spark.emit('sessionConflict');
+				spark.emit('wsError', {
+					reason: "Session already open"
+				});
+				spark.end();
 			} else {
 				// Ask user to confirm its identity
 				this._debug("> Confirming identity...");
@@ -131,7 +134,10 @@ Tournament.prototype = {
 		// notification was sent, inform client that a session conflict has been detected
 		if (this.users[sessionId]) {
 			this._debug("> Session conflict detected");
-			spark.emit('sessionConflict');
+			spark.emit('wsError', {
+				reason: "Session already open"
+			});
+			spark.end();
 			return;
 		}
 		

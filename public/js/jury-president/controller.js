@@ -4,13 +4,13 @@ define([
 	'../common/helpers',
 	'./io',
 	'./defaults',
-	'../common/session-conflict-view',
+	'../common/ws-error-view',
 	'./widget/pwd-view',
 	'../common/ring-list-view',
 	'./model/ring',
 	'./widget/ring-view'
 
-], function (PubSub, Helpers, IO, defaults, SessionConflictView, PwdView, RingListView, Ring, RingView) {
+], function (PubSub, Helpers, IO, defaults, WsErrorView, PwdView, RingListView, Ring, RingView) {
 	
 	// TODO: manage errors (subscribe to error event)
 	function Controller() {
@@ -19,7 +19,7 @@ define([
 		
 		// Initialise views
 		this.currentView = null;
-		this.sessionConflictView = new SessionConflictView();
+		this.wsErrorView = new WsErrorView();
 		this.pwdView = new PwdView();
 		this.ringListView = new RingListView();
 		this.ringView = null;
@@ -27,7 +27,7 @@ define([
 		// Subscribe to events from server and views
 		Helpers.subscribeToEvents(this, {
 			io: {
-				sessionConflict: this._onSessionConflict,
+				wsError: this._onWsError,
 				waitingForId: this._onWaitingForId,
 				idSuccess: this._onIdSuccess,
 				idFail: this._onIdFail,
@@ -59,9 +59,10 @@ define([
 			this.curentView = newView;
 		},
 		
-		_onSessionConflict: function () {
-			console.log("Session conflict");
-			this._showView(this.sessionConflictView);
+		_onWsError: function (data) {
+			console.log("Error:", data.reason);
+			this.wsErrorView.updateInstr(data.reason);
+			this._showView(this.wsErrorView);
 		},
 		
 		_onWaitingForId: function () {

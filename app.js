@@ -50,7 +50,7 @@ primus.use('emit', Emit);
 primus.before('session', function (req, res, next) {
 	if (!req.headers.cookie) {
 		req.sessionId = null;
-		next('Session cookie not transmitted');
+		next(new Error('Session cookie not transmitted'));
 	} else {
 		// Parse and store cookies
 		req.cookie = cookie.parse(req.headers.cookie);

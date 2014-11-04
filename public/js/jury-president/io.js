@@ -10,7 +10,7 @@ define([
 	
 	var primus;
 	var events = [
-		'sessionConflict',
+		'wsError',
 		'waitingForId',
 		'idSuccess',
 		'idFail',
@@ -44,6 +44,14 @@ define([
 		// Listen for errors
 		primus.on('error', function error(err) {
 			console.error('Error:', err.reason);
+			
+			// Reason: "Can't connect to server"
+			// => Session cookie not transmitted
+			if (err.code === 1002) {
+				PubSub.publish('io.wsError', [{
+					reason: "Enable cookies and try again"
+				}]);
+			}
 		});
 		
 		// Listen for when Primus attempts to reconnect

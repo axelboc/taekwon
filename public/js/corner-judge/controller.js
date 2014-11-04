@@ -3,12 +3,12 @@ define([
 	'minpubsub',
 	'../common/helpers',
 	'./io',
-	'../common/session-conflict-view',
+	'../common/ws-error-view',
 	'./widget/name-view',
 	'../common/ring-list-view',
 	'./widget/round-view'
 
-], function (PubSub, Helpers, IO, SessionConflictView, NameView, RingListView, RoundView) {
+], function (PubSub, Helpers, IO, WsErrorView, NameView, RingListView, RoundView) {
 	
 	function Controller() {
 		// Initialise socket connection with server
@@ -17,7 +17,7 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
-				sessionConflict: this._onSessionConflict,
+				wsError: this._onWsError,
 				waitingForId: this._onWaitingForId,
 				idSuccess: this._onIdSuccess,
 				idFail: this._onIdFail,
@@ -43,7 +43,7 @@ define([
 		
 		// Initialise views
 		this.curentView = null;
-		this.sessionConflictView = new SessionConflictView();
+		this.wsErrorView = new WsErrorView();
 		this.nameView = new NameView();
 		this.ringListView = new RingListView();
 		// Authorisation view doesn't need to be defined as a separate module
@@ -83,9 +83,10 @@ define([
 			this.backdropWrap.classList.toggle('hidden', hideWrapper);
 		},
 		
-		_onSessionConflict: function () {
-			console.log("Session conflict");
-			this._showView(this.sessionConflictView);
+		_onWsError: function (data) {
+			console.log("Error:", data.reason);
+			this.wsErrorView.updateInstr(data.reason);
+			this._showView(this.wsErrorView);
 		},
 		
 		_onWaitingForId: function() {
