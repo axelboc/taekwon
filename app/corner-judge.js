@@ -212,7 +212,6 @@ CornerJudge.prototype.ringLeft = function (message) {
 CornerJudge.prototype.scoringStateChanged = function (enabled) {
 	assert(typeof enabled === 'boolean', "argument 'enabled' must be a boolean");
 	assert(this.ring, "not in a ring");
-	assert(this.authorised, "not authorised");
 	
 	this.spark.emit('scoringStateChanged', enabled);
 };

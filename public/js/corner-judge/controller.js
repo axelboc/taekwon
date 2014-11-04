@@ -6,9 +6,10 @@ define([
 	'../common/ws-error-view',
 	'./widget/name-view',
 	'../common/ring-list-view',
-	'./widget/round-view'
+	'./widget/round-view',
+	'../common/backdrop'
 
-], function (PubSub, Helpers, IO, WsErrorView, NameView, RingListView, RoundView) {
+], function (PubSub, Helpers, IO, WsErrorView, NameView, RingListView, RoundView, Backdrop) {
 	
 	function Controller() {
 		// Initialise socket connection with server
@@ -52,10 +53,8 @@ define([
 		};
 		this.roundView = new RoundView();
 		
-		// Retrieve backdrop elements
-		this.backdropWrap = document.getElementById('backdrop-wrap');
-		this.disconnectedBackdrop = document.getElementById('disconnected-backdrop');
-		this.waitingBackdrop = document.getElementById('waiting-backdrop');
+		// Initialise backdrop
+		this.backdrop = new Backdrop();
 	}
 	
 	Controller.prototype = {
@@ -71,16 +70,14 @@ define([
 			this.curentView = view;
 		},
 
-		_updateBackdrops: function() {
-			// Toggle backdrops
-			this.disconnectedBackdrop.classList.toggle('hidden', this.isJPConnected);
-			this.waitingBackdrop.classList.toggle('hidden', !this.isJPConnected || this.isScoringEnabled);
-
-			// Determine whether backdrop wrapper should be shown or hidden
-			var hideWrapper = !this.isAuthorised || this.isJPConnected && this.isScoringEnabled;
-			
-			// Toggle backdrop wrapper
-			this.backdropWrap.classList.toggle('hidden', hideWrapper);
+		_updateBackdrop: function() {
+			if (!this.isJPConnected) {
+				this.backdrop.show("Jury President disconnected", "Waiting for reconnection...");
+			} else if (!this.isScoringEnabled) {
+				this.backdrop.show("Please wait for round to begin", "... or timeout to end");
+			} else {
+				this.backdrop.hide();
+			}
 		},
 		
 		_onWsError: function (data) {
@@ -143,7 +140,7 @@ define([
 			this.isAuthorised = true;
 			this.isScoringEnabled = data.scoringEnabled;
 			this.isJPConnected = data.jpConnected;
-			this._updateBackdrops();
+			this._updateBackdrop();
 			
 			// Update page title to show ring number
 			document.title = "Corner Judge | Ring " + (data.ringIndex + 1);
@@ -161,7 +158,7 @@ define([
 			
 			// Update flag and backdrop
 			this.isAuthorised = false;
-			this._updateBackdrops();
+			this._updateBackdrop();
 			
 			// Reset page title
 			document.title = "Corner Judge";
@@ -170,13 +167,13 @@ define([
 		_onJPConnectionStateChanged: function(connected) {
 			console.log("Jury president " + (connected ? "connected" : "disconnected"));
 			this.isJPConnected = connected;
-			this._updateBackdrops();
+			this._updateBackdrop();
 		},
 
 		_onScoringStateChanged: function(enabled) {
 			console.log("Scoring " + (enabled ? "enabled" : "disabled"));
 			this.isScoringEnabled = enabled;
-			this._updateBackdrops();
+			this._updateBackdrop();
 		},
 		
 		_onRestoreSession: function(data) {
