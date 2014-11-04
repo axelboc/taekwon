@@ -1,4 +1,7 @@
+{{!-- WebSocket Error view --}}
 {{> ws-error-view }}
+
+{{!-- Name view (identification) --}}
 <div id="name" class="view hidden">
 	<h1>{{ title }}</h1>
 	<form class="action name-form" action="#">
@@ -6,6 +9,8 @@
 		<input class="name-field field" type="text" autocapitalize="on">
 	</form>
 </div>
+
+{{!-- Ring List view (ring selection) --}}
 <div id="ring-list" class="view hidden">
 	<h1>{{ title }}</h1>
 	<div class="action">
@@ -18,12 +23,16 @@
 		\{{/each}}
 	</script>
 </div>
+
+{{!-- Authorisation view (waiting for authorisation to join ring) --}}
 <div id="authorisation" class="view hidden">
 	<h1>{{ title }}</h1>
 	<div class="action">
 		<p class="instr">Waiting for authorisation...</p>
 	</div>
 </div>
+
+{{!-- Round view (scoring) --}}
 <div id="round" class="view hidden">
 	<button type="button" class="undo-btn btn btn--minor no-hover">Undo</button>
 	<div class="score-btns score-btns--hong">
@@ -41,13 +50,7 @@
 		<button type="button" class="score-btn score-btn--1 chong-bg">1</button>
 	</div>
 	<div class="feedback"></div>
-</div>
-<div id="backdrop-wrap" class="backdrop-wrap hidden">
-	<div id="disconnected-backdrop" class="backdrop">
-		<p>Jury President disconnected.</p>
-		<p>Waiting for reconnection...</p>
-	</div>
-	<div id="waiting-backdrop" class="backdrop">
-		<p>Please wait...</p>
-	</div>
+
+	{{!-- Backdrop --}}
+	{{> backdrop}}
 </div>

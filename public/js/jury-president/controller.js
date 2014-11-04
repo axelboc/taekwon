@@ -8,21 +8,15 @@ define([
 	'./widget/pwd-view',
 	'../common/ring-list-view',
 	'./model/ring',
-	'./widget/ring-view'
+	'./widget/ring-view',
+	'../common/backdrop'
 
-], function (PubSub, Helpers, IO, defaults, WsErrorView, PwdView, RingListView, Ring, RingView) {
+], function (PubSub, Helpers, IO, defaults, WsErrorView, PwdView, RingListView, Ring, RingView, Backdrop) {
 	
 	// TODO: manage errors (subscribe to error event)
 	function Controller() {
 		// Initialise socket connection with server
 		IO.init();
-		
-		// Initialise views
-		this.currentView = null;
-		this.wsErrorView = new WsErrorView();
-		this.pwdView = new PwdView();
-		this.ringListView = new RingListView();
-		this.ringView = null;
 		
 		// Subscribe to events from server and views
 		Helpers.subscribeToEvents(this, {
@@ -44,6 +38,16 @@ define([
 				ringSelected: this._onRingSelected
 			}
 		});
+		
+		// Initialise views
+		this.currentView = null;
+		this.wsErrorView = new WsErrorView();
+		this.pwdView = new PwdView();
+		this.ringListView = new RingListView();
+		this.ringView = null;
+		
+		// Initialise backdrop
+		this.backdrop = new Backdrop();
 	}
 	
 	Controller.prototype = {
@@ -145,6 +149,7 @@ define([
 				}
 
 				this._showView(this.ringView);
+				IO.enableScoring(false);				
 			}
 
 			IO.sessionRestored();

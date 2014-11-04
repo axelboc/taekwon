@@ -170,7 +170,7 @@ h1,
 }
 
 
-/* ===== Competitor colours ===== */
+/* ===== Competitors' colours ===== */
 
 .hong-col { color: hsl(6, 78%, 57%); }
 .hong-bg { background-color: hsl(6, 78%, 57%); color: #fff; }
@@ -181,7 +181,7 @@ h1,
 .chong-sbg { background-color: hsla(204, 64%, 44%, .3); }
 
 
-/* ===== Shake effect ===== */
+/* ===== Shake effect for identification text fields (name, password) ===== */
 
 .shake {
 	-webkit-animation: shake 150ms 2 linear;
@@ -201,7 +201,7 @@ h1,
 }
 
 
-/* ===== Session conflict view ===== */
+/* ===== WebSocket Error view ===== */
 
 .wse-btn {
 	padding: .5em 1em;
@@ -210,7 +210,7 @@ h1,
 }
 
 
-/* ===== Ring list view ===== */
+/* ===== Ring List view ===== */
 
 .rl-list {
 	max-width: 18em;
@@ -222,6 +222,35 @@ h1,
     min-height: 2.8em;
 	margin-top: .7em;
     font-size: 180%;
+}
+
+
+/* ===== Backdrop ===== */
+
+.backdrop {
+	position: fixed;
+	z-index: 50;
+	top: 0;
+	left: 0;
+	display: table;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, .85);
+	color: #fff;
+}
+
+.bdp-body {
+	display: table-cell;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.bdp-body > p {
+	margin: .5em 0;
+}
+
+.bdp-text {
+	font-size: 150%;
 }
 
 
@@ -255,6 +284,10 @@ h1,
 	
 	.rl-btn {
 		font-size: 230%;
+	}
+	
+	.bdp-body {
+		font-size: 130%;
 	}
 	
 }
