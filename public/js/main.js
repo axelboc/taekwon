@@ -1,7 +1,7 @@
 
 // RequireJS configuration
 require.config({
-	baseUrl: '/js/' + (window.location.href.indexOf('jury') !== -1 ? 'jury-president' : 'corner-judge'),
+	baseUrl: '/js/' + (document.documentElement.getAttribute('data-type')),
 	paths: {
 		fastclick: '../lib/fast-click.min',
 		handlebars: '../lib/handlebars.min',
