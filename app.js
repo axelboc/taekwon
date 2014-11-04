@@ -2,6 +2,7 @@
 // Import core modules
 var http = require('http');
 var express = require('express');
+var handlebars = require('express-handlebars');
 var session = require('express-session');
 var cookieParser = require('cookie-parser');
 var cookie = require('cookie');
@@ -17,14 +18,36 @@ var Ring = require('./app/ring').Ring;
 
 
 /*
- * Initialise Express
+ * Initialise Express and the web server
  */
 var app = express();
 var server = http.Server(app);
 
-// Add middlewares
+// Configure templating
+app.engine('hbs', handlebars({
+	defaultLayout: 'layout',
+	extname: 'hbs',
+	layoutsDir: 'views/'
+}));
+
+// Set view engine
+app.set('view engine', 'hbs');
+
+// Pass server-side configuration to client
+app.locals.baseUrl = config.baseUrl;
+
+
+/*
+ * Add middlewares
+ */
+
+// Server static files from public folder
 app.use(express.static(__dirname + '/public'));
+
+// Parse cookies
 app.use(cookieParser(config.cookieSecret));
+
+// Manage session
 app.use(session({
 	name: config.cookieKey,
 	secret: config.cookieSecret,
@@ -65,14 +88,24 @@ primus.before('session', function (req, res, next) {
  * Routes
  */
 
-// Corner Judge
-app.get('/', function (request, response) {
-	response.sendFile('corner-judge.html', { root: './public' });
+// Jury President
+app.get('/jury', function (req, res) {
+	var type = 'jury-president';
+	res.render(type, {
+		type: type,
+		title: "Jury President",
+		metaViewport: 'width=device-width, initial-scale=1'
+	});
 });
 
-// Jury President
-app.get('/jury', function (request, response) {
-	response.sendFile('jury-president.html', { root: './public' });
+// Corner Judge
+app.get('/', function (req, res) {
+	var type = 'corner-judge';
+	res.render(type, {
+		type: type,
+		title: "Corner Judge",
+		metaViewport: 'width=device-width, initial-scale=1, user-scalable=no'
+	});
 });
 
 
