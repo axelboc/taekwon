@@ -1,6 +1,7 @@
 
 // Import core modules
 var http = require('http');
+var dotEnv = require('assert-dotenv');
 var express = require('express');
 var handlebars = require('express-handlebars');
 var session = require('express-session');
@@ -10,113 +11,123 @@ var Primus = require('primus');
 var Emit = require('primus-emit');
 
 // Import app modules
-var config = require('./app/config');
 var Tournament = require('./app/tournament').Tournament;
 var JuryPresident = require('./app/jury-president').JuryPresident;
 var CornerJudge = require('./app/corner-judge').CornerJudge;
 var Ring = require('./app/ring').Ring;
 
 
-/*
- * Initialise Express and the web server
- */
-var app = express();
-var server = http.Server(app);
 
-// Configure templating
-app.engine('hbs', handlebars({
-	defaultLayout: 'layout',
-	extname: 'hbs',
-	layoutsDir: 'views/'
-}));
+dotEnv({
+	dotenvFile: 'config/config.env',
+	assertFile: 'config/assert.env'
+}, function start() {
 
-// Set view engine
-app.set('view engine', 'hbs');
+	/*
+	 * Initialise Express and the web server
+	 */
+	var app = express();
+	var server = http.Server(app);
 
-// Pass server-side configuration to client
-app.locals.baseUrl = config.baseUrl;
+	// Configure templating
+	app.engine('hbs', handlebars({
+		defaultLayout: 'layout',
+		extname: 'hbs',
+		layoutsDir: 'views/'
+	}));
 
+	// Set view engine
+	app.set('view engine', 'hbs');
 
-/*
- * Add middlewares
- */
-
-// Server static files from public folder
-app.use(express.static(__dirname + '/public'));
-
-// Parse cookies
-app.use(cookieParser(config.cookieSecret));
-
-// Manage session
-app.use(session({
-	name: config.cookieKey,
-	secret: config.cookieSecret,
-	saveUninitialized: true,
-	resave: true,
-	cookie: {
-		maxAge: 1000 * 60 * 60 * 24 // one day
-	}
-}));
+	// Pass server-side configuration to client
+	app.locals.baseUrl = process.env.BASE_URL;
 
 
-/**
- * Initialise Primus
- */
-var primus = new Primus(server, {
-	transformer: 'sockjs'
-});
+	/*
+	 * Add middlewares
+	 */
 
-// Add plugin
-primus.use('emit', Emit);
+	// Server static files from public folder
+	app.use(express.static(__dirname + '/public'));
 
-// Add middleware
-primus.before('session', function (req, res, next) {
-	if (!req.headers.cookie) {
-		req.sessionId = null;
-		next(new Error('Session cookie not transmitted'));
-	} else {
-		// Parse and store cookies
-		req.cookie = cookie.parse(req.headers.cookie);
-		// Decode Express session ID
-		req.sessionId = cookieParser.signedCookie(req.cookie[config.cookieKey], config.cookieSecret);
-		next(null, true);
-	}
-});
+	// Parse cookies
+	app.use(cookieParser(process.env.COOKIE_SECRET));
+
+	// Manage session
+	app.use(session({
+		name: process.env.COOKIE_KEY,
+		secret: process.env.COOKIE_SECRET,
+		saveUninitialized: true,
+		resave: true,
+		cookie: {
+			maxAge: 1000 * 60 * 60 * 24 // one day
+		}
+	}));
 
 
-/**
- * Routes
- */
-
-// Jury President
-app.get('/jury', function (req, res) {
-	var type = 'jury-president';
-	res.render(type, {
-		type: type,
-		title: "Jury President",
-		metaViewport: 'width=device-width, initial-scale=1'
+	/**
+	 * Initialise Primus
+	 */
+	var primus = new Primus(server, {
+		transformer: 'sockjs'
 	});
-});
 
-// Corner Judge
-app.get('/', function (req, res) {
-	var type = 'corner-judge';
-	res.render(type, {
-		type: type,
-		title: "Corner Judge",
-		metaViewport: 'width=device-width, initial-scale=1, user-scalable=no'
+	// Add plugin
+	primus.use('emit', Emit);
+
+	// Add middleware
+	primus.before('session', function (req, res, next) {
+		if (!req.headers.cookie) {
+			req.sessionId = null;
+			next(new Error('Session cookie not transmitted'));
+		} else {
+			// Parse and store cookies
+			req.cookie = cookie.parse(req.headers.cookie);
+			// Decode Express session ID
+			req.sessionId = cookieParser.signedCookie(
+				req.cookie[process.env.COOKIE_KEY], process.env.COOKIE_SECRET);
+			next(null, true);
+		}
 	});
+
+
+	/**
+	 * Routes
+	 */
+
+	// Jury President
+	app.get('/jury', function (req, res) {
+		var type = 'jury-president';
+		res.render(type, {
+			type: type,
+			title: "Jury President",
+			metaViewport: 'width=device-width, initial-scale=1'
+		});
+	});
+
+	// Corner Judge
+	app.get('/', function (req, res) {
+		var type = 'corner-judge';
+		res.render(type, {
+			type: type,
+			title: "Corner Judge",
+			metaViewport: 'width=device-width, initial-scale=1, user-scalable=no'
+		});
+	});
+
+
+	/**
+	 * Initialise Tournament
+	 */
+	var tournament = new Tournament(primus, {
+		masterPwd: process.env.MASTER_PWD,
+		ringCount: parseInt(process.env.RING_COUNT, 10)
+	});
+
+
+	/**
+	 * Start server
+	 */
+	server.listen(80);
+
 });
-
-
-/**
- * Initialise Tournament
- */
-var tournament = new Tournament(primus);
-
-
-/**
- * Start server
- */
-server.listen(80);
-

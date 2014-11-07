@@ -1,6 +1,8 @@
 
 node_modules/
 resources/
+config/*.env
+!config/assert.env
 
 
 #############

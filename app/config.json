@@ -1,7 +1,0 @@
-{
-	"cookieKey": "express.sid",
-	"cookieSecret": "tkd is awesome",
-	"masterPwd": "tkd",
-	"ringCount": 2,
-	"baseUrl": "http://taekwon.do"
-}

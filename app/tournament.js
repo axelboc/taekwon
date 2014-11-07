@@ -1,7 +1,6 @@
 
 // Modules
 var assert = require('assert');
-var config = require('./config');
 var Spark = require('primus').Spark;
 var Ring = require('./ring').Ring;
 var User = require('./user').User;
@@ -12,15 +11,23 @@ var CornerJudge = require('./corner-judge').CornerJudge;
 /**
  * Tournament; the root of the application.
  * @param {Primus} primus
+ * @param {Object} config
+ * 		  {String} config.masterPwd
+ * 		  {Number} config.ringCount
  */
-function Tournament(primus) {
+function Tournament(primus, config) {
 	assert(primus, "argument 'primus' must be provided");
+	assert(typeof config === 'object' && config, "argument 'config' must be an object");
+	assert(typeof config.masterPwd === 'string', "'config.masterPwd' must be a string");
+	assert(typeof config.ringCount === 'number' && config.ringCount > 0 && config.ringCount % 1 === 0, 
+		   "'config.ringCount' must be an integer greater than 0");
+	
+	this.primus = primus;
+	this.config = config;
 	
 	// Rings
 	this.rings = [];
-	this.ringCount = config.ringCount;
-	
-	for (var i = 0; i < this.ringCount; i += 1) {
+	for (var i = 0; i < this.config.ringCount; i += 1) {
 		this.rings.push(new Ring(this, i));
 	}
 	
@@ -28,7 +35,6 @@ function Tournament(primus) {
 	this.users = {};
 	
 	// Socket events
-	this.primus = primus;
 	primus.on('connection', this._onConnection.bind(this));
 	primus.on('disconnection', this._onDisconnection.bind(this));
 }
@@ -151,7 +157,7 @@ Tournament.prototype = {
 			case 'juryPresident':
 				// Check password
 				assert(typeof data.password === 'string', "'data.password' must be a string");
-				if (data.password === config.masterPwd) {
+				if (data.password === this.config.masterPwd) {
 					// Initialise Jury President
 					user = new JuryPresident(this, this.primus, spark, sessionId);
 				}

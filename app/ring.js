@@ -1,7 +1,6 @@
 
 // Modules
 var assert = require('assert');
-var config = require('./config');
 var CornerJudge = require('./corner-judge').CornerJudge;
 var JuryPresident = require('./jury-president').JuryPresident;
 
@@ -19,7 +18,6 @@ function Ring(tournament, index) {
 	this.tournament = tournament;
 	this.index = index;
 	this.number = index + 1;
-	this.roomId = 'ring' + index;
 	this.juryPresident = null;
 	this.cornerJudges = [];
 	this.scoringEnabled = false;

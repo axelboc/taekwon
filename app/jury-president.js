@@ -2,7 +2,6 @@
 // Modules
 var assert = require('assert');
 var util = require('util');
-var config = require('./config');
 var User = require('./user').User;
 var CornerJudge = require('./corner-judge').CornerJudge;
 
