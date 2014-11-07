@@ -1,7 +1,7 @@
 
 // Import core modules
+var dotenv = require('assert-dotenv');
 var http = require('http');
-var dotEnv = require('assert-dotenv');
 var express = require('express');
 var handlebars = require('express-handlebars');
 var session = require('express-session');
@@ -12,13 +12,10 @@ var Emit = require('primus-emit');
 
 // Import app modules
 var Tournament = require('./app/tournament').Tournament;
-var JuryPresident = require('./app/jury-president').JuryPresident;
-var CornerJudge = require('./app/corner-judge').CornerJudge;
-var Ring = require('./app/ring').Ring;
 
 
-
-dotEnv({
+// Load environment configuration
+dotenv({
 	dotenvFile: 'config/config.env',
 	assertFile: 'config/assert.env'
 }, function start() {
