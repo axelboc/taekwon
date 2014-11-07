@@ -5,6 +5,7 @@ var http = require('http');
 var express = require('express');
 var handlebars = require('express-handlebars');
 var session = require('express-session');
+var NeDBSessionStore = require('connect-nedb-session')(session);
 var cookieParser = require('cookie-parser');
 var cookie = require('cookie');
 var Primus = require('primus');
@@ -56,6 +57,9 @@ dotenv({
 		secret: process.env.COOKIE_SECRET,
 		saveUninitialized: true,
 		resave: true,
+		store: new NeDBSessionStore({
+			filename: 'data/sessions.db'
+		}),
 		cookie: {
 			maxAge: 1000 * 60 * 60 * 24 // one day
 		}
