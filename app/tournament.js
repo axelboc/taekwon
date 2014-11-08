@@ -36,7 +36,7 @@ function Tournament(primus, config) {
 	
 	this._log = this.log.bind(this, 'tournament');
 	this.loggerCallback = function (err) {
-		if (!err) {
+		if (err) {
 			throw new Error("logging failed: " + err.message ? err.message : "unknown error");
 		}
 	};
@@ -321,7 +321,7 @@ Tournament.prototype = {
 		
 		// When in development, print debug messages to the console 
 		if (name === 'debug' && this.config.env === 'development') {
-			console.log('[' + topic.substr(0, topic.indexOf('.')) + ']', data);
+			console.log('[' + topic + ']', data);
 		}
 		
 		// Add a new entry to the logs
