@@ -8,19 +8,22 @@ var JuryPresident = require('./jury-president').JuryPresident;
 /**
  * Ring.
  * @param {Primus} primus
- * @param {Number} index - the index of the ring, as a positive integer
+ * @param {Number} number - the ring number, as an integer greater than 0
  */
-function Ring(tournament, index) {
+function Ring(tournament, number) {
 	assert(tournament, "argument 'tournament' must be provided");
-	assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 
-		   "argument 'index' must be a positive integer");
+	assert(typeof number === 'number' && number > 0 && number % 1 === 0, 
+		   "argument 'number' must be a positive integer");
 	
 	this.tournament = tournament;
-	this.index = index;
-	this.number = index + 1;
+	this.number = number;
+	
+	this.index = number - 1;
 	this.juryPresident = null;
 	this.cornerJudges = [];
 	this.scoringEnabled = false;
+	
+	this._log = tournament.log.bind(tournament, 'ring');
 }
 
 Ring.prototype = {
@@ -31,7 +34,7 @@ Ring.prototype = {
 	 */
 	getState: function () {
 		return {
-			index: this.index,
+			index: this.number - 1,
 			number: this.number,
 			open: this.juryPresident !== null
 		};
@@ -48,7 +51,11 @@ Ring.prototype = {
 
 		this.juryPresident = jp;
 		this.tournament.ringStateChanged(this);
-		this._debug("Opened");
+		
+		this._log('opened', {
+			number: this.number,
+			jpId: jp.id
+		});
 	},
 	
 	/**
@@ -60,12 +67,15 @@ Ring.prototype = {
 
 		this.juryPresident = null;
 		this.tournament.ringStateChanged(this);
-		this._debug("Closed");
 			
 		// Notify Corner Judges that they must leave the ring.
 		this.cornerJudges.forEach(function (cj) {
 			this.removeCJ(cj, "Ring closed");
 		}, this);
+		
+		this._log('closed', {
+			number: this.number
+		});
 	},
 	
 	/**
@@ -104,6 +114,12 @@ Ring.prototype = {
 		
 		// Request authorisation from Jury President
 		this.juryPresident.cjAdded(cj);
+		
+		this._log('cjAdded', {
+			number: this.number,
+			cjId: cj.id,
+			cjName: cj.name
+		});
 	},
 	
 	/**
@@ -130,6 +146,13 @@ Ring.prototype = {
 		
 		// Ackonwledge removal
 		cj.ringLeft(message);
+		
+		this._log('cjRemoved', {
+			number: this.number,
+			cjId: cj.id,
+			cjName: cj.name,
+			message: message
+		});
 	},
 	
 	/**
@@ -234,10 +257,6 @@ Ring.prototype = {
 		
 		// Notify the Jury President
 		this.juryPresident.cjConnectionStateChanged(cj, connected);
-	},
-
-	_debug: function (msg) {
-		console.log("[Ring] " + msg);
 	}
 	
 };
