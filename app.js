@@ -14,13 +14,15 @@ var Emit = require('primus-emit');
 // Import app modules
 var Tournament = require('./app/tournament').Tournament;
 
-
 // Load environment configuration
 dotenv({
 	dotenvFile: 'config/config.env',
 	assertFile: 'config/assert.env'
 }, function start() {
 
+	// If NODE_ENV is not defined, set it to 'development'
+	process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+	
 	/*
 	 * Initialise Express and the web server
 	 */
@@ -121,6 +123,7 @@ dotenv({
 	 * Initialise Tournament
 	 */
 	var tournament = new Tournament(primus, {
+		env: process.env.NODE_ENV,
 		masterPwd: process.env.MASTER_PWD,
 		ringCount: parseInt(process.env.RING_COUNT, 10)
 	});

@@ -21,7 +21,8 @@
     "express-handlebars": "~1.1.0",
     "nedb": "~0.11.1",
     "assert-dotenv": "~2.0.0",
-    "connect-nedb-session": "0.0.3"
+    "connect-nedb-session": "0.0.3",
+    "nedb-logger": "~0.1.0"
   },
   "devDependencies": {
     "chai": "~1.9.2",
