@@ -56,8 +56,8 @@ User.prototype = {
 	 * @return {Object} - an object containing the user's partial restoration data
 	 */
 	restoreSession: function (spark) {
-		this._debug("Restoring session...");
 		assert(spark, "argument 'spark' must be provided");
+		this._log('debug', "Restoring session...");
 		
 		// Initialise the new spark 
 		this.initSpark(spark);
@@ -73,7 +73,7 @@ User.prototype = {
 	 * The user's session has been restored.
 	 */
 	_onSessionRestored: function () {
-		this._debug("> Session restored");
+		this._log('debug', "> Session restored");
 		this.connected = true;
 		this.connectionStateChanged();
 	},
@@ -82,7 +82,7 @@ User.prototype = {
 	 * The user is disconnected.
 	 */
 	disconnected: function () {
-		this._debug("Disconnected");
+		this._log('debug', "Disconnected");
 		this.connected = false;
 		this.connectionStateChanged();
 	},
@@ -91,12 +91,11 @@ User.prototype = {
 	 * Exit the system.
 	 */
 	exit: function () {
-		this._debug("Exit");
 		this.connected = false;
-	},
-
-	_debug: function (msg) {
-		console.log("[" + this.constructor.name + "] " + msg);
+		this._log('exit', {
+			id: this.id,
+			name: this.name
+		});
 	}
 	
 };

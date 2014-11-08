@@ -321,7 +321,7 @@ Tournament.prototype = {
 		
 		// When in development, print debug messages to the console 
 		if (name === 'debug' && this.config.env === 'development') {
-			console.log('[' + type.substr(0, type.indexOf('.')) + ']', data);
+			console.log('[' + topic.substr(0, topic.indexOf('.')) + ']', data);
 		}
 		
 		// Add a new entry to the logs

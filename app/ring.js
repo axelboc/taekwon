@@ -14,6 +14,7 @@ function Ring(tournament, number) {
 	assert(tournament, "argument 'tournament' must be provided");
 	assert(typeof number === 'number' && number > 0 && number % 1 === 0, 
 		   "argument 'number' must be a positive integer");
+	this._log = tournament.log.bind(tournament, 'ring');
 	
 	this.tournament = tournament;
 	this.number = number;
@@ -22,8 +23,6 @@ function Ring(tournament, number) {
 	this.juryPresident = null;
 	this.cornerJudges = [];
 	this.scoringEnabled = false;
-	
-	this._log = tournament.log.bind(tournament, 'ring');
 }
 
 Ring.prototype = {
