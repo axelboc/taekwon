@@ -81,7 +81,7 @@ Tournament.prototype = {
 			this._waitForId(spark, sessionId);
 		} else {
 			// If existing user, check whether its previous spark is still open
-			this.log('debug', "Existing user with ID=" + sessionId);
+			this._log('debug', "Existing user with ID=" + sessionId);
 			if (user.spark.readyState === Spark.OPEN) {
 				// Inform client that a session conflict has been detected
 				this._log('debug', "> Session conflict detected");
