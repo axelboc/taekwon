@@ -2,7 +2,6 @@
 // Modules
 var assert = require('assert');
 var Spark = require('primus').Spark;
-var Logger = require('nedb-logger');
 var Ring = require('./ring').Ring;
 var User = require('./user').User;
 var JuryPresident = require('./jury-president').JuryPresident;
@@ -12,14 +11,19 @@ var CornerJudge = require('./corner-judge').CornerJudge;
 /**
  * Tournament; the root of the application.
  * @param {Primus} primus
+ * @param {Object} db - the NeDB datastores
  * @param {Object} config
  * 		  {String} config.env
  * 		  {String} config.masterPwd
  * 		  {Number} config.ringCount
  */
-function Tournament(primus, config) {
+function Tournament(primus, db, logger, config) {
 	assert(primus, "argument 'primus' must be provided");
-	assert(typeof config === 'object' && config, "argument 'config' must be an object");
+	assert(typeof db === 'object', "argument 'db' must be an object");
+	assert(db.tournaments && db.rings && db.matches, 
+		   "object 'db' must contain three datastores: 'tournaments', 'rings' and 'matches'");
+	assert(logger, "argument 'logger' must be provided");
+	assert(typeof config === 'object', "argument 'config' must be an object");
 	assert(typeof config.env === 'string' && config.env.length > 0, 
 		   "'config.env' must be a non-empty string");
 	assert(typeof config.masterPwd === 'string', "'config.masterPwd' must be a string");
@@ -27,30 +31,20 @@ function Tournament(primus, config) {
 		   "'config.ringCount' must be an integer greater than 0");
 	
 	this.primus = primus;
+	this.db = db;
 	this.config = config;
-	
-	// Logger
-	this.logger = new Logger({
-		filename: 'data/logs.db'
-	});
-	
+	this.logger = logger;
 	this._log = this.log.bind(this, 'tournament');
-	this.loggerCallback = function (err) {
-		if (err) {
-			throw new Error("logging failed: " + err.message ? err.message : "unknown error");
-		}
-	};
 	
-	// Rings
 	this.rings = [];
+	this.users = {};
+	
+	// Initialise the rings
 	for (var i = 1; i <= this.config.ringCount; i += 1) {
 		this.rings.push(new Ring(this, i));
 	}
 	
-	// Users
-	this.users = {};
-	
-	// Socket events
+	// Bind socket events
 	primus.on('connection', this._onConnection.bind(this));
 	primus.on('disconnection', this._onDisconnection.bind(this));
 }
@@ -144,7 +138,7 @@ Tournament.prototype = {
 	 * Identification received.
 	 * @param {Spark} spark
 	 * @param {String} sessionId
-	 * @param {String} type - `cornerJudge` or `juryPresident`
+	 * @param {String} type - 'cornerJudge' or 'juryPresident'
 	 * @param {Object} data
 	 * 		  {String} data.password - the master password
 	 */
@@ -237,7 +231,7 @@ Tournament.prototype = {
 	 * @param {String} sessionId
 	 * @param {User} user
 	 * @param {Object} data
-	 * 		  {String} data.identity - the user's identity ('juryPresident' or 'cornerJudge)
+	 * 		  {String} data.identity - the user's identity ('juryPresident' or 'cornerJudge')
 	 */
 	_onIdentityConfirmation: function (spark, sessionId, user, data) {
 		assert(spark, "argument 'spark' must be provided");
@@ -307,11 +301,10 @@ Tournament.prototype = {
 
 	/**
 	 * Add a new entry to the tournament's log file.
-	 * When in development, if argument `name` is equal to 'debug', argument `data`, 
-	 * which can be a string, is printed to the console.
+	 * When in development, if argument `name` is 'debug', argument `data` is printed to the console.
 	 * @param {String} topic - (e.g. 'ring', 'match', etc.)
 	 * @param {String} name - (e.g. 'opened', 'started', etc.)
-	 * @param {String|Object} data - optional message or data object to store with the log entry
+	 * @param {String|Object} data - optional message or data to store with the log entry
 	 */
 	log: function (topic, name, data) {
 		assert(typeof topic === 'string' && topic.length > 0, "argument 'topic' must be a non-empty string");
@@ -330,7 +323,7 @@ Tournament.prototype = {
 			topic: topic,
 			name: name,
 			data: data
-		}, this.loggerCallback);
+		}, db.cb);
 	}
 	
 };

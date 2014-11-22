@@ -6,6 +6,8 @@ var express = require('express');
 var handlebars = require('express-handlebars');
 var session = require('express-session');
 var NeDBSessionStore = require('connect-nedb-session')(session);
+var Datastore = require('nedb');
+var Logger = require('nedb-logger');
 var cookieParser = require('cookie-parser');
 var cookie = require('cookie');
 var Primus = require('primus');
@@ -46,7 +48,6 @@ dotenv({
 	/*
 	 * Add middlewares
 	 */
-
 	// Server static files from public folder
 	app.use(express.static(__dirname + '/public'));
 
@@ -68,7 +69,7 @@ dotenv({
 	}));
 
 
-	/**
+	/*
 	 * Initialise Primus
 	 */
 	var primus = new Primus(server, {
@@ -94,10 +95,9 @@ dotenv({
 	});
 
 
-	/**
+	/*
 	 * Routes
 	 */
-
 	// Jury President
 	app.get('/jury', function (req, res) {
 		var type = 'jury-president';
@@ -118,18 +118,57 @@ dotenv({
 		});
 	});
 
-
-	/**
-	 * Initialise Tournament
+	
+	/*
+	 * Load NeDB datastores
 	 */
-	var tournament = new Tournament(primus, {
+	var db = {
+		tournaments: new Datastore({
+			filename: 'data/tournaments.db',
+			autoload: true
+		}),
+		rings: new Datastore({
+			filename: 'data/rings.db',
+			autoload: true
+		}),
+		matches: new Datastore({
+			filename: 'data/matches.db',
+			autoload: true
+		}),
+
+		// Default callback which prints errors to the console in development
+		cb: function (err) {
+			if (err && this.config.env === 'development') {
+				console.error("logging failed: " + err.message ? err.message : "unknown error");
+			}
+		}
+	};
+	
+	// Initialise logger
+	var logger = new Logger({
+		filename: 'data/logs.db'
+	});
+	
+
+	/*
+	 * Initialise tournament
+	 */
+	// Create a new tournament
+	var tournament = new Tournament(primus, db, logger, {
 		env: process.env.NODE_ENV,
 		masterPwd: process.env.MASTER_PWD,
 		ringCount: parseInt(process.env.RING_COUNT, 10)
 	});
 
+	// Insert the new tournament in the database
+	db.tournaments.insert({
+		startDate: Date.now(),
+		ringIds: [],
+		users: []
+	}, db.cb);
 
-	/**
+	
+	/*
 	 * Start server
 	 */
 	server.listen(80);
