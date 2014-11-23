@@ -137,7 +137,7 @@ dotenv({
 		}),
 
 		// Default callback which prints errors to the console in development
-		cb: function (err) {
+		cb: function cb(err) {
 			if (err && this.config.env === 'development') {
 				console.error("logging failed: " + err.message ? err.message : "unknown error");
 			}
@@ -153,19 +153,39 @@ dotenv({
 	/*
 	 * Initialise tournament
 	 */
-	// Create a new tournament
-	var tournament = new Tournament(primus, db, logger, {
-		env: process.env.NODE_ENV,
-		masterPwd: process.env.MASTER_PWD,
-		ringCount: parseInt(process.env.RING_COUNT, 10)
-	});
+	var tournament;
+	
+	// Get timestamp for the start of today
+	var now = new Date();
+	var startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+	
+	// Look for a tournament that started today in the datastore
+	db.tournaments.findOne({
+		startDate: {
+			$gte: startOfToday
+		}
+	}, function (err, doc) {
+		db.cb(err);
 
-	// Insert the new tournament in the database
-	db.tournaments.insert({
-		startDate: Date.now(),
-		ringIds: [],
-		users: []
-	}, db.cb);
+		if (doc) {
+			// If a tournament was found, restore it
+			tournament = new Tournament(doc._id, primus, db, logger, doc);
+		} else {
+			// Otehrwise, insert a new tournament in the datastore
+			console.log(Date.now());
+			db.tournaments.insert({
+				startDate: Date.now(),
+				ringIds: [],
+				users: []
+			}, function (err, newDoc) {
+				db.cb(err);
+				if (newDoc) {
+					// Initialise the new tournament
+					tournament = new Tournament(newDoc._id, primus, db, logger);
+				}
+			});
+		}
+	});
 
 	
 	/*

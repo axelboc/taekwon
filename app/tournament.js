@@ -10,38 +10,38 @@ var CornerJudge = require('./corner-judge').CornerJudge;
 
 /**
  * Tournament; the root of the application.
+ * @param {String} id
  * @param {Primus} primus
  * @param {Object} db - the NeDB datastores
- * @param {Object} config
- * 		  {String} config.env
- * 		  {String} config.masterPwd
- * 		  {Number} config.ringCount
+ * @param {Logger} logger
+ * @param {Object} data - optional, data used to restore an existing tournament
+ * 		  {Array}  data.ringIds
+ * 		  {Array}  data.users
  */
-function Tournament(primus, db, logger, config) {
+function Tournament(id, primus, db, logger, data) {
 	assert(primus, "argument 'primus' must be provided");
 	assert(typeof db === 'object', "argument 'db' must be an object");
 	assert(db.tournaments && db.rings && db.matches, 
 		   "object 'db' must contain three datastores: 'tournaments', 'rings' and 'matches'");
 	assert(logger, "argument 'logger' must be provided");
-	assert(typeof config === 'object', "argument 'config' must be an object");
-	assert(typeof config.env === 'string' && config.env.length > 0, 
-		   "'config.env' must be a non-empty string");
-	assert(typeof config.masterPwd === 'string', "'config.masterPwd' must be a string");
-	assert(typeof config.ringCount === 'number' && config.ringCount > 0 && config.ringCount % 1 === 0, 
-		   "'config.ringCount' must be an integer greater than 0");
 	
+	this.id = id;
 	this.primus = primus;
 	this.db = db;
-	this.config = config;
 	this.logger = logger;
 	this._log = this.log.bind(this, 'tournament');
 	
 	this.rings = [];
 	this.users = {};
 	
-	// Initialise the rings
-	for (var i = 1; i <= this.config.ringCount; i += 1) {
-		this.rings.push(new Ring(this, i));
+	// Either initialise or restore the tournament's rings and users
+	if (typeof data === 'undefined') {
+		this._initialiseRings(parseInt(process.env.RING_COUNT, 10));
+		this._log('debug', "Tournament started");
+	} else {
+		assert(typeof data === 'object', "argument 'data' must be an object");
+		this._restoreRings(data.ringIds);
+		this._log('debug', "Tournament restored");
 	}
 	
 	// Bind socket events
@@ -166,8 +166,8 @@ Tournament.prototype = {
 		switch (type) {
 			case 'juryPresident':
 				// Check password
-				assert(typeof data.password === 'string', "'data.password' must be a string");
-				if (data.password === this.config.masterPwd) {
+				assert(typeof process.env.MASTER_PWD === 'string', "'data.password' must be a string");
+				if (data.password === process.env.MASTER_PWD) {
 					// Initialise Jury President
 					user = new JuryPresident(this, this.primus, spark, sessionId);
 				}
@@ -258,6 +258,38 @@ Tournament.prototype = {
 		}
 	},
 	
+	_initialiseRings: function (count) {
+		assert(typeof count === 'number' && count > 0 && count % 1 === 0, 
+			   "argument 'count' must be an integer greater than 0");
+		
+		for (var i = 1; i <= count; i += 1) {
+			this.rings.push(new Ring(this, i));
+		}
+	},
+	
+	_restoreRings: function (ids) {
+		assert(Array.isArray(ids), "argument 'ids' must be an array");
+		
+		ids.forEach(function (id) {
+			
+		});
+	},
+	
+	/**
+	 * Get ring at given index.
+	 * @param {Number} index - the index of the ring, as a positive integer
+	 * @return {Ring}
+	 */
+	getRing: function (index) {
+		assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 
+			   "argument 'index' must be a positive integer");
+		
+		var ring = this.rings[index];
+		assert(ring, "no ring at index=" + index);
+		
+		return ring;
+	},
+	
 	/**
 	 * Build and return an array of the rings' states.
 	 * @return {Array}
@@ -283,21 +315,6 @@ Tournament.prototype = {
 			spark.emit('ringStateChanged', state);
 		}.bind(this));
 	},
-	
-	/**
-	 * Get ring at given index.
-	 * @param {Number} index - the index of the ring, as a positive integer
-	 * @return {Ring}
-	 */
-	getRing: function (index) {
-		assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 
-			   "argument 'index' must be a positive integer");
-		
-		var ring = this.rings[index];
-		assert(ring, "no ring at index=" + index);
-		
-		return ring;
-	},
 
 	/**
 	 * Add a new entry to the tournament's log file.
@@ -313,7 +330,7 @@ Tournament.prototype = {
 			   "if argument 'data' is provided, it must be a string or an object");
 		
 		// When in development, print debug messages to the console 
-		if (name === 'debug' && this.config.env === 'development') {
+		if (name === 'debug' && process.env.NODE_ENV === 'development') {
 			console.log('[' + topic + ']', data);
 		}
 		
@@ -323,7 +340,7 @@ Tournament.prototype = {
 			topic: topic,
 			name: name,
 			data: data
-		}, db.cb);
+		}, this.db.cb);
 	}
 	
 };
