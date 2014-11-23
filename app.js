@@ -171,8 +171,7 @@ dotenv({
 			// If a tournament was found, restore it
 			tournament = new Tournament(doc._id, primus, db, logger, doc);
 		} else {
-			// Otehrwise, insert a new tournament in the datastore
-			console.log(Date.now());
+			// Otherwise, insert a new tournament in the datastore
 			db.tournaments.insert({
 				startDate: Date.now(),
 				ringIds: [],

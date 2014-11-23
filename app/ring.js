@@ -8,18 +8,21 @@ var JuryPresident = require('./jury-president').JuryPresident;
 /**
  * Ring.
  * @param {Primus} primus
- * @param {Number} number - the ring number, as an integer greater than 0
+ * @param {String} id
+ * @param {Number} index - the ring index, as a positive integer
  */
-function Ring(tournament, number) {
+function Ring(tournament, id, index) {
 	assert(tournament, "argument 'tournament' must be provided");
-	assert(typeof number === 'number' && number > 0 && number % 1 === 0, 
-		   "argument 'number' must be a positive integer");
+	assert(typeof id === 'string' && id.length > 0, "argument 'id' must be a non-empty string");
+	assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 
+		   "argument 'index' must be a positive integer");
 	this._log = tournament.log.bind(tournament, 'ring');
 	
 	this.tournament = tournament;
-	this.number = number;
+	this.id = id;
+	this.index = index;
 	
-	this.index = number - 1;
+	this.number = index + 1;
 	this.juryPresident = null;
 	this.cornerJudges = [];
 	this.scoringEnabled = false;

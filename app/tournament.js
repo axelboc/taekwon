@@ -14,7 +14,7 @@ var CornerJudge = require('./corner-judge').CornerJudge;
  * @param {Primus} primus
  * @param {Object} db - the NeDB datastores
  * @param {Logger} logger
- * @param {Object} data - optional, data used to restore an existing tournament
+ * @param {Object} data - if provided, used to restore an existing tournament
  * 		  {Array}  data.ringIds
  * 		  {Array}  data.users
  */
@@ -262,9 +262,35 @@ Tournament.prototype = {
 		assert(typeof count === 'number' && count > 0 && count % 1 === 0, 
 			   "argument 'count' must be an integer greater than 0");
 		
-		for (var i = 1; i <= count; i += 1) {
-			this.rings.push(new Ring(this, i));
+		// Retrieve the number of corner judge slots per ring
+		var cjSlotsCount = parseInt(process.env.CJS_PER_RING, 10);
+		assert(!isNaN(cjSlotsCount) && cjSlotsCount > 0,
+			   "environment configuration `CJS_PER_RING` must be a positive integer");
+		
+		// Create the slots array and fill it with `null` values
+		var cjSlots = [];
+		while(cjSlotsCount--) cjSlots[cjSlotsCount] = null;
+		
+		// Initialise the ring documents that will be stored in the database
+		var ringDocs = [];
+		for (var i = 0; i < count; i += 1) {
+			ringDocs.push({
+				index: i,
+				jpId: null,
+				cjSlots: cjSlots.slice(0)
+			});
 		}
+		
+		// Insert the ring documents in the database
+		this.db.rings.insert(ringDocs, function (err, newDocs) {
+			this.db.cb(err);
+			if (newDocs) {
+				// If all documents were added successfully to the database, initialise the rings
+				newDocs.forEach(function (doc) {
+					this.rings.push(new Ring(this, doc._id, doc.index));
+				}, this);
+			}
+		}.bind(this));
 	},
 	
 	_restoreRings: function (ids) {
