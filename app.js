@@ -1,5 +1,6 @@
 
 // Import core modules
+var assert = require('assert');
 var dotenv = require('assert-dotenv');
 var http = require('http');
 var express = require('express');
@@ -144,10 +145,48 @@ dotenv({
 		}
 	};
 	
-	// Initialise logger
+	
+	/*
+	 * Initialise logger
+	 */
 	var logger = new Logger({
 		filename: 'data/logs.db'
 	});
+	
+	// Custom log function
+	var _log = log.bind(null, 'app');
+
+	/**
+	 * Add a new entry to the log file.
+	 * When in development, if argument `name` is 'debug', argument `data` is printed to the console.
+	 * @param {String} topic - (e.g. 'ring', 'match', etc.)
+	 * @param {String} name - (e.g. 'opened', 'started', etc.)
+	 * @param {String|Object} data - optional message or data to store with the log entry
+	 */
+	function log(topic, name, data) {
+		assert(typeof topic === 'string' && topic.length > 0, "argument 'topic' must be a non-empty string");
+		assert(typeof name === 'string' && name.length > 0, "argument 'name' must be a non-empty string");
+		assert(typeof data === 'undefined' || typeof data === 'string' || typeof data === 'object', 
+			   "if argument 'data' is provided, it must be a string or an object");
+		
+		// When in development, print debug and error messages to the console 
+		if (process.env.NODE_ENV === 'development') {
+			var str = '[' + topic + '] ' + data;
+			if (name === 'debug') {
+				console.log(str);
+			} else if (name === 'error') {
+				console.error(str);
+			}
+		}
+		
+		// Add a new entry to the logs
+		logger.insert({
+			timestamp: new Date(),
+			topic: topic,
+			name: name,
+			data: data
+		}, db.cb);
+	}
 	
 
 	/*
@@ -160,17 +199,31 @@ dotenv({
 	var startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 	
 	// Look for a tournament that started today in the datastore
-	db.tournaments.findOne({
-		startDate: {
-			$gte: startOfToday
-		}
-	}, function (err, doc) {
+	db.tournaments.findOne({ startDate: { $gte: startOfToday } }, function (err, doc) {
 		db.cb(err);
 
 		if (doc) {
+			_log('debug', "Tournament found (ID=" + doc._id + "). Restoring...");
+			
 			// If a tournament was found, restore it
-			tournament = new Tournament(doc._id, primus, db, logger, doc);
+			if (doc.ringIds.length > 0) {
+				tournament = new Tournament(doc._id, primus, db, log);
+
+				// Restore its users
+				tournament.restoreUsers(doc.users);
+
+				// Restore its rings
+				tournament.restoreRings(doc.ringIds, function (err) {
+					db.cb(err);
+					_log('debug', "> Tournament restored");
+				});
+			} else {
+				_log('error', "> Tournament has no ring. Starting new tournament with same ID...");
+				initTournament(doc._id);
+			}
 		} else {
+			_log('debug', "Starting new tournament...");
+			
 			// Otherwise, insert a new tournament in the datastore
 			db.tournaments.insert({
 				startDate: Date.now(),
@@ -180,12 +233,26 @@ dotenv({
 				db.cb(err);
 				if (newDoc) {
 					// Initialise the new tournament
-					tournament = new Tournament(newDoc._id, primus, db, logger);
+					initTournament(newDoc._id);
 				}
 			});
 		}
 	});
 
+	/**
+	 * Create a new tournament and inialise its rings.
+	 * @param {String} id
+	 */
+	function initTournament(id) {
+		assert(typeof id === 'string' && id.length > 0, "argument `id` must be a non-empty string");
+		
+		tournament = new Tournament(id, primus, db, log);
+		tournament.initialiseRings(parseInt(process.env.RING_COUNT, 10), function (err) {
+			db.cb(err);
+			_log('debug', "> Tournament started (ID=" + doc._id + ")");
+		});
+	}
+	
 	
 	/*
 	 * Start server

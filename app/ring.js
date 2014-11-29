@@ -10,8 +10,11 @@ var JuryPresident = require('./jury-president').JuryPresident;
  * @param {Primus} primus
  * @param {String} id
  * @param {Number} index - the ring index, as a positive integer
+ * @param {Object} data - if provided, used to restore an existing ring
+ * 		  {String} data.jpId
+ * 		  {Array}  data.cjSlots
  */
-function Ring(tournament, id, index) {
+function Ring(tournament, id, index, data) {
 	assert(tournament, "argument 'tournament' must be provided");
 	assert(typeof id === 'string' && id.length > 0, "argument 'id' must be a non-empty string");
 	assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 

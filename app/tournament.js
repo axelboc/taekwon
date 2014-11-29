@@ -1,6 +1,7 @@
 
 // Modules
 var assert = require('assert');
+var async = require('async');
 var Spark = require('primus').Spark;
 var Ring = require('./ring').Ring;
 var User = require('./user').User;
@@ -13,36 +14,27 @@ var CornerJudge = require('./corner-judge').CornerJudge;
  * @param {String} id
  * @param {Primus} primus
  * @param {Object} db - the NeDB datastores
- * @param {Logger} logger
+ * @param {Function} log
  * @param {Object} data - if provided, used to restore an existing tournament
  * 		  {Array}  data.ringIds
  * 		  {Array}  data.users
  */
-function Tournament(id, primus, db, logger, data) {
+function Tournament(id, primus, db, log) {
 	assert(primus, "argument 'primus' must be provided");
 	assert(typeof db === 'object', "argument 'db' must be an object");
 	assert(db.tournaments && db.rings && db.matches, 
 		   "object 'db' must contain three datastores: 'tournaments', 'rings' and 'matches'");
-	assert(logger, "argument 'logger' must be provided");
+	assert(typeof log === 'function', "argument 'log' must be a function");
 	
 	this.id = id;
 	this.primus = primus;
 	this.db = db;
-	this.logger = logger;
-	this._log = this.log.bind(this, 'tournament');
+	
+	this.log = log;
+	this._log = log.bind(this, 'tournament');
 	
 	this.rings = [];
 	this.users = {};
-	
-	// Either initialise or restore the tournament's rings and users
-	if (typeof data === 'undefined') {
-		this._initialiseRings(parseInt(process.env.RING_COUNT, 10));
-		this._log('debug', "Tournament started");
-	} else {
-		assert(typeof data === 'object', "argument 'data' must be an object");
-		this._restoreRings(data.ringIds);
-		this._log('debug', "Tournament restored");
-	}
 	
 	// Bind socket events
 	primus.on('connection', this._onConnection.bind(this));
@@ -51,6 +43,14 @@ function Tournament(id, primus, db, logger, data) {
 
 
 Tournament.prototype = {
+	
+	/**
+	 * Retore the tournament's users.
+	 * @param {Array} users
+	 */
+	restoreUsers: function (users) {
+		
+	},
 	
 	/**
 	 * New socket connection.
@@ -258,7 +258,12 @@ Tournament.prototype = {
 		}
 	},
 	
-	_initialiseRings: function (count) {
+	/**
+	 * Initialise the tournament's rings.
+	 * @param {Number} count - the number of rings, as an integer greater than 0
+	 * @param {Function} cb - a function called when the initialisation is complete
+	 */
+	initialiseRings: function (count, cb) {
 		assert(typeof count === 'number' && count > 0 && count % 1 === 0, 
 			   "argument 'count' must be an integer greater than 0");
 		
@@ -286,19 +291,54 @@ Tournament.prototype = {
 			this.db.cb(err);
 			if (newDocs) {
 				// If all documents were added successfully to the database, initialise the rings
+				var ids = [];
 				newDocs.forEach(function (doc) {
+					ids.push(doc._id);
 					this.rings.push(new Ring(this, doc._id, doc.index));
 				}, this);
+				
+				// Store the ring IDs in the database
+				this.db.tournaments.update({ _id: this.id }, 
+										   { $set: { ringIds: ids } }, cb);
+				
+				this._log('debug', "Rings initialised (IDs=" + ids + ")");
 			}
 		}.bind(this));
 	},
 	
-	_restoreRings: function (ids) {
+	/**
+	 * Restore the tournament's rings.
+	 * @param {Array} - an array of ring IDs to restore
+	 * @param {Function} cb - a function called when the restoration is complete
+	 */
+	restoreRings: function (ids, cb) {
 		assert(Array.isArray(ids), "argument 'ids' must be an array");
 		
-		ids.forEach(function (id) {
-			
-		});
+		async.each(ids, function (id, cb) {
+			// Find the ring with the given ID in the database
+			this.db.rings.findOne({ _id: id }, function (err, doc) {
+				this.db.cb(err);
+				
+				if (doc) {
+					// If the ring was found, restore it
+					this.rings[doc.index] = new Ring(this, doc._id, doc.index);
+	
+					// Restore the ring's Jury President
+					if (doc.jpId) {
+					}
+					
+					// Restore the ring's Corner Judges
+					if (doc.cjSlots) {
+					}
+					
+					this._log('debug', "Ring restored (ID=" + id + ")");
+				} else {
+					this._log('error', "Ring missing from database (ID=" + id + ")");
+				}
+				
+				cb();
+			}.bind(this));
+		}.bind(this), cb);
 	},
 	
 	/**
@@ -340,33 +380,6 @@ Tournament.prototype = {
 		this.primus.forEach(function (spark) {
 			spark.emit('ringStateChanged', state);
 		}.bind(this));
-	},
-
-	/**
-	 * Add a new entry to the tournament's log file.
-	 * When in development, if argument `name` is 'debug', argument `data` is printed to the console.
-	 * @param {String} topic - (e.g. 'ring', 'match', etc.)
-	 * @param {String} name - (e.g. 'opened', 'started', etc.)
-	 * @param {String|Object} data - optional message or data to store with the log entry
-	 */
-	log: function (topic, name, data) {
-		assert(typeof topic === 'string' && topic.length > 0, "argument 'topic' must be a non-empty string");
-		assert(typeof name === 'string' && name.length > 0, "argument 'name' must be a non-empty string");
-		assert(typeof data === 'undefined' || typeof data === 'string' || typeof data === 'object', 
-			   "if argument 'data' is provided, it must be a string or an object");
-		
-		// When in development, print debug messages to the console 
-		if (name === 'debug' && process.env.NODE_ENV === 'development') {
-			console.log('[' + topic + ']', data);
-		}
-		
-		// Add a new entry to the logs
-		this.logger.insert({
-			timestamp: new Date(),
-			topic: topic,
-			name: name,
-			data: data
-		}, this.db.cb);
 	}
 	
 };
