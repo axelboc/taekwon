@@ -8,19 +8,21 @@ var assert = require('assert');
  * JuryPresident and CornerJudge inherit from this prototype.
  * @param {Tournament} tournament
  * @param {Primus} primus
- * @param {Spark} spark
+ * @param {Spark} spark - the spark or `null` if the user is being restored from the database
  * @param {String} sessionId
  */
 function User(tournament, primus, spark, sessionId) {
 	assert(tournament, "argument 'tournament' must be provided");
 	assert(primus, "argument 'primus' must be provided");
-	assert(spark, "argument 'spark' must be provided");
 	assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
 	
 	this.tournament = tournament;
 	this.primus = primus;
-	this.initSpark(spark);
 	this.id = sessionId;
+	
+	if (spark) {
+		this.initSpark(spark);
+	}
 	
 	this.connected = true;
 	this.ring = null;

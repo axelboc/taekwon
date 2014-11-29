@@ -45,14 +45,6 @@ function Tournament(id, primus, db, log) {
 Tournament.prototype = {
 	
 	/**
-	 * Retore the tournament's users.
-	 * @param {Array} users
-	 */
-	restoreUsers: function (users) {
-		
-	},
-	
-	/**
 	 * New socket connection.
 	 * @param {Spark} spark
 	 */
@@ -76,7 +68,7 @@ Tournament.prototype = {
 		} else {
 			// If existing user, check whether its previous spark is still open
 			this._log('debug', "Existing user with ID=" + sessionId);
-			if (user.spark.readyState === Spark.OPEN) {
+			if (user.spark && user.spark.readyState === Spark.OPEN) {
 				// Inform client that a session conflict has been detected
 				this._log('debug', "> Session conflict detected");
 				spark.emit('wsError', {
@@ -256,6 +248,45 @@ Tournament.prototype = {
 			delete this.users[sessionId];
 			this._waitForId(spark, sessionId);
 		}
+	},
+	
+	/**
+	 * Retore the tournament's users.
+	 * @param {Array} users
+	 */
+	restoreUsers: function (users) {
+		users.forEach(function (u) {
+			// Check validity of session ID
+			if (typeof u.sessionId !== 'string' || u.sessionId.length === 0) {
+				this._log('error', "Invalid identity: '" + u.identity + "'. User could not be restored.");
+				return;
+			}
+			
+			var user;
+			switch(u.identity) {
+				case 'jp':
+					// Initialise Jury President
+					user = new JuryPresident(this, this.primus, null, u.sessionId);
+					break;
+				case 'cj':
+					// Check validity of name
+					if (typeof u.name !== 'string' || u.name.length === 0) {
+						this._log('error', "Invalid name: '" + u.name + "'. User could not be restored.");
+					} else {
+						// Initialise Corner Judge
+						user = new CornerJudge(this, this.primus, null, u.sessionId, u.name);
+					}
+					break;
+				default:
+					this._log('error', "Invalid identity: '" + u.identity + "'. User could not be restored.");
+			}
+			
+			// Add the user to the tournament
+			if (user) {
+				this.users[user.id] = user;
+				this._log('debug', "User restored (ID=" + user.id + ", identity=" + u.identity.toUpperCase() + ")");
+			}
+		}, this);
 	},
 	
 	/**

@@ -249,7 +249,7 @@ dotenv({
 		tournament = new Tournament(id, primus, db, log);
 		tournament.initialiseRings(parseInt(process.env.RING_COUNT, 10), function (err) {
 			db.cb(err);
-			_log('debug', "> Tournament started (ID=" + doc._id + ")");
+			_log('debug', "> Tournament started (ID=" + id + ")");
 		});
 	}
 	
