@@ -16,7 +16,7 @@ var CornerJudge = require('./corner-judge').CornerJudge;
 function JuryPresident(tournament, primus, spark, sessionId) {
 	// Call parent constructor, which will assert the arguments
 	User.apply(this, arguments);
-	this._log = tournament.log.bind(tournament, 'cornerJudge');
+	this._log = tournament.log.bind(tournament, 'juryPresident');
 }
 
 // Inherit from User

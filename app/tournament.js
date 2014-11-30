@@ -154,7 +154,7 @@ Tournament.prototype = {
 		
 		var user;
 		var userDoc = {
-			sessionId: sessionId,
+			_id: sessionId,
 			identity: identity
 		};
 		
@@ -192,9 +192,15 @@ Tournament.prototype = {
 			spark.emit('ringStates', this.getRingStates());
 			
 			// Save user to database
-			this.db.tournaments.update({ _id: this.id }, { $push: { users: userDoc } }, function (err) {
+			this.db.users.insert(userDoc, function (err, newDoc) {
 				this.db.cb(err);
-				this._log('newUser', userDoc);
+				if (newDoc) {
+					this.db.tournaments.update({ _id: this.id }, { $addToSet: { userIds: sessionId } },
+											   function (err) {
+						this.db.cb(err);
+						this._log('newUser', userDoc);
+					}.bind(this));
+				}
 			}.bind(this));
 		} else {
 			// Notify client of failure
@@ -257,41 +263,44 @@ Tournament.prototype = {
 	
 	/**
 	 * Retore the tournament's users.
-	 * @param {Array} users
+	 * @param {Array} ids
+	 * @param {Function} cb - a function called when the restoration is complete
 	 */
-	restoreUsers: function (users) {
-		users.forEach(function (u) {
-			// Check validity of session ID
-			if (typeof u.sessionId !== 'string' || u.sessionId.length === 0) {
-				this._log('error', "Invalid identity: '" + u.identity + "'. User could not be restored.");
-				return;
-			}
-			
-			var user;
-			switch(u.identity) {
-				case 'juryPresident':
-					// Initialise Jury President
-					user = new JuryPresident(this, this.primus, null, u.sessionId);
-					break;
-				case 'cornerJudge':
-					// Check validity of name
-					if (typeof u.name !== 'string' || u.name.length === 0) {
-						this._log('error', "Invalid name: '" + u.name + "'. User could not be restored.");
-					} else {
-						// Initialise Corner Judge
-						user = new CornerJudge(this, this.primus, null, u.sessionId, u.name);
+	restoreUsers: function (ids, cb) {
+		assert(Array.isArray(ids), "argument 'ids' must be an array");
+		assert(typeof cb === 'function', "argument 'cb' must be a function");
+		
+		async.each(ids, function (id, cb) {
+			// Find the ring with the given ID in the database
+			this.db.users.findOne({ _id: id }, function (err, doc) {
+				this.db.cb(err);
+				
+				// If the user was found, restore it
+				if (doc) {
+					var user;
+					switch(doc.identity) {
+						case 'juryPresident':
+							// Initialise Jury President
+							user = new JuryPresident(this, this.primus, null, id);
+							break;
+						case 'cornerJudge':
+							// Initialise Corner Judge
+							user = new CornerJudge(this, this.primus, null, id, doc.name);
+							user.authorised = !!doc.authorised;
+							user.connected = false;
+							break;
 					}
-					break;
-				default:
-					this._log('error', "Invalid identity: '" + u.identity + "'. User could not be restored.");
-			}
-			
-			// Add the user to the tournament
-			if (user) {
-				this.users[user.id] = user;
-				this._log('debug', "User restored (ID=" + user.id + ", identity=" + u.identity.toUpperCase() + ")");
-			}
-		}, this);
+
+					// Add the user to the tournament
+					this.users[user.id] = user;
+					this._log('debug', "User restored (" + doc.identity + ", ID=" + user.id + ")");
+				} else {
+					this._log('error', "User missing from database (ID=" + id + ")");
+				}
+				
+				cb();
+			}.bind(this));
+		}.bind(this), cb);
 	},
 	
 	/**
@@ -302,15 +311,12 @@ Tournament.prototype = {
 	initialiseRings: function (count, cb) {
 		assert(typeof count === 'number' && count > 0 && count % 1 === 0, 
 			   "argument 'count' must be an integer greater than 0");
+		assert(typeof cb === 'function', "argument 'cb' must be a function");
 		
 		// Retrieve the number of corner judge slots per ring
-		var cjSlotsCount = parseInt(process.env.CJS_PER_RING, 10);
-		assert(!isNaN(cjSlotsCount) && cjSlotsCount > 0,
+		var slotCount = parseInt(process.env.CJS_PER_RING, 10);
+		assert(!isNaN(slotCount) && slotCount > 0,
 			   "environment configuration `CJS_PER_RING` must be a positive integer");
-		
-		// Create the slots array and fill it with `null` values
-		var cjSlots = [];
-		while(cjSlotsCount--) cjSlots[cjSlotsCount] = null;
 		
 		// Initialise the ring documents that will be stored in the database
 		var ringDocs = [];
@@ -318,7 +324,8 @@ Tournament.prototype = {
 			ringDocs.push({
 				index: i,
 				jpId: null,
-				cjSlots: cjSlots.slice(0)
+				cjIds: [],
+				slotCount: slotCount
 			});
 		}
 		
@@ -330,12 +337,11 @@ Tournament.prototype = {
 				var ids = [];
 				newDocs.forEach(function (doc) {
 					ids.push(doc._id);
-					this.rings.push(new Ring(this, doc._id, doc.index));
+					this.rings.push(new Ring(this, doc._id, doc.index, slotCount));
 				}, this);
 				
 				// Store the ring IDs in the database
-				this.db.tournaments.update({ _id: this.id }, 
-										   { $set: { ringIds: ids } }, cb);
+				this.db.tournaments.update({ _id: this.id }, { $set: { ringIds: ids } }, cb);
 				
 				this._log('debug', "Rings initialised (IDs=" + ids + ")");
 			}
@@ -349,6 +355,7 @@ Tournament.prototype = {
 	 */
 	restoreRings: function (ids, cb) {
 		assert(Array.isArray(ids), "argument 'ids' must be an array");
+		assert(typeof cb === 'function', "argument 'cb' must be a function");
 		
 		async.each(ids, function (id, cb) {
 			// Find the ring with the given ID in the database
@@ -357,14 +364,28 @@ Tournament.prototype = {
 				
 				if (doc) {
 					// If the ring was found, restore it
-					this.rings[doc.index] = new Ring(this, doc._id, doc.index);
+					var ring = new Ring(this, doc._id, doc.index, doc.slotCount);
+					this.rings[doc.index] = ring;
 	
 					// Restore the ring's Jury President
 					if (doc.jpId) {
+						var jp = this.users[doc.jpId];
+						if (jp) {
+							ring.juryPresident = jp;
+							jp.ring = ring;
+						}
+						
 					}
 					
 					// Restore the ring's Corner Judges
-					if (doc.cjSlots) {
+					if (doc.cjIds) {
+						doc.cjIds.forEach(function (id) {
+							var cj = this.users[id];
+							if (cj) {
+								ring.cornerJudges.push(this.users[id]);
+								cj.ring = ring;
+							}
+						});
 					}
 					
 					this._log('debug', "Ring restored (ID=" + id + ")");
@@ -416,6 +437,18 @@ Tournament.prototype = {
 		this.primus.forEach(function (spark) {
 			spark.emit('ringStateChanged', state);
 		}.bind(this));
+	},
+	
+	/**
+	 * The authorisation state of a Corner Judge has changed.
+	 * @param {CornerJudge} cj
+	 */
+	cjAuthorisationStateChanged: function (cj) {
+		assert(typeof cj === 'string' || cj instanceof CornerJudge, 
+			   "argument 'cj' must be a string or a valid CornerJudge object");
+		
+		// Update the database
+		this.db.users.update({ _id: cj.id }, { $set: { authorised: cj.authorised } }, this.db.cb);
 	}
 	
 };

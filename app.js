@@ -1,6 +1,7 @@
 
 // Import core modules
 var assert = require('assert');
+var async = require('async');
 var dotenv = require('assert-dotenv');
 var http = require('http');
 var express = require('express');
@@ -121,11 +122,26 @@ dotenv({
 
 	
 	/*
+	 * Initialise logger
+	 */
+	var logger = new Logger({
+		filename: 'data/logs.db'
+	});
+	
+	// Custom log function
+	var _log = log.bind(null, 'app');
+	
+	
+	/*
 	 * Load NeDB datastores
 	 */
 	var db = {
 		tournaments: new Datastore({
 			filename: 'data/tournaments.db',
+			autoload: true
+		}),
+		users: new Datastore({
+			filename: 'data/users.db',
 			autoload: true
 		}),
 		rings: new Datastore({
@@ -139,22 +155,12 @@ dotenv({
 
 		// Default callback which prints errors to the console in development
 		cb: function cb(err) {
-			if (err && this.config.env === 'development') {
-				console.error("logging failed: " + err.message ? err.message : "unknown error");
+			if (err && process.env.NODE_ENV === 'development') {
+				_log('error', err.message ? err.message : "unknown error");
 			}
 		}
 	};
 	
-	
-	/*
-	 * Initialise logger
-	 */
-	var logger = new Logger({
-		filename: 'data/logs.db'
-	});
-	
-	// Custom log function
-	var _log = log.bind(null, 'app');
 
 	/**
 	 * Add a new entry to the log file.
@@ -209,11 +215,15 @@ dotenv({
 			if (doc.ringIds.length > 0) {
 				tournament = new Tournament(doc._id, primus, db, log);
 
-				// Restore its users
-				tournament.restoreUsers(doc.users);
-
-				// Restore its rings
-				tournament.restoreRings(doc.ringIds, function (err) {
+				// Restore its users and rings
+				async.parallel([
+					function (cb) {
+						tournament.restoreUsers(doc.userIds, cb);
+					},
+					function(cb) {
+						tournament.restoreRings(doc.ringIds, cb);
+					}
+				], function (err) {
 					db.cb(err);
 					_log('debug', "> Tournament restored");
 				});
@@ -227,8 +237,8 @@ dotenv({
 			// Otherwise, insert a new tournament in the datastore
 			db.tournaments.insert({
 				startDate: Date.now(),
-				ringIds: [],
-				users: []
+				userIds: [],
+				ringIds: []
 			}, function (err, newDoc) {
 				db.cb(err);
 				if (newDoc) {

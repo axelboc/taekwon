@@ -10,20 +10,21 @@ var JuryPresident = require('./jury-president').JuryPresident;
  * @param {Primus} primus
  * @param {String} id
  * @param {Number} index - the ring index, as a positive integer
- * @param {Object} data - if provided, used to restore an existing ring
- * 		  {String} data.jpId
- * 		  {Array}  data.cjSlots
+ * @param {Number} slotCount - the number of Corner Judge slots available
  */
-function Ring(tournament, id, index, data) {
+function Ring(tournament, id, index, slotCount) {
 	assert(tournament, "argument 'tournament' must be provided");
 	assert(typeof id === 'string' && id.length > 0, "argument 'id' must be a non-empty string");
 	assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 
 		   "argument 'index' must be a positive integer");
+	assert(typeof slotCount === 'number' && slotCount > 0 && slotCount % 1 === 0, 
+		   "argument 'slotCount' must be an integer greater than 0");
 	this._log = tournament.log.bind(tournament, 'ring');
 	
 	this.tournament = tournament;
 	this.id = id;
 	this.index = index;
+	this.slotCount = slotCount;
 	
 	this.number = index + 1;
 	this.juryPresident = null;
@@ -39,7 +40,7 @@ Ring.prototype = {
 	 */
 	getState: function () {
 		return {
-			index: this.number - 1,
+			index: this.index,
 			number: this.number,
 			open: this.juryPresident !== null
 		};
@@ -151,6 +152,7 @@ Ring.prototype = {
 		
 		// Ackonwledge removal
 		cj.ringLeft(message);
+		this.tournament.cjAuthorisationStateChanged(cj);
 		
 		this._log('cjRemoved', {
 			number: this.number,
@@ -182,7 +184,9 @@ Ring.prototype = {
 	cjAuthorised: function (id) {
 		assert(typeof id === 'string', "argument 'id' must be a string");
 		
-		this._getCornerJudgeById(id).ringJoined();
+		var cj = this._getCornerJudgeById(id);
+		cj.ringJoined();
+		this.tournament.cjAuthorisationStateChanged(cj);
 	},
 	
 	/**
