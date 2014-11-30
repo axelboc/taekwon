@@ -130,11 +130,11 @@ Tournament.prototype = {
 	 * Identification received.
 	 * @param {Spark} spark
 	 * @param {String} sessionId
-	 * @param {String} type - 'cornerJudge' or 'juryPresident'
+	 * @param {String} identity - 'cornerJudge' or 'juryPresident'
 	 * @param {Object} data
 	 * 		  {String} data.password - the master password
 	 */
-	_onId: function (spark, sessionId, type, data) {
+	_onId: function (spark, sessionId, identity, data) {
 		assert(spark, "argument 'spark' must be provided");
 		assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
 		
@@ -149,13 +149,16 @@ Tournament.prototype = {
 			return;
 		}
 		
-		assert(typeof type === 'string', "argument 'type' must be a string");
-		assert(type === 'cornerJudge' || type === 'juryPresident',
-			   "argument 'type' must be 'cornerJudge' or 'juryPresident'");
+		assert(typeof identity === 'string', "argument 'identity' must be a string");
 		assert(typeof data === 'object' && data, "argument 'data' must be an object");
 		
 		var user;
-		switch (type) {
+		var userDoc = {
+			sessionId: sessionId,
+			identity: identity
+		};
+		
+		switch (identity) {
 			case 'juryPresident':
 				// Check password
 				assert(typeof process.env.MASTER_PWD === 'string', "'data.password' must be a string");
@@ -170,8 +173,11 @@ Tournament.prototype = {
 				if (data.name.length > 0) {
 					// Initialise Corner Judge
 					user = new CornerJudge(this, this.primus, spark, sessionId, data.name);
+					userDoc.name = data.name;
 				}
 				break;
+			default:
+				assert(false, "argument 'identity' must be 'cornerJudge' or 'juryPresident'");
 		}
 		
 		if (user) {
@@ -179,21 +185,20 @@ Tournament.prototype = {
 			this.users[sessionId] = user;
 			
 			// Notify client of success
-			this._log('debug', "> " + type + " identified");
+			this._log('debug', "> " + identity + " identified");
 			spark.emit('idSuccess');
 			
 			// Send ring states right away
 			spark.emit('ringStates', this.getRingStates());
 			
-			// Log
-			this._log('newUser', {
-				sessionId: sessionId,
-				type: type,
-				name: data.name
-			});
+			// Save user to database
+			this.db.tournaments.update({ _id: this.id }, { $push: { users: userDoc } }, function (err) {
+				this.db.cb(err);
+				this._log('newUser', userDoc);
+			}.bind(this));
 		} else {
 			// Notify client of failure
-			this._log('debug', "> " + type + " identified but rejected");
+			this._log('debug', "> " + identity + " identified but rejected");
 			spark.emit('idFail');
 		}
 	},
@@ -264,11 +269,11 @@ Tournament.prototype = {
 			
 			var user;
 			switch(u.identity) {
-				case 'jp':
+				case 'juryPresident':
 					// Initialise Jury President
 					user = new JuryPresident(this, this.primus, null, u.sessionId);
 					break;
-				case 'cj':
+				case 'cornerJudge':
 					// Check validity of name
 					if (typeof u.name !== 'string' || u.name.length === 0) {
 						this._log('error', "Invalid name: '" + u.name + "'. User could not be restored.");
