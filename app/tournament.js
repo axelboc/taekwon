@@ -174,6 +174,7 @@ Tournament.prototype = {
 					// Initialise Corner Judge
 					user = new CornerJudge(this, this.primus, spark, sessionId, data.name);
 					userDoc.name = data.name;
+					userDoc.authorised = false;
 				}
 				break;
 			default:
@@ -437,6 +438,10 @@ Tournament.prototype = {
 		this.primus.forEach(function (spark) {
 			spark.emit('ringStateChanged', state);
 		}.bind(this));
+		
+		// Update the database
+		var jpId = state.open ? ring.juryPresident.id : null;
+		this.db.rings.update({ _id: ring.id }, { $set: { jpId: jpId } }, this.db.cb);
 	},
 	
 	/**
