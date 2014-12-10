@@ -8,7 +8,8 @@
     "url": "http://github.com/axelboc/taekwon"
   },
   "scripts": {
-    "test": "mocha tests --require tests/helpers/common.js & pause"
+    "test": "mocha tests --require tests/helpers/common.js & pause",
+    "reset": "del data\\*.db"
   },
   "dependencies": {
     "express": "~4.10.1",
