@@ -216,7 +216,7 @@ dotenv({
 				tournament = new Tournament(doc._id, primus, db, log);
 
 				// Restore its users and rings
-				async.parallel([
+				async.series([
 					function (cb) {
 						tournament.restoreUsers(doc.userIds, cb);
 					},
