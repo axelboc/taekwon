@@ -1,6 +1,7 @@
 
 // Modules
 var assert = require('assert');
+var logger = require('./lib/log')('cj');
 var util = require('util');
 var User = require('./user').User;
 
@@ -14,7 +15,6 @@ var User = require('./user').User;
  */
 function CornerJudge(tournament, primus, spark, sessionId, name) {
 	assert(typeof name === 'string' && name.length > 0, "argument 'name' must be a non-empty string");
-	this._log = tournament.log.bind(tournament, 'cornerJudge');
 	
 	// Call parent constructor, which will assert the rest of the arguments
 	User.apply(this, arguments);
@@ -90,7 +90,7 @@ CornerJudge.prototype._onJoinRing = function (data) {
 	
 	// Retrieve the ring at the given index
 	var ring = this.tournament.getRing(data.index);
-	this._log('debug', "Joining ring #" + (data.index + 1) + "...");
+	logger.debug("Joining ring #" + (data.index + 1) + "...");
 	
 	// Join the ring
 	this.ring = ring;
@@ -116,7 +116,7 @@ CornerJudge.prototype._onScore = function (data) {
 	assert(this.authorised, "not authorised");
 	
 	this.ring.cjScored(this, data);
-	this._log('debug', "Scored " + data.points + " for " + data.competitor);
+	logger.debug("Scored " + data.points + " for " + data.competitor);
 	
 	// Acknowledge that the score has been processed
 	this.spark.emit('scoreConfirmed', data);
@@ -139,7 +139,7 @@ CornerJudge.prototype._onUndo = function () {
 	
 	// Fail silently if there's no score to undo 
 	if (this.scores.length === 0) {
-		this._log('debug', "Nothing to undo");
+		logger.debug("Nothing to undo");
 		return;
 	}
 	
@@ -149,7 +149,7 @@ CornerJudge.prototype._onUndo = function () {
 	// Treat like a normal score, but with a negative points value
 	score.points *= -1;
 	this.ring.cjScored(this, score);
-	this._log('debug', "Undid score of " + score.points + " for " + score.competitor);
+	logger.debug("Undid score of " + score.points + " for " + score.competitor);
 	
 	// Acknowledge that the score has been undone
 	this.spark.emit('undoConfirmed', score);
@@ -173,7 +173,7 @@ CornerJudge.prototype._onUndo = function () {
  */
 CornerJudge.prototype.ringJoined = function () {
 	assert(this.ring, "not in a ring");
-	this._log('ringJoined', {
+	logger.info('ringJoined', {
 		id: this.id,
 		name: this.name,
 		ringNumber: this.ring.number
@@ -198,7 +198,7 @@ CornerJudge.prototype.ringJoined = function () {
 CornerJudge.prototype.ringLeft = function (message) {
 	assert(typeof message === 'string' && message.length > 0, "argument 'message' must be a non-empty string");
 	assert(this.ring, "not in a ring");
-	this._log('debug', "> Ring left: " + message);
+	logger.debug("> Ring left: " + message);
 	
 	// Remove the Corner Judge from the ring and mark it as unauthorised
 	this.ring = null;

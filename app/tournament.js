@@ -1,6 +1,7 @@
 
 // Modules
 var assert = require('assert');
+var logger = require('./lib/log')('tournament');
 var async = require('async');
 var Spark = require('primus').Spark;
 var Ring = require('./ring').Ring;
@@ -14,24 +15,19 @@ var CornerJudge = require('./corner-judge').CornerJudge;
  * @param {String} id
  * @param {Primus} primus
  * @param {Object} db - the NeDB datastores
- * @param {Function} log
  * @param {Object} data - if provided, used to restore an existing tournament
  * 		  {Array}  data.ringIds
  * 		  {Array}  data.users
  */
-function Tournament(id, primus, db, log) {
+function Tournament(id, primus, db) {
 	assert(primus, "argument 'primus' must be provided");
 	assert(typeof db === 'object', "argument 'db' must be an object");
 	assert(db.tournaments && db.rings && db.matches, 
 		   "object 'db' must contain three datastores: 'tournaments', 'rings' and 'matches'");
-	assert(typeof log === 'function', "argument 'log' must be a function");
 	
 	this.id = id;
 	this.primus = primus;
 	this.db = db;
-	
-	this.log = log;
-	this._log = log.bind(this, 'tournament');
 	
 	this.rings = [];
 	this.users = {};
@@ -63,21 +59,21 @@ Tournament.prototype = {
 		
 		if (!user) {
 			// Request identification from new user
-			this._log('debug', "New user with ID=" + sessionId);
+			logger.debug("New user with ID=" + sessionId);
 			this._waitForId(spark, sessionId);
 		} else {
 			// If existing user, check whether its previous spark is still open
-			this._log('debug', "Existing user with ID=" + sessionId);
+			logger.debug("Existing user with ID=" + sessionId);
 			if (user.spark && user.spark.readyState === Spark.OPEN) {
 				// Inform client that a session conflict has been detected
-				this._log('debug', "> Session conflict detected");
+				logger.debug("> Session conflict detected");
 				spark.emit('wsError', {
 					reason: "Session already open"
 				});
 				spark.end();
 			} else {
 				// Ask user to confirm its identity
-				this._log('debug', "> Confirming identity...");
+				logger.debug("> Confirming identity...");
 				this._confirmIdentity(spark, sessionId, user);
 			}
 		}
@@ -102,7 +98,7 @@ Tournament.prototype = {
 
 		// If the user exists (has been successfully identified), notify it of the disconnection
 		if (user) {
-			this._log('debug', "User with ID=" + sessionId + " disconnected.");
+			logger.debug("User with ID=" + sessionId + " disconnected.");
 			user.disconnected();
 		}
 	},
@@ -122,7 +118,7 @@ Tournament.prototype = {
 		}, this);
 
 		// Inform user that we're waiting for an identification
-		this._log('debug', "> Waiting for identification...");
+		logger.debug("> Waiting for identification...");
 		spark.emit('waitingForId');
 	},
 
@@ -141,7 +137,7 @@ Tournament.prototype = {
 		// If another user has logged in with the same sessionID since the 'waitingForId' 
 		// notification was sent, inform client that a session conflict has been detected
 		if (this.users[sessionId]) {
-			this._log('debug', "> Session conflict detected");
+			logger.debug("> Session conflict detected");
 			spark.emit('wsError', {
 				reason: "Session already open"
 			});
@@ -186,7 +182,7 @@ Tournament.prototype = {
 			this.users[sessionId] = user;
 			
 			// Notify client of success
-			this._log('debug', "> " + identity + " identified");
+			logger.debug("> " + identity + " identified");
 			spark.emit('idSuccess');
 			
 			// Send ring states right away
@@ -199,13 +195,13 @@ Tournament.prototype = {
 					this.db.tournaments.update({ _id: this.id }, { $addToSet: { userIds: sessionId } },
 											   function (err) {
 						this.db.cb(err);
-						this._log('newUser', userDoc);
+						logger.info('newUser', userDoc);
 					}.bind(this));
 				}
 			}.bind(this));
 		} else {
 			// Notify client of failure
-			this._log('debug', "> " + identity + " identified but rejected");
+			logger.debug("> " + identity + " identified but rejected");
 			spark.emit('idFail');
 		}
 	},
@@ -225,7 +221,7 @@ Tournament.prototype = {
 		spark.on('identityConfirmation', this._onIdentityConfirmation.bind(this, spark, sessionId, user));
 		
 		// Send identity confirmation request
-		this._log('debug', "> Waiting for identity confirmation...");
+		logger.debug("> Waiting for identity confirmation...");
 		spark.emit('confirmIdentity');
 	},
 	
@@ -251,11 +247,11 @@ Tournament.prototype = {
 		var isJP = data.identity === 'juryPresident';
 		if (isJP && user instanceof JuryPresident || !isJP && user instanceof CornerJudge) {
 			// Not switching; restore session
-			this._log('debug', "> Identity confirmed: " + data.identity + ". Restoring session...");
+			logger.debug("> Identity confirmed: " + data.identity + ". Restoring session...");
 			user.restoreSession(spark);
 		} else {
 			// Switching; remove user from system and request identification from new user
-			this._log('debug', "> User has changed identity. Starting new identification process...");
+			logger.debug("> User has changed identity. Starting new identification process...");
 			user.exit();
 			delete this.users[sessionId];
 			this._waitForId(spark, sessionId);
@@ -294,9 +290,9 @@ Tournament.prototype = {
 
 					// Add the user to the tournament
 					this.users[user.id] = user;
-					this._log('debug', "User restored (" + doc.identity + ", ID=" + user.id + ")");
+					logger.debug("User restored (" + doc.identity + ", ID=" + user.id + ")");
 				} else {
-					this._log('error', "User missing from database (ID=" + id + ")");
+					logger.debug("User missing from database (ID=" + id + ")");
 				}
 				
 				cb();
@@ -344,7 +340,7 @@ Tournament.prototype = {
 				// Store the ring IDs in the database
 				this.db.tournaments.update({ _id: this.id }, { $set: { ringIds: ids } }, cb);
 				
-				this._log('debug', "Rings initialised (IDs=" + ids + ")");
+				logger.debug("Rings initialised (IDs=" + ids + ")");
 			}
 		}.bind(this));
 	},
@@ -389,9 +385,9 @@ Tournament.prototype = {
 						});
 					}
 					
-					this._log('debug', "Ring restored (ID=" + id + ")");
+					logger.debug("Ring restored (ID=" + id + ")");
 				} else {
-					this._log('error', "Ring missing from database (ID=" + id + ")");
+					logger.debug("Ring missing from database (ID=" + id + ")");
 				}
 				
 				cb();

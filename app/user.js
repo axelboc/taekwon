@@ -1,6 +1,7 @@
 
 // Modules
 var assert = require('assert');
+var logger = require('./lib/log')('user');
 
 
 /**
@@ -59,7 +60,7 @@ User.prototype = {
 	 */
 	restoreSession: function (spark) {
 		assert(spark, "argument 'spark' must be provided");
-		this._log('debug', "Restoring session...");
+		logger.debug("Restoring session...");
 		
 		// Initialise the new spark 
 		this.initSpark(spark);
@@ -75,7 +76,7 @@ User.prototype = {
 	 * The user's session has been restored.
 	 */
 	_onSessionRestored: function () {
-		this._log('debug', "> Session restored");
+		logger.debug("> Session restored");
 		this.connected = true;
 		this.connectionStateChanged();
 	},
@@ -84,7 +85,7 @@ User.prototype = {
 	 * The user is disconnected.
 	 */
 	disconnected: function () {
-		this._log('debug', "Disconnected");
+		logger.debug("Disconnected");
 		this.connected = false;
 		this.connectionStateChanged();
 	},
@@ -94,7 +95,7 @@ User.prototype = {
 	 */
 	exit: function () {
 		this.connected = false;
-		this._log('exit', {
+		logger.info('exit', {
 			id: this.id,
 			name: this.name
 		});

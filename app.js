@@ -1,6 +1,7 @@
 
 // Import core modules
 var assert = require('assert');
+var logger = require('./app/lib/log')('app');
 var async = require('async');
 var dotenv = require('assert-dotenv');
 var http = require('http');
@@ -9,7 +10,6 @@ var handlebars = require('express-handlebars');
 var session = require('express-session');
 var NeDBSessionStore = require('connect-nedb-session')(session);
 var Datastore = require('nedb');
-var Logger = require('nedb-logger');
 var cookieParser = require('cookie-parser');
 var cookie = require('cookie');
 var Primus = require('primus');
@@ -119,17 +119,6 @@ dotenv({
 			metaViewport: 'width=device-width, initial-scale=1, user-scalable=no'
 		});
 	});
-
-	
-	/*
-	 * Initialise logger
-	 */
-	var logger = new Logger({
-		filename: 'data/logs.db'
-	});
-	
-	// Custom log function
-	var _log = log.bind(null, 'app');
 	
 	
 	/*
@@ -153,46 +142,13 @@ dotenv({
 			autoload: true
 		}),
 
-		// Default callback which prints errors to the console in development
+		// Default DB callback, which logs any encountered errors
 		cb: function cb(err) {
-			if (err && process.env.NODE_ENV === 'development') {
-				_log('error', err.message ? err.message : "unknown error");
+			if (err) {
+				logger.error(err.message);
 			}
 		}
 	};
-	
-
-	/**
-	 * Add a new entry to the log file.
-	 * When in development, if argument `name` is 'debug', argument `data` is printed to the console.
-	 * @param {String} topic - (e.g. 'ring', 'match', etc.)
-	 * @param {String} name - (e.g. 'opened', 'started', etc.)
-	 * @param {String|Object} data - optional message or data to store with the log entry
-	 */
-	function log(topic, name, data) {
-		assert(typeof topic === 'string' && topic.length > 0, "argument 'topic' must be a non-empty string");
-		assert(typeof name === 'string' && name.length > 0, "argument 'name' must be a non-empty string");
-		assert(typeof data === 'undefined' || typeof data === 'string' || typeof data === 'object', 
-			   "if argument 'data' is provided, it must be a string or an object");
-		
-		// When in development, print debug and error messages to the console 
-		if (process.env.NODE_ENV === 'development') {
-			var str = '[' + topic + '] ' + data;
-			if (name === 'debug') {
-				console.log(str);
-			} else if (name === 'error') {
-				console.error(str);
-			}
-		}
-		
-		// Add a new entry to the logs
-		logger.insert({
-			timestamp: new Date(),
-			topic: topic,
-			name: name,
-			data: data
-		}, db.cb);
-	}
 	
 
 	/*
@@ -209,11 +165,11 @@ dotenv({
 		db.cb(err);
 
 		if (doc) {
-			_log('debug', "Tournament found (ID=" + doc._id + "). Restoring...");
+			logger.debug("Tournament found (ID=" + doc._id + "). Restoring...");
 			
 			// If a tournament was found, restore it
 			if (doc.ringIds.length > 0) {
-				tournament = new Tournament(doc._id, primus, db, log);
+				tournament = new Tournament(doc._id, primus, db);
 
 				// Restore its users and rings
 				async.series([
@@ -225,14 +181,14 @@ dotenv({
 					}
 				], function (err) {
 					db.cb(err);
-					_log('debug', "> Tournament restored");
+					logger.debug("> Tournament restored");
 				});
 			} else {
-				_log('error', "> Tournament has no ring. Starting new tournament with same ID...");
+				logger.debug("> Tournament has no ring. Starting new tournament with same ID...");
 				initTournament(doc._id);
 			}
 		} else {
-			_log('debug', "Starting new tournament...");
+			logger.debug("Starting new tournament...");
 			
 			// Otherwise, insert a new tournament in the datastore
 			db.tournaments.insert({
@@ -256,10 +212,10 @@ dotenv({
 	function initTournament(id) {
 		assert(typeof id === 'string' && id.length > 0, "argument `id` must be a non-empty string");
 		
-		tournament = new Tournament(id, primus, db, log);
+		tournament = new Tournament(id, primus, db);
 		tournament.initialiseRings(parseInt(process.env.RING_COUNT, 10), function (err) {
 			db.cb(err);
-			_log('debug', "> Tournament started (ID=" + id + ")");
+			logger.debug("> Tournament started (ID=" + id + ")");
 		});
 	}
 	

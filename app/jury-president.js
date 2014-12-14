@@ -1,6 +1,7 @@
 
 // Modules
 var assert = require('assert');
+var logger = require('./lib/log')('jp');
 var util = require('util');
 var User = require('./user').User;
 var CornerJudge = require('./corner-judge').CornerJudge;
@@ -16,7 +17,6 @@ var CornerJudge = require('./corner-judge').CornerJudge;
 function JuryPresident(tournament, primus, spark, sessionId) {
 	// Call parent constructor, which will assert the arguments
 	User.apply(this, arguments);
-	this._log = tournament.log.bind(tournament, 'juryPresident');
 }
 
 // Inherit from User
@@ -127,7 +127,7 @@ JuryPresident.prototype._onAuthoriseCJ = function (data) {
 	assert(this.ring, "no ring opened");
 	
 	this.ring.cjAuthorised(data.id);
-	this._log('debug', "> Corner Judge authorised");
+	logger.debug("> Corner Judge authorised");
 };
 
 /**
@@ -173,7 +173,7 @@ JuryPresident.prototype._onRemoveCJ = function (data) {
  */
 JuryPresident.prototype.cjAdded = function (cj) {
 	assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
-	this._log('debug', "Authorising Corner Judge to join ring...");
+	logger.debug("Authorising Corner Judge to join ring...");
 	
 	this.spark.emit('cjAdded', {
 		id: cj.id,

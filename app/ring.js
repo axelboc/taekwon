@@ -1,6 +1,7 @@
 
 // Modules
 var assert = require('assert');
+var logger = require('./lib/log')('ring');
 var CornerJudge = require('./corner-judge').CornerJudge;
 var JuryPresident = require('./jury-president').JuryPresident;
 
@@ -19,7 +20,6 @@ function Ring(tournament, id, index, slotCount) {
 		   "argument 'index' must be a positive integer");
 	assert(typeof slotCount === 'number' && slotCount > 0 && slotCount % 1 === 0, 
 		   "argument 'slotCount' must be an integer greater than 0");
-	this._log = tournament.log.bind(tournament, 'ring');
 	
 	this.tournament = tournament;
 	this.id = id;
@@ -58,7 +58,7 @@ Ring.prototype = {
 		this.juryPresident = jp;
 		this.tournament.ringStateChanged(this);
 		
-		this._log('opened', {
+		logger.info('opened', {
 			number: this.number,
 			jpId: jp.id
 		});
@@ -79,7 +79,7 @@ Ring.prototype = {
 			this.removeCJ(cj, "Ring closed");
 		}, this);
 		
-		this._log('closed', {
+		logger.info('closed', {
 			number: this.number
 		});
 	},
@@ -121,7 +121,7 @@ Ring.prototype = {
 		// Request authorisation from Jury President
 		this.juryPresident.cjAdded(cj);
 		
-		this._log('cjAdded', {
+		logger.info('cjAdded', {
 			number: this.number,
 			cjId: cj.id,
 			cjName: cj.name
@@ -154,7 +154,7 @@ Ring.prototype = {
 		cj.ringLeft(message);
 		this.tournament.cjAuthorisationStateChanged(cj);
 		
-		this._log('cjRemoved', {
+		logger.info('cjRemoved', {
 			number: this.number,
 			cjId: cj.id,
 			cjName: cj.name,
