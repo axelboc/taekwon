@@ -1,6 +1,6 @@
 
 // Modules
-var assert = require('assert');
+var assert = require('./lib/assert');
 var logger = require('./lib/log')('cj');
 var util = require('util');
 var User = require('./user').User;
@@ -14,7 +14,7 @@ var User = require('./user').User;
  * @param {String} sessionId
  */
 function CornerJudge(tournament, primus, spark, sessionId, name) {
-	assert(typeof name === 'string' && name.length > 0, "argument 'name' must be a non-empty string");
+	assert.string(name, 'name');
 	
 	// Call parent constructor, which will assert the rest of the arguments
 	User.apply(this, arguments);
@@ -83,9 +83,8 @@ CornerJudge.prototype.exit = function () {
  * 		  {Number} data.index - the index of the ring, as a positive integer
  */
 CornerJudge.prototype._onJoinRing = function (data) {
-	assert(typeof data === 'object' && data, "argument 'data' must be an object");
-	assert(typeof data.index === 'number' && data.index >= 0 && data.index % 1 === 0, 
-		   "'data.index' must be a positive integer");
+	assert.object(data, 'data');
+	assert.integerGte0(data.index, 'data.index');
 	assert(!this.ring, "already in a ring");
 	
 	// Retrieve the ring at the given index
@@ -107,11 +106,9 @@ CornerJudge.prototype._onJoinRing = function (data) {
  * 		  {String} data.competitor - the competitor who scored, as a non-empty string
  */
 CornerJudge.prototype._onScore = function (data) {
-	assert(typeof data === 'object' && data, "argument 'data' must be an object");
-	assert(typeof data.points === 'number' && data.points > 0 && data.points % 1 === 0,
-		   "'data.points' must be an integer greater than 0");
-	assert(typeof data.competitor === 'string' && data.competitor.length > 0,
-		   "'data.competitor' must be a non-empty string");
+	assert.object(data, 'data');
+	assert.integerGt0(data.points, 'data.points');
+	assert.string(data.competitor, 'data.competitor');
 	assert(this.ring, "not in a ring");
 	assert(this.authorised, "not authorised");
 	
@@ -196,7 +193,7 @@ CornerJudge.prototype.ringJoined = function () {
  * @param {String} message - an explanation intended to be displayed to the human user
  */
 CornerJudge.prototype.ringLeft = function (message) {
-	assert(typeof message === 'string' && message.length > 0, "argument 'message' must be a non-empty string");
+	assert.string(message, 'message');
 	assert(this.ring, "not in a ring");
 	logger.debug("> Ring left: " + message);
 	
@@ -214,7 +211,7 @@ CornerJudge.prototype.ringLeft = function (message) {
  * @param {Boolean} enabled - `true` if scoring is now enabled; `false` if it is disabled
  */
 CornerJudge.prototype.scoringStateChanged = function (enabled) {
-	assert(typeof enabled === 'boolean', "argument 'enabled' must be a boolean");
+	assert.boolean(enabled, 'enabled');
 	assert(this.ring, "not in a ring");
 	
 	this.spark.emit('scoringStateChanged', enabled);
@@ -225,7 +222,7 @@ CornerJudge.prototype.scoringStateChanged = function (enabled) {
  * @param {Boolean} connected - `true` if the Jury President is now connected; `false` if it is disconnected
  */
 CornerJudge.prototype.jpConnectionStateChanged = function (connected) {
-	assert(typeof connected === 'boolean', "argument 'connected' must be a boolean");
+	assert.boolean(connected, 'connected');
 	assert(this.ring, "not in a ring");
 		
 	this.spark.emit('jpConnectionStateChanged', connected);

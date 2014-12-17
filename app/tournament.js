@@ -1,7 +1,8 @@
 
 // Modules
-var assert = require('assert');
+var assert = require('./lib/assert');
 var logger = require('./lib/log')('tournament');
+var db = require('./lib/db');
 var async = require('async');
 var Spark = require('primus').Spark;
 var Ring = require('./ring').Ring;
@@ -19,15 +20,12 @@ var CornerJudge = require('./corner-judge').CornerJudge;
  * 		  {Array}  data.ringIds
  * 		  {Array}  data.users
  */
-function Tournament(id, primus, db) {
-	assert(primus, "argument 'primus' must be provided");
-	assert(typeof db === 'object', "argument 'db' must be an object");
-	assert(db.tournaments && db.rings && db.matches, 
-		   "object 'db' must contain three datastores: 'tournaments', 'rings' and 'matches'");
+function Tournament(id, primus) {
+	assert.provided(primus, 'primus');
+	assert.object(db, 'db');
 	
 	this.id = id;
 	this.primus = primus;
-	this.db = db;
 	
 	this.rings = [];
 	this.users = {};
@@ -45,14 +43,14 @@ Tournament.prototype = {
 	 * @param {Spark} spark
 	 */
 	_onConnection: function (spark) {
-		assert(spark, "argument 'spark' must be provided");
+		assert.provided(spark, 'spark');
 		
 		var request = spark.request;
-		assert(request, "spark.request is null or undefined");
+		assert(request, "`spark.request` is " + request);
 
 		var sessionId = request.sessionId;
 		assert(sessionId, "session ID is invalid (cookies not transmitted)");
-		assert(typeof sessionId === 'string', "session ID must be a string");
+		assert.string(sessionId, 'sessionId');
 
 		// Look for an existing user with this session ID
 		var user = this.users[sessionId];
@@ -84,14 +82,14 @@ Tournament.prototype = {
 	 * @param {Spark} spark
 	 */
 	_onDisconnection: function (spark) {
-		assert(spark, "argument 'spark' must be provided");
+		assert.provided(spark, 'spark');
 		
 		var request = spark.request;
-		assert(request, "spark.request is null or undefined");
+		assert(request, "`spark.request` is " + request);
 		
 		var sessionId = request.sessionId;
 		assert(sessionId, "session ID is invalid (cookies not transmitted)");
-		assert(typeof sessionId === 'string', "session ID must be a string");
+		assert.string(sessionId, 'sessionId');
 		
 		// Look for the user with this session ID
 		var user = this.users[sessionId];
@@ -109,8 +107,8 @@ Tournament.prototype = {
 	 * @param {String} sessionId
 	 */
 	_waitForId: function (spark, sessionId) {
-		assert(spark, "argument 'spark' must be provided");
-		assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
+		assert.provided(spark, 'spark');
+		assert.string(sessionId, 'sessionId');
 		
 		// Listen for identification
 		['juryPresident', 'cornerJudge'].forEach(function (evt) {
@@ -131,8 +129,8 @@ Tournament.prototype = {
 	 * 		  {String} data.password - the master password
 	 */
 	_onId: function (spark, sessionId, identity, data) {
-		assert(spark, "argument 'spark' must be provided");
-		assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
+		assert.provided(spark, 'spark');
+		assert.string(sessionId, 'sessionId');
 		
 		// If another user has logged in with the same sessionID since the 'waitingForId' 
 		// notification was sent, inform client that a session conflict has been detected
@@ -145,8 +143,8 @@ Tournament.prototype = {
 			return;
 		}
 		
-		assert(typeof identity === 'string', "argument 'identity' must be a string");
-		assert(typeof data === 'object' && data, "argument 'data' must be an object");
+		assert.string(identity, 'identity');
+		assert.object(data, 'data');
 		
 		var user;
 		var userDoc = {
@@ -157,7 +155,8 @@ Tournament.prototype = {
 		switch (identity) {
 			case 'juryPresident':
 				// Check password
-				assert(typeof process.env.MASTER_PWD === 'string', "'data.password' must be a string");
+				assert(typeof process.env.MASTER_PWD === 'string',
+					   "environment configuration `MASTER_PWD` must be a string");
 				if (data.password === process.env.MASTER_PWD) {
 					// Initialise Jury President
 					user = new JuryPresident(this, this.primus, spark, sessionId);
@@ -165,7 +164,7 @@ Tournament.prototype = {
 				break;
 			case 'cornerJudge':
 				// Check name
-				assert(typeof data.name === 'string', "'data.name' must be a string");
+				assert.string(data.name, 'data.name', true);
 				if (data.name.length > 0) {
 					// Initialise Corner Judge
 					user = new CornerJudge(this, this.primus, spark, sessionId, data.name);
@@ -174,7 +173,7 @@ Tournament.prototype = {
 				}
 				break;
 			default:
-				assert(false, "argument 'identity' must be 'cornerJudge' or 'juryPresident'");
+				assert(false, "`identity` must be 'cornerJudge' or 'juryPresident'");
 		}
 		
 		if (user) {
@@ -213,9 +212,9 @@ Tournament.prototype = {
 	 * @param {User} user
 	 */
 	_confirmIdentity: function (spark, sessionId, user) {
-		assert(spark, "argument 'spark' must be provided");
-		assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
-		assert(user instanceof User, "argument 'user' must be a valid User object");
+		assert.provided(spark, 'spark');
+		assert.string(sessionId, 'sessionId');
+		assert.instanceOf(user, 'user', User, 'User');
 		
 		// Listen for identity confirmation
 		spark.on('identityConfirmation', this._onIdentityConfirmation.bind(this, spark, sessionId, user));
@@ -234,14 +233,14 @@ Tournament.prototype = {
 	 * 		  {String} data.identity - the user's identity ('juryPresident' or 'cornerJudge')
 	 */
 	_onIdentityConfirmation: function (spark, sessionId, user, data) {
-		assert(spark, "argument 'spark' must be provided");
-		assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
-		assert(user instanceof User, "argument 'user' must be a valid User object");
+		assert.provided(spark, 'spark');
+		assert.string(sessionId, 'sessionId');
 		assert(this.users[sessionId] === user, "user has already switched role");
-		assert(typeof data === 'object' && data, "argument 'data' must be an object");
-		assert(typeof data.identity === 'string', "'data.identity' must be a string");
+		assert.instanceOf(user, 'user', User, 'User');
+		assert.object(data, 'data');
+		assert.string(data.identity, 'data.identity');
 		assert(data.identity === 'juryPresident' || data.identity === 'cornerJudge',
-			   "identity must be either 'juryPresident' or 'cornerJudge'");
+			   "`data.identity` must be 'juryPresident' or 'cornerJudge'");
 		
 		// Check whether user is switching role
 		var isJP = data.identity === 'juryPresident';
@@ -264,8 +263,8 @@ Tournament.prototype = {
 	 * @param {Function} cb - a function called when the restoration is complete
 	 */
 	restoreUsers: function (ids, cb) {
-		assert(Array.isArray(ids), "argument 'ids' must be an array");
-		assert(typeof cb === 'function', "argument 'cb' must be a function");
+		assert.array(ids, 'ids');
+		assert.function(cb, 'cb');
 		
 		async.each(ids, function (id, cb) {
 			// Find the ring with the given ID in the database
@@ -306,13 +305,12 @@ Tournament.prototype = {
 	 * @param {Function} cb - a function called when the initialisation is complete
 	 */
 	initialiseRings: function (count, cb) {
-		assert(typeof count === 'number' && count > 0 && count % 1 === 0, 
-			   "argument 'count' must be an integer greater than 0");
-		assert(typeof cb === 'function', "argument 'cb' must be a function");
+		assert.integerGt0(count, 'count');
+		assert.function(cb, 'cb');
 		
 		// Retrieve the number of corner judge slots per ring
 		var slotCount = parseInt(process.env.CJS_PER_RING, 10);
-		assert(!isNaN(slotCount) && slotCount > 0,
+		assert(!isNaN(slotCount) && slotCount > 0 && slotCount % 1 === 0,
 			   "environment configuration `CJS_PER_RING` must be a positive integer");
 		
 		// Initialise the ring documents that will be stored in the database
@@ -351,8 +349,8 @@ Tournament.prototype = {
 	 * @param {Function} cb - a function called when the restoration is complete
 	 */
 	restoreRings: function (ids, cb) {
-		assert(Array.isArray(ids), "argument 'ids' must be an array");
-		assert(typeof cb === 'function', "argument 'cb' must be a function");
+		assert.arra(ids, 'ids');
+		assert.function(cb, 'cb');
 		
 		async.each(ids, function (id, cb) {
 			// Find the ring with the given ID in the database
@@ -401,8 +399,7 @@ Tournament.prototype = {
 	 * @return {Ring}
 	 */
 	getRing: function (index) {
-		assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 
-			   "argument 'index' must be a positive integer");
+		assert.integerGte0(index, 'index');
 		
 		var ring = this.rings[index];
 		assert(ring, "no ring at index=" + index);
@@ -426,7 +423,7 @@ Tournament.prototype = {
 	 * @param {Ring} ring
 	 */
 	ringStateChanged: function (ring) {
-		assert(ring instanceof Ring, "argument 'ring' must be a valid Ring object");
+		assert.instanceOf(ring, 'ring', Ring, 'Ring');
 		
 		// Retrieve the state of the ring
 		var state = ring.getState();
@@ -445,8 +442,7 @@ Tournament.prototype = {
 	 * @param {CornerJudge} cj
 	 */
 	cjAuthorisationStateChanged: function (cj) {
-		assert(typeof cj === 'string' || cj instanceof CornerJudge, 
-			   "argument 'cj' must be a string or a valid CornerJudge object");
+		assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 		
 		// Update the database
 		this.db.users.update({ _id: cj.id }, { $set: { authorised: cj.authorised } }, this.db.cb);

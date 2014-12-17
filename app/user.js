@@ -1,6 +1,6 @@
 
 // Modules
-var assert = require('assert');
+var assert = require('./lib/assert');
 var logger = require('./lib/log')('user');
 
 
@@ -13,9 +13,9 @@ var logger = require('./lib/log')('user');
  * @param {String} sessionId
  */
 function User(tournament, primus, spark, sessionId) {
-	assert(tournament, "argument 'tournament' must be provided");
-	assert(primus, "argument 'primus' must be provided");
-	assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
+	assert.provided(tournament, 'tournament');
+	assert.provided(primus, 'primus');
+	assert.nonEmptyString(sessionId, 'sessionId');
 	
 	this.tournament = tournament;
 	this.primus = primus;
@@ -37,8 +37,8 @@ User.prototype = {
 	 * @param {Array} events
 	 */
 	initSpark: function (spark, events) {
-		assert(spark, "argument 'spark' must be provided");
-		assert(Array.isArray(events), "argument 'events' must be an array");
+		assert.provided(spark, 'spark');
+		assert.array(events, 'events');
 		
 		// Store the spark
 		this.spark = spark;
@@ -59,7 +59,7 @@ User.prototype = {
 	 * @return {Object} - an object containing the user's partial restoration data
 	 */
 	restoreSession: function (spark) {
-		assert(spark, "argument 'spark' must be provided");
+		assert.provided(spark, 'spark');
 		logger.debug("Restoring session...");
 		
 		// Initialise the new spark 

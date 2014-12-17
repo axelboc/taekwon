@@ -1,6 +1,6 @@
 
 // Modules
-var assert = require('assert');
+var assert = require('./lib/assert');
 var logger = require('./lib/log')('jp');
 var util = require('util');
 var User = require('./user').User;
@@ -86,9 +86,8 @@ JuryPresident.prototype.exit = function () {
  * 		  {Number} data.index - the index of the ring, as a positive integer
  */
 JuryPresident.prototype._onOpenRing = function (data) {
-	assert(typeof data === 'object' && data, "argument 'data' must be an object");
-	assert(typeof data.index === 'number' && data.index >= 0 && data.index % 1 === 0, 
-		   "'data.index' must be a positive integer");
+	assert.object(data, 'data');
+	assert.integerGte0(data.index, 'data.index');
 	
 	// Retrieve the ring at the given index
 	var ring = this.tournament.getRing(data.index);
@@ -109,8 +108,8 @@ JuryPresident.prototype._onOpenRing = function (data) {
  * 		  {Boolean} data.enable - `true` to enable; `false` to disable
  */
 JuryPresident.prototype._onEnableScoring = function (data) {
-	assert(typeof data === 'object' && data, "argument 'data' must be an object");
-	assert(typeof data.enable === 'boolean', "'data.enable' must be a boolean");
+	assert.object(data, 'data');
+	assert.boolean(data.enable, 'data.enable');
 	assert(this.ring, "no ring opened");
 	
 	this.ring.enableScoring(data.enable);
@@ -122,8 +121,8 @@ JuryPresident.prototype._onEnableScoring = function (data) {
  * 		  {String} data.id - the ID of the Corner Judge to authorise
  */
 JuryPresident.prototype._onAuthoriseCJ = function (data) {
-	assert(typeof data === 'object' && data, "argument 'data' must be an object");
-	assert(typeof data.id === 'string', "'data.id' must be a string");
+	assert.object(data, 'data');
+	assert.string(data.id, 'data.id');
 	assert(this.ring, "no ring opened");
 	
 	this.ring.cjAuthorised(data.id);
@@ -137,9 +136,9 @@ JuryPresident.prototype._onAuthoriseCJ = function (data) {
  * 		  {String} data.message - the reason for the rejection
  */
 JuryPresident.prototype._onRejectCJ = function (data) {
-	assert(typeof data === 'object' && data, "argument 'data' must be an object");
-	assert(typeof data.id === 'string', "'data.id' must be a string");
-	assert(typeof data.message === 'string', "'data.message' must be a string");
+	assert.object(data, 'data');
+	assert.string(data.id, 'data.id');
+	assert.string(data.message, 'data.message');
 	assert(this.ring, "no ring opened");
 	
 	this.ring.cjRejected(data.id, data.message);
@@ -151,8 +150,8 @@ JuryPresident.prototype._onRejectCJ = function (data) {
  * 		  {String} data.id - the ID of the Corner Judge to remove
  */
 JuryPresident.prototype._onRemoveCJ = function (data) {
-	assert(typeof data === 'object' && data, "argument 'data' must be an object");
-	assert(typeof data.id === 'string', "'data.id' must be a string");
+	assert.object(data, 'data');
+	assert.string(data.id, 'data.id');
 	assert(this.ring, "no ring opened");
 	
 	this.ring.cjRemoved(data.id);
@@ -172,7 +171,7 @@ JuryPresident.prototype._onRemoveCJ = function (data) {
  * @param {Corner Judge} cj
  */
 JuryPresident.prototype.cjAdded = function (cj) {
-	assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 	logger.debug("Authorising Corner Judge to join ring...");
 	
 	this.spark.emit('cjAdded', {
@@ -188,7 +187,7 @@ JuryPresident.prototype.cjAdded = function (cj) {
  * @param {Object} score
  */
 JuryPresident.prototype.cjScored = function (cj, score) {
-	assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 	
 	// Add Corner Judge ID to data to transmit
 	score.judgeId = cj.id;
@@ -202,8 +201,8 @@ JuryPresident.prototype.cjScored = function (cj, score) {
  * @param {Boolean} connected - `true` if the Corner Judge is now connected; `false` if it is disconnected
  */
 JuryPresident.prototype.cjConnectionStateChanged = function (cj, connected) {
-	assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
-	assert(typeof connected === 'boolean', "argument 'connected' must be a boolean");
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.boolean(connected, 'connected');
 	
 	this.spark.emit('cjConnectionStateChanged', {
 		id: cj.id,
@@ -216,7 +215,7 @@ JuryPresident.prototype.cjConnectionStateChanged = function (cj, connected) {
  * @param {Corner Judge} cj
  */
 JuryPresident.prototype.cjExited = function (cj) {
-	assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 	
 	this.spark.emit('cjExited', {
 		id: cj.id

@@ -1,6 +1,6 @@
 
 // Modules
-var assert = require('assert');
+var assert = require('./lib/assert');
 var logger = require('./lib/log')('ring');
 var CornerJudge = require('./corner-judge').CornerJudge;
 var JuryPresident = require('./jury-president').JuryPresident;
@@ -14,12 +14,10 @@ var JuryPresident = require('./jury-president').JuryPresident;
  * @param {Number} slotCount - the number of Corner Judge slots available
  */
 function Ring(tournament, id, index, slotCount) {
-	assert(tournament, "argument 'tournament' must be provided");
-	assert(typeof id === 'string' && id.length > 0, "argument 'id' must be a non-empty string");
-	assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 
-		   "argument 'index' must be a positive integer");
-	assert(typeof slotCount === 'number' && slotCount > 0 && slotCount % 1 === 0, 
-		   "argument 'slotCount' must be an integer greater than 0");
+	assert.provided(tournament, 'tournament');
+	assert.string(id, 'id');
+	assert.integerGte0(index, 'index');
+	assert.integerGt0(slotCount, 'slotCount');
 	
 	this.tournament = tournament;
 	this.id = id;
@@ -51,7 +49,7 @@ Ring.prototype = {
 	 * @param {JuryPresident} jp
 	 */
 	open: function (jp) {
-		assert(jp instanceof JuryPresident, "argument 'jp' must be a valid JuryPresident object");
+		assert.instanceOf(jp, 'jp', JuryPresident, 'JuryPresident');
 		assert(this.tournament, "not part of a tournament");
 		assert(!this.juryPresident, "ring is already open");
 
@@ -92,7 +90,7 @@ Ring.prototype = {
 	 * @return {CornerJudge}
 	 */
 	_getCornerJudgeById: function (id) {
-		assert(typeof id === 'string', "argument 'id' must be a string");
+		assert.string(id, 'id');
 		
 		// Find the Corner Judge with the given ID
 		var cornerJudge = this.cornerJudges.filter(function (cj) {
@@ -112,7 +110,7 @@ Ring.prototype = {
 	 * @param {CornerJudge} cj
 	 */
 	addCJ: function (cj) {
-		assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
+		assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 		assert(this.juryPresident, "ring must have Jury President");
 		
 		// Add Corner Judge to array
@@ -135,8 +133,8 @@ Ring.prototype = {
 	 */
 	removeCJ: function (cj, message) {
 		assert(typeof cj === 'string' || cj instanceof CornerJudge, 
-			   "argument 'cj' must be a string or a valid CornerJudge object");
-		assert(typeof message === 'string', "argument 'message' must be a string");
+			   "`cj` must be a string or a valid CornerJudge object");
+		assert.string(message, 'message');
 		
 		// If an ID is passed, get the corresponding Corner Judge
 		if (typeof cj === 'string') {
@@ -167,7 +165,7 @@ Ring.prototype = {
 	 * @param {Boolean} enable - `true` to enable; `false` to disable
 	 */
 	enableScoring: function (enable) {
-		assert(typeof enable === 'boolean', "argument 'enable' must be a boolean");
+		assert.boolean(enable, 'enable');
 		
 		this.scoringEnabled = enable;
 		
@@ -182,7 +180,7 @@ Ring.prototype = {
 	 * @param {String} id - the ID of the Corner Judge who has been authorised
 	 */
 	cjAuthorised: function (id) {
-		assert(typeof id === 'string', "argument 'id' must be a string");
+		assert.string(id, 'id');
 		
 		var cj = this._getCornerJudgeById(id);
 		cj.ringJoined();
@@ -195,8 +193,8 @@ Ring.prototype = {
 	 * @param {String} message - the reason for the rejection
 	 */
 	cjRejected: function (id, message) {
-		assert(typeof id === 'string', "argument 'id' must be a string");
-		assert(typeof message === 'string', "argument 'message' must be a string");
+		assert.string(id, 'id');
+		assert.string(message, 'message');
 		
 		// Remove Corner Judge from ring
 		this.removeCJ(id, message);
@@ -207,7 +205,7 @@ Ring.prototype = {
 	 * @param {String} id - the ID of the Corner Judge who has been removed
 	 */
 	cjRemoved: function (id) {
-		assert(typeof id === 'string', "argument 'id' must be a string");
+		assert.string(id, 'id');
 		
 		// Remove Corner Judge from ring
 		this.removeCJ(id, "Removed from ring");
@@ -219,7 +217,7 @@ Ring.prototype = {
 	 * @param {Object} score
 	 */
 	cjScored: function (cj, score) {
-		assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
+		assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 		assert(this.juryPresident, "ring must have Jury President");
 		
 		// Notify Jury President
@@ -231,7 +229,7 @@ Ring.prototype = {
 	 * @param {CornerJudge} cj
 	 */
 	cjExited: function (cj) {
-		assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
+		assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 		assert(this.juryPresident, "ring must have Jury President");
 		
 		// Remove Corner Judge from ring
@@ -246,7 +244,7 @@ Ring.prototype = {
 	 * @param {Boolean} connected - `true` for connected; `false` for disconnected
 	 */
 	jpConnectionStateChanged: function (connected) {
-		assert(typeof connected === 'boolean', "argument 'connected' must be a boolean");
+		assert.boolean(connected, 'connected');
 		
 		// Notify the Corner Judges
 		this.cornerJudges.forEach(function (cj) {
@@ -260,8 +258,8 @@ Ring.prototype = {
 	 * @param {Boolean} connected - `true` for connected; `false` for disconnected
 	 */
 	cjConnectionStateChanged: function (cj, connected) {
-		assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
-		assert(typeof connected === 'boolean', "argument 'connected' must be a boolean");
+		assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+		assert.boolean(connected, 'connected');
 		assert(this.juryPresident, "ring must have Jury President");
 		
 		// Notify the Jury President
