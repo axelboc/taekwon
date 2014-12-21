@@ -55,30 +55,6 @@ function callback(cb) {
 	};
 }
 
-/**
- * Find documents with the given IDs in the given datastore.
- * @param {Datastore} db
- * @param {Array} ids
- * @param {Function} cb
- */
-function findDocsWithIds(db, ids, cb) {
-	assert.instanceOf(db, 'db', Datastore, 'Datastore');
-	assert.array(ids, 'ids');
-
-	var docs = [];
-	async.each(ids, function (id, next) {
-		db.findOne({ _id: id }, callback(function (doc) {
-			if (doc) {
-				docs.push(doc);
-			} else {
-				// If document is not found, fail silently
-				logger.error("Document not found (ID=" + id + ")");
-			}
-			next();
-		}));
-	}, cb.bind(null, docs));
-}
-
 
 /**
  * DB module.
@@ -96,18 +72,24 @@ var DB = {
 	},
 	
 	/**
-	 * Find users with the given IDs.
-	 * @param {Array} ids
+	 * Find users.
+	 * @param {String} tournamentId
 	 * @param {Function} cb
 	 */
-	findUsersWithIds: findDocsWithIds.bind(null, usersDb),
+	findUsers: function findRing(tournamentId, cb) {
+		assert.string(tournamentId, 'tournamentId');
+		usersDb.find({ tournamentId: tournamentId }, callback(cb));
+	},
 	
 	/**
-	 * Find rings with the given IDs.
-	 * @param {Array} ids
+	 * Find rings.
+	 * @param {String} tournamentId
 	 * @param {Function} cb
 	 */
-	findRingsWithIds: findDocsWithIds.bind(null, ringsDb),
+	findRings: function findRing(tournamentId, cb) {
+		assert.string(tournamentId, 'tournamentId');
+		ringsDb.find({ tournamentId: tournamentId }, callback(cb));
+	},
 	
 	/**
 	 * Insert a new tournament.
@@ -127,12 +109,17 @@ var DB = {
 	 * @param {String} identity - the user's identity ('juryPresident' or 'cornerJudge')
 	 * @param {Function} cb
 	 */
-	insertNewUser: function insertNewUser(user, identity, cb) {
+	insertNewUser: function insertNewUser(tournamentId, user, identity, cb) {
+		assert.string(tournamentId, 'tournamentId');
 		assert.provided(user, 'user');
+		assert.string(identity, 'identity');
+		assert(identity === 'juryPresident' || identity === 'cornerJudge',
+			   "`identity` must be 'juryPresident' or 'cornerJudge'");
 		
 		// Build user document
 		var doc = {
 			_id: user.id,
+			tournamentId: tournamentId,
 			identity: identity
 		};
 		
@@ -146,21 +133,29 @@ var DB = {
 	},
 	
 	/**
-	 * Insert a new ring.
-	 * @param {Number} index
+	 * Insert new rings.
+	 * @param {String} tournamentId
+	 * @param {Number} count - the number of rings to insert
 	 * @param {Number} slotCount
 	 * @param {Function} cb
 	 */
-	insertNewRing: function insertNewRing(index, slotCount, cb) {
-		assert.integerGte0(index, 'index');
+	insertNewRings: function insertNewRings(tournamentId, count, slotCount, cb) {
+		assert.string(tournamentId, 'tournamentId');
+		assert.integerGte0(count, 'count');
 		assert.integerGt0(slotCount, 'slotCount');
 		
-		ringsDb.insert({
-			index: index,
-			jpId: null,
-			cjIds: [],
-			slotCount: slotCount
-		}, callback(cb));
+		var newDocs = [];
+		for (var i = 0; i < count; i += 1) {
+			newDocs.push({
+				tournamentId: tournamentId,
+				index: i,
+				jpId: null,
+				cjIds: [],
+				slotCount: slotCount
+			});
+		}
+		
+		ringsDb.insert(newDocs, callback(cb));
 	},
 	
 	/**
@@ -172,21 +167,7 @@ var DB = {
 	addUserIdToTournament: function addUserIdToTournament(tournamentId, userId, cb) {
 		assert.string(tournamentId, 'tournamentId');
 		assert.string(userId, 'userId');
-		
 		tournamentsDb.update({ _id: tournamentId }, { $addToSet: { userIds: userId } }, callback(cb));
-	},
-	
-	/**
-	 * Set a tournament's ring IDs.
-	 * @param {String} tournamentId
-	 * @param {Array} ringIds
-	 * @param {Function} cb
-	 */
-	setTournamentRingIds: function setTournamentRingIds(tournamentId, ringIds, cb) {
-		assert.string(tournamentId, 'tournamentId');
-		assert.array(ringIds, 'ringIds');
-		
-		tournamentsDb.update({ _id: tournamentId }, { $set: { ringIds: ringIds } }, callback(cb));
 	},
 	
 	/**
@@ -198,7 +179,6 @@ var DB = {
 	setRingJpId: function setRingJpId(ringId, jpId, cb) {
 		assert.string(ringId, 'ringId');
 		assert.string(jpId, 'jpId');
-		
 		ringsDb.update({ _id: ringId }, { $set: { jpId: jpId } }, callback(cb));
 	},
 	
@@ -209,7 +189,6 @@ var DB = {
 	 */
 	setCjAuthorised: function setCjAuthorised(cj, cb) {
 		assert.provided(cj, 'cj');
-		
 		usersDb.update({ _id: cj.id }, { $set: { authorised: cj.authorised } }, callback(cb));
 	},
 	
@@ -220,7 +199,6 @@ var DB = {
 	 */
 	removeUser: function removeUser(user, cb) {
 		assert.provided(user, 'user');
-		
 		usersDb.remove({ _id: user.id }, callback(cb));
 	},
 	
@@ -233,7 +211,6 @@ var DB = {
 	pullUserIdFromTournament: function removeUserIdFromTournament(tournamentId, userId, cb) {
 		assert.string(tournamentId, 'tournamentId');
 		assert.string(userId, 'userId');
-		
 		tournamentsDb.update({ _id: tournamentId }, { $pull: { userIds: userId } }, callback(cb));
 	}
 	

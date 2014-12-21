@@ -177,12 +177,8 @@ Tournament.prototype = {
 			spark.emit('ringStates', this.getRingStates());
 			
 			// Save user to database
-			DB.insertNewUser(user, identity, function (newDoc) {
-				if (newDoc) {
-					DB.addUserIdToTournament(this.id, newDoc._id, function () {
-						logger.info('newUser', newDoc);
-					});
-				}
+			DB.insertNewUser(this.id, user, identity, function (newDoc) {
+				logger.info('newUser', newDoc);
 			}.bind(this));
 		} else {
 			// Notify client of failure
@@ -257,8 +253,8 @@ Tournament.prototype = {
 		assert.array(ids, 'ids');
 		assert.function(cb, 'cb');
 		
-		DB.findUsersWithIds(ids, function (docs) {
-			async.each(docs, function (doc, next) {
+		DB.findUsers(this.id, function (docs) {
+			docs.forEach(function (doc) {
 				var user;
 				switch(doc.identity) {
 					case 'juryPresident':
@@ -275,13 +271,12 @@ Tournament.prototype = {
 						assert(false, "`doc.identity` must be 'cornerJudge' or 'juryPresident'");
 				}
 				
-				// Add the user to the tournament
 				this.users[user.id] = user;
 				logger.debug("User restored (" + doc.identity + ", ID=" + user.id + ")");
-				
-				// Process next user document
-				next();
-			}.bind(this), cb);
+			}, this);
+			
+			// Restoration complete
+			cb();
 		}.bind(this));
 	},
 	
@@ -300,38 +295,30 @@ Tournament.prototype = {
 			   "environment configuration `CJS_PER_RING` must be a positive integer");
 		
 		// Insert new rings in the database one at a time
-		var ringIds = [];
-		async.times(count, function (index, next) {
-			DB.insertNewRing(index, slotCount, function (newDoc) {
-				ringIds.push(newDoc._id);
-				next(null, new Ring(this, newDoc._id, index, slotCount));
-			}.bind(this));
-		}.bind(this), function (err, rings) {
-			// When all rings have been inserted, store their IDs against the tournament in the database
-			DB.setTournamentRingIds(this.id, ringIds, function () {
-				// Finally, store the Ring instances
-				this.rings.push.apply(this.rings, rings);
-				logger.debug("Rings initialised (IDs=" + ringIds + ")");
-				cb();
-			}.bind(this));
+		DB.insertNewRings(this.id, index, slotCount, function (newDocs) {
+			newDocs.forEach(function (doc) {
+				var ring = new Ring(newDoc._id, index, slotCount);
+				// TODO: event listeners here?
+			}, this);
+			
+			logger.debug("Rings initialised (IDs=" + ringIds + ")");
+			cb();
 		}.bind(this));
 	},
 	
 	/**
 	 * Restore the tournament's rings.
-	 * @param {Array} - an array of ring IDs to restore
 	 * @param {Function} cb - a function called when the restoration is complete
 	 */
-	restoreRings: function (ids, cb) {
-		assert.arra(ids, 'ids');
+	restoreRings: function (cb) {
 		assert.function(cb, 'cb');
 		
-		DB.findRingsWithIds(ids, function (docs) {
-			async.each(docs, function (doc, next) {
-				// If the ring was found, restore it
-				var ring = new Ring(this, doc._id, doc.index, doc.slotCount);
+		DB.findRings(this.id, function (docs) {
+			docs.forEach(function (doc) {
+				// Restore the ring
+				var ring = new Ring(doc._id, doc.index, doc.slotCount);
 				this.rings[doc.index] = ring;
-
+				
 				// Restore the ring's Jury President
 				if (doc.jpId) {
 					var jp = this.users[doc.jpId];
@@ -354,10 +341,10 @@ Tournament.prototype = {
 				}
 				
 				logger.debug("Ring restored (ID=" + id + ")");
-				
-				// Process next ring document
-				next();
-			}.bind(this), cb);
+			}, this);
+			
+			// Restoration complete
+			cb();
 		}.bind(this));
 	},
 	

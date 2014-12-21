@@ -139,8 +139,8 @@ dotenv({
 
 				// Restore its users and rings
 				async.series([
-					tournament.restoreUsers.bind(tournament, doc.userIds),
-					tournament.restoreRings.bind(tournament, doc.ringIds)
+					tournament.restoreUsers.bind(tournament),
+					tournament.restoreRings.bind(tournament)
 				], function () {
 					logger.debug("> Tournament restored");
 				});
