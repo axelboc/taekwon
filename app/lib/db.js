@@ -159,18 +159,6 @@ var DB = {
 	},
 	
 	/**
-	 * Add a user to a tournament.
-	 * @param {String} tournamentId
-	 * @param {String} userId
-	 * @param {Function} cb
-	 */
-	addUserIdToTournament: function addUserIdToTournament(tournamentId, userId, cb) {
-		assert.string(tournamentId, 'tournamentId');
-		assert.string(userId, 'userId');
-		tournamentsDb.update({ _id: tournamentId }, { $addToSet: { userIds: userId } }, callback(cb));
-	},
-	
-	/**
 	 * Set a ring's Jury President ID.
 	 * @param {String} ringId
 	 * @param {String} jpId
@@ -200,18 +188,6 @@ var DB = {
 	removeUser: function removeUser(user, cb) {
 		assert.provided(user, 'user');
 		usersDb.remove({ _id: user.id }, callback(cb));
-	},
-	
-	/**
-	 * Remove a user from a tournament.
-	 * @param {String} tournamentId
-	 * @param {String} userId
-	 * @param {Function} cb
-	 */
-	pullUserIdFromTournament: function removeUserIdFromTournament(tournamentId, userId, cb) {
-		assert.string(tournamentId, 'tournamentId');
-		assert.string(userId, 'userId');
-		tournamentsDb.update({ _id: tournamentId }, { $pull: { userIds: userId } }, callback(cb));
 	}
 	
 };

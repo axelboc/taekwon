@@ -233,10 +233,7 @@ Tournament.prototype = {
 		} else {
 			// Switching; remove user from system and request identification from new user
 			logger.debug("> User has changed identity. Starting new identification process...");
-			async.parallel([
-				DB.removeUser.bind(this, user),
-				DB.pullUserIdFromTournament.bind(this, this.id, user.id)
-			], function () {
+			DB.removeUser(user, function () {
 				user.exit();
 				delete this.users[sessionId];
 				this._waitForId(spark, sessionId);
