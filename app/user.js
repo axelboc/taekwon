@@ -15,7 +15,7 @@ var logger = require('./lib/log')('user');
 function User(tournament, primus, spark, sessionId) {
 	assert.provided(tournament, 'tournament');
 	assert.provided(primus, 'primus');
-	assert.nonEmptyString(sessionId, 'sessionId');
+	assert.string(sessionId, 'sessionId');
 	
 	this.tournament = tournament;
 	this.primus = primus;
