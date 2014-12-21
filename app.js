@@ -1,7 +1,9 @@
 
-// Import core modules
-var assert = require('assert');
+// Import modules
+var assert = require('./app/lib/assert');
 var logger = require('./app/lib/log')('app');
+var DB = require('./app/lib/db');
+var Tournament = require('./app/tournament').Tournament;
 var async = require('async');
 var dotenv = require('assert-dotenv');
 var http = require('http');
@@ -9,14 +11,10 @@ var express = require('express');
 var handlebars = require('express-handlebars');
 var session = require('express-session');
 var NeDBSessionStore = require('connect-nedb-session')(session);
-var Datastore = require('nedb');
 var cookieParser = require('cookie-parser');
 var cookie = require('cookie');
 var Primus = require('primus');
 var Emit = require('primus-emit');
-
-// Import app modules
-var Tournament = require('./app/tournament').Tournament;
 
 // Load environment configuration
 dotenv({
@@ -120,36 +118,6 @@ dotenv({
 		});
 	});
 	
-	
-	/*
-	 * Load NeDB datastores
-	 */
-	var db = {
-		tournaments: new Datastore({
-			filename: 'data/tournaments.db',
-			autoload: true
-		}),
-		users: new Datastore({
-			filename: 'data/users.db',
-			autoload: true
-		}),
-		rings: new Datastore({
-			filename: 'data/rings.db',
-			autoload: true
-		}),
-		matches: new Datastore({
-			filename: 'data/matches.db',
-			autoload: true
-		}),
-
-		// Default DB callback, which logs any encountered errors
-		cb: function cb(err) {
-			if (err) {
-				logger.error(err.message);
-			}
-		}
-	};
-	
 
 	/*
 	 * Initialise tournament
@@ -160,27 +128,20 @@ dotenv({
 	var now = new Date();
 	var startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 	
-	// Look for a tournament that started today in the datastore
-	db.tournaments.findOne({ startDate: { $gte: startOfToday } }, function (err, doc) {
-		db.cb(err);
-
+	// Look for an open tournament
+	DB.findOpenTournament(startOfToday, function (doc) {
 		if (doc) {
 			logger.debug("Tournament found (ID=" + doc._id + "). Restoring...");
 			
 			// If a tournament was found, restore it
 			if (doc.ringIds.length > 0) {
-				tournament = new Tournament(doc._id, primus, db);
+				tournament = new Tournament(doc._id, primus);
 
 				// Restore its users and rings
 				async.series([
-					function (cb) {
-						tournament.restoreUsers(doc.userIds, cb);
-					},
-					function(cb) {
-						tournament.restoreRings(doc.ringIds, cb);
-					}
-				], function (err) {
-					db.cb(err);
+					tournament.restoreUsers.bind(tournament, doc.userIds),
+					tournament.restoreRings.bind(tournament, doc.ringIds)
+				], function () {
 					logger.debug("> Tournament restored");
 				});
 			} else {
@@ -190,13 +151,8 @@ dotenv({
 		} else {
 			logger.debug("Starting new tournament...");
 			
-			// Otherwise, insert a new tournament in the datastore
-			db.tournaments.insert({
-				startDate: Date.now(),
-				userIds: [],
-				ringIds: []
-			}, function (err, newDoc) {
-				db.cb(err);
+			// Otherwise, insert a new tournament in the database
+			DB.insertNewTournament(function (newDoc) {
 				if (newDoc) {
 					// Initialise the new tournament
 					initTournament(newDoc._id);
@@ -210,11 +166,10 @@ dotenv({
 	 * @param {String} id
 	 */
 	function initTournament(id) {
-		assert(typeof id === 'string' && id.length > 0, "argument `id` must be a non-empty string");
+		assert.string(id, 'id');
 		
-		tournament = new Tournament(id, primus, db);
-		tournament.initialiseRings(parseInt(process.env.RING_COUNT, 10), function (err) {
-			db.cb(err);
+		tournament = new Tournament(id, primus);
+		tournament.initialiseRings(parseInt(process.env.RING_COUNT, 10), function () {
 			logger.debug("> Tournament started (ID=" + id + ")");
 		});
 	}

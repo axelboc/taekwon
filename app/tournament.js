@@ -2,7 +2,7 @@
 // Modules
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('tournament');
-var db = require('./lib/db');
+var DB = require('./lib/db');
 var async = require('async');
 var Spark = require('primus').Spark;
 var Ring = require('./ring').Ring;
@@ -15,14 +15,10 @@ var CornerJudge = require('./corner-judge').CornerJudge;
  * Tournament; the root of the application.
  * @param {String} id
  * @param {Primus} primus
- * @param {Object} db - the NeDB datastores
- * @param {Object} data - if provided, used to restore an existing tournament
- * 		  {Array}  data.ringIds
- * 		  {Array}  data.users
  */
 function Tournament(id, primus) {
+	assert.string(id, 'id');
 	assert.provided(primus, 'primus');
-	assert.object(db, 'db');
 	
 	this.id = id;
 	this.primus = primus;
@@ -147,11 +143,6 @@ Tournament.prototype = {
 		assert.object(data, 'data');
 		
 		var user;
-		var userDoc = {
-			_id: sessionId,
-			identity: identity
-		};
-		
 		switch (identity) {
 			case 'juryPresident':
 				// Check password
@@ -168,8 +159,6 @@ Tournament.prototype = {
 				if (data.name.length > 0) {
 					// Initialise Corner Judge
 					user = new CornerJudge(this, this.primus, spark, sessionId, data.name);
-					userDoc.name = data.name;
-					userDoc.authorised = false;
 				}
 				break;
 			default:
@@ -188,14 +177,11 @@ Tournament.prototype = {
 			spark.emit('ringStates', this.getRingStates());
 			
 			// Save user to database
-			this.db.users.insert(userDoc, function (err, newDoc) {
-				this.db.cb(err);
+			DB.insertNewUser(user, identity, function (newDoc) {
 				if (newDoc) {
-					this.db.tournaments.update({ _id: this.id }, { $addToSet: { userIds: sessionId } },
-											   function (err) {
-						this.db.cb(err);
-						logger.info('newUser', userDoc);
-					}.bind(this));
+					DB.addUserIdToTournament(this.id, newDoc._id, function () {
+						logger.info('newUser', newDoc);
+					});
 				}
 			}.bind(this));
 		} else {
@@ -251,9 +237,14 @@ Tournament.prototype = {
 		} else {
 			// Switching; remove user from system and request identification from new user
 			logger.debug("> User has changed identity. Starting new identification process...");
-			user.exit();
-			delete this.users[sessionId];
-			this._waitForId(spark, sessionId);
+			async.parallel([
+				DB.removeUser.bind(this, user),
+				DB.pullUserIdFromTournament.bind(this, this.id, user.id)
+			], function () {
+				user.exit();
+				delete this.users[sessionId];
+				this._waitForId(spark, sessionId);
+			}.bind(this));
 		}
 	},
 	
@@ -266,37 +257,32 @@ Tournament.prototype = {
 		assert.array(ids, 'ids');
 		assert.function(cb, 'cb');
 		
-		async.each(ids, function (id, cb) {
-			// Find the ring with the given ID in the database
-			this.db.users.findOne({ _id: id }, function (err, doc) {
-				this.db.cb(err);
-				
-				// If the user was found, restore it
-				if (doc) {
-					var user;
-					switch(doc.identity) {
-						case 'juryPresident':
-							// Initialise Jury President
-							user = new JuryPresident(this, this.primus, null, id);
-							break;
-						case 'cornerJudge':
-							// Initialise Corner Judge
-							user = new CornerJudge(this, this.primus, null, id, doc.name);
-							user.authorised = !!doc.authorised;
-							user.connected = false;
-							break;
-					}
-
-					// Add the user to the tournament
-					this.users[user.id] = user;
-					logger.debug("User restored (" + doc.identity + ", ID=" + user.id + ")");
-				} else {
-					logger.debug("User missing from database (ID=" + id + ")");
+		DB.findUsersWithIds(ids, function (docs) {
+			async.each(docs, function (doc, next) {
+				var user;
+				switch(doc.identity) {
+					case 'juryPresident':
+						// Initialise Jury President
+						user = new JuryPresident(this, this.primus, null, id);
+						break;
+					case 'cornerJudge':
+						// Initialise Corner Judge
+						user = new CornerJudge(this, this.primus, null, id, doc.name);
+						user.authorised = doc.authorised;
+						user.connected = false;
+						break;
+					default:
+						assert(false, "`doc.identity` must be 'cornerJudge' or 'juryPresident'");
 				}
 				
-				cb();
-			}.bind(this));
-		}.bind(this), cb);
+				// Add the user to the tournament
+				this.users[user.id] = user;
+				logger.debug("User restored (" + doc.identity + ", ID=" + user.id + ")");
+				
+				// Process next user document
+				next();
+			}.bind(this), cb);
+		}.bind(this));
 	},
 	
 	/**
@@ -313,33 +299,21 @@ Tournament.prototype = {
 		assert(!isNaN(slotCount) && slotCount > 0 && slotCount % 1 === 0,
 			   "environment configuration `CJS_PER_RING` must be a positive integer");
 		
-		// Initialise the ring documents that will be stored in the database
-		var ringDocs = [];
-		for (var i = 0; i < count; i += 1) {
-			ringDocs.push({
-				index: i,
-				jpId: null,
-				cjIds: [],
-				slotCount: slotCount
-			});
-		}
-		
-		// Insert the ring documents in the database
-		this.db.rings.insert(ringDocs, function (err, newDocs) {
-			this.db.cb(err);
-			if (newDocs) {
-				// If all documents were added successfully to the database, initialise the rings
-				var ids = [];
-				newDocs.forEach(function (doc) {
-					ids.push(doc._id);
-					this.rings.push(new Ring(this, doc._id, doc.index, slotCount));
-				}, this);
-				
-				// Store the ring IDs in the database
-				this.db.tournaments.update({ _id: this.id }, { $set: { ringIds: ids } }, cb);
-				
-				logger.debug("Rings initialised (IDs=" + ids + ")");
-			}
+		// Insert new rings in the database one at a time
+		var ringIds = [];
+		async.times(count, function (index, next) {
+			DB.insertNewRing(index, slotCount, function (newDoc) {
+				ringIds.push(newDoc._id);
+				next(null, new Ring(this, newDoc._id, index, slotCount));
+			}.bind(this));
+		}.bind(this), function (err, rings) {
+			// When all rings have been inserted, store their IDs against the tournament in the database
+			DB.setTournamentRingIds(this.id, ringIds, function () {
+				// Finally, store the Ring instances
+				this.rings.push.apply(this.rings, rings);
+				logger.debug("Rings initialised (IDs=" + ringIds + ")");
+				cb();
+			}.bind(this));
 		}.bind(this));
 	},
 	
@@ -352,45 +326,39 @@ Tournament.prototype = {
 		assert.arra(ids, 'ids');
 		assert.function(cb, 'cb');
 		
-		async.each(ids, function (id, cb) {
-			// Find the ring with the given ID in the database
-			this.db.rings.findOne({ _id: id }, function (err, doc) {
-				this.db.cb(err);
-				
-				if (doc) {
-					// If the ring was found, restore it
-					var ring = new Ring(this, doc._id, doc.index, doc.slotCount);
-					this.rings[doc.index] = ring;
-	
-					// Restore the ring's Jury President
-					if (doc.jpId) {
-						var jp = this.users[doc.jpId];
-						if (jp) {
-							ring.juryPresident = jp;
-							jp.ring = ring;
+		DB.findRingsWithIds(ids, function (docs) {
+			async.each(docs, function (doc, next) {
+				// If the ring was found, restore it
+				var ring = new Ring(this, doc._id, doc.index, doc.slotCount);
+				this.rings[doc.index] = ring;
+
+				// Restore the ring's Jury President
+				if (doc.jpId) {
+					var jp = this.users[doc.jpId];
+					if (jp) {
+						ring.juryPresident = jp;
+						jp.ring = ring;
+					}
+
+				}
+
+				// Restore the ring's Corner Judges
+				if (doc.cjIds) {
+					doc.cjIds.forEach(function (id) {
+						var cj = this.users[id];
+						if (cj) {
+							ring.cornerJudges.push(this.users[id]);
+							cj.ring = ring;
 						}
-						
-					}
-					
-					// Restore the ring's Corner Judges
-					if (doc.cjIds) {
-						doc.cjIds.forEach(function (id) {
-							var cj = this.users[id];
-							if (cj) {
-								ring.cornerJudges.push(this.users[id]);
-								cj.ring = ring;
-							}
-						});
-					}
-					
-					logger.debug("Ring restored (ID=" + id + ")");
-				} else {
-					logger.debug("Ring missing from database (ID=" + id + ")");
+					});
 				}
 				
-				cb();
-			}.bind(this));
-		}.bind(this), cb);
+				logger.debug("Ring restored (ID=" + id + ")");
+				
+				// Process next ring document
+				next();
+			}.bind(this), cb);
+		}.bind(this));
 	},
 	
 	/**
@@ -433,8 +401,7 @@ Tournament.prototype = {
 		}.bind(this));
 		
 		// Update the database
-		var jpId = state.open ? ring.juryPresident.id : null;
-		this.db.rings.update({ _id: ring.id }, { $set: { jpId: jpId } }, this.db.cb);
+		DB.setRingJpId(ring.id, state.open ? ring.juryPresident.id : null);
 	},
 	
 	/**
@@ -445,7 +412,7 @@ Tournament.prototype = {
 		assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 		
 		// Update the database
-		this.db.users.update({ _id: cj.id }, { $set: { authorised: cj.authorised } }, this.db.cb);
+		DB.setCjAuthorised(cj);
 	}
 	
 };
