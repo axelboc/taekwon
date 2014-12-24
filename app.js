@@ -152,7 +152,7 @@ dotenv({
 			logger.debug("Starting new tournament...");
 			
 			// Otherwise, insert a new tournament in the database
-			DB.insertNewTournament(function (newDoc) {
+			DB.insertTournament(function (newDoc) {
 				if (newDoc) {
 					// Initialise the new tournament
 					initTournament(newDoc._id);
@@ -169,7 +169,7 @@ dotenv({
 		assert.string(id, 'id');
 		
 		tournament = new Tournament(id, primus);
-		tournament.initialiseRings(parseInt(process.env.RING_COUNT, 10), function () {
+		tournament.initRings(parseInt(process.env.RING_COUNT, 10), function () {
 			logger.debug("> Tournament started (ID=" + id + ")");
 		});
 	}

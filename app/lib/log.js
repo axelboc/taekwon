@@ -42,7 +42,7 @@ consoleFuncs[LOG_LEVELS.DEBUG] = console.log;
  */
 function log(topic, level, message, data) {
 	assert.string(message, 'message');
-	assert(typeof data === 'undefined' || typeof data === 'object', 
+	assert.ok(typeof data === 'undefined' || typeof data === 'object', 
 		   "if `data` is provided, it must be an object");
 	
 	// When in development, print debug and error messages to the console 

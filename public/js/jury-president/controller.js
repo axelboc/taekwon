@@ -22,7 +22,7 @@ define([
 		Helpers.subscribeToEvents(this, {
 			io: {
 				wsError: this._onWsError,
-				waitingForId: this._onWaitingForId,
+				identify: this._onIdentify,
 				idSuccess: this._onIdSuccess,
 				idFail: this._onIdFail,
 				confirmIdentity: this._onConfirmIdentity,
@@ -69,7 +69,7 @@ define([
 			this._showView(this.wsErrorView);
 		},
 		
-		_onWaitingForId: function () {
+		_onIdentify: function () {
 			console.log("Server waiting for identification");
 			this._showView(this.pwdView);
 			this.pwdView.init();

@@ -11,7 +11,7 @@ define([
 	var primus;
 	var events = [
 		'wsError',
-		'waitingForId',
+		'identify',
 		'idSuccess',
 		'idFail',
 		'confirmIdentity',

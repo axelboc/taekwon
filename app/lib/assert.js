@@ -84,7 +84,7 @@ assert.function = function object(val, name) {
  * @param {String} name
  */
 assert.object = function object(val, name) {
-	assert.ok(typeof val === 'object', "`" + name + "` must be an object");
+	assert.ok(typeof val === 'object' && val, "`" + name + "` must be an object");
 };
 
 /**

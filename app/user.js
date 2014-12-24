@@ -2,32 +2,32 @@
 // Modules
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('user');
+var util = require('util');
+var EventEmitter = require('events').EventEmitter;
 
 
 /**
  * User of the application.
  * JuryPresident and CornerJudge inherit from this prototype.
- * @param {Tournament} tournament
- * @param {Primus} primus
+ * @param {String} id
  * @param {Spark} spark - the spark or `null` if the user is being restored from the database
- * @param {String} sessionId
  */
-function User(tournament, primus, spark, sessionId) {
+function User(id, spark) {
 	assert.provided(tournament, 'tournament');
 	assert.provided(primus, 'primus');
-	assert.string(sessionId, 'sessionId');
+	assert.string(id, 'id');
 	
-	this.tournament = tournament;
-	this.primus = primus;
-	this.id = sessionId;
-	
+	this.id = id;
 	if (spark) {
-		this.initSpark(spark);
+		this._initSpark(spark);
 	}
 	
 	this.connected = true;
 	this.ring = null;
 }
+
+// Inherit EventEmitter
+util.inherits(User, EventEmitter);
 
 User.prototype = {
 	
@@ -36,7 +36,7 @@ User.prototype = {
 	 * @param {Spark} spark
 	 * @param {Array} events
 	 */
-	initSpark: function (spark, events) {
+	_initSpark: function (spark, events) {
 		assert.provided(spark, 'spark');
 		assert.array(events, 'events');
 		
@@ -50,26 +50,6 @@ User.prototype = {
 		events.forEach(function (evt) {
 			this.spark.on(evt, this['_on' + evt.charAt(0).toUpperCase() + evt.slice(1)].bind(this));
 		}, this);
-	},
-	
-	/**
-	 * Restore the user's session.
-	 * This function is extended by child prototypes JuryPresident and CornerJudge.
-	 * @param {Spark} spark - the user's new spark
-	 * @return {Object} - an object containing the user's partial restoration data
-	 */
-	restoreSession: function (spark) {
-		assert.provided(spark, 'spark');
-		logger.debug("Restoring session...");
-		
-		// Initialise the new spark 
-		this.initSpark(spark);
-		
-		// Return partial restoration data
-		return {
-			ringStates: this.tournament.getRingStates(),
-			ringIndex: this.ring ? this.ring.index : -1
-		};
 	},
 
 	/**

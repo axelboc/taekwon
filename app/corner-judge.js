@@ -8,19 +8,18 @@ var User = require('./user').User;
 
 /**
  * Corner Judge.
- * @param {Tournament} tournament
- * @param {Primus} primus
+ * @param {String} id
  * @param {Spark} spark
- * @param {String} sessionId
+ * @param {String} name
  */
-function CornerJudge(tournament, primus, spark, sessionId, name) {
+function CornerJudge(id, spark, name, authorised) {
 	assert.string(name, 'name');
 	
-	// Call parent constructor, which will assert the rest of the arguments
+	// Call parent constructor, which will assert the other arguments
 	User.apply(this, arguments);
 	
 	this.name = name;
-	this.authorised = false;
+	this.authorised = authorised;
 	
 	// Store scores for undo feature
 	this.scores = [];
@@ -36,19 +35,35 @@ parent = CornerJudge.super_.prototype;
  * Register event handlers on the spark.
  * @param {Spark} spark
  */
-CornerJudge.prototype.initSpark = function (spark) {
+CornerJudge.prototype._initSpark = function (spark) {
 	// Call parent function
-	parent.initSpark.call(this, spark, ['joinRing', 'score', 'undo']);
+	parent._initSpark.call(this, spark, ['joinRing', 'score', 'undo']);
 };
 
-CornerJudge.prototype.restoreSession = function (spark) {
-	var data = parent.restoreSession.call(this, spark);
-	data.authorised = this.authorised;
-	data.scoringEnabled = this.ring && this.ring.scoringEnabled;
-	data.canUndo = this.scores.length > 0;
-	data.jpConnected = this.ring && this.ring.juryPresident && this.ring.juryPresident.connected;
+/**
+ * Restore the Corner Judge's session.
+ * @param {Spark} spark - the spark of the new socket connection
+ * @param {Array} ringStates
+ */
+CornerJudge.prototype.restoreSession = function (spark, ringStates) {
+	assert.provided(spark, 'spark');
+	assert.array(ringStates, 'ringStates');
+	logger.debug("Restoring session...");
+
+	// Initialise the new spark 
+	this._initSpark(spark);
 	
-	// Send session restore event with all the required data
+	// Prepare restoratio data
+	var data = {
+		ringStates: ringStates,
+		ringIndex: this.ring ? this.ring.index : -1,
+		authorised: this.authorised,
+		scoringEnabled: this.ring && this.ring.scoringEnabled,
+		canUndo: this.scores.length > 0,
+		jpConnected: this.ring && this.ring.juryPresident && this.ring.juryPresident.connected
+	};
+	
+	// Send restore session event with all the required data
 	this.spark.emit('restoreSession', data);
 };
 
@@ -85,18 +100,10 @@ CornerJudge.prototype.exit = function () {
 CornerJudge.prototype._onJoinRing = function (data) {
 	assert.object(data, 'data');
 	assert.integerGte0(data.index, 'data.index');
-	assert(!this.ring, "already in a ring");
+	assert.ok(!this.ring, "already in a ring");
 	
-	// Retrieve the ring at the given index
-	var ring = this.tournament.getRing(data.index);
 	logger.debug("Joining ring #" + (data.index + 1) + "...");
-	
-	// Join the ring
-	this.ring = ring;
-	ring.addCJ(this);
-	
-	// Acknowledge that the authorisation to join the ring has been requested from the Jury President
-	this.spark.emit('waitingForAuthorisation', data.index);
+	this.emit('joinRing', this, data.index);
 };
 
 /**
@@ -109,8 +116,8 @@ CornerJudge.prototype._onScore = function (data) {
 	assert.object(data, 'data');
 	assert.integerGt0(data.points, 'data.points');
 	assert.string(data.competitor, 'data.competitor');
-	assert(this.ring, "not in a ring");
-	assert(this.authorised, "not authorised");
+	assert.ok(this.ring, "not in a ring");
+	assert.ok(this.authorised, "not authorised");
 	
 	this.ring.cjScored(this, data);
 	logger.debug("Scored " + data.points + " for " + data.competitor);
@@ -131,8 +138,8 @@ CornerJudge.prototype._onScore = function (data) {
  * Undo the latest score.
  */
 CornerJudge.prototype._onUndo = function () {
-	assert(this.ring, "not in a ring");
-	assert(this.authorised, "not authorised");
+	assert.ok(this.ring, "not in a ring");
+	assert.ok(this.authorised, "not authorised");
 	
 	// Fail silently if there's no score to undo 
 	if (this.scores.length === 0) {
@@ -166,18 +173,30 @@ CornerJudge.prototype._onUndo = function () {
  */
 
 /**
+ * Waiting for authorisation to join the ring.
+ * @param {Ring} ring
+ */
+CornerJudge.prototype.waitingForAuthorisation = function (ring) {
+	assert.provided(ring, 'ring');
+	
+	this.ring = ring;
+	this.spark.emit('waitingForAuthorisation');
+};
+
+/**
  * The Jury President has authorised the Corner Judge's request to join the ring.
  */
 CornerJudge.prototype.ringJoined = function () {
-	assert(this.ring, "not in a ring");
+	assert.ok(this.ring, "not in a ring");
 	logger.info('ringJoined', {
 		id: this.id,
 		name: this.name,
 		ringNumber: this.ring.number
 	});
 	
-	// Mark the Corner Judge as authorised
+	// Mark the Corner Judge as authorised and update the database
 	this.authorised = true;
+	DB.setCjAuthorised(this);
 	
 	this.spark.emit('ringJoined', {
 		ringIndex: this.ring.index,
@@ -194,12 +213,13 @@ CornerJudge.prototype.ringJoined = function () {
  */
 CornerJudge.prototype.ringLeft = function (message) {
 	assert.string(message, 'message');
-	assert(this.ring, "not in a ring");
+	assert.ok(this.ring, "not in a ring");
 	logger.debug("> Ring left: " + message);
 	
-	// Remove the Corner Judge from the ring and mark it as unauthorised
+	// Remove the Corner Judge from the ring, mark it as unauthorised and update the database
 	this.ring = null;
 	this.authorised = false;
+	DB.setCjAuthorised(this);
 	
 	this.spark.emit('ringLeft', {
 		message: message
@@ -212,7 +232,7 @@ CornerJudge.prototype.ringLeft = function (message) {
  */
 CornerJudge.prototype.scoringStateChanged = function (enabled) {
 	assert.boolean(enabled, 'enabled');
-	assert(this.ring, "not in a ring");
+	assert.ok(this.ring, "not in a ring");
 	
 	this.spark.emit('scoringStateChanged', enabled);
 };
@@ -223,7 +243,7 @@ CornerJudge.prototype.scoringStateChanged = function (enabled) {
  */
 CornerJudge.prototype.jpConnectionStateChanged = function (connected) {
 	assert.boolean(connected, 'connected');
-	assert(this.ring, "not in a ring");
+	assert.ok(this.ring, "not in a ring");
 		
 	this.spark.emit('jpConnectionStateChanged', connected);
 };

@@ -46,7 +46,7 @@ function isError(err) {
  * @return {Function}
  */
 function callback(cb) {
-	assert(typeof cb === 'undefined' || typeof cb === 'function',
+	assert.ok(typeof cb === 'undefined' || typeof cb === 'function',
 		   "if provided, `cb` must be a function");
 
 	return function (err, doc) {
@@ -95,7 +95,7 @@ var DB = {
 	 * Insert a new tournament.
 	 * @param {Function} cb
 	 */
-	insertNewTournament: function insertNewTournament(cb) {
+	insertTournament: function insertTournament(cb) {
 		tournamentsDb.insert({
 			startDate: Date.now(),
 			userIds: [],
@@ -109,23 +109,25 @@ var DB = {
 	 * @param {String} identity - the user's identity ('juryPresident' or 'cornerJudge')
 	 * @param {Function} cb
 	 */
-	insertNewUser: function insertNewUser(tournamentId, user, identity, cb) {
+	insertUser: function insertUser(tournamentId, id, identity, name, cb) {
 		assert.string(tournamentId, 'tournamentId');
-		assert.provided(user, 'user');
+		assert.string(id, 'id');
 		assert.string(identity, 'identity');
-		assert(identity === 'juryPresident' || identity === 'cornerJudge',
-			   "`identity` must be 'juryPresident' or 'cornerJudge'");
+		assert.ok(identity === 'juryPresident' || identity === 'cornerJudge',
+				  "`identity` must be 'juryPresident' or 'cornerJudge'");
+		assert.ok(typeof name === 'undefined' || typeof name === 'string' && name.length > 0,
+				  "if provided, `name` must be a non-empty string");
 		
 		// Build user document
 		var doc = {
-			_id: user.id,
+			_id: id,
 			tournamentId: tournamentId,
 			identity: identity
 		};
 		
 		if (identity === 'cornerJudge') {
-			doc.name = user.name;
-			doc.authorised = user.authorised;
+			doc.name = name;
+			doc.authorised = false;
 		}
 		
 		// Insert user
@@ -139,7 +141,7 @@ var DB = {
 	 * @param {Number} slotCount
 	 * @param {Function} cb
 	 */
-	insertNewRings: function insertNewRings(tournamentId, count, slotCount, cb) {
+	insertRings: function insertRings(tournamentId, count, slotCount, cb) {
 		assert.string(tournamentId, 'tournamentId');
 		assert.integerGte0(count, 'count');
 		assert.integerGt0(slotCount, 'slotCount');
