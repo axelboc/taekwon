@@ -9,14 +9,16 @@ var User = require('./user').User;
 /**
  * Corner Judge.
  * @param {String} id
- * @param {Spark} spark
+ * @param {Spark} spark - the spark or `null` if the user is being restored from the database
+ * @param {Boolean} connected
  * @param {String} name
+ * @param {Boolean} authorised
  */
-function CornerJudge(id, spark, name, authorised) {
-	assert.string(name, 'name');
-	
-	// Call parent constructor, which will assert the other arguments
+function CornerJudge(id, spark, connected, name, authorised) {
+	// Call parent constructor and assert arguments
 	User.apply(this, arguments);
+	assert.string(name, 'name');
+	assert.boolean(authorised, 'authorised');
 	
 	this.name = name;
 	this.authorised = authorised;
@@ -65,13 +67,6 @@ CornerJudge.prototype.restoreSession = function (spark, ringStates) {
 	
 	// Send restore session event with all the required data
 	this.spark.emit('restoreSession', data);
-};
-
-CornerJudge.prototype.connectionStateChanged = function () {
-	if (this.ring) {
-		// Let Jury President know that Corner Judge is disconnected/reconnected
-		this.ring.cjConnectionStateChanged(this, this.connected);
-	}
 };
 
 CornerJudge.prototype.exit = function () {
@@ -232,20 +227,18 @@ CornerJudge.prototype.ringLeft = function (message) {
  */
 CornerJudge.prototype.scoringStateChanged = function (enabled) {
 	assert.boolean(enabled, 'enabled');
-	assert.ok(this.ring, "not in a ring");
-	
 	this.spark.emit('scoringStateChanged', enabled);
 };
 
 /**
  * The connection state of the Jury President has changed.
- * @param {Boolean} connected - `true` if the Jury President is now connected; `false` if it is disconnected
+ * @param {JuryPresident} jp
  */
-CornerJudge.prototype.jpConnectionStateChanged = function (connected) {
-	assert.boolean(connected, 'connected');
-	assert.ok(this.ring, "not in a ring");
-		
-	this.spark.emit('jpConnectionStateChanged', connected);
+CornerJudge.prototype.jpConnectionStateChanged = function (jp) {
+	assert.provided(jp, 'jp');
+	this.spark.emit('jpConnectionStateChanged', {
+		connected: jp.connected
+	});
 };
 
 

@@ -11,18 +11,19 @@ var EventEmitter = require('events').EventEmitter;
  * JuryPresident and CornerJudge inherit from this prototype.
  * @param {String} id
  * @param {Spark} spark - the spark or `null` if the user is being restored from the database
+ * @param {Boolean} connected
  */
-function User(id, spark) {
-	assert.provided(tournament, 'tournament');
-	assert.provided(primus, 'primus');
+function User(id, spark, connected) {
 	assert.string(id, 'id');
+	assert.provided(spark, 'spark');
+	assert.boolean(connected, 'connected');
 	
 	this.id = id;
 	if (spark) {
 		this._initSpark(spark);
 	}
 	
-	this.connected = true;
+	this.connected = connected;
 	this.ring = null;
 }
 
@@ -58,7 +59,7 @@ User.prototype = {
 	_onSessionRestored: function () {
 		logger.debug("> Session restored");
 		this.connected = true;
-		this.connectionStateChanged();
+		this.emit('conntected');
 	},
 	
 	/**
@@ -67,7 +68,7 @@ User.prototype = {
 	disconnected: function () {
 		logger.debug("Disconnected");
 		this.connected = false;
-		this.connectionStateChanged();
+		this.emit('disconnected');
 	},
 	
 	/**

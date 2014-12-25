@@ -4,16 +4,16 @@ var assert = require('./lib/assert');
 var logger = require('./lib/log')('jp');
 var util = require('util');
 var User = require('./user').User;
-var CornerJudge = require('./corner-judge').CornerJudge;
 
 
 /**
  * Jury President.
  * @param {String} id
- * @param {Spark} spark
+ * @param {Spark} spark - the spark or `null` if the user is being restored from the database
+ * @param {Boolean} connected
  */
-function JuryPresident(id, spark) {
-	// Call parent constructor, which will assert the arguments
+function JuryPresident(id, spark, connected) {
+	// Call parent constructor and assert arguments
 	User.apply(this, arguments);
 }
 
@@ -67,13 +67,6 @@ JuryPresident.prototype.restoreSession = function (spark, ringStates) {
 	
 	// Send restore session event with all the required data
 	this.spark.emit('restoreSession', data);
-};
-
-JuryPresident.prototype.connectionStateChanged = function () {
-	if (this.ring) {
-		// Let Corner Judges know that Jury President is disconnected/reconnected
-		this.ring.jpConnectionStateChanged(this.connected);
-	}
 };
 
 JuryPresident.prototype.exit = function () {
@@ -187,10 +180,10 @@ JuryPresident.prototype.ringOpened = function (ring) {
 /**
  * A Corner Judge has been added to the ring.
  * Before it can officially join the ring, the Jury President must give its authorisation.
- * @param {Corner Judge} cj
+ * @param {CornerJudge} cj
  */
 JuryPresident.prototype.cjAdded = function (cj) {
-	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.provided(cj, 'cj');
 	logger.debug("Authorising Corner Judge to join ring...");
 	
 	this.spark.emit('cjAdded', {
@@ -202,11 +195,11 @@ JuryPresident.prototype.cjAdded = function (cj) {
 
 /**
  * A Corner Judge has scored.
- * @param {Corner Judge} cj
+ * @param {CornerJudge} cj
  * @param {Object} score
  */
 JuryPresident.prototype.cjScored = function (cj, score) {
-	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.provided(cj, 'cj');
 	
 	// Add Corner Judge ID to data to transmit
 	score.judgeId = cj.id;
@@ -216,25 +209,23 @@ JuryPresident.prototype.cjScored = function (cj, score) {
 
 /**
  * The connection state of a Corner Judge has changed.
- * @param {Corner Judge} cj
- * @param {Boolean} connected - `true` if the Corner Judge is now connected; `false` if it is disconnected
+ * @param {CornerJudge} cj
  */
-JuryPresident.prototype.cjConnectionStateChanged = function (cj, connected) {
-	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
-	assert.boolean(connected, 'connected');
+JuryPresident.prototype.cjConnectionStateChanged = function (cj) {
+	assert.provided(cj, 'cj');
 	
 	this.spark.emit('cjConnectionStateChanged', {
 		id: cj.id,
-		connected: connected
+		connected: cj.connected
 	});
 };
 
 /**
  * A Corner Judge has exited the system.
- * @param {Corner Judge} cj
+ * @param {CornerJudge} cj
  */
 JuryPresident.prototype.cjExited = function (cj) {
-	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.provided(cj, 'cj');
 	
 	this.spark.emit('cjExited', {
 		id: cj.id

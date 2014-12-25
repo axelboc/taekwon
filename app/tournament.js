@@ -195,16 +195,15 @@ Tournament.prototype = {
 		var user;
 		switch(doc.identity) {
 			case 'juryPresident':
-				user = new JuryPresident(doc._id, spark);
+				user = new JuryPresident(doc._id, spark, connected);
 				user.on('openRing', this._jpOpenRing.bind(this));
 				break;
 			case 'cornerJudge':
-				user = new CornerJudge(doc._id, spark, doc.name, doc.authorised);
+				user = new CornerJudge(doc._id, spark, connected, doc.name, doc.authorised);
 				user.on('joinRing', this._cjJoinRing.bind(this));
 				break;
 		}
 		
-		user.connected = connected;
 		this.users[user.id] = user;
 		return user;
 	},

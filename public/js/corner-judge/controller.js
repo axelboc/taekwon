@@ -164,9 +164,9 @@ define([
 			document.title = "Corner Judge";
 		},
 
-		_onJPConnectionStateChanged: function(connected) {
-			console.log("Jury president " + (connected ? "connected" : "disconnected"));
-			this.isJPConnected = connected;
+		_onJPConnectionStateChanged: function(data) {
+			console.log("Jury president " + (data.connected ? "connected" : "disconnected"));
+			this.isJPConnected = data.connected;
 			this._updateBackdrop();
 		},
 

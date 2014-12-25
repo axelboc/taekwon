@@ -59,6 +59,11 @@ Ring.prototype = {
 		this.juryPresident.ringOpened(this);
 		this.emit('opened');
 		
+		// Listen for events
+		var func = this._jpConnectionStateChanged.bind(this, jp);
+		jp.on('connected', func);
+		jp.on('disconnected', func);
+		
 		// Update the database
 		DB.setRingJpId(this.id, this.juryPresident.id);
 		
@@ -73,6 +78,10 @@ Ring.prototype = {
 	 */
 	close: function () {
 		assert.ok(this.juryPresident, "ring is already closed");
+		
+		// Remove listeners
+		jp.removeAllListeners('connected');
+		jp.removeAllListeners('disconnected');
 
 		this.juryPresident = null;
 		this.emit('closed');
@@ -124,6 +133,11 @@ Ring.prototype = {
 		// Add Corner Judge to array
 		this.cornerJudges.push(cj);
 		
+		// Listen for events
+		var func = this._cjConnectionStateChanged.bind(this, cj);
+		cj.on('connected', func);
+		cj.on('disconnected', func);
+		
 		// Request authorisation from Jury President
 		this.juryPresident.cjAdded(cj);
 		cj.waitingForAuthorisation(this);
@@ -156,6 +170,10 @@ Ring.prototype = {
 		
 		// Remove the Corner Judge from the ring
 		this.cornerJudges.splice(index, 1);
+		
+		// Remove listeners
+		cj.removeAllListeners('connected');
+		cj.removeAllListeners('disconnected');
 		
 		// Ackonwledge removal
 		cj.ringLeft(message);
@@ -248,29 +266,28 @@ Ring.prototype = {
 	
 	/**
 	 * The connection state of the Jury President has changed.
-	 * @param {Boolean} connected - `true` for connected; `false` for disconnected
+	 * @param {JuryPresident} jp
 	 */
-	jpConnectionStateChanged: function (connected) {
-		assert.boolean(connected, 'connected');
+	_jpConnectionStateChanged: function (jp) {
+		assert.instanceOf(jp, 'jp', JuryPresident, 'JuryPresident');
+		assert.array(this.cornerJudges, 'cornerJudges');
 		
 		// Notify the Corner Judges
 		this.cornerJudges.forEach(function (cj) {
-			cj.jpConnectionStateChanged(connected);
+			cj.jpConnectionStateChanged(jp.connected);
 		}, this);
 	},
 	
 	/**
 	 * The connection state of a Corner Judge has changed.
 	 * @param {CornerJudge} cj
-	 * @param {Boolean} connected - `true` for connected; `false` for disconnected
 	 */
-	cjConnectionStateChanged: function (cj, connected) {
+	_cjConnectionStateChanged: function (cj) {
 		assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
-		assert.boolean(connected, 'connected');
 		assert.ok(this.juryPresident, "ring must have Jury President");
 		
 		// Notify the Jury President
-		this.juryPresident.cjConnectionStateChanged(cj, connected);
+		this.juryPresident.cjConnectionStateChanged(cj, cj.connected);
 	}
 	
 };

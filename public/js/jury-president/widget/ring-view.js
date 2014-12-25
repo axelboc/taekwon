@@ -89,9 +89,9 @@ define([
 			this.ring.judgeDetached(id);
 		},
 		
-		_onCJConnectionStateChanged: function (judge) {
-			console.log("Judge connection state changed (connected=" + judge.connected + ")");
-			this.ring.judgeStateChanged(judge.id, judge.connected);
+		_onCJConnectionStateChanged: function (data) {
+			console.log("Judge connection state changed (connected=" + data.connected + ")");
+			this.ring.judgeStateChanged(data.id, data.connected);
 		},
 		
 		_onCJExited: function (data) {
