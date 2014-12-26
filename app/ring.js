@@ -83,20 +83,21 @@ Ring.prototype.open = function (jp) {
 	assert.instanceOf(jp, 'jp', JuryPresident, 'JuryPresident');
 	assert.ok(!this.juryPresident, "ring is already open");
 
-	this.juryPresident = jp;
-	this.juryPresident.ringOpened(this);
-	this.emit('stateChanged');
-
-	// Listen for events
-	util.addEventListeners(this, jp, JP_EVENTS, JP_HANDLER_PREFIX);
-
 	// Update the database
-	DB.setRingJpId(this.id, this.juryPresident.id);
+	DB.setRingJpId(this.id, this.juryPresident.id, function () {
+		// Listen for events
+		util.addEventListeners(this, jp, JP_EVENTS, JP_HANDLER_PREFIX);
+		
+		// Open ring
+		this.juryPresident = jp;
+		this.juryPresident.ringOpened(this);
+		this.emit('stateChanged');
 
-	logger.info('opened', {
-		number: this.number,
-		jpId: jp.id
-	});
+		logger.info('opened', {
+			number: this.number,
+			jpId: jp.id
+		});
+	}.bind(this));
 };
 
 /**
@@ -105,23 +106,24 @@ Ring.prototype.open = function (jp) {
 Ring.prototype._close = function () {
 	assert.ok(this.juryPresident, "ring is already closed");
 
-	// Remove event listeners
-	util.removeEventListeners(this.juryPresident, JP_EVENTS);
-
-	this.juryPresident = null;
-	this.emit('stateChanged');
-
 	// Update the database
-	DB.setRingJpId(this.id, null);
-
-	// Ask Corner Judges to leave the ring
-	this.cornerJudges.forEach(function (cj) {
-		this._removeCJ(cj, "Ring closed");
-	}, this);
-
-	logger.info('closed', {
-		number: this.number
-	});
+	DB.setRingJpId(this.id, null, function () {
+		// Remove event listeners
+		util.removeEventListeners(this.juryPresident, JP_EVENTS);
+		
+		// Ask Corner Judges to leave the ring
+		this.cornerJudges.forEach(function (cj) {
+			this._removeCJ(cj, "Ring closed");
+		}, this);
+		
+		// Close ring
+		this.juryPresident = null;
+		this.emit('stateChanged');
+		
+		logger.info('closed', {
+			number: this.number
+		});
+	}.bind(this));
 };
 
 /**
