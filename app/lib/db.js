@@ -183,6 +183,30 @@ var DB = {
 	},
 	
 	/**
+	 * Add a Corner Judge ID to a ring.
+	 * @param {String} ringId
+	 * @param {String} cjId
+	 * @param {Function} cb
+	 */
+	addCjIdToRing: function addCjIdToRing(ringId, cjId, cb) {
+		assert.string(ringId, 'ringId');
+		assert.string(cjId, 'cjId');
+		ringsDb.update({ _id: ringId }, { $addToSet: { cjIds: cjId } }, callback(cb));
+	},
+	
+	/**
+	 * Pull a Corner Judge ID from a ring.
+	 * @param {String} ringId
+	 * @param {String} cjId
+	 * @param {Function} cb
+	 */
+	pullCjIdFromRing: function pullCjIdFromRing(ringId, cjId, cb) {
+		assert.string(ringId, 'ringId');
+		assert.string(cjId, 'cjId');
+		ringsDb.update({ _id: ringId }, { $pull: { cjIds: cjId } }, callback(cb));
+	},
+	
+	/**
 	 * Remove a user.
 	 * @param {User} user
 	 * @param {Function} cb

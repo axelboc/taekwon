@@ -239,7 +239,7 @@ Tournament.prototype._initRing = function (doc) {
 		});
 	}
 
-	// Listen for ring events
+	// Add events listeners
 	ring.on('stateChanged', this._ringStateChanged.bind(this, ring));
 };
 
