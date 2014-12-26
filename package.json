@@ -9,7 +9,9 @@
   },
   "scripts": {
     "test": "mocha tests --require tests/helpers/common.js & pause",
-    "reset": "del data\\*.db"
+    "reset": "del data\\*.db",
+    "restart": "node app",
+    "prerestart": "npm run reset"
   },
   "dependencies": {
     "express": "~4.10.1",
