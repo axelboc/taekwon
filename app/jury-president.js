@@ -5,6 +5,8 @@ var logger = require('./lib/log')('jp');
 var util = require('util');
 var User = require('./user').User;
 
+var INBOUND_SPARK_EVENTS = ['openRing', 'enableScoring', 'authoriseCJ', 'rejectCJ', 'removeCJ'];
+
 
 /**
  * Jury President.
@@ -29,7 +31,7 @@ parent = JuryPresident.super_.prototype;
  */
 JuryPresident.prototype._initSpark = function (spark) {
 	// Call parent function
-	parent._initSpark.call(this, spark, ['openRing', 'enableScoring', 'authoriseCJ', 'rejectCJ', 'removeCJ']);
+	parent._initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
 };
 
 /**
@@ -69,22 +71,12 @@ JuryPresident.prototype.restoreSession = function (spark, ringStates) {
 	this.spark.emit('restoreSession', data);
 };
 
-JuryPresident.prototype.exit = function () {
-	parent.exit.call(this);
-	
-	// Close ring
-	if (this.ring) {
-		this.ring.close();
-		this.ring = null;
-	}
-};
-
 
 /*
  * ==================================================
  * Inbound spark events:
- * - propagate to Ring via direct function calls
- * - acknowledge if required
+ * - assert spark event data
+ * - propagate to Tournament and Ring via events
  * ==================================================
  */
 
@@ -96,9 +88,8 @@ JuryPresident.prototype.exit = function () {
 JuryPresident.prototype._onOpenRing = function (data) {
 	assert.object(data, 'data');
 	assert.integerGte0(data.index, 'data.index');
-	assert.ok(!this.ring, "already in a ring");
 	
-	this.emit('openRing', this, data.index);
+	this.emit('openRing', data.index);
 };
 
 /**
@@ -109,9 +100,8 @@ JuryPresident.prototype._onOpenRing = function (data) {
 JuryPresident.prototype._onEnableScoring = function (data) {
 	assert.object(data, 'data');
 	assert.boolean(data.enable, 'data.enable');
-	assert.ok(this.ring, "no ring opened");
 	
-	this.ring.enableScoring(data.enable);
+	this.emit('enableScoring', data.enable);
 };
 
 /**
@@ -122,9 +112,8 @@ JuryPresident.prototype._onEnableScoring = function (data) {
 JuryPresident.prototype._onAuthoriseCJ = function (data) {
 	assert.object(data, 'data');
 	assert.string(data.id, 'data.id');
-	assert.ok(this.ring, "no ring opened");
 	
-	this.ring.cjAuthorised(data.id);
+	this.emit('authoriseCJ', data.id);
 	logger.debug("> Corner Judge authorised");
 };
 
@@ -138,9 +127,8 @@ JuryPresident.prototype._onRejectCJ = function (data) {
 	assert.object(data, 'data');
 	assert.string(data.id, 'data.id');
 	assert.string(data.message, 'data.message');
-	assert.ok(this.ring, "no ring opened");
 	
-	this.ring.cjRejected(data.id, data.message);
+	this.emit('rejectCJ', data.id, data.message);
 };
 
 /**
@@ -151,16 +139,15 @@ JuryPresident.prototype._onRejectCJ = function (data) {
 JuryPresident.prototype._onRemoveCJ = function (data) {
 	assert.object(data, 'data');
 	assert.string(data.id, 'data.id');
-	assert.ok(this.ring, "no ring opened");
 	
-	this.ring.cjRemoved(data.id);
+	this.emit('removeCJ', data.id);
 };
 
 
 /*
  * ==================================================
  * Outbound spark events:
- * - received from Ring via direct function calls
+ * - functions called from Ring module
  * ==================================================
  */
 
@@ -209,14 +196,16 @@ JuryPresident.prototype.cjScored = function (cj, score) {
 
 /**
  * The connection state of a Corner Judge has changed.
- * @param {CornerJudge} cj
+ * @param {String} cjId
+ * @param {Boolean} connected
  */
-JuryPresident.prototype.cjConnectionStateChanged = function (cj) {
-	assert.provided(cj, 'cj');
+JuryPresident.prototype.cjConnectionStateChanged = function (cjId, connected) {
+	assert.string(cjId, 'cjId');
+	assert.boolean(connected, 'connected');
 	
 	this.spark.emit('cjConnectionStateChanged', {
-		id: cj.id,
-		connected: cj.connected
+		id: cjId,
+		connected: connected
 	});
 };
 

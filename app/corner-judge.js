@@ -5,6 +5,8 @@ var logger = require('./lib/log')('cj');
 var util = require('util');
 var User = require('./user').User;
 
+var INBOUND_SPARK_EVENTS = ['joinRing', 'score', 'undo'];
+
 
 /**
  * Corner Judge.
@@ -39,7 +41,7 @@ parent = CornerJudge.super_.prototype;
  */
 CornerJudge.prototype._initSpark = function (spark) {
 	// Call parent function
-	parent._initSpark.call(this, spark, ['joinRing', 'score', 'undo']);
+	parent._initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
 };
 
 /**
@@ -55,7 +57,7 @@ CornerJudge.prototype.restoreSession = function (spark, ringStates) {
 	// Initialise the new spark 
 	this._initSpark(spark);
 	
-	// Prepare restoratio data
+	// Prepare restoration data
 	var data = {
 		ringStates: ringStates,
 		ringIndex: this.ring ? this.ring.index : -1,
@@ -67,15 +69,6 @@ CornerJudge.prototype.restoreSession = function (spark, ringStates) {
 	
 	// Send restore session event with all the required data
 	this.spark.emit('restoreSession', data);
-};
-
-CornerJudge.prototype.exit = function () {
-	parent.exit.call(this);
-	
-	// Leave ring
-	if (this.ring) {
-		this.ring.cjExited(this);
-	}
 };
 
 
@@ -95,10 +88,9 @@ CornerJudge.prototype.exit = function () {
 CornerJudge.prototype._onJoinRing = function (data) {
 	assert.object(data, 'data');
 	assert.integerGte0(data.index, 'data.index');
-	assert.ok(!this.ring, "already in a ring");
 	
 	logger.debug("Joining ring #" + (data.index + 1) + "...");
-	this.emit('joinRing', this, data.index);
+	this.emit('joinRing', data.index);
 };
 
 /**
@@ -111,10 +103,8 @@ CornerJudge.prototype._onScore = function (data) {
 	assert.object(data, 'data');
 	assert.integerGt0(data.points, 'data.points');
 	assert.string(data.competitor, 'data.competitor');
-	assert.ok(this.ring, "not in a ring");
-	assert.ok(this.authorised, "not authorised");
 	
-	this.ring.cjScored(this, data);
+	this.emit('score', this, data);
 	logger.debug("Scored " + data.points + " for " + data.competitor);
 	
 	// Acknowledge that the score has been processed
@@ -133,9 +123,6 @@ CornerJudge.prototype._onScore = function (data) {
  * Undo the latest score.
  */
 CornerJudge.prototype._onUndo = function () {
-	assert.ok(this.ring, "not in a ring");
-	assert.ok(this.authorised, "not authorised");
-	
 	// Fail silently if there's no score to undo 
 	if (this.scores.length === 0) {
 		logger.debug("Nothing to undo");
@@ -147,7 +134,7 @@ CornerJudge.prototype._onUndo = function () {
 
 	// Treat like a normal score, but with a negative points value
 	score.points *= -1;
-	this.ring.cjScored(this, score);
+	this.emit('score', this, score);
 	logger.debug("Undid score of " + score.points + " for " + score.competitor);
 	
 	// Acknowledge that the score has been undone
