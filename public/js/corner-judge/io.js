@@ -99,7 +99,8 @@ define([
 	}
 
 	function sendId(name) {
-		primus.emit('cornerJudge', {
+		primus.emit('identification', {
+			identity: 'cornerJudge',
 			name: name
 		});
 	}
