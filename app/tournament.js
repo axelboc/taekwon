@@ -103,8 +103,7 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 	assert.string(sessionId, 'sessionId');
 	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
 
-	// Listen for identification
-	spark.on('identification', function _onIdentification(data) {
+	var onIdentification = function (data) {
 		assert.object(data, 'data');
 		assert.string(data.identity, 'data.identity');
 		assert.ok(data.identity === 'juryPresident' || data.identity === 'cornerJudge',
@@ -116,6 +115,9 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 			// Identification failed
 			logger.debug("> Failed identification (identity=" + data.identity + ")");
 			spark.emit('idFail');
+			
+			// Listen for identification again
+			spark.once('identification', onIdentification);
 			return;
 		}
 
@@ -131,8 +133,10 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 			// Send ring states right away
 			spark.emit('ringStates', this._getRingStates());
 		}.bind(this));
-
-	}.bind(this));
+	}.bind(this);
+	
+	// Listen for identification
+	spark.once('identification', onIdentification);
 
 	// Inform user that we're waiting for an identification
 	logger.debug("> Waiting for identification...");
