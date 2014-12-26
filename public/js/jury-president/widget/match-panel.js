@@ -267,8 +267,8 @@ define([
 			delete this.judgeScoresById[judge.id];
 		},
 		
-		_onScoringStateChanged: function (enabled) {
-			IO.enableScoring(enabled);
+		_onScoringStateChanged: function (data) {
+			IO.enableScoring(data.enabled);
 		},
 		
 		_onCJScored: function (score) {

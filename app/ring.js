@@ -53,6 +53,29 @@ Ring.prototype.getState = function () {
 };
 
 /**
+ * Return the ring's Corner Judge with the given ID.
+ * The function throws if the ID is not associated with exactly one Corner Judge.
+ * @private
+ * @param {String} id
+ * @return {CornerJudge}
+ */
+Ring.prototype._getCornerJudgeById = function (id) {
+	assert.string(id, 'id');
+
+	// Find the Corner Judge with the given ID
+	var cornerJudge = this.cornerJudges.filter(function (cj) {
+		return cj.id === id;
+	}, this);
+
+	assert.ok(cornerJudge.length > 0, 
+		   "no Corner Judge with ID=" + id + " in ring #" + this.number);
+	assert.ok(cornerJudge.length === 1, cornerJudge.length + 
+		   " Corner Judges share the same ID=" + id + " in ring #" + this.number);
+
+	return cornerJudge[0];
+};
+
+/**
  * Open the ring by assigning it a Jury President.
  * @param {JuryPresident} jp
  */
@@ -99,29 +122,6 @@ Ring.prototype._close = function () {
 	logger.info('closed', {
 		number: this.number
 	});
-};
-
-/**
- * Return the ring's Corner Judge with the given ID.
- * The function throws if the ID is not associated with exactly one Corner Judge.
- * @private
- * @param {String} id
- * @return {CornerJudge}
- */
-Ring.prototype._getCornerJudgeById = function (id) {
-	assert.string(id, 'id');
-
-	// Find the Corner Judge with the given ID
-	var cornerJudge = this.cornerJudges.filter(function (cj) {
-		return cj.id === id;
-	}, this);
-
-	assert.ok(cornerJudge.length > 0, 
-		   "no Corner Judge with ID=" + id + " in ring #" + this.number);
-	assert.ok(cornerJudge.length === 1, cornerJudge.length + 
-		   " Corner Judges share the same ID=" + id + " in ring #" + this.number);
-
-	return cornerJudge[0];
 };
 
 /**

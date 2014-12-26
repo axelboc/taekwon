@@ -76,8 +76,8 @@ CornerJudge.prototype.restoreSession = function (spark, ringStates) {
 /*
  * ==================================================
  * Inbound spark events:
- * - propagate to Ring via direct function calls
- * - acknowledge if required
+ * - assert spark event data
+ * - propagate to Tournament and Ring via events
  * ==================================================
  */
 
@@ -151,7 +151,7 @@ CornerJudge.prototype._onUndo = function () {
 /*
  * ==================================================
  * Outbound spark events:
- * - received from Ring via direct function calls
+ * - functions called from Ring module
  * ==================================================
  */
 
@@ -215,7 +215,9 @@ CornerJudge.prototype.ringLeft = function (message) {
  */
 CornerJudge.prototype.scoringStateChanged = function (enabled) {
 	assert.boolean(enabled, 'enabled');
-	this.spark.emit('scoringStateChanged', enabled);
+	this.spark.emit('scoringStateChanged', {
+		enabled: enabled
+	});
 };
 
 /**

@@ -170,9 +170,9 @@ define([
 			this._updateBackdrop();
 		},
 
-		_onScoringStateChanged: function(enabled) {
-			console.log("Scoring " + (enabled ? "enabled" : "disabled"));
-			this.isScoringEnabled = enabled;
+		_onScoringStateChanged: function(data) {
+			console.log("Scoring " + (data.enabled ? "enabled" : "disabled"));
+			this.isScoringEnabled = data.enabled;
 			this._updateBackdrop();
 		},
 		
