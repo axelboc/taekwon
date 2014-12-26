@@ -3,6 +3,7 @@
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('jp');
 var util = require('util');
+var DB = require('./lib/db');
 var User = require('./user').User;
 
 var INBOUND_SPARK_EVENTS = ['openRing', 'enableScoring', 'authoriseCJ', 'rejectCJ', 'removeCJ'];

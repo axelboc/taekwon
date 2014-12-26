@@ -9,7 +9,6 @@ var Ring = require('./ring').Ring;
 var User = require('./user').User;
 var JuryPresident = require('./jury-president').JuryPresident;
 var CornerJudge = require('./corner-judge').CornerJudge;
-var EventEmitter = require('events').EventEmitter;
 
 
 /**
@@ -122,7 +121,7 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 
 		// Insert the new user in the database
 		DB.insertUser(this.id, sessionId, data.identity, data.name, function (newDoc) {
-			var user = this._initUser(newDoc, spark, true);
+			var user = this._initUser(spark, true, newDoc);
 			logger.info('newUser', newDoc);
 
 			// Notify client of success
@@ -170,7 +169,7 @@ Tournament.prototype._confirmUserIdentity = function (sessionId, spark, user) {
 			DB.removeUser(user, function () {
 				user.exit();
 				delete this.users[sessionId];
-				this._identifyUser(spark, sessionId);
+				this._identifyUser(sessionId, spark);
 			}.bind(this));
 		}
 	}.bind(this));
@@ -237,9 +236,7 @@ Tournament.prototype._initRing = function (doc) {
 	}
 
 	// Listen for ring events
-	var func = this._ringStateChanged.bind(this);
-	ring.on('opened', func);
-	ring.on('closed', func);
+	ring.on('stateChanged', this._ringStateChanged.bind(this, ring));
 };
 
 /**
@@ -299,11 +296,11 @@ Tournament.prototype.restoreRings = function (cb) {
  */
 Tournament.prototype._jpOpenRing = function (jp, ringIndex) {
 	assert.instanceOf(jp, 'jp', JuryPresident, 'JuryPresident');
-	assert.integerGte0(index, 'index');
+	assert.integerGte0(ringIndex, 'ringIndex');
 
 	// Get the ring at the given index
-	var ring = this.rings[index];
-	assert.ok(ring, "no ring at index=" + index);
+	var ring = this.rings[ringIndex];
+	assert.ok(ring, "no ring at index=" + ringIndex);
 
 	// Open the ring
 	ring.open(jp);
@@ -311,19 +308,19 @@ Tournament.prototype._jpOpenRing = function (jp, ringIndex) {
 
 /**
  * A Corner Judge wishes to join a ring; add the Corner Judge to the ring.
- * @param {JuryPresident} jp
+ * @param {CornerJudge} cj
  * @param {Number} ringIndex
  */
-Tournament.prototype._cjJoinRing = function (ringIndex) {
+Tournament.prototype._cjJoinRing = function (cj, ringIndex) {
 	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
-	assert.integerGte0(index, 'index');
+	assert.integerGte0(ringIndex, 'ringIndex');
 
 	// Get the ring at the given index
-	var ring = this.rings[index];
-	assert.ok(ring, "no ring at index=" + index);
+	var ring = this.rings[ringIndex];
+	assert.ok(ring, "no ring at index=" + ringIndex);
 
 	// Add the Corner Judge to the ring
-	ring.addCJ(this);
+	ring.addCJ(cj);
 };
 
 /**

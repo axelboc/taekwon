@@ -3,6 +3,7 @@
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('ring');
 var util = require('./lib/util');
+var DB = require('./lib/db');
 var EventEmitter = require('events').EventEmitter;
 var CornerJudge = require('./corner-judge').CornerJudge;
 var JuryPresident = require('./jury-president').JuryPresident;
@@ -61,7 +62,7 @@ Ring.prototype.open = function (jp) {
 
 	this.juryPresident = jp;
 	this.juryPresident.ringOpened(this);
-	this.emit('opened');
+	this.emit('stateChanged');
 
 	// Listen for events
 	util.addEventListeners(this, jp, JP_EVENTS, JP_HANDLER_PREFIX);
@@ -85,7 +86,7 @@ Ring.prototype._close = function () {
 	util.removeEventListeners(this.juryPresident, JP_EVENTS);
 
 	this.juryPresident = null;
-	this.emit('closed');
+	this.emit('stateChanged');
 
 	// Update the database
 	DB.setRingJpId(this.id, null);
