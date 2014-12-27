@@ -171,21 +171,24 @@ CornerJudge.prototype.waitingForAuthorisation = function (ring) {
  */
 CornerJudge.prototype.ringJoined = function () {
 	assert.ok(this.ring, "not in a ring");
-	logger.info('ringJoined', {
-		id: this.id,
-		name: this.name,
-		ringNumber: this.ring.number
-	});
 	
-	// Mark the Corner Judge as authorised and update the database
-	this.authorised = true;
-	DB.setCJAuthorised(this);
-	
-	this.spark.emit('ringJoined', {
-		ringIndex: this.ring.index,
-		scoringEnabled: this.ring.scoringEnabled,
-		jpConnected: this.ring.juryPresident.connected
-	});
+	// Update the database
+	DB.setCJAuthorised(this, function () {
+		// Mark the Corner Judge as authorised
+		this.authorised = true;
+
+		this.spark.emit('ringJoined', {
+			ringIndex: this.ring.index,
+			scoringEnabled: this.ring.scoringEnabled,
+			jpConnected: this.ring.juryPresident.connected
+		});
+		
+		logger.info('ringJoined', {
+			id: this.id,
+			name: this.name,
+			ringNumber: this.ring.number
+		});
+	}.bind(this));
 };
 
 /**
@@ -197,16 +200,23 @@ CornerJudge.prototype.ringJoined = function () {
 CornerJudge.prototype.ringLeft = function (message) {
 	assert.string(message, 'message');
 	assert.ok(this.ring, "not in a ring");
-	logger.debug("> Ring left: " + message);
 	
-	// Remove the Corner Judge from the ring, mark it as unauthorised and update the database
-	this.ring = null;
-	this.authorised = false;
-	DB.setCJAuthorised(this);
-	
-	this.spark.emit('ringLeft', {
-		message: message
-	});
+	// Update the database
+	DB.setCJAuthorised(this, function () {
+		// Remove the Corner Judge from the ring and mark it as unauthorised
+		this.ring = null;
+		this.authorised = false;
+
+		this.spark.emit('ringLeft', {
+			message: message
+		});
+		
+		logger.info('ringLeft', {
+			id: this.id,
+			name: this.name,
+			ringNumber: this.ring.number
+		});
+	}.bind(this));
 };
 
 /**
