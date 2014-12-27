@@ -84,7 +84,7 @@ Ring.prototype.open = function (jp) {
 	assert.ok(!this.juryPresident, "ring is already open");
 
 	// Update the database
-	DB.setRingJpId(this.id, this.juryPresident.id, function () {
+	DB.setRingJPId(this.id, this.juryPresident.id, function () {
 		// Add events listeners
 		util.addEventListeners(this, jp, JP_EVENTS, JP_HANDLER_PREFIX);
 		
@@ -107,7 +107,7 @@ Ring.prototype._close = function () {
 	assert.ok(this.juryPresident, "ring is already closed");
 	
 	// Update the database
-	DB.setRingJpId(this.id, null, function () {
+	DB.setRingJPId(this.id, null, function () {
 		// Remove event listeners
 		util.removeEventListeners(this.juryPresident, JP_EVENTS);
 		
@@ -137,7 +137,7 @@ Ring.prototype.addCJ = function (cj) {
 	assert.ok(this.cornerJudges.indexOf(cj) === -1, "Corner Judge is already in the ring");
 	
 	// Update the database
-	DB.addCjIdToRing(this.id, cj.id, function () {
+	DB.addCJIdToRing(this.id, cj.id, function () {
 		// Add Corner Judge to ring
 		this.cornerJudges.push(cj);
 		util.addEventListeners(this, cj, CJ_EVENTS, CJ_HANDLER_PREFIX);
@@ -167,7 +167,7 @@ Ring.prototype._removeCJ = function (cj, message) {
 	assert.ok(index > -1, "Corner Judge is not in the ring");
 	
 	// Update the database
-	DB.pullCjIdFromRing(this.id, cj.id, function () {
+	DB.pullCJIdFromRing(this.id, cj.id, function () {
 		// Remove the Corner Judge from the ring
 		this.cornerJudges.splice(index, 1);
 		util.removeEventListeners(cj, CJ_EVENTS);
@@ -214,7 +214,7 @@ Ring.prototype._jpEnableScoring = function (enable) {
  */
 Ring.prototype._jpAuthoriseCJ = function (id) {
 	assert.string(id, 'id');
-
+	
 	// Notify the Corner Judge
 	var cj = this._getCornerJudgeById(id);
 	cj.ringJoined();

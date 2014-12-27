@@ -179,7 +179,7 @@ CornerJudge.prototype.ringJoined = function () {
 	
 	// Mark the Corner Judge as authorised and update the database
 	this.authorised = true;
-	DB.setCjAuthorised(this);
+	DB.setCJAuthorised(this);
 	
 	this.spark.emit('ringJoined', {
 		ringIndex: this.ring.index,
@@ -202,7 +202,7 @@ CornerJudge.prototype.ringLeft = function (message) {
 	// Remove the Corner Judge from the ring, mark it as unauthorised and update the database
 	this.ring = null;
 	this.authorised = false;
-	DB.setCjAuthorised(this);
+	DB.setCJAuthorised(this);
 	
 	this.spark.emit('ringLeft', {
 		message: message
