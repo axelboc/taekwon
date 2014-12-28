@@ -21,9 +21,6 @@ dotenv({
 	dotenvFile: 'config/config.env',
 	assertFile: 'config/assert.env'
 }, function start() {
-
-	// If NODE_ENV is not defined, set it to 'development'
-	process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 	
 	/*
 	 * Initialise Express and the web server
