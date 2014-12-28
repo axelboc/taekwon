@@ -71,7 +71,9 @@ function log(topic, level, message, data) {
  * @param {String} topic - (e.g. 'ring', 'match', etc.)
  */
 function logger(topic) {
-	assert.string(topic, 'topic');
+	// Using Node's `assert` function
+	// Environment variables (i.e. NODE_ENV) haven't been initialised at this stage
+	assert(typeof topic === 'string' && topic.length > 0, "`topic` must be a non-empty string");
 	
 	return {
 		
