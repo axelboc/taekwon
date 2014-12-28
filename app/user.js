@@ -50,6 +50,10 @@ User.prototype._initSpark = function (spark, events) {
 	events.forEach(function (evt) {
 		this.spark.on(evt, this[SPARK_HANDLER_PREFIX + evt.charAt(0).toUpperCase() + evt.slice(1)].bind(this));
 	}, this);
+	
+	// Mark user as connected
+	this.connected = true;
+	this.emit('connectionStateChanged', this);
 };
 
 /**
@@ -57,8 +61,6 @@ User.prototype._initSpark = function (spark, events) {
  */
 User.prototype._onSessionRestored = function () {
 	logger.debug("> Session restored");
-	this.connected = true;
-	this.emit('connectionStateChanged', this);
 };
 
 /**

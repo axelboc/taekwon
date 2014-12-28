@@ -179,7 +179,6 @@ Tournament.prototype._confirmUserIdentity = function (sessionId, spark, user) {
 	}.bind(this));
 
 	// Send identity confirmation request
-	logger.debug("> Waiting for identity confirmation...");
 	spark.emit('confirmIdentity');
 };
 
