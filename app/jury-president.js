@@ -160,9 +160,12 @@ JuryPresident.prototype.ringOpened = function (ring) {
 	assert.provided(ring, 'ring');
 	
 	this.ring = ring;
-	this.spark.emit('ringOpened', {
-		index: ring.index
-	});
+	
+	if (this.connected) {
+		this.spark.emit('ringOpened', {
+			index: ring.index
+		});
+	}
 };
 
 /**
@@ -174,11 +177,13 @@ JuryPresident.prototype.cjAdded = function (cj) {
 	assert.provided(cj, 'cj');
 	logger.debug("Authorising Corner Judge to join ring...");
 	
-	this.spark.emit('cjAdded', {
-		id: cj.id,
-		name: cj.name,
-		connected: cj.connected
-	});
+	if (this.connected) {
+		this.spark.emit('cjAdded', {
+			id: cj.id,
+			name: cj.name,
+			connected: cj.connected
+		});
+	}
 };
 
 /**
@@ -192,7 +197,9 @@ JuryPresident.prototype.cjScored = function (cj, score) {
 	// Add Corner Judge ID to data to transmit
 	score.judgeId = cj.id;
 	
-	this.spark.emit('cjScored', score);
+	if (this.connected) {
+		this.spark.emit('cjScored', score);
+	}
 };
 
 /**
@@ -204,10 +211,12 @@ JuryPresident.prototype.cjConnectionStateChanged = function (cjId, connected) {
 	assert.string(cjId, 'cjId');
 	assert.boolean(connected, 'connected');
 	
-	this.spark.emit('cjConnectionStateChanged', {
-		id: cjId,
-		connected: connected
-	});
+	if (this.connected) {
+		this.spark.emit('cjConnectionStateChanged', {
+			id: cjId,
+			connected: connected
+		});
+	}
 };
 
 /**
@@ -217,9 +226,11 @@ JuryPresident.prototype.cjConnectionStateChanged = function (cjId, connected) {
 JuryPresident.prototype.cjExited = function (cj) {
 	assert.provided(cj, 'cj');
 	
-	this.spark.emit('cjExited', {
-		id: cj.id
-	});
+	if (this.connected) {
+		this.spark.emit('cjExited', {
+			id: cj.id
+		});
+	}
 };
 
 

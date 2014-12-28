@@ -108,15 +108,17 @@ CornerJudge.prototype._onScore = function (data) {
 	this.emit('score', this, data);
 	logger.debug("Scored " + data.points + " for " + data.competitor);
 	
-	// Acknowledge that the score has been processed
-	this.spark.emit('scoreConfirmed', data);
-	
 	// Store the score so it can be undone
 	this.scores.push(data);
 	
-	// When relevant, notify the client that the undo feature can be used
-	if (this.scores.length === 1){
-		this.spark.emit('canUndo', true);
+	if (this.connected) {
+		// Acknowledge that the score has been processed
+		this.spark.emit('scoreConfirmed', data);
+
+		// When relevant, notify the client that the undo feature can be used
+		if (this.scores.length === 1){
+			this.spark.emit('canUndo', true);
+		}
 	}
 };
 
@@ -138,12 +140,14 @@ CornerJudge.prototype._onUndo = function () {
 	this.emit('score', this, score);
 	logger.debug("Undid score of " + score.points + " for " + score.competitor);
 	
-	// Acknowledge that the score has been undone
-	this.spark.emit('undoConfirmed', score);
+	if (this.connected) {
+		// Acknowledge that the score has been undone
+		this.spark.emit('undoConfirmed', score);
 
-	// When relevant, notify the client that the undo feature can no longer be used
-	if (this.scores.length === 0) {
-		this.spark.emit('canUndo', false);
+		// When relevant, notify the client that the undo feature can no longer be used
+		if (this.scores.length === 0) {
+			this.spark.emit('canUndo', false);
+		}
 	}
 };
 
@@ -163,7 +167,10 @@ CornerJudge.prototype.waitingForAuthorisation = function (ring) {
 	assert.provided(ring, 'ring');
 	
 	this.ring = ring;
-	this.spark.emit('waitingForAuthorisation');
+	
+	if (this.connected) {
+		this.spark.emit('waitingForAuthorisation');
+	}
 };
 
 /**
@@ -173,15 +180,17 @@ CornerJudge.prototype.ringJoined = function () {
 	assert.ok(this.ring, "not in a ring");
 	
 	// Update the database
-	DB.setCJAuthorised(this, function () {
+	DB.setCJAuthorised(this.id, true, function () {
 		// Mark the Corner Judge as authorised
 		this.authorised = true;
 
-		this.spark.emit('ringJoined', {
-			ringIndex: this.ring.index,
-			scoringEnabled: this.ring.scoringEnabled,
-			jpConnected: this.ring.juryPresident.connected
-		});
+		if (this.connected) {
+			this.spark.emit('ringJoined', {
+				ringIndex: this.ring.index,
+				scoringEnabled: this.ring.scoringEnabled,
+				jpConnected: this.ring.juryPresident.connected
+			});
+		}
 		
 		logger.info('ringJoined', {
 			id: this.id,
@@ -202,19 +211,23 @@ CornerJudge.prototype.ringLeft = function (message) {
 	assert.ok(this.ring, "not in a ring");
 	
 	// Update the database
-	DB.setCJAuthorised(this, function () {
+	DB.setCJAuthorised(this.id, false, function () {
+		var ringNumber = this.ring.number;
+		
 		// Remove the Corner Judge from the ring and mark it as unauthorised
 		this.ring = null;
 		this.authorised = false;
 
-		this.spark.emit('ringLeft', {
-			message: message
-		});
+		if (this.connected) {
+			this.spark.emit('ringLeft', {
+				message: message
+			});
+		}
 		
 		logger.info('ringLeft', {
 			id: this.id,
 			name: this.name,
-			ringNumber: this.ring.number
+			ringNumber: ringNumber
 		});
 	}.bind(this));
 };
@@ -225,9 +238,12 @@ CornerJudge.prototype.ringLeft = function (message) {
  */
 CornerJudge.prototype.scoringStateChanged = function (enabled) {
 	assert.boolean(enabled, 'enabled');
-	this.spark.emit('scoringStateChanged', {
-		enabled: enabled
-	});
+	
+	if (this.connected) {
+		this.spark.emit('scoringStateChanged', {
+			enabled: enabled
+		});
+	}
 };
 
 /**
@@ -236,9 +252,12 @@ CornerJudge.prototype.scoringStateChanged = function (enabled) {
  */
 CornerJudge.prototype.jpConnectionStateChanged = function (jp) {
 	assert.provided(jp, 'jp');
-	this.spark.emit('jpConnectionStateChanged', {
-		connected: jp.connected
-	});
+	
+	if (this.connected) {
+		this.spark.emit('jpConnectionStateChanged', {
+			connected: jp.connected
+		});
+	}
 };
 
 
