@@ -17,7 +17,6 @@ var SPARK_HANDLER_PREFIX = '_on';
  */
 function User(id, spark, connected) {
 	assert.string(id, 'id');
-	assert.provided(spark, 'spark');
 	assert.boolean(connected, 'connected');
 	
 	this.id = id;
