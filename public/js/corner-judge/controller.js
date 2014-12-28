@@ -19,7 +19,7 @@ define([
 		Helpers.subscribeToEvents(this, {
 			io: {
 				wsError: this._onWsError,
-				waitingForId: this._onWaitingForId,
+				identify: this._onIdentify,
 				idSuccess: this._onIdSuccess,
 				idFail: this._onIdFail,
 				confirmIdentity: this._onConfirmIdentity,
@@ -86,7 +86,7 @@ define([
 			this._showView(this.wsErrorView);
 		},
 		
-		_onWaitingForId: function() {
+		_onIdentify: function() {
 			console.log("Server waiting for identification");
 			this._showView(this.nameView);
 			this.nameView.init();
@@ -122,7 +122,7 @@ define([
 			IO.joinRing(index);
 		},
 		
-		_onWaitingForAuthorisation: function (index) {
+		_onWaitingForAuthorisation: function () {
 			console.log("Waiting for authorisation to join ring");
 			this._showView(this.authorisationView);
 		},
@@ -164,15 +164,15 @@ define([
 			document.title = "Corner Judge";
 		},
 
-		_onJPConnectionStateChanged: function(connected) {
-			console.log("Jury president " + (connected ? "connected" : "disconnected"));
-			this.isJPConnected = connected;
+		_onJPConnectionStateChanged: function(data) {
+			console.log("Jury president " + (data.connected ? "connected" : "disconnected"));
+			this.isJPConnected = data.connected;
 			this._updateBackdrop();
 		},
 
-		_onScoringStateChanged: function(enabled) {
-			console.log("Scoring " + (enabled ? "enabled" : "disabled"));
-			this.isScoringEnabled = enabled;
+		_onScoringStateChanged: function(data) {
+			console.log("Scoring " + (data.enabled ? "enabled" : "disabled"));
+			this.isScoringEnabled = data.enabled;
 			this._updateBackdrop();
 		},
 		

@@ -35,6 +35,10 @@ define([
 		
 		this.addSlotBtn.addEventListener('click', this._onAddSlotBtn.bind(this));
 		this.removeSlotBtn.addEventListener('click', this._onRemoveSlotBtn.bind(this));
+		
+		// If restoring session, the list of slots needs to be cleared
+		this.list.innerHTML = '';
+		console.log("Cleared slots");
 	}
 	
 	JudgesSidebar.prototype = {

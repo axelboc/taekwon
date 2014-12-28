@@ -1,6 +1,9 @@
 
 // Modules
-var assert = require('assert');
+var assert = require('./lib/assert');
+var logger = require('./lib/log')('tournament');
+var DB = require('./lib/db');
+var async = require('async');
 var Spark = require('primus').Spark;
 var Ring = require('./ring').Ring;
 var User = require('./user').User;
@@ -10,283 +13,341 @@ var CornerJudge = require('./corner-judge').CornerJudge;
 
 /**
  * Tournament; the root of the application.
+ * @param {String} id
  * @param {Primus} primus
- * @param {Object} config
- * 		  {String} config.masterPwd
- * 		  {Number} config.ringCount
  */
-function Tournament(primus, config) {
-	assert(primus, "argument 'primus' must be provided");
-	assert(typeof config === 'object' && config, "argument 'config' must be an object");
-	assert(typeof config.masterPwd === 'string', "'config.masterPwd' must be a string");
-	assert(typeof config.ringCount === 'number' && config.ringCount > 0 && config.ringCount % 1 === 0, 
-		   "'config.ringCount' must be an integer greater than 0");
+function Tournament(id, primus) {
+	assert.string(id, 'id');
+	assert.provided(primus, 'primus');
 	
+	this.id = id;
 	this.primus = primus;
-	this.config = config;
 	
-	// Rings
 	this.rings = [];
-	for (var i = 0; i < this.config.ringCount; i += 1) {
-		this.rings.push(new Ring(this, i));
-	}
-	
-	// Users
 	this.users = {};
 	
-	// Socket events
+	// Bind socket events
 	primus.on('connection', this._onConnection.bind(this));
 	primus.on('disconnection', this._onDisconnection.bind(this));
 }
 
+/**
+ * New socket connection.
+ * @param {Spark} spark
+ */
+Tournament.prototype._onConnection = function (spark) {
+	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
 
-Tournament.prototype = {
-	
-	/**
-	 * New socket connection.
-	 * @param {Spark} spark
-	 */
-	_onConnection: function (spark) {
-		assert(spark, "argument 'spark' must be provided");
-		
-		var request = spark.request;
-		assert(request, "spark.request is null or undefined");
+	var request = spark.request;
+	assert.ok(request, "`spark.request` is " + request);
 
-		var sessionId = request.sessionId;
-		assert(sessionId, "session ID is invalid (cookies not transmitted)");
-		assert(typeof sessionId === 'string', "session ID must be a string");
+	var sessionId = request.sessionId;
+	assert.ok(sessionId, "session ID is invalid (cookies not transmitted)");
+	assert.string(sessionId, 'sessionId');
 
-		// Look for an existing user with this session ID
-		var user = this.users[sessionId];
-		
-		if (!user) {
-			// Request identification from new user
-			this._debug("New user with ID=" + sessionId);
-			this._waitForId(spark, sessionId);
-		} else {
-			// If existing user, check whether its previous spark is still open
-			this._debug("Existing user with ID=" + sessionId);
-			if (user.spark.readyState === Spark.OPEN) {
-				// Inform client that a session conflict has been detected
-				this._debug("> Session conflict detected");
-				spark.emit('wsError', {
-					reason: "Session already open"
-				});
-				spark.end();
-			} else {
-				// Ask user to confirm its identity
-				this._debug("> Confirming identity...");
-				this._confirmIdentity(spark, sessionId, user);
-			}
-		}
-	},
-	
-	/**
-	 * Socket disconnection.
-	 * @param {Spark} spark
-	 */
-	_onDisconnection: function (spark) {
-		assert(spark, "argument 'spark' must be provided");
-		
-		var request = spark.request;
-		assert(request, "spark.request is null or undefined");
-		
-		var sessionId = request.sessionId;
-		assert(sessionId, "session ID is invalid (cookies not transmitted)");
-		assert(typeof sessionId === 'string', "session ID must be a string");
-		
-		// Look for the user with this session ID
-		var user = this.users[sessionId];
+	// Look for an existing user with this session ID
+	var user = this.users[sessionId];
 
-		// If the user exists (has been successfully identified), notify it of the disconnection
-		if (user) {
-			this._debug("User with ID=" + sessionId + " disconnected.");
-			user.disconnected();
-		}
-	},
-	
-	/**
-	 * Request and wait for user identification.
-	 * @param {Spark} spark
-	 * @param {String} sessionId
-	 */
-	_waitForId: function (spark, sessionId) {
-		assert(spark, "argument 'spark' must be provided");
-		assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
-		
-		// Listen for identification
-		['juryPresident', 'cornerJudge'].forEach(function (evt) {
-			spark.on(evt, this._onId.bind(this, spark, sessionId, evt));
-		}, this);
-
-		// Inform user that we're waiting for an identification
-		this._debug("> Waiting for identification...");
-		spark.emit('waitingForId');
-	},
-
-	/**
-	 * Identification received.
-	 * @param {Spark} spark
-	 * @param {String} sessionId
-	 * @param {String} type - `cornerJudge` or `juryPresident`
-	 * @param {Object} data
-	 * 		  {String} data.password - the master password
-	 */
-	_onId: function (spark, sessionId, type, data) {
-		assert(spark, "argument 'spark' must be provided");
-		assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
-		
-		// If another user has logged in with the same sessionID since the 'waitingForId' 
-		// notification was sent, inform client that a session conflict has been detected
-		if (this.users[sessionId]) {
-			this._debug("> Session conflict detected");
+	if (!user) {
+		// Request identification from new user
+		logger.debug("New user with ID=" + sessionId);
+		this._identifyUser(sessionId, spark);
+	} else {
+		// If existing user, check whether its previous spark is still open
+		logger.debug("Existing user with ID=" + sessionId);
+		if (user.spark && user.spark.readyState === Spark.OPEN) {
+			// Inform client that a session conflict has been detected
+			logger.debug("> Session conflict detected");
 			spark.emit('wsError', {
 				reason: "Session already open"
 			});
 			spark.end();
+		} else {
+			// Ask user to confirm its identity
+			logger.debug("> Confirming identity...");
+			this._confirmUserIdentity(sessionId, spark, user);
+		}
+	}
+};
+
+/**
+ * Socket disconnection.
+ * @param {Spark} spark
+ */
+Tournament.prototype._onDisconnection = function (spark) {
+	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
+
+	var request = spark.request;
+	assert.ok(request, "`spark.request` is " + request);
+
+	var sessionId = request.sessionId;
+	assert.ok(sessionId, "session ID is invalid (cookies not transmitted)");
+	assert.string(sessionId, 'sessionId');
+
+	// Look for the user with this session ID
+	var user = this.users[sessionId];
+
+	// If the user exists (has been successfully identified), notify it of the disconnection
+	if (user) {
+		logger.debug("User with ID=" + sessionId + " disconnected.");
+		user.disconnected();
+	}
+};
+
+/**
+ * Request and wait for user identification.
+ * @param {String} sessionId
+ * @param {Spark} spark
+ */
+Tournament.prototype._identifyUser = function (sessionId, spark) {
+	assert.string(sessionId, 'sessionId');
+	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
+
+	var onIdentification = function (data) {
+		assert.object(data, 'data');
+		assert.string(data.identity, 'data.identity');
+		assert.ok(data.identity === 'juryPresident' || data.identity === 'cornerJudge',
+			   "`data.identity` must be 'juryPresident' or 'cornerJudge'");
+
+		// Check identification
+		if (data.identity === 'juryPresident' && data.password !== process.env.MASTER_PWD ||
+			data.identity === 'cornerJudge' && (typeof data.name !== 'string' || data.name.length === 0)) {
+			// Identification failed
+			logger.debug("> Failed identification (identity=" + data.identity + ")");
+			spark.emit('idFail');
+			
+			// Listen for identification again
+			spark.once('identification', onIdentification);
 			return;
 		}
-		
-		assert(typeof type === 'string', "argument 'type' must be a string");
-		assert(type === 'cornerJudge' || type === 'juryPresident',
-			   "argument 'type' must be 'cornerJudge' or 'juryPresident'");
-		assert(typeof data === 'object' && data, "argument 'data' must be an object");
-		
-		var user;
-		switch (type) {
-			case 'juryPresident':
-				// Check password
-				assert(typeof data.password === 'string', "'data.password' must be a string");
-				if (data.password === this.config.masterPwd) {
-					// Initialise Jury President
-					user = new JuryPresident(this, this.primus, spark, sessionId);
-				}
-				break;
-			case 'cornerJudge':
-				// Check name
-				assert(typeof data.name === 'string', "'data.name' must be a string");
-				if (data.name.length > 0) {
-					// Initialise Corner Judge
-					user = new CornerJudge(this, this.primus, spark, sessionId, data.name);
-				}
-				break;
-		}
-		
-		if (user) {
-			// Store user
-			this.users[sessionId] = user;
-			
+
+		// Insert the new user in the database
+		DB.insertUser(this.id, sessionId, data.identity, data.name, function (newDoc) {
+			var user = this._initUser(spark, true, newDoc);
+			logger.info('newUser', newDoc);
+
 			// Notify client of success
-			this._debug("> " + type + " identified");
+			logger.debug("> Successful identification (identity=" + data.identity + ")");
 			spark.emit('idSuccess');
-			
+
 			// Send ring states right away
-			spark.emit('ringStates', this.getRingStates());
-			
-		} else {
-			// Notify client of failure
-			this._debug("> " + type + " identified but rejected");
-			spark.emit('idFail');
-		}
-	},
-		
-	/**
-	 * Ask a user to confirm its identity.
-	 * @param {Spark} spark
-	 * @param {String} sessionId
-	 * @param {User} user
-	 */
-	_confirmIdentity: function (spark, sessionId, user) {
-		assert(spark, "argument 'spark' must be provided");
-		assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
-		assert(user instanceof User, "argument 'user' must be a valid User object");
-		
-		// Listen for identity confirmation
-		spark.on('identityConfirmation', this._onIdentityConfirmation.bind(this, spark, sessionId, user));
-		
-		// Send identity confirmation request
-		this._debug("> Waiting for identity confirmation...");
-		spark.emit('confirmIdentity');
-	},
+			spark.emit('ringStates', this._getRingStates());
+		}.bind(this));
+	}.bind(this);
 	
-	/**
-	 * Identity confirmation received.
-	 * @param {Spark} spark
-	 * @param {String} sessionId
-	 * @param {User} user
-	 * @param {Object} data
-	 * 		  {String} data.identity - the user's identity ('juryPresident' or 'cornerJudge)
-	 */
-	_onIdentityConfirmation: function (spark, sessionId, user, data) {
-		assert(spark, "argument 'spark' must be provided");
-		assert(typeof sessionId === 'string', "argument 'sessionId' must be a string");
-		assert(user instanceof User, "argument 'user' must be a valid User object");
-		assert(this.users[sessionId] === user, "user has already switched role");
-		assert(typeof data === 'object' && data, "argument 'data' must be an object");
-		assert(typeof data.identity === 'string', "'data.identity' must be a string");
-		assert(data.identity === 'juryPresident' || data.identity === 'cornerJudge',
-			   "identity must be either 'juryPresident' or 'cornerJudge'");
-		
+	// Listen for identification
+	spark.once('identification', onIdentification);
+
+	// Inform user that we're waiting for an identification
+	logger.debug("> Waiting for identification...");
+	spark.emit('identify');
+};
+
+/**
+ * Ask a user to confirm its identity.
+ * @param {String} sessionId
+ * @param {Spark} spark
+ * @param {User} user
+ */
+Tournament.prototype._confirmUserIdentity = function (sessionId, spark, user) {
+	assert.string(sessionId, 'sessionId');
+	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
+	assert.instanceOf(user, 'user', User, 'User');
+
+	// Listen for identity confirmation
+	spark.once('identityConfirmation', function _onIdentityConfirmation(data) {
+		assert.object(data, 'data');
+		assert.string(data.identity, 'data.identity');
+		assert.ok(data.identity === 'juryPresident' || data.identity === 'cornerJudge',
+			   "`data.identity` must be 'juryPresident' or 'cornerJudge'");
+
 		// Check whether user is switching role
 		var isJP = data.identity === 'juryPresident';
 		if (isJP && user instanceof JuryPresident || !isJP && user instanceof CornerJudge) {
 			// Not switching; restore session
-			this._debug("> Identity confirmed: " + data.identity + ". Restoring session...");
-			user.restoreSession(spark);
+			logger.debug("> Identity confirmed: " + data.identity + ". Restoring session...");
+			user.restoreSession(spark, this._getRingStates());
 		} else {
 			// Switching; remove user from system and request identification from new user
-			this._debug("> User has changed identity. Starting new identification process...");
-			user.exit();
-			delete this.users[sessionId];
-			this._waitForId(spark, sessionId);
+			logger.debug("> User has changed identity. Starting new identification process...");
+			DB.removeUser(user, function () {
+				user.exit();
+				delete this.users[sessionId];
+				this._identifyUser(sessionId, spark);
+			}.bind(this));
 		}
-	},
-	
-	/**
-	 * Build and return an array of the rings' states.
-	 * @return {Array}
-	 */
-	getRingStates: function () {
-		return this.rings.reduce(function (arr, ring) {
-			arr.push(ring.getState());
-			return arr;
-		}, []);
-	},
-	
-	/**
-	 * Broadcast to all users that the state of a ring (open/closed) has changed.
-	 * @param {Ring} ring
-	 */
-	ringStateChanged: function (ring) {
-		assert(ring instanceof Ring, "argument 'ring' must be a valid Ring object");
-		
-		// Retrieve the state of the ring
-		var state = ring.getState();
-		
-		this.primus.forEach(function (spark) {
-			spark.emit('ringStateChanged', state);
-		}.bind(this));
-	},
-	
-	/**
-	 * Get ring at given index.
-	 * @param {Number} index - the index of the ring, as a positive integer
-	 * @return {Ring}
-	 */
-	getRing: function (index) {
-		assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 
-			   "argument 'index' must be a positive integer");
-		
-		var ring = this.rings[index];
-		assert(ring, "no ring at index=" + index);
-		
-		return ring;
-	},
+	}.bind(this));
 
-	_debug: function (msg) {
-		console.log("[Tournament] " + msg);
+	// Send identity confirmation request
+	spark.emit('confirmIdentity');
+};
+
+/**
+ * Instanciate and initialise a new JuryPresident or CornerJudge object based on a user database document.
+ * @param {Spark} spark
+ * @param {Boolean} connected
+ * @param {Object} doc
+ * @return {User}
+ */
+Tournament.prototype._initUser = function (spark, connected, doc) {
+	assert.object(doc, 'doc');
+
+	var user;
+	switch(doc.identity) {
+		case 'juryPresident':
+			user = new JuryPresident(doc._id, spark, connected);
+			user.on('openRing', this._jpOpenRing.bind(this, user));
+			break;
+		case 'cornerJudge':
+			user = new CornerJudge(doc._id, spark, connected, doc.name, doc.authorised);
+			user.on('joinRing', this._cjJoinRing.bind(this, user));
+			break;
 	}
-	
+
+	this.users[user.id] = user;
+	return user;
+};
+
+/**
+ * Instanciate and initialise a new Ring object based on a ring database document.
+ * @param {Object} doc
+ */
+Tournament.prototype._initRing = function (doc) {
+	assert.object(doc, 'doc');
+
+	var ring = new Ring(doc._id, doc.index, doc.slotCount);
+	this.rings[doc.index] = ring;
+
+	// Jury President
+	if (doc.jpId) {
+		var jp = this.users[doc.jpId];
+		if (jp) {
+			jp.ring = ring;
+			ring.initJP(jp);
+		}
+	}
+
+	// Corner Judges
+	if (doc.cjIds) {
+		doc.cjIds.forEach(function (id) {
+			var cj = this.users[id];
+			if (cj) {
+				cj.ring = ring;
+				ring.initCJ(cj);
+			}
+		}, this);
+	}
+
+	// Add events listeners
+	ring.on('stateChanged', this._ringStateChanged.bind(this, ring));
+};
+
+/**
+ * Initialise the tournament's rings.
+ * @param {Number} count - the number of rings, as an integer greater than 0
+ * @param {Function} cb - a function called when the initialisation is complete
+ */
+Tournament.prototype.initRings = function (count, cb) {
+	assert.integerGt0(count, 'count');
+	assert.function(cb, 'cb');
+
+	// Retrieve the number of corner judge slots per ring
+	var slotCount = parseInt(process.env.CJS_PER_RING, 10);
+	assert.ok(!isNaN(slotCount) && slotCount > 0 && slotCount % 1 === 0,
+		   "environment configuration `CJS_PER_RING` must be a positive integer");
+
+	// Insert new rings in the database one at a time
+	DB.insertRings(this.id, count, slotCount, function (newDocs) {
+		newDocs.forEach(this._initRing, this);
+		logger.debug("Rings initialised");
+		cb();
+	}.bind(this));
+};
+
+/**
+ * Retore the tournament's users.
+ * @param {Function} cb - a function called when the restoration is complete
+ */
+Tournament.prototype.restoreUsers = function (cb) {
+	assert.function(cb, 'cb');
+
+	DB.findUsers(this.id, function (docs) {
+		docs.forEach(this._initUser.bind(this, null, false));
+		logger.debug("Users restored");
+		cb();
+	}.bind(this));
+};
+
+/**
+ * Restore the tournament's rings.
+ * @param {Function} cb - a function called when the restoration is complete
+ */
+Tournament.prototype.restoreRings = function (cb) {
+	assert.function(cb, 'cb');
+
+	DB.findRings(this.id, function (docs) {
+		docs.forEach(this._initRing, this);
+		logger.debug("Rings restored");
+		cb();
+	}.bind(this));
+};
+
+/**
+ * Open a ring on a Jury President's request.
+ * @param {JuryPresident} jp
+ * @param {Number} ringIndex
+ */
+Tournament.prototype._jpOpenRing = function (jp, ringIndex) {
+	assert.instanceOf(jp, 'jp', JuryPresident, 'JuryPresident');
+	assert.integerGte0(ringIndex, 'ringIndex');
+
+	// Get the ring at the given index
+	var ring = this.rings[ringIndex];
+	assert.ok(ring, "no ring at index=" + ringIndex);
+
+	// Open the ring
+	ring.open(jp);
+};
+
+/**
+ * A Corner Judge wishes to join a ring; add the Corner Judge to the ring.
+ * @param {CornerJudge} cj
+ * @param {Number} ringIndex
+ */
+Tournament.prototype._cjJoinRing = function (cj, ringIndex) {
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.integerGte0(ringIndex, 'ringIndex');
+
+	// Get the ring at the given index
+	var ring = this.rings[ringIndex];
+	assert.ok(ring, "no ring at index=" + ringIndex);
+
+	// Add the Corner Judge to the ring
+	ring.addCJ(cj);
+};
+
+/**
+ * Build and return an array of the rings' states.
+ * @return {Array}
+ */
+Tournament.prototype._getRingStates = function () {
+	return this.rings.reduce(function (arr, ring) {
+		arr.push(ring.getState());
+		return arr;
+	}, []);
+};
+
+/**
+ * Broadcast to all users that the state of a ring (open/closed) has changed.
+ * @param {Ring} ring
+ */
+Tournament.prototype._ringStateChanged = function (ring) {
+	assert.instanceOf(ring, 'ring', Ring, 'Ring');
+
+	var state = ring.getState();
+	this.primus.forEach(function (spark) {
+		spark.emit('ringStateChanged', state);
+	}.bind(this));
 };
 
 

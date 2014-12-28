@@ -1,20 +1,22 @@
 
 // Modules
-var assert = require('assert');
+var assert = require('./lib/assert');
+var logger = require('./lib/log')('jp');
 var util = require('util');
+var DB = require('./lib/db');
 var User = require('./user').User;
-var CornerJudge = require('./corner-judge').CornerJudge;
+
+var INBOUND_SPARK_EVENTS = ['openRing', 'enableScoring', 'authoriseCJ', 'rejectCJ', 'removeCJ'];
 
 
 /**
  * Jury President.
- * @param {Tournament} tournament
- * @param {Primus} primus
- * @param {Spark} spark
- * @param {String} sessionId
+ * @param {String} id
+ * @param {Spark} spark - the spark or `null` if the user is being restored from the database
+ * @param {Boolean} connected
  */
-function JuryPresident(tournament, primus, spark, sessionId) {
-	// Call parent constructor, which will assert the arguments
+function JuryPresident(id, spark, connected) {
+	// Call parent constructor and assert arguments
 	User.apply(this, arguments);
 }
 
@@ -28,17 +30,34 @@ parent = JuryPresident.super_.prototype;
  * Register event handlers on the spark.
  * @param {Spark} spark
  */
-JuryPresident.prototype.initSpark = function (spark) {
+JuryPresident.prototype._initSpark = function (spark) {
 	// Call parent function
-	parent.initSpark.call(this, spark, ['openRing', 'enableScoring', 'authoriseCJ', 'rejectCJ', 'removeCJ']);
+	parent._initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
 };
 
-JuryPresident.prototype.restoreSession = function (spark) {
-	var data = parent.restoreSession.call(this, spark);
-	data.cornerJudges = [];
+/**
+ * Restore the Jury President's session.
+ * @param {Spark} spark - the spark of the new socket connection
+ * @param {Array} ringStates
+ */
+JuryPresident.prototype.restoreSession = function (spark, ringStates) {
+	assert.provided(spark, 'spark');
+	assert.array(ringStates, 'ringStates');
+	logger.debug("Restoring session...");
+
+	// Initialise the new spark 
+	this._initSpark(spark);
+	
+	// Prepare restoratio data
+	var data = {
+		ringStates: ringStates,
+		ringIndex: this.ring ? this.ring.index : -1,
+		cornerJudges: []
+	};
 	
 	// Add corner judges
 	if (this.ring) {
+		assert.array(this.ring.cornerJudges, 'cornerJudges');
 		this.ring.cornerJudges.forEach(function (judge) {
 			data.cornerJudges.push({
 				id: judge.id,
@@ -49,33 +68,16 @@ JuryPresident.prototype.restoreSession = function (spark) {
 		}, this);
 	}
 	
-	// Send session restore event with all the required data
+	// Send restore session event with all the required data
 	this.spark.emit('restoreSession', data);
-};
-
-JuryPresident.prototype.connectionStateChanged = function () {
-	if (this.ring) {
-		// Let Corner Judges know that Jury President is disconnected/reconnected
-		this.ring.jpConnectionStateChanged(this.connected);
-	}
-};
-
-JuryPresident.prototype.exit = function () {
-	parent.exit.call(this);
-	
-	// Close ring
-	if (this.ring) {
-		this.ring.close();
-		this.ring = null;
-	}
 };
 
 
 /*
  * ==================================================
  * Inbound spark events:
- * - propagate to Ring via direct function calls
- * - acknowledge if required
+ * - assert spark event data
+ * - propagate to Tournament and Ring via events
  * ==================================================
  */
 
@@ -85,21 +87,10 @@ JuryPresident.prototype.exit = function () {
  * 		  {Number} data.index - the index of the ring, as a positive integer
  */
 JuryPresident.prototype._onOpenRing = function (data) {
-	assert(typeof data === 'object' && data, "argument 'data' must be an object");
-	assert(typeof data.index === 'number' && data.index >= 0 && data.index % 1 === 0, 
-		   "'data.index' must be a positive integer");
+	assert.object(data, 'data');
+	assert.integerGte0(data.index, 'data.index');
 	
-	// Retrieve the ring at the given index
-	var ring = this.tournament.getRing(data.index);
-	
-	// Open the ring
-	ring.open(this);
-	this.ring = ring;
-
-	// Acknowledge that the ring has been opened
-	this.spark.emit('ringOpened', {
-		index: data.index
-	});
+	this.emit('openRing', data.index);
 };
 
 /**
@@ -108,11 +99,10 @@ JuryPresident.prototype._onOpenRing = function (data) {
  * 		  {Boolean} data.enable - `true` to enable; `false` to disable
  */
 JuryPresident.prototype._onEnableScoring = function (data) {
-	assert(typeof data === 'object' && data, "argument 'data' must be an object");
-	assert(typeof data.enable === 'boolean', "'data.enable' must be a boolean");
-	assert(this.ring, "no ring opened");
+	assert.object(data, 'data');
+	assert.boolean(data.enable, 'data.enable');
 	
-	this.ring.enableScoring(data.enable);
+	this.emit('enableScoring', data.enable);
 };
 
 /**
@@ -121,12 +111,11 @@ JuryPresident.prototype._onEnableScoring = function (data) {
  * 		  {String} data.id - the ID of the Corner Judge to authorise
  */
 JuryPresident.prototype._onAuthoriseCJ = function (data) {
-	assert(typeof data === 'object' && data, "argument 'data' must be an object");
-	assert(typeof data.id === 'string', "'data.id' must be a string");
-	assert(this.ring, "no ring opened");
+	assert.object(data, 'data');
+	assert.string(data.id, 'data.id');
 	
-	this.ring.cjAuthorised(data.id);
-	this._debug("> Corner Judge authorised");
+	this.emit('authoriseCJ', data.id);
+	logger.debug("> Corner Judge authorised");
 };
 
 /**
@@ -136,12 +125,11 @@ JuryPresident.prototype._onAuthoriseCJ = function (data) {
  * 		  {String} data.message - the reason for the rejection
  */
 JuryPresident.prototype._onRejectCJ = function (data) {
-	assert(typeof data === 'object' && data, "argument 'data' must be an object");
-	assert(typeof data.id === 'string', "'data.id' must be a string");
-	assert(typeof data.message === 'string', "'data.message' must be a string");
-	assert(this.ring, "no ring opened");
+	assert.object(data, 'data');
+	assert.string(data.id, 'data.id');
+	assert.string(data.message, 'data.message');
 	
-	this.ring.cjRejected(data.id, data.message);
+	this.emit('rejectCJ', data.id, data.message);
 };
 
 /**
@@ -150,76 +138,99 @@ JuryPresident.prototype._onRejectCJ = function (data) {
  * 		  {String} data.id - the ID of the Corner Judge to remove
  */
 JuryPresident.prototype._onRemoveCJ = function (data) {
-	assert(typeof data === 'object' && data, "argument 'data' must be an object");
-	assert(typeof data.id === 'string', "'data.id' must be a string");
-	assert(this.ring, "no ring opened");
+	assert.object(data, 'data');
+	assert.string(data.id, 'data.id');
 	
-	this.ring.cjRemoved(data.id);
+	this.emit('removeCJ', data.id);
 };
 
 
 /*
  * ==================================================
  * Outbound spark events:
- * - received from Ring via direct function calls
+ * - functions called from Ring module
  * ==================================================
  */
 
 /**
+ * The ring has been opened.
+ * @param {Ring} ring
+ */
+JuryPresident.prototype.ringOpened = function (ring) {
+	assert.provided(ring, 'ring');
+	
+	this.ring = ring;
+	
+	if (this.connected) {
+		this.spark.emit('ringOpened', {
+			index: ring.index
+		});
+	}
+};
+
+/**
  * A Corner Judge has been added to the ring.
  * Before it can officially join the ring, the Jury President must give its authorisation.
- * @param {Corner Judge} cj
+ * @param {CornerJudge} cj
  */
 JuryPresident.prototype.cjAdded = function (cj) {
-	assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
-	this._debug("Authorising Corner Judge to join ring...");
+	assert.provided(cj, 'cj');
+	logger.debug("Authorising Corner Judge to join ring...");
 	
-	this.spark.emit('cjAdded', {
-		id: cj.id,
-		name: cj.name,
-		connected: cj.connected
-	});
+	if (this.connected) {
+		this.spark.emit('cjAdded', {
+			id: cj.id,
+			name: cj.name,
+			connected: cj.connected
+		});
+	}
 };
 
 /**
  * A Corner Judge has scored.
- * @param {Corner Judge} cj
+ * @param {CornerJudge} cj
  * @param {Object} score
  */
 JuryPresident.prototype.cjScored = function (cj, score) {
-	assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
+	assert.provided(cj, 'cj');
 	
 	// Add Corner Judge ID to data to transmit
 	score.judgeId = cj.id;
 	
-	this.spark.emit('cjScored', score);
+	if (this.connected) {
+		this.spark.emit('cjScored', score);
+	}
 };
 
 /**
  * The connection state of a Corner Judge has changed.
- * @param {Corner Judge} cj
- * @param {Boolean} connected - `true` if the Corner Judge is now connected; `false` if it is disconnected
+ * @param {String} cjId
+ * @param {Boolean} connected
  */
-JuryPresident.prototype.cjConnectionStateChanged = function (cj, connected) {
-	assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
-	assert(typeof connected === 'boolean', "argument 'connected' must be a boolean");
+JuryPresident.prototype.cjConnectionStateChanged = function (cjId, connected) {
+	assert.string(cjId, 'cjId');
+	assert.boolean(connected, 'connected');
 	
-	this.spark.emit('cjConnectionStateChanged', {
-		id: cj.id,
-		connected: connected
-	});
+	if (this.connected) {
+		this.spark.emit('cjConnectionStateChanged', {
+			id: cjId,
+			connected: connected
+		});
+	}
 };
 
 /**
  * A Corner Judge has exited the system.
- * @param {Corner Judge} cj
+ * @param {CornerJudge} cj
  */
 JuryPresident.prototype.cjExited = function (cj) {
-	assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
+	assert.provided(cj, 'cj');
 	
-	this.spark.emit('cjExited', {
-		id: cj.id
-	});
+	if (this.connected) {
+		this.spark.emit('cjExited', {
+			id: cj.id
+		});
+	}
 };
 
 

@@ -1,25 +1,27 @@
 
-// Import core modules
+// Import modules
+var assert = require('./app/lib/assert');
+var logger = require('./app/lib/log')('app');
+var DB = require('./app/lib/db');
+var Tournament = require('./app/tournament').Tournament;
+var async = require('async');
 var dotenv = require('assert-dotenv');
 var http = require('http');
 var express = require('express');
 var handlebars = require('express-handlebars');
 var session = require('express-session');
+var NeDBSessionStore = require('connect-nedb-session')(session);
 var cookieParser = require('cookie-parser');
 var cookie = require('cookie');
 var Primus = require('primus');
 var Emit = require('primus-emit');
-
-// Import app modules
-var Tournament = require('./app/tournament').Tournament;
-
 
 // Load environment configuration
 dotenv({
 	dotenvFile: 'config/config.env',
 	assertFile: 'config/assert.env'
 }, function start() {
-
+	
 	/*
 	 * Initialise Express and the web server
 	 */
@@ -43,7 +45,6 @@ dotenv({
 	/*
 	 * Add middlewares
 	 */
-
 	// Server static files from public folder
 	app.use(express.static(__dirname + '/public'));
 
@@ -56,13 +57,16 @@ dotenv({
 		secret: process.env.COOKIE_SECRET,
 		saveUninitialized: true,
 		resave: true,
+		store: new NeDBSessionStore({
+			filename: 'data/sessions.db'
+		}),
 		cookie: {
 			maxAge: 1000 * 60 * 60 * 24 // one day
 		}
 	}));
 
 
-	/**
+	/*
 	 * Initialise Primus
 	 */
 	var primus = new Primus(server, {
@@ -88,10 +92,9 @@ dotenv({
 	});
 
 
-	/**
+	/*
 	 * Routes
 	 */
-
 	// Jury President
 	app.get('/jury', function (req, res) {
 		var type = 'jury-president';
@@ -111,18 +114,50 @@ dotenv({
 			metaViewport: 'width=device-width, initial-scale=1, user-scalable=no'
 		});
 	});
+	
 
-
-	/**
-	 * Initialise Tournament
+	/*
+	 * Initialise tournament
 	 */
-	var tournament = new Tournament(primus, {
-		masterPwd: process.env.MASTER_PWD,
-		ringCount: parseInt(process.env.RING_COUNT, 10)
+	var tournament;
+	
+	// Get timestamp for the start of today
+	var now = new Date();
+	var startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+	
+	// Look for an open tournament
+	DB.findOpenTournament(startOfToday, function (doc) {
+		if (doc) {
+			logger.debug("Tournament found (ID=" + doc._id + "). Restoring...");
+			
+			// If a tournament was found, restore it
+			tournament = new Tournament(doc._id, primus);
+
+			// Restore its users and rings
+			async.series([
+				tournament.restoreUsers.bind(tournament),
+				tournament.restoreRings.bind(tournament)
+			], function () {
+				logger.debug("> Tournament restored");
+			});
+		} else {
+			logger.debug("Starting new tournament...");
+			
+			// Otherwise, insert a new tournament in the database
+			DB.insertTournament(function (newDoc) {
+				if (newDoc) {
+					// Initialise the new tournament
+					tournament = new Tournament(newDoc._id, primus);
+					tournament.initRings(parseInt(process.env.RING_COUNT, 10), function () {
+						logger.debug("> Tournament started (ID=" + newDoc._id + ")");
+					});
+				}
+			});
+		}
 	});
-
-
-	/**
+	
+	
+	/*
 	 * Start server
 	 */
 	server.listen(80);

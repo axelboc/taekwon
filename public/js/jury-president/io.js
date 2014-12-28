@@ -11,7 +11,7 @@ define([
 	var primus;
 	var events = [
 		'wsError',
-		'waitingForId',
+		'identify',
 		'idSuccess',
 		'idFail',
 		'confirmIdentity',
@@ -96,7 +96,8 @@ define([
 	}
 
 	function sendId(pwd) {
-		primus.emit('juryPresident', {
+		primus.emit('identification', {
+			identity: 'juryPresident',
 			password: pwd
 		});
 	}

@@ -8,7 +8,10 @@
     "url": "http://github.com/axelboc/taekwon"
   },
   "scripts": {
-    "test": "mocha tests --require tests/helpers/common.js & pause"
+    "test": "mocha tests --require tests/helpers/common.js & pause",
+    "reset": "del data\\*.db",
+    "restart": "node app",
+    "prerestart": "npm run reset"
   },
   "dependencies": {
     "express": "~4.10.1",
@@ -20,7 +23,10 @@
     "sockjs": "~0.3.10",
     "express-handlebars": "~1.1.0",
     "nedb": "~0.11.1",
-    "assert-dotenv": "~2.0.0"
+    "assert-dotenv": "~2.0.0",
+    "connect-nedb-session": "0.0.3",
+    "nedb-logger": "~0.1.0",
+    "async": "~0.9.0"
   },
   "devDependencies": {
     "chai": "~1.9.2",

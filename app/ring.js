@@ -1,245 +1,335 @@
 
 // Modules
-var assert = require('assert');
+var assert = require('./lib/assert');
+var logger = require('./lib/log')('ring');
+var util = require('./lib/util');
+var DB = require('./lib/db');
+var EventEmitter = require('events').EventEmitter;
 var CornerJudge = require('./corner-judge').CornerJudge;
 var JuryPresident = require('./jury-president').JuryPresident;
+
+var JP_EVENTS = ['enableScoring', 'authoriseCJ','rejectCJ', 'removeCJ', 'connectionStateChanged', 'exited'];
+var JP_HANDLER_PREFIX = '_jp';
+
+var CJ_EVENTS = ['connectionStateChanged', 'exited'];
+var CJ_HANDLER_PREFIX = '_cj';
 
 
 /**
  * Ring.
  * @param {Primus} primus
- * @param {Number} index - the index of the ring, as a positive integer
+ * @param {String} id
+ * @param {Number} index - the ring index, as a positive integer
+ * @param {Number} slotCount - the number of Corner Judge slots available
  */
-function Ring(tournament, index) {
-	assert(tournament, "argument 'tournament' must be provided");
-	assert(typeof index === 'number' && index >= 0 && index % 1 === 0, 
-		   "argument 'index' must be a positive integer");
+function Ring(id, index, slotCount) {
+	assert.string(id, 'id');
+	assert.integerGte0(index, 'index');
+	assert.integerGt0(slotCount, 'slotCount');
 	
-	this.tournament = tournament;
+	this.id = id;
 	this.index = index;
+	this.slotCount = slotCount;
+	
 	this.number = index + 1;
 	this.juryPresident = null;
 	this.cornerJudges = [];
 	this.scoringEnabled = false;
 }
 
-Ring.prototype = {
+// Inherit EventEmitter
+util.inherits(Ring, EventEmitter);
+
+/**
+ * Return an object representing the state of the ring (open/close).
+ * @return {Array}
+ */
+Ring.prototype.getState = function () {
+	return {
+		index: this.index,
+		number: this.number,
+		open: this.juryPresident !== null
+	};
+};
+
+/**
+ * Return the ring's Corner Judge with the given ID.
+ * The function throws if the ID is not associated with exactly one Corner Judge.
+ * @private
+ * @param {String} id
+ * @return {CornerJudge}
+ */
+Ring.prototype._getCornerJudgeById = function (id) {
+	assert.string(id, 'id');
+
+	// Find the Corner Judge with the given ID
+	var cornerJudge = this.cornerJudges.filter(function (cj) {
+		return cj.id === id;
+	}, this);
+
+	assert.ok(cornerJudge.length > 0, 
+		   "no Corner Judge with ID=" + id + " in ring #" + this.number);
+	assert.ok(cornerJudge.length === 1, cornerJudge.length + 
+		   " Corner Judges share the same ID=" + id + " in ring #" + this.number);
+
+	return cornerJudge[0];
+};
+
+/**
+ * Initialise the Jury President.
+ * @param {JuryPresident} jp
+ */
+Ring.prototype.initJP = function (jp) {
+	assert.instanceOf(jp, 'jp', JuryPresident, 'JuryPresident');
 	
-	/**
-	 * Return an object representing the state of the ring (open/close).
-	 * @return {Array}
-	 */
-	getState: function () {
-		return {
-			index: this.index,
+	this.juryPresident = jp;
+	util.addEventListeners(this, jp, JP_EVENTS, JP_HANDLER_PREFIX);
+};
+
+/**
+ * Open the ring by assigning it a Jury President.
+ * @param {JuryPresident} jp
+ */
+Ring.prototype.open = function (jp) {
+	assert.instanceOf(jp, 'jp', JuryPresident, 'JuryPresident');
+	assert.ok(!this.juryPresident, "ring is already open");
+
+	// Update the database
+	DB.setRingJPId(this.id, jp.id, function () {
+		// Open ring
+		this.initJP(jp);
+		this.emit('stateChanged');
+		
+		// Acknowledge
+		jp.ringOpened(this);
+		
+		logger.info('opened', {
 			number: this.number,
-			open: this.juryPresident !== null
-		};
-	},
-	
-	/**
-	 * Open the ring by assigning it a Jury President.
-	 * @param {JuryPresident} jp
-	 */
-	open: function (jp) {
-		assert(jp instanceof JuryPresident, "argument 'jp' must be a valid JuryPresident object");
-		assert(this.tournament, "not part of a tournament");
-		assert(!this.juryPresident, "ring is already open");
+			jpId: jp.id
+		});
+	}.bind(this));
+};
 
-		this.juryPresident = jp;
-		this.tournament.ringStateChanged(this);
-		this._debug("Opened");
-	},
+/**
+ * Close the ring.
+ */
+Ring.prototype._close = function () {
+	assert.ok(this.juryPresident, "ring is already closed");
 	
-	/**
-	 * Close the ring.
-	 */
-	close: function () {
-		assert(this.tournament, "not part of a tournament");
-		assert(this.juryPresident, "ring is already closed");
-
-		this.juryPresident = null;
-		this.tournament.ringStateChanged(this);
-		this._debug("Closed");
-			
-		// Notify Corner Judges that they must leave the ring.
+	// Update the database
+	DB.setRingJPId(this.id, null, function () {
+		// Ask Corner Judges to leave the ring
 		this.cornerJudges.forEach(function (cj) {
-			this.removeCJ(cj, "Ring closed");
-		}, this);
-	},
-	
-	/**
-	 * Return the ring's Corner Judge with the given ID.
-	 * The function throws if the ID is not associated with exactly one Corner Judge.
-	 * @private
-	 * @param {String} id
-	 * @return {CornerJudge}
-	 */
-	_getCornerJudgeById: function (id) {
-		assert(typeof id === 'string', "argument 'id' must be a string");
-		
-		// Find the Corner Judge with the given ID
-		var cornerJudge = this.cornerJudges.filter(function (cj) {
-			return cj.id === id;
+			this._removeCJ(cj, "Ring closed");
 		}, this);
 		
-		assert(cornerJudge.length > 0, 
-			   "no Corner Judge with ID=" + id + " in ring #" + this.number);
-		assert(cornerJudge.length === 1, cornerJudge.length + 
-			   " Corner Judges share the same ID=" + id + " in ring #" + this.number);
+		// Close ring
+		this.juryPresident = null;
+		util.removeEventListeners(this.juryPresident, JP_EVENTS);
+		this.emit('stateChanged');
+		
+		logger.info('closed', {
+			number: this.number
+		});
+	}.bind(this));
+};
 
-		return cornerJudge[0];
-	},
+/**
+ * Initialise a Corner Judge.
+ * @param {CornerJudge} cj
+ */
+Ring.prototype.initCJ = function (cj) {
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 	
-	/**
-	 * Add a Corner Judge to the ring.
-	 * @param {CornerJudge} cj
-	 */
-	addCJ: function (cj) {
-		assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
-		assert(this.juryPresident, "ring must have Jury President");
-		
-		// Add Corner Judge to array
-		this.cornerJudges.push(cj);
-		
+	this.cornerJudges.push(cj);
+	util.addEventListeners(this, cj, CJ_EVENTS, CJ_HANDLER_PREFIX);
+};
+
+/**
+ * Add a Corner Judge to the ring.
+ * @param {CornerJudge} cj
+ */
+Ring.prototype.addCJ = function (cj) {
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.array(this.cornerJudges, 'cornerJudges');
+	assert.ok(this.cornerJudges.indexOf(cj) === -1, "Corner Judge is already in the ring");
+	
+	// Update the database
+	DB.addCJIdToRing(this.id, cj.id, function () {
+		// Add Corner Judge to ring
+		this.initCJ(cj);
+		this.emit('cjAdded');
+
 		// Request authorisation from Jury President
 		this.juryPresident.cjAdded(cj);
-	},
+		// Acknowledge
+		cj.waitingForAuthorisation(this);
+
+		logger.info('cjAdded', {
+			number: this.number,
+			cjId: cj.id,
+			cjName: cj.name
+		});
+	}.bind(this));
+};
+
+/**
+ * Remove a Corner Judge from the ring.
+ * @param {String|CornerJudge} cj - the ID of the Corner Judge or the CornerJudge object to remove
+ * @param {String} message - the reason for the removal, which will be shown to the Corner Judge
+ */
+Ring.prototype._removeCJ = function (cj, message) {
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.string(message, 'message');
+	var index = this.cornerJudges.indexOf(cj);
+	assert.ok(index > -1, "Corner Judge is not in the ring");
 	
-	/**
-	 * Remove a Corner Judge from the ring.
-	 * @param {String|CornerJudge} cj - the ID of the Corner Judge or the CornerJudge object to remove
-	 * @param {String} message - the reason for the removal, which will be shown to the Corner Judge
-	 */
-	removeCJ: function (cj, message) {
-		assert(typeof cj === 'string' || cj instanceof CornerJudge, 
-			   "argument 'cj' must be a string or a valid CornerJudge object");
-		assert(typeof message === 'string', "argument 'message' must be a string");
-		
-		// If an ID is passed, get the corresponding Corner Judge
-		if (typeof cj === 'string') {
-			cj = this._getCornerJudgeById(cj);
-		}
-		
-		// Make sure the Corner Judge actually is in the ring
-		var index = this.cornerJudges.indexOf(cj);
-		assert(index > -1, "Corner Judge is not in the ring");
-		
+	// Update the database
+	DB.pullCJIdFromRing(this.id, cj.id, function () {
 		// Remove the Corner Judge from the ring
 		this.cornerJudges.splice(index, 1);
-		
-		// Ackonwledge removal
-		cj.ringLeft(message);
-	},
-	
-	/**
-	 * Enable/disable scoring.
-	 * @param {Boolean} enable - `true` to enable; `false` to disable
-	 */
-	enableScoring: function (enable) {
-		assert(typeof enable === 'boolean', "argument 'enable' must be a boolean");
-		
-		this.scoringEnabled = enable;
-		
-		// Notify Corner Judges
-		this.cornerJudges.forEach(function (cj) {
-			cj.scoringStateChanged(enable);
-		}, this);
-	},
-	
-	/**
-	 * A Corner Judge's request to join the ring has been authorised by the Jury President.
-	 * @param {String} id - the ID of the Corner Judge who has been authorised
-	 */
-	cjAuthorised: function (id) {
-		assert(typeof id === 'string', "argument 'id' must be a string");
-		
-		this._getCornerJudgeById(id).ringJoined();
-	},
-	
-	/**
-	 * A Corner Judge's request to join the ring has been rejected by the Jury President.
-	 * @param {String} id - the ID of the Corner Judge who has been authorised
-	 * @param {String} message - the reason for the rejection
-	 */
-	cjRejected: function (id, message) {
-		assert(typeof id === 'string', "argument 'id' must be a string");
-		assert(typeof message === 'string', "argument 'message' must be a string");
-		
-		// Remove Corner Judge from ring
-		this.removeCJ(id, message);
-	},
-	
-	/**
-	 * A Corner Judge has been removed from the ring by the Jury President.
-	 * @param {String} id - the ID of the Corner Judge who has been removed
-	 */
-	cjRemoved: function (id) {
-		assert(typeof id === 'string', "argument 'id' must be a string");
-		
-		// Remove Corner Judge from ring
-		this.removeCJ(id, "Removed from ring");
-	},
-	
-	/**
-	 * A Corner Judge has scored or undone a previous score.
-	 * @param {CornerJudge} cj
-	 * @param {Object} score
-	 */
-	cjScored: function (cj, score) {
-		assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
-		assert(this.juryPresident, "ring must have Jury President");
-		
-		// Notify Jury President
-		this.juryPresident.cjScored(cj, score);
-	},
-	
-	/**
-	 * A Corner Judge has exited the system.
-	 * @param {CornerJudge} cj
-	 */
-	cjExited: function (cj) {
-		assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
-		assert(this.juryPresident, "ring must have Jury President");
-		
-		// Remove Corner Judge from ring
-		this.removeCJ(cj, "Exited system");
-		
-		// Notify Jury President
-		this.juryPresident.cjExited(cj);
-	},
-	
-	/**
-	 * The connection state of the Jury President has changed.
-	 * @param {Boolean} connected - `true` for connected; `false` for disconnected
-	 */
-	jpConnectionStateChanged: function (connected) {
-		assert(typeof connected === 'boolean', "argument 'connected' must be a boolean");
-		
-		// Notify the Corner Judges
-		this.cornerJudges.forEach(function (cj) {
-			cj.jpConnectionStateChanged(connected);
-		}, this);
-	},
-	
-	/**
-	 * The connection state of a Corner Judge has changed.
-	 * @param {CornerJudge} cj
-	 * @param {Boolean} connected - `true` for connected; `false` for disconnected
-	 */
-	cjConnectionStateChanged: function (cj, connected) {
-		assert(cj instanceof CornerJudge, "argument 'cj' must be a valid CornerJudge object");
-		assert(typeof connected === 'boolean', "argument 'connected' must be a boolean");
-		assert(this.juryPresident, "ring must have Jury President");
-		
-		// Notify the Jury President
-		this.juryPresident.cjConnectionStateChanged(cj, connected);
-	},
+		util.removeEventListeners(cj, CJ_EVENTS);
+		this.emit('cjRemoved');
 
-	_debug: function (msg) {
-		console.log("[Ring] " + msg);
-	}
+		// Acknowledge
+		cj.ringLeft(message);
+
+		logger.info('cjRemoved', {
+			number: this.number,
+			cjId: cj.id,
+			cjName: cj.name,
+			message: message
+		});
+	}.bind(this));
+};
+
+
+/*
+ * ==================================================
+ * Jury President events
+ * ==================================================
+ */
+
+/**
+ * Enable/disable scoring.
+ * @param {Boolean} enable - `true` to enable; `false` to disable
+ */
+Ring.prototype._jpEnableScoring = function (enable) {
+	assert.boolean(enable, 'enable');
+	assert.array(this.cornerJudges, 'cornerJudges');
+
+	this.scoringEnabled = enable;
+
+	// Notify Corner Judges
+	this.cornerJudges.forEach(function (cj) {
+		cj.scoringStateChanged(enable);
+	}, this);
+};
+
+/**
+ * A Corner Judge's request to join the ring has been authorised by the Jury President.
+ * @param {String} id
+ */
+Ring.prototype._jpAuthoriseCJ = function (id) {
+	assert.string(id, 'id');
 	
+	// Notify the Corner Judge
+	var cj = this._getCornerJudgeById(id);
+	cj.ringJoined();
+};
+
+/**
+ * A Corner Judge's request to join the ring has been rejected by the Jury President.
+ * @param {String} id - the ID of the Corner Judge who has been authorised
+ * @param {String} message - the reason for the rejection
+ */
+Ring.prototype._jpRejectCJ = function (id, message) {
+	assert.string(id, 'id');
+	assert.string(message, 'message');
+
+	// Remove Corner Judge from ring
+	this._removeCJ(this._getCornerJudgeById(id), message);
+};
+
+/**
+ * A Corner Judge has been removed from the ring by the Jury President.
+ * @param {String} id - the ID of the Corner Judge who has been removed
+ */
+Ring.prototype._jpRemoveCJ = function (id) {
+	assert.string(id, 'id');
+
+	// Remove Corner Judge from ring
+	this._removeCJ(this._getCornerJudgeById(id), "Removed from ring");
+};
+
+/**
+ * The connection state of the Jury President has changed.
+ */
+Ring.prototype._jpConnectionStateChanged = function () {
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.array(this.cornerJudges, 'cornerJudges');
+
+	// Notify Corner Judges
+	var connected = this.juryPresident.connected;
+	this.cornerJudges.forEach(function (cj) {
+		cj.jpConnectionStateChanged(connected);
+	}, this);
+};
+
+/**
+ * The Jury President exited the system.
+ */
+Ring.prototype._jpExited = function () {
+	// Close the ring
+	this._close();
+};
+
+
+/*
+ * ==================================================
+ * Corner Judge events
+ * ==================================================
+ */
+
+/**
+ * A Corner Judge has scored or undone a previous score.
+ * @param {CornerJudge} cj
+ * @param {Object} score
+ */
+Ring.prototype._cjScore = function (cj, score) {
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.ok(this.juryPresident, "ring must have Jury President");
+
+	// Notify Jury President
+	this.juryPresident.cjScored(cj, score);
+};
+
+/**
+ * The connection state of a Corner Judge has changed.
+ * @param {CornerJudge} cj
+ */
+Ring.prototype._cjConnectionStateChanged = function (cj) {
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.ok(this.juryPresident, "ring must have Jury President");
+
+	// Notify Jury President
+	this.juryPresident.cjConnectionStateChanged(cj.id, cj.connected);
+};
+
+/**
+ * A Corner Judge has exited the system.
+ * @param {CornerJudge} cj
+ */
+Ring.prototype._cjExited = function (cj) {
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.ok(this.juryPresident, "ring must have Jury President");
+
+	// Remove Corner Judge from ring
+	this._removeCJ(cj, "Exited system");
+
+	// Notify Jury President
+	this.juryPresident.cjExited(cj);
 };
 
 exports.Ring = Ring;
