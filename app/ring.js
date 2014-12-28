@@ -76,6 +76,17 @@ Ring.prototype._getCornerJudgeById = function (id) {
 };
 
 /**
+ * Initialise the Jury President.
+ * @param {JuryPresident} jp
+ */
+Ring.prototype.initJP = function (jp) {
+	assert.instanceOf(jp, 'jp', JuryPresident, 'JuryPresident');
+	
+	this.juryPresident = jp;
+	util.addEventListeners(this, jp, JP_EVENTS, JP_HANDLER_PREFIX);
+};
+
+/**
  * Open the ring by assigning it a Jury President.
  * @param {JuryPresident} jp
  */
@@ -84,14 +95,13 @@ Ring.prototype.open = function (jp) {
 	assert.ok(!this.juryPresident, "ring is already open");
 
 	// Update the database
-	DB.setRingJPId(this.id, this.juryPresident.id, function () {
-		// Add events listeners
-		util.addEventListeners(this, jp, JP_EVENTS, JP_HANDLER_PREFIX);
-		
+	DB.setRingJPId(this.id, jp.id, function () {
 		// Open ring
-		this.juryPresident = jp;
-		this.juryPresident.ringOpened(this);
+		this.initJP(jp);
 		this.emit('stateChanged');
+		
+		// Acknowledge
+		jp.ringOpened(this);
 		
 		logger.info('opened', {
 			number: this.number,
@@ -108,9 +118,6 @@ Ring.prototype._close = function () {
 	
 	// Update the database
 	DB.setRingJPId(this.id, null, function () {
-		// Remove event listeners
-		util.removeEventListeners(this.juryPresident, JP_EVENTS);
-		
 		// Ask Corner Judges to leave the ring
 		this.cornerJudges.forEach(function (cj) {
 			this._removeCJ(cj, "Ring closed");
@@ -118,12 +125,24 @@ Ring.prototype._close = function () {
 		
 		// Close ring
 		this.juryPresident = null;
+		util.removeEventListeners(this.juryPresident, JP_EVENTS);
 		this.emit('stateChanged');
 		
 		logger.info('closed', {
 			number: this.number
 		});
 	}.bind(this));
+};
+
+/**
+ * Initialise a Corner Judge.
+ * @param {CornerJudge} cj
+ */
+Ring.prototype.initCJ = function (cj) {
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	
+	this.cornerJudges.push(cj);
+	util.addEventListeners(this, cj, CJ_EVENTS, CJ_HANDLER_PREFIX);
 };
 
 /**
@@ -139,12 +158,12 @@ Ring.prototype.addCJ = function (cj) {
 	// Update the database
 	DB.addCJIdToRing(this.id, cj.id, function () {
 		// Add Corner Judge to ring
-		this.cornerJudges.push(cj);
-		util.addEventListeners(this, cj, CJ_EVENTS, CJ_HANDLER_PREFIX);
+		this.initCJ(cj);
 		this.emit('cjAdded');
 
 		// Request authorisation from Jury President
 		this.juryPresident.cjAdded(cj);
+		// Acknowledge
 		cj.waitingForAuthorisation(this);
 
 		logger.info('cjAdded', {
@@ -173,7 +192,7 @@ Ring.prototype._removeCJ = function (cj, message) {
 		util.removeEventListeners(cj, CJ_EVENTS);
 		this.emit('cjRemoved');
 
-		// Acknowledge removal
+		// Acknowledge
 		cj.ringLeft(message);
 
 		logger.info('cjRemoved', {

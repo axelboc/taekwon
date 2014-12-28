@@ -223,8 +223,8 @@ Tournament.prototype._initRing = function (doc) {
 	if (doc.jpId) {
 		var jp = this.users[doc.jpId];
 		if (jp) {
-			ring.juryPresident = jp;
 			jp.ring = ring;
+			ring.initJP(jp);
 		}
 	}
 
@@ -233,10 +233,10 @@ Tournament.prototype._initRing = function (doc) {
 		doc.cjIds.forEach(function (id) {
 			var cj = this.users[id];
 			if (cj) {
-				ring.cornerJudges.push(this.users[id]);
 				cj.ring = ring;
+				ring.initCJ(cj);
 			}
-		});
+		}, this);
 	}
 
 	// Add events listeners
