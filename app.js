@@ -134,20 +134,15 @@ dotenv({
 			logger.debug("Tournament found (ID=" + doc._id + "). Restoring...");
 			
 			// If a tournament was found, restore it
-			if (doc.ringIds.length > 0) {
-				tournament = new Tournament(doc._id, primus);
+			tournament = new Tournament(doc._id, primus);
 
-				// Restore its users and rings
-				async.series([
-					tournament.restoreUsers.bind(tournament),
-					tournament.restoreRings.bind(tournament)
-				], function () {
-					logger.debug("> Tournament restored");
-				});
-			} else {
-				logger.debug("> Tournament has no ring. Starting new tournament with same ID...");
-				initTournament(doc._id);
-			}
+			// Restore its users and rings
+			async.series([
+				tournament.restoreUsers.bind(tournament),
+				tournament.restoreRings.bind(tournament)
+			], function () {
+				logger.debug("> Tournament restored");
+			});
 		} else {
 			logger.debug("Starting new tournament...");
 			
@@ -155,24 +150,14 @@ dotenv({
 			DB.insertTournament(function (newDoc) {
 				if (newDoc) {
 					// Initialise the new tournament
-					initTournament(newDoc._id);
+					tournament = new Tournament(newDoc._id, primus);
+					tournament.initRings(parseInt(process.env.RING_COUNT, 10), function () {
+						logger.debug("> Tournament started (ID=" + newDoc._id + ")");
+					});
 				}
 			});
 		}
 	});
-
-	/**
-	 * Create a new tournament and inialise its rings.
-	 * @param {String} id
-	 */
-	function initTournament(id) {
-		assert.string(id, 'id');
-		
-		tournament = new Tournament(id, primus);
-		tournament.initRings(parseInt(process.env.RING_COUNT, 10), function () {
-			logger.debug("> Tournament started (ID=" + id + ")");
-		});
-	}
 	
 	
 	/*

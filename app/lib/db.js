@@ -108,9 +108,7 @@ var DB = {
 	 */
 	insertTournament: function insertTournament(cb) {
 		tournamentsDb.insert({
-			startDate: Date.now(),
-			userIds: [],
-			ringIds: []
+			startDate: Date.now()
 		}, callback(cb));
 	},
 	
