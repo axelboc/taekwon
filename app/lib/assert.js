@@ -14,7 +14,6 @@ var _ok = assert.ok;
  */
 assert.ok = function (val, message) {
 	if (process.env.NODE_ENV === 'development') {
-		message = message || 
 		_ok(val, message);
 	}
 };
@@ -25,7 +24,7 @@ assert.ok = function (val, message) {
  * @param {Mixed} val
  * @param {String} name
  */
-assert.provided = function provided(val, name) {
+assert.provided = function (val, name) {
 	assert.ok(val, "`" + name + "` must be provided");
 };
 
@@ -35,7 +34,7 @@ assert.provided = function provided(val, name) {
  * @param {String} name
  * @param {Boolean} canBeEmpty - optional; pass `true` if the value can be an empty string
  */
-assert.string = function object(val, name, canBeEmpty) {
+assert.string = function (val, name, canBeEmpty) {
 	assert.ok(typeof val === 'string' && (canBeEmpty || val.length > 0),
 			  "`" + name + "` must be a" + (!canBeEmpty ? " non-empty" : "") + " string");
 };
@@ -45,7 +44,7 @@ assert.string = function object(val, name, canBeEmpty) {
  * @param {Mixed} val
  * @param {String} name
  */
-assert.boolean = function object(val, name) {
+assert.boolean = function (val, name) {
 	assert.ok(typeof val === 'boolean', "`" + name + "` must be a boolean");
 };
 
@@ -54,7 +53,7 @@ assert.boolean = function object(val, name) {
  * @param {Mixed} val
  * @param {String} name
  */
-assert.integerGt0 = function positiveInteger(val, name) {
+assert.integerGt0 = function (val, name) {
 	assert.ok(typeof val === 'number' && val >= 0 && val % 1 === 0, 
 		   "`" + name + "` must be a positive integer");
 };
@@ -64,7 +63,7 @@ assert.integerGt0 = function positiveInteger(val, name) {
  * @param {Mixed} val
  * @param {String} name
  */
-assert.integerGte0 = function positiveInteger(val, name) {
+assert.integerGte0 = function (val, name) {
 	assert.ok(typeof val === 'number' && val >= 0 && val % 1 === 0, 
 		   "`" + name + "` must be a positive integer");
 };
@@ -74,7 +73,7 @@ assert.integerGte0 = function positiveInteger(val, name) {
  * @param {Mixed} val
  * @param {String} name
  */
-assert.function = function object(val, name) {
+assert.function = function (val, name) {
 	assert.ok(typeof val === 'function', "`" + name + "` must be a function");
 };
 
@@ -83,7 +82,7 @@ assert.function = function object(val, name) {
  * @param {Mixed} val
  * @param {String} name
  */
-assert.object = function object(val, name) {
+assert.object = function (val, name) {
 	assert.ok(typeof val === 'object' && val, "`" + name + "` must be an object");
 };
 
@@ -92,7 +91,7 @@ assert.object = function object(val, name) {
  * @param {Mixed} val
  * @param {String} name
  */
-assert.array = function object(val, name) {
+assert.array = function (val, name) {
 	assert.ok(Array.isArray(val), "`" + name + "` must be an array");
 };
 
@@ -103,7 +102,7 @@ assert.array = function object(val, name) {
  * @param {Function} constr
  * @param {String} constrName
  */
-assert.instanceOf = function instanceOf(val, name, constr, constrName) {
+assert.instanceOf = function (val, name, constr, constrName) {
 	assert.ok(val instanceof constr, "`" + name + "` must be a valid " + constrName + " object");
 };
 

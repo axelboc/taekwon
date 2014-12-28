@@ -67,7 +67,7 @@ var DB = {
 	 * @param {Number} startOfToday - timestamp of the start of the current day
 	 * @param {Function} cb 
 	 */
-	findOpenTournament: function findOpenTournament(startOfToday, cb) {
+	findOpenTournament: function (startOfToday, cb) {
 		assert.integerGt0(startOfToday, 'startOfToday');
 		
 		// Find the tournaments that stated on the current day, sort them so the latest one comes first,
@@ -87,7 +87,7 @@ var DB = {
 	 * @param {String} tournamentId
 	 * @param {Function} cb
 	 */
-	findUsers: function findRing(tournamentId, cb) {
+	findUsers: function (tournamentId, cb) {
 		assert.string(tournamentId, 'tournamentId');
 		usersDb.find({ tournamentId: tournamentId }, callback(cb));
 	},
@@ -97,7 +97,7 @@ var DB = {
 	 * @param {String} tournamentId
 	 * @param {Function} cb
 	 */
-	findRings: function findRing(tournamentId, cb) {
+	findRings: function (tournamentId, cb) {
 		assert.string(tournamentId, 'tournamentId');
 		ringsDb.find({ tournamentId: tournamentId }, callback(cb));
 	},
@@ -106,7 +106,7 @@ var DB = {
 	 * Insert a new tournament.
 	 * @param {Function} cb
 	 */
-	insertTournament: function insertTournament(cb) {
+	insertTournament: function (cb) {
 		tournamentsDb.insert({
 			startDate: Date.now()
 		}, callback(cb));
@@ -118,7 +118,7 @@ var DB = {
 	 * @param {String} identity - the user's identity ('juryPresident' or 'cornerJudge')
 	 * @param {Function} cb
 	 */
-	insertUser: function insertUser(tournamentId, id, identity, name, cb) {
+	insertUser: function (tournamentId, id, identity, name, cb) {
 		assert.string(tournamentId, 'tournamentId');
 		assert.string(id, 'id');
 		assert.string(identity, 'identity');
@@ -150,7 +150,7 @@ var DB = {
 	 * @param {Number} slotCount
 	 * @param {Function} cb
 	 */
-	insertRings: function insertRings(tournamentId, count, slotCount, cb) {
+	insertRings: function (tournamentId, count, slotCount, cb) {
 		assert.string(tournamentId, 'tournamentId');
 		assert.integerGte0(count, 'count');
 		assert.integerGt0(slotCount, 'slotCount');
@@ -175,7 +175,7 @@ var DB = {
 	 * @param {String} jpId
 	 * @param {Function} cb
 	 */
-	setRingJPId: function setRingJPId(ringId, jpId, cb) {
+	setRingJPId: function (ringId, jpId, cb) {
 		assert.string(ringId, 'ringId');
 		assert.string(jpId, 'jpId');
 		ringsDb.update({ _id: ringId }, { $set: { jpId: jpId } }, callback(cb));
@@ -187,7 +187,7 @@ var DB = {
 	 * @param {Boolean} authorised
 	 * @param {Function} cb
 	 */
-	setCJAuthorised: function setCJAuthorised(cjId, authorised, cb) {
+	setCJAuthorised: function (cjId, authorised, cb) {
 		assert.string(cjId, 'cjId');
 		usersDb.update({ _id: cjId }, { $set: { authorised: authorised } }, callback(cb));
 	},
@@ -198,7 +198,7 @@ var DB = {
 	 * @param {String} cjId
 	 * @param {Function} cb
 	 */
-	addCJIdToRing: function addCJIdToRing(ringId, cjId, cb) {
+	addCJIdToRing: function (ringId, cjId, cb) {
 		assert.string(ringId, 'ringId');
 		assert.string(cjId, 'cjId');
 		ringsDb.update({ _id: ringId }, { $addToSet: { cjIds: cjId } }, callback(cb));
@@ -210,7 +210,7 @@ var DB = {
 	 * @param {String} cjId
 	 * @param {Function} cb
 	 */
-	pullCJIdFromRing: function pullCJIdFromRing(ringId, cjId, cb) {
+	pullCJIdFromRing: function (ringId, cjId, cb) {
 		assert.string(ringId, 'ringId');
 		assert.string(cjId, 'cjId');
 		ringsDb.update({ _id: ringId }, { $pull: { cjIds: cjId } }, callback(cb));
@@ -221,7 +221,7 @@ var DB = {
 	 * @param {User} user
 	 * @param {Function} cb
 	 */
-	removeUser: function removeUser(user, cb) {
+	removeUser: function (user, cb) {
 		assert.provided(user, 'user');
 		usersDb.remove({ _id: user.id }, callback(cb));
 	}
