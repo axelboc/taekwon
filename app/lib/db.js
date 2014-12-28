@@ -166,7 +166,7 @@ var DB = {
 	 * @param {String} jpId
 	 * @param {Function} cb
 	 */
-	setRingJPId: function setRingJpId(ringId, jpId, cb) {
+	setRingJPId: function setRingJPId(ringId, jpId, cb) {
 		assert.string(ringId, 'ringId');
 		assert.string(jpId, 'jpId');
 		ringsDb.update({ _id: ringId }, { $set: { jpId: jpId } }, callback(cb));
@@ -177,7 +177,7 @@ var DB = {
 	 * @param {CornerJudge} cj
 	 * @param {Function} cb
 	 */
-	setCJAuthorised: function setCjAuthorised(cj, cb) {
+	setCJAuthorised: function setCJAuthorised(cj, cb) {
 		assert.provided(cj, 'cj');
 		usersDb.update({ _id: cj.id }, { $set: { authorised: cj.authorised } }, callback(cb));
 	},
@@ -188,7 +188,7 @@ var DB = {
 	 * @param {String} cjId
 	 * @param {Function} cb
 	 */
-	addCJIdToRing: function addCjIdToRing(ringId, cjId, cb) {
+	addCJIdToRing: function addCJIdToRing(ringId, cjId, cb) {
 		assert.string(ringId, 'ringId');
 		assert.string(cjId, 'cjId');
 		ringsDb.update({ _id: ringId }, { $addToSet: { cjIds: cjId } }, callback(cb));
@@ -200,7 +200,7 @@ var DB = {
 	 * @param {String} cjId
 	 * @param {Function} cb
 	 */
-	pullCJIdFromRing: function pullCjIdFromRing(ringId, cjId, cb) {
+	pullCJIdFromRing: function pullCJIdFromRing(ringId, cjId, cb) {
 		assert.string(ringId, 'ringId');
 		assert.string(cjId, 'cjId');
 		ringsDb.update({ _id: ringId }, { $pull: { cjIds: cjId } }, callback(cb));
