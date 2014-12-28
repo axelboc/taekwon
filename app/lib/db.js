@@ -183,12 +183,13 @@ var DB = {
 	
 	/**
 	 * Set a Corner Judges's authorisation state.
-	 * @param {CornerJudge} cj
+	 * @param {String} cjId
+	 * @param {Boolean} authorised
 	 * @param {Function} cb
 	 */
-	setCJAuthorised: function setCJAuthorised(cj, cb) {
-		assert.provided(cj, 'cj');
-		usersDb.update({ _id: cj.id }, { $set: { authorised: cj.authorised } }, callback(cb));
+	setCJAuthorised: function setCJAuthorised(cjId, authorised, cb) {
+		assert.string(cjId, 'cjId');
+		usersDb.update({ _id: cjId }, { $set: { authorised: authorised } }, callback(cb));
 	},
 	
 	/**
