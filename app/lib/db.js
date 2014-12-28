@@ -63,12 +63,23 @@ var DB = {
 	
 	/**
 	 * Look for an open tournament; that is, a tournament that started on the current day.
+	 * If multiple tournaments were started on the current day, this function retrieves the latest one.
 	 * @param {Number} startOfToday - timestamp of the start of the current day
-	 * @param {Function} cb
+	 * @param {Function} cb 
 	 */
 	findOpenTournament: function findOpenTournament(startOfToday, cb) {
 		assert.integerGt0(startOfToday, 'startOfToday');
-		tournamentsDb.findOne({ startDate: { $gte: startOfToday } }, callback(cb));
+		
+		// Find the tournaments that stated on the current day, sort them so the latest one comes first,
+		// and pick only the latest one.
+		tournamentsDb.find({ startDate: { $gte: startOfToday } })
+					 .sort({ startDate: -1 })
+					 .limit(1)
+					 .exec(function (err, docs) {
+			assert.ok(docs.length === 0 || docs.length === 1, "`docs` should contain zero or one document");
+			// If the array is empty, `undefined` is passed to the callback
+			callback(cb)(null, docs[0]);
+		});
 	},
 	
 	/**
