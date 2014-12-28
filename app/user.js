@@ -58,7 +58,7 @@ User.prototype._initSpark = function (spark, events) {
 User.prototype._onSessionRestored = function () {
 	logger.debug("> Session restored");
 	this.connected = true;
-	this.emit('connectionStateChanged', true);
+	this.emit('connectionStateChanged', this);
 };
 
 /**
@@ -67,7 +67,7 @@ User.prototype._onSessionRestored = function () {
 User.prototype.disconnected = function () {
 	logger.debug("Disconnected");
 	this.connected = false;
-	this.emit('connectionStateChanged', false);
+	this.emit('connectionStateChanged', this);
 };
 
 /**

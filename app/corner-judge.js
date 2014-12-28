@@ -248,14 +248,14 @@ CornerJudge.prototype.scoringStateChanged = function (enabled) {
 
 /**
  * The connection state of the Jury President has changed.
- * @param {JuryPresident} jp
+ * @param {Boolean} connected
  */
-CornerJudge.prototype.jpConnectionStateChanged = function (jp) {
-	assert.provided(jp, 'jp');
+CornerJudge.prototype.jpConnectionStateChanged = function (connected) {
+	assert.boolean(connected, 'connected');
 	
 	if (this.connected) {
 		this.spark.emit('jpConnectionStateChanged', {
-			connected: jp.connected
+			connected: connected
 		});
 	}
 };

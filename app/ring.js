@@ -265,13 +265,13 @@ Ring.prototype._jpRemoveCJ = function (id) {
 
 /**
  * The connection state of the Jury President has changed.
- * @param {Boolean} connected
  */
-Ring.prototype._jpConnectionStateChanged = function (connected) {
-	assert.boolean(connected, 'connected');
+Ring.prototype._jpConnectionStateChanged = function () {
+	assert.ok(this.juryPresident, "ring must have Jury President");
 	assert.array(this.cornerJudges, 'cornerJudges');
 
 	// Notify Corner Judges
+	var connected = this.juryPresident.connected;
 	this.cornerJudges.forEach(function (cj) {
 		cj.jpConnectionStateChanged(connected);
 	}, this);
@@ -307,16 +307,14 @@ Ring.prototype._cjScore = function (cj, score) {
 
 /**
  * The connection state of a Corner Judge has changed.
- * @param {String} id
- * @param {Boolean} connected
+ * @param {CornerJudge} cj
  */
-Ring.prototype._cjConnectionStateChanged = function (id, connected) {
-	assert.string(id, 'id');
-	assert.boolean(connected, 'connected');
+Ring.prototype._cjConnectionStateChanged = function (cj) {
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 	assert.ok(this.juryPresident, "ring must have Jury President");
 
 	// Notify Jury President
-	this.juryPresident.cjConnectionStateChanged(id, connected);
+	this.juryPresident.cjConnectionStateChanged(cj.id, cj.connected);
 };
 
 /**
