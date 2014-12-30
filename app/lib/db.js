@@ -177,7 +177,8 @@ var DB = {
 	 */
 	setRingJPId: function (ringId, jpId, cb) {
 		assert.string(ringId, 'ringId');
-		assert.string(jpId, 'jpId');
+		assert.ok(jpId === null || typeof jpId === 'string' && jpId.length > 0, 
+				  "`jpId` must be either `null` or a non-empty string");
 		ringsDb.update({ _id: ringId }, { $set: { jpId: jpId } }, callback(cb));
 	},
 	
