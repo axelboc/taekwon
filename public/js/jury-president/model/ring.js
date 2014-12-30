@@ -58,7 +58,7 @@ define([
 		newJudge: function (id, name, authorised, connected) {
 			var index = this._findFreeJudgeSlot();
 			if (index === -1) {
-				this._publish('full', id);
+				console.error("No free slot: ring is full");
 			} else if (this.match && this.match.isInProgress()) {
 				this._publish('matchInProgress', id);
 			} else {

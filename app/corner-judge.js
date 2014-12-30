@@ -174,6 +174,23 @@ CornerJudge.prototype.waitingForAuthorisation = function (ring) {
 };
 
 /**
+ * The Corner Judge's request to join a ring has been rejected. Potential causes:
+ * - rejected by Jury President,
+ * - ring full,
+ * - match in progress.
+ * @param {Ring} ring
+ */
+CornerJudge.prototype.rejected = function (message) {
+	logger.debug("> " + message);
+	
+	if (this.connected) {
+		this.spark.emit('rejected', {
+			message: message
+		});
+	}
+};
+
+/**
  * The Jury President has authorised the Corner Judge's request to join the ring.
  */
 CornerJudge.prototype.ringJoined = function () {

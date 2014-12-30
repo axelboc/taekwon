@@ -29,7 +29,6 @@ define([
 				cjExited: this._onCJExited
 			},
 			ring: {
-				full: this._onRingFull,
 				matchInProgress: this._onMatchInProgress
 			},
 			match: {
@@ -67,11 +66,6 @@ define([
 		_onCJAdded: function (judge) {
 			console.log("New corner judge (id=" + judge.id + ")");
 			this.ring.newJudge(judge.id, judge.name, false, judge.connected);
-		},
-		
-		_onRingFull: function (judgeId) {
-			console.log("Ring full");
-			IO.rejectCJ(judgeId, "Ring full");
 		},
 		
 		_onMatchInProgress: function (judgeId) {
