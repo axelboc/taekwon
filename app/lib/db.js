@@ -183,6 +183,18 @@ var DB = {
 	},
 	
 	/**
+	 * Set a ring's slot count.
+	 * @param {String} ringId
+	 * @param {Number} slotCount
+	 * @param {Function} cb
+	 */
+	setRingSlotCount: function (ringId, slotCount, cb) {
+		assert.string(ringId, 'ringId');
+		assert.integerGt0(slotCount, 'slotCount');
+		ringsDb.update({ _id: ringId }, { $set: { slotCount: slotCount } }, callback(cb));
+	},
+	
+	/**
 	 * Set a Corner Judges's authorisation state.
 	 * @param {String} cjId
 	 * @param {Boolean} authorised

@@ -290,9 +290,11 @@ Ring.prototype._jpRemoveCJ = function (id) {
 Ring.prototype._jpAddSlot = function () {
 	assert.ok(this.juryPresident, "ring must have Jury President");
 	
-	// TODO: update database
-	this.slotCount += 1;
-	this.juryPresident.slotAdded();
+	// Update the database
+	DB.setRingSlotCount(this.id, this.slotCount + 1, function () {
+		this.slotCount += 1;
+		this.juryPresident.slotAdded();
+	}.bind(this));
 };
 
 /**
@@ -301,9 +303,12 @@ Ring.prototype._jpAddSlot = function () {
 Ring.prototype._jpRemoveSlot = function () {
 	assert.ok(this.juryPresident, "ring must have Jury President");
 	// TODO: add test (cannot remove last slot; cannot remove slot if ring is full)
-	// TODO: update database
-	this.slotCount -= 1;
-	this.juryPresident.slotRemoved();
+	
+	// Update the database
+	DB.setRingSlotCount(this.id, this.slotCount - 1, function () {
+		this.slotCount -= 1;
+		this.juryPresident.slotRemoved();
+	}.bind(this));
 };
 
 /**
