@@ -196,25 +196,27 @@ Ring.prototype._removeCJ = function (cj, message) {
 	
 	// Update the database
 	DB.pullCJIdFromRing(this.id, cj.id, function () {
-		// Remove the Corner Judge from the ring
-		this.cornerJudges.splice(index, 1);
-		util.removeEventListeners(cj, CJ_EVENTS);
-		this.emit('cjRemoved');
-		
-		// Acknowledge
-		this.juryPresident.cjRemoved(cj);
-		if (!cj.authorised) {
-			cj.rejected(message);
-		} else {
-			cj.ringLeft(message);
-		}
+		DB.setCJAuthorised(cj.id, false, function () {
+			// Remove the Corner Judge from the ring
+			this.cornerJudges.splice(index, 1);
+			util.removeEventListeners(cj, CJ_EVENTS);
+			this.emit('cjRemoved');
 
-		logger.info('cjRemoved', {
-			number: this.number,
-			cjId: cj.id,
-			cjName: cj.name,
-			message: message
-		});
+			// Acknowledge
+			this.juryPresident.cjRemoved(cj);
+			if (!cj.authorised) {
+				cj.rejected(message);
+			} else {
+				cj.ringLeft(message);
+			}
+
+			logger.info('cjRemoved', {
+				number: this.number,
+				cjId: cj.id,
+				cjName: cj.name,
+				message: message
+			});
+		}.bind(this));
 	}.bind(this));
 };
 
@@ -248,14 +250,14 @@ Ring.prototype._jpEnableScoring = function (enable) {
 Ring.prototype._jpAuthoriseCJ = function (id) {
 	assert.string(id, 'id');
 	assert.ok(this.juryPresident, "ring must have Jury President");
-	
-	// TODO: move database call here
-	// Notify the Corner Judge
 	var cj = this._getCornerJudgeById(id);
-	cj.ringJoined();
 	
-	// Acknowledge
-	this.juryPresident.cjAuthorised(cj);
+	// Update the database
+	DB.setCJAuthorised(id, true, function () {
+		// Acknowledge
+		cj.ringJoined();
+		this.juryPresident.cjAuthorised(cj);
+	}.bind(this));
 };
 
 /**
@@ -266,8 +268,7 @@ Ring.prototype._jpAuthoriseCJ = function (id) {
 Ring.prototype._jpRejectCJ = function (id, message) {
 	assert.string(id, 'id');
 	assert.string(message, 'message');
-
-	// TODO: move database call here
+	
 	// Remove Corner Judge from ring
 	this._removeCJ(this._getCornerJudgeById(id), message);
 };
