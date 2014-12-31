@@ -9,21 +9,18 @@ define([
 
 ], function (PubSub, Handlebars, Helpers, IO, MatchStates, Timer) {
 	
-	function MatchPanel(ring) {
-		this.ring = ring;
+	function MatchPanel() {
+		this.ring = null;
 		this.match = null;
 		this.root = document.getElementById('match-panel');
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
-			io: {
-				cjScored: this._onCJScored
-			},
 			ring: {
-				slotAdded: this._onSlotAdded,
-				slotRemoved: this._onSlotRemoved,
-				judgeAttached: this._onJudgeAttached,
-				judgeDetached: this._onJudgeDetached
+				slotAdded: this._updateJudgeScores,
+				slotRemoved: this._updateJudgeScores,
+				cjAdded: this._updateJudgeScores,
+				cjRemoved: this._updateJudgeScores
 			},
 			match: {
 				created: this._onMatchCreated,
@@ -34,11 +31,11 @@ define([
 				injuryStarted: this._onInjuryStarted,
 				injuryEnded: this._onInjuryEnded,
 				scoringStateChanged: this._onScoringStateChanged,
-				scoresReset: this._onScoresReset,
+				scoresReset: this._updateJudgeScores,
 				penaltiesReset: this._onPenaltiesReset
 			},
 			judge: {
-				scoresUpdated: this._onJudgeScoresUpdated
+				scored: this._updateJudgeScores
 			},
 			timer: {
 				tick: this._onTimerTick,
@@ -77,12 +74,8 @@ define([
 		this.injuryBtn.addEventListener('click', this._onInjuryBtn.bind(this));
 		
 		// Scoring
-		this.scoring = this.root.querySelector('.scoring');
-		this.scoringInner = this.scoring.querySelector('.sc-inner');
-		this.judgeScoringTemplate = Handlebars.compile(document.getElementById('sc-judge-tmpl').innerHTML);
-		
-		this.judgeScores = [];
-		this.judgeScoresById = {};
+		this.scoringInner = this.root.querySelector('.sc-inner');
+		this.scoringInnerTemplate = Handlebars.compile(document.getElementById('sc-inner-tmpl').innerHTML);
 		
 		// Penalties
 		this.penalties = this.root.querySelector('.penalties');
@@ -99,6 +92,10 @@ define([
 		
 		_publish: function (subTopic) {
 			PubSub.publish('matchPanel.' + subTopic, [].slice.call(arguments, 1));
+		},
+		
+		setRing: function (ring) {
+			this.ring = ring;
 		},
 		
 		_onTimerTick: function (name, value) {
@@ -152,6 +149,7 @@ define([
 			this._updateStateBtns(null, false);
 			this.stateStartBtn.classList.remove('hidden');
 			this.stateEndBtn.classList.remove('hidden');
+			this._updateJudgeScores();
 			this._enablePenaltyBtns(false);
 		},
 
@@ -234,61 +232,33 @@ define([
 			this.match.setScoringState(true);
 		},
 		
-		_onSlotAdded: function (index) {
-			var elem = document.createElement('div');
-			elem.className = 'sc-judge';
-			elem.innerHTML = this.judgeScoringTemplate({ index: index + 1 });
-			this.scoringInner.appendChild(elem);
+		_updateJudgeScores: function () {
+			// Do not update if no match has been created
+			if (this.match === null) {
+				return;
+			}
 			
-			this.judgeScores.push({
-				root: elem,
-				name: elem.querySelector('.sc-judge-name'),
-				hong: elem.querySelector('.sc-hong'),
-				chong: elem.querySelector('.sc-chong')
+			// Prepare template context
+			var slots = [];
+			for (var i = 0, len = this.ring.slotCount; i < len; i += 1) {
+				var cj = this.ring.cornerJudges[i];
+				slots.push({
+					index: i + 1,
+					cj: !cj ? null : {
+						name: cj.name,
+						scores: cj.getCurrentScores(this.match.scoreboardColumnId)
+					}
+				});
+			};
+			
+			// Execute template
+			this.scoringInner.innerHTML = this.scoringInnerTemplate({
+				slots: slots
 			});
-		},
-		
-		_onSlotRemoved: function (index) {
-			this.scoringInner.removeChild(this.judgeScores[index].root);
-			this.judgeScores.splice(index, 1);
-		},
-		
-		_onJudgeAttached: function (judge) {
-			var js = this.judgeScores[judge.index];
-			js.name.textContent = judge.name;
-			this.judgeScoresById[judge.id] = js;
-		},
-		
-		_onJudgeDetached: function (judge) {
-			var js = this.judgeScores[judge.index];
-			js.name.textContent = "Judge #" + (judge.index + 1);
-			js.hong.textContent = "0";
-			js.chong.textContent = "0";
-			delete this.judgeScoresById[judge.id];
 		},
 		
 		_onScoringStateChanged: function (enabled) {
 			IO.enableScoring(enabled);
-		},
-		
-		_onCJScored: function (score) {
-			console.log("Judge scored (points=" + score.points + ")");
-			this.match.judgeScored(score.judgeId, score.competitor, score.points);
-		},
-		
-		_updateJudgeScores: function (js, scores) {
-			js.hong.textContent = scores[0];
-			js.chong.textContent = scores[1];
-		},
-		
-		_onJudgeScoresUpdated: function (judgeId, scores) {
-			this._updateJudgeScores(this.judgeScoresById[judgeId], scores);
-		},
-		
-		_onScoresReset: function (newScoreboardColumnId) {
-			this.judgeScores.forEach(function (js) {
-				this._updateJudgeScores(js, [0, 0]);
-			}, this);
 		},
 		
 		_onPenaltiesReset: function (state) {

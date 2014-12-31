@@ -8,8 +8,8 @@ define([
 	
 ], function (PubSub, Handlebars, Helpers, Competitor, MatchStates) {
 	
-	function ResultPanel(ring) {
-		this.ring = ring;
+	function ResultPanel() {
+		this.ring = null;
 		this.root = document.getElementById('result-panel');
 		
 		// Subscribe to events
@@ -43,6 +43,10 @@ define([
 		
 		_publish: function (subTopic) {
 			PubSub.publish('resultPanel.' + subTopic, [].slice.call(arguments, 1));
+		},
+		
+		setRing: function (ring) {
+			this.ring = ring;
 		},
 		
 		_showWinner: function () {
@@ -144,9 +148,8 @@ define([
 			this._buildPenaltiesRow(columns, match.penalties, 'fouls');
 
 			// Build judge rows
-			Object.keys(this.ring.judgeById).forEach(function (judgeId) { 
-				var judge = this.ring.judgeById[judgeId];
-				this._buildJudgeRow(columns, judge.name, judge.scoreboard);
+			this.ring.cornerJudges.forEach(function (cj) { 
+				this._buildJudgeRow(columns, cj.name, cj.scoreboard);
 			}, this);
 		},
 		

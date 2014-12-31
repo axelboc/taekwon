@@ -177,8 +177,21 @@ var DB = {
 	 */
 	setRingJPId: function (ringId, jpId, cb) {
 		assert.string(ringId, 'ringId');
-		assert.string(jpId, 'jpId');
+		assert.ok(jpId === null || typeof jpId === 'string' && jpId.length > 0, 
+				  "`jpId` must be either `null` or a non-empty string");
 		ringsDb.update({ _id: ringId }, { $set: { jpId: jpId } }, callback(cb));
+	},
+	
+	/**
+	 * Set a ring's slot count.
+	 * @param {String} ringId
+	 * @param {Number} slotCount
+	 * @param {Function} cb
+	 */
+	setRingSlotCount: function (ringId, slotCount, cb) {
+		assert.string(ringId, 'ringId');
+		assert.integerGt0(slotCount, 'slotCount');
+		ringsDb.update({ _id: ringId }, { $set: { slotCount: slotCount } }, callback(cb));
 	},
 	
 	/**

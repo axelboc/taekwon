@@ -11,36 +11,30 @@ define([
 	
 ], function (PubSub, Helpers, IO, defaults, JudgesSidebar, ConfigPanel, MathPanel, ResultPanel) {
 	
-	function RingView(ring) {
-		this.ring = ring;
+	function RingView() {
 		this.root = document.getElementById('ring');
 		
 		// Initialise sidebar and panels
-		this.judgesSidebar = new JudgesSidebar(this.ring);
-		this.configPanel = new ConfigPanel(this.ring, defaults.match);
-		this.matchPanel = new MathPanel(this.ring);
-		this.resultPanel = new ResultPanel(this.ring);
+		this.judgesSidebar = new JudgesSidebar();
+		this.configPanel = new ConfigPanel(defaults.match);
+		this.matchPanel = new MathPanel();
+		this.resultPanel = new ResultPanel();
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
+				slotAdded: this._onSlotAdded,
+				slotRemoved: this._onSlotRemoved,
 				cjAdded: this._onCJAdded,
+				cjRemoved: this._onCJRemoved,
+				cjAuthorised: this._onCJAuthorised,
+				cjScored: this._onCJScored,
 				cjConnectionStateChanged: this._onCJConnectionStateChanged,
 				cjExited: this._onCJExited
-			},
-			ring: {
-				full: this._onRingFull,
-				matchInProgress: this._onMatchInProgress
 			},
 			match: {
 				created: this._onMatchCreated,
 				resultsComputed: this._onResultsComputed
-			},
-			judge: {
-				authorised: this._onJudgeAuthorised
-			},
-			judgesSidebar: {
-				judgeDetached: this._onJudgeDetached
 			},
 			configPanel: {
 				newMatchBtn: this._onNewMatchBtn
@@ -51,11 +45,6 @@ define([
 				newMatchBtn: this._onNewMatchBtn
 			}
 		});
-		
-		// Add judge slots
-		for (var i = 0, len = defaults.judgesPerRing; i < len; i += 1) {
-			this.ring.addSlot(i);
-		}
 	}
 	
 	RingView.prototype = {
@@ -64,29 +53,40 @@ define([
 			PubSub.publish('ringView.' + subTopic, [].slice.call(arguments, 1));
 		},
 		
-		_onCJAdded: function (judge) {
-			console.log("New corner judge (id=" + judge.id + ")");
-			this.ring.newJudge(judge.id, judge.name, false, judge.connected);
+		setRing: function (ring) {
+			this.ring = ring;
+			this.judgesSidebar.setRing(ring);
+			this.configPanel.setRing(ring);
+			this.matchPanel.setRing(ring);
+			this.resultPanel.setRing(ring);
 		},
 		
-		_onRingFull: function (judgeId) {
-			console.log("Ring full");
-			IO.rejectCJ(judgeId, "Ring full");
+		_onSlotAdded: function () {
+			this.ring.addSlot();
 		},
 		
-		_onMatchInProgress: function (judgeId) {
-			console.log("Cannot join ring: match in progress");
-			IO.rejectCJ(judgeId, "Match in progress");
+		_onSlotRemoved: function () {
+			this.ring.removeSlot();
 		},
 		
-		_onJudgeAuthorised: function (id) {
-			console.log("Judge authorised (id=" + id + ")");
-			IO.authoriseCJ(id);
+		_onCJAdded: function (data) {
+			console.log("New corner judge (id=" + data.id + ")");
+			this.ring.addCJ(data.id, data.name, false, data.connected);
 		},
 		
-		_onJudgeDetached: function (id) {
-			console.log("Judge detached (id=" + id + ")");
-			this.ring.judgeDetached(id);
+		_onCJRemoved: function (data) {
+			console.log("Corner judge removed from ring (id=" + data.id + ")");
+			this.ring.removeCJ(data.id);
+		},
+		
+		_onCJAuthorised: function (data) {
+			console.log("Corner judge authorised (id=" + data.id + ")");
+			this.ring.authoriseCJ(data.id);
+		},
+		
+		_onCJScored: function (data) {
+			console.log("Judge scored (points=" + data.points + ")");
+			this.ring.score(data.id, data.competitor, data.points);
 		},
 		
 		_onCJConnectionStateChanged: function (data) {
@@ -97,7 +97,7 @@ define([
 		_onCJExited: function (data) {
 			console.log("Judge exited");
 			// Detach judge
-			this.judgesSidebar.detachJudgeWithId(data.i);
+			this.ring.removeCJ(data.id);
 		},
 		
 		_showPanel: function (panel) {

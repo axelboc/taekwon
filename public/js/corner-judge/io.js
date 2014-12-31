@@ -18,6 +18,7 @@ define([
 		'ringStates',
 		'ringStateChanged',
 		'waitingForAuthorisation',
+		'rejected',
 		'ringJoined',
 		'ringLeft',
 		'jpConnectionStateChanged',

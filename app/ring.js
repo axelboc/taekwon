@@ -8,11 +8,12 @@ var EventEmitter = require('events').EventEmitter;
 var CornerJudge = require('./corner-judge').CornerJudge;
 var JuryPresident = require('./jury-president').JuryPresident;
 
-var JP_EVENTS = ['enableScoring', 'authoriseCJ','rejectCJ', 'removeCJ', 'connectionStateChanged', 'exited'];
 var JP_HANDLER_PREFIX = '_jp';
+var JP_EVENTS = ['enableScoring', 'authoriseCJ','rejectCJ', 'removeCJ', 'addSlot', 'removeSlot', 
+				 'connectionStateChanged', 'exited'];
 
-var CJ_EVENTS = ['connectionStateChanged', 'exited'];
 var CJ_HANDLER_PREFIX = '_cj';
+var CJ_EVENTS = ['connectionStateChanged', 'exited'];
 
 
 /**
@@ -124,8 +125,8 @@ Ring.prototype._close = function () {
 		}, this);
 		
 		// Close ring
-		this.juryPresident = null;
 		util.removeEventListeners(this.juryPresident, JP_EVENTS);
+		this.juryPresident = null;
 		this.emit('stateChanged');
 		
 		logger.info('closed', {
@@ -154,6 +155,13 @@ Ring.prototype.addCJ = function (cj) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
 	assert.array(this.cornerJudges, 'cornerJudges');
 	assert.ok(this.cornerJudges.indexOf(cj) === -1, "Corner Judge is already in the ring");
+	assert.ok(this.cornerJudges.length <= this.slotCount, "more Corner Judges than slots");
+	
+	// Reject the Corner Judge if the ring is full
+	if (this.cornerJudges.length === this.slotCount) {
+		cj.rejected("Ring full");
+		return;
+	}
 	
 	// Update the database
 	DB.addCJIdToRing(this.id, cj.id, function () {
@@ -184,23 +192,31 @@ Ring.prototype._removeCJ = function (cj, message) {
 	assert.string(message, 'message');
 	var index = this.cornerJudges.indexOf(cj);
 	assert.ok(index > -1, "Corner Judge is not in the ring");
+	assert.ok(this.juryPresident, "ring must have Jury President");
 	
 	// Update the database
 	DB.pullCJIdFromRing(this.id, cj.id, function () {
-		// Remove the Corner Judge from the ring
-		this.cornerJudges.splice(index, 1);
-		util.removeEventListeners(cj, CJ_EVENTS);
-		this.emit('cjRemoved');
+		DB.setCJAuthorised(cj.id, false, function () {
+			// Remove the Corner Judge from the ring
+			this.cornerJudges.splice(index, 1);
+			util.removeEventListeners(cj, CJ_EVENTS);
+			this.emit('cjRemoved');
 
-		// Acknowledge
-		cj.ringLeft(message);
+			// Acknowledge
+			this.juryPresident.cjRemoved(cj);
+			if (!cj.authorised) {
+				cj.rejected(message);
+			} else {
+				cj.ringLeft(message);
+			}
 
-		logger.info('cjRemoved', {
-			number: this.number,
-			cjId: cj.id,
-			cjName: cj.name,
-			message: message
-		});
+			logger.info('cjRemoved', {
+				number: this.number,
+				cjId: cj.id,
+				cjName: cj.name,
+				message: message
+			});
+		}.bind(this));
 	}.bind(this));
 };
 
@@ -229,27 +245,30 @@ Ring.prototype._jpEnableScoring = function (enable) {
 
 /**
  * A Corner Judge's request to join the ring has been authorised by the Jury President.
- * @param {String} id
+ * @param {String} id - the ID of the Corner Judge who has been authorised
  */
 Ring.prototype._jpAuthoriseCJ = function (id) {
 	assert.string(id, 'id');
-	
-	// Notify the Corner Judge
+	assert.ok(this.juryPresident, "ring must have Jury President");
 	var cj = this._getCornerJudgeById(id);
-	cj.ringJoined();
+	
+	// Update the database
+	DB.setCJAuthorised(id, true, function () {
+		// Acknowledge
+		cj.ringJoined();
+		this.juryPresident.cjAuthorised(cj);
+	}.bind(this));
 };
 
 /**
  * A Corner Judge's request to join the ring has been rejected by the Jury President.
- * @param {String} id - the ID of the Corner Judge who has been authorised
- * @param {String} message - the reason for the rejection
+ * @param {String} id - the ID of the Corner Judge who has been rejected
  */
-Ring.prototype._jpRejectCJ = function (id, message) {
+Ring.prototype._jpRejectCJ = function (id) {
 	assert.string(id, 'id');
-	assert.string(message, 'message');
-
+	
 	// Remove Corner Judge from ring
-	this._removeCJ(this._getCornerJudgeById(id), message);
+	this._removeCJ(this._getCornerJudgeById(id), "Not authorised to join ring");
 };
 
 /**
@@ -261,6 +280,40 @@ Ring.prototype._jpRemoveCJ = function (id) {
 
 	// Remove Corner Judge from ring
 	this._removeCJ(this._getCornerJudgeById(id), "Removed from ring");
+};
+
+/**
+ * Add a Corner Judge slot.
+ */
+Ring.prototype._jpAddSlot = function () {
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	
+	// Update the database
+	DB.setRingSlotCount(this.id, this.slotCount + 1, function () {
+		this.slotCount += 1;
+		this.juryPresident.slotAdded();
+	}.bind(this));
+};
+
+/**
+ * Remove a Corner Judge slot.
+ */
+Ring.prototype._jpRemoveSlot = function () {
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.integerGt0(this.slotCount, 'slotCount');
+	assert.ok(this.cornerJudges.length <= this.slotCount, "number of Corner Judges exceeds slot count");
+	
+	if (this.slotCount === 1) {
+		this.juryPresident.slotError("The ring requires at least one Corner Judge.");
+	} else if (this.cornerJudges.length === this.slotCount) {
+		this.juryPresident.slotError("Please remove a Corner Judge before proceeding.");
+	} else {
+		// Update the database
+		DB.setRingSlotCount(this.id, this.slotCount - 1, function () {
+			this.slotCount -= 1;
+			this.juryPresident.slotRemoved();
+		}.bind(this));
+	}
 };
 
 /**

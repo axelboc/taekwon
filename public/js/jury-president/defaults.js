@@ -3,7 +3,6 @@
  * Default settings
  */
 define({
-	judgesPerRing: 1,
 	timeIncrements: 15,
 	match: {
 		roundTime: 120,

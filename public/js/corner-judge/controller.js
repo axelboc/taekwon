@@ -26,6 +26,7 @@ define([
 				ringStates: this._onRingStates,
 				ringStateChanged: this._onRingStateChanged,
 				waitingForAuthorisation: this._onWaitingForAuthorisation,
+				rejected: this._onRejected,
 				ringJoined: this._onRingJoined,
 				ringLeft: this._onRingLeft,
 				jpConnectionStateChanged: this._onJPConnectionStateChanged,
@@ -144,6 +145,20 @@ define([
 			
 			// Update page title to show ring number
 			document.title = "Corner Judge | Ring " + (data.ringIndex + 1);
+		},
+		
+		/**
+		 * The Corner Judge's request to join a ring has been rejected.
+		 * Potential causes:
+		 * - rejected by Jury President,
+		 * - ring full.
+		 */
+		_onRejected: function(data) {
+			console.log(data.message);
+			
+			// Show ring list view. 
+			this.ringListView.updateInstr(data.message);
+			this._showView(this.ringListView);
 		},
 
 		/**
