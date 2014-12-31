@@ -65,7 +65,7 @@
 	margin-bottom: .7em;
 }
 
-.js-judge-disconnect {
+.js-judge-remove {
 	position: absolute;
 	top: 1.2em;
 	right: 0;
@@ -80,11 +80,11 @@
 	cursor: pointer;
 }
 
-.js-judge:hover > .js-judge-disconnect {
+.js-judge:hover > .js-judge-remove {
 	opacity: 1;
 }
 
-.js-judge-disconnect:hover {
+.js-judge-remove:hover {
     background-color: #ddd;
 	border: 1px solid #bbb;
     color: #444;

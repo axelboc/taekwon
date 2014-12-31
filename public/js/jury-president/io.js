@@ -18,7 +18,11 @@ define([
 		'ringStates',
 		'ringStateChanged',
 		'ringOpened',
+		'slotAdded',
+		'slotRemoved',
 		'cjAdded',
+		'cjRemoved',
+		'cjAuthorised',
 		'cjScored',
 		'cjConnectionStateChanged',
 		'cjExited',
@@ -143,6 +147,14 @@ define([
 			enable: enable
 		});
 	}
+	
+	function addSlot() {
+		primus.emit('addSlot');
+	}
+	
+	function removeSlot() {
+		primus.emit('removeSlot');
+	}
 
 	return {
 		init: init,
@@ -153,7 +165,9 @@ define([
 		rejectCJ: rejectCJ,
 		removeCJ: removeCJ,
 		sessionRestored: sessionRestored,
-		enableScoring: enableScoring
+		enableScoring: enableScoring,
+		addSlot: addSlot,
+		removeSlot: removeSlot
 	};
 	
 });

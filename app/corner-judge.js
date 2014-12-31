@@ -111,6 +111,7 @@ CornerJudge.prototype._onScore = function (data) {
 	// Store the score so it can be undone
 	this.scores.push(data);
 	
+	// TODO: fix scoring; move spark.emit() to separate function
 	if (this.connected) {
 		// Acknowledge that the score has been processed
 		this.spark.emit('scoreConfirmed', data);

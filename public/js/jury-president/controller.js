@@ -110,9 +110,9 @@ define([
 			IO.openRing(index);
 		},
 
-		_initRing: function(index) {
+		_initRing: function(index, slotCount) {
 			// Initialise ring model, view and controller
-			var ring = new Ring(index, defaults.judgesPerRing);
+			var ring = new Ring(index, slotCount);
 			this.ringView = new RingView(ring);
 			
 			// Update page title to show ring number
@@ -120,8 +120,8 @@ define([
 		},
 
 		_onRingOpened: function(data) {
-			console.log("Ring opened (index=" + data.index + ")");
-			this._initRing(data.index);
+			console.log("Ring opened (index=" + data.index + ", slotCount=" + data.slotCount + ")");
+			this._initRing(data.index, data.slotCount);
 			this._showView(this.ringView);
 		},
 
@@ -141,11 +141,11 @@ define([
 
 			// If a ring was created, initialise it then add corner judges and show authorisation view
 			} else {
-				this._initRing(data.ringIndex);
+				this._initRing(data.ringIndex, data.ringSlotCount);
 
 				for (var i = 0, len = data.cornerJudges.length; i < len; i += 1) {
 					var judge = data.cornerJudges[i];
-					this.ringView.ring.newJudge(judge.id, judge.name, judge.authorised, judge.connected);
+					this.ringView.ring.addCJ(judge.id, judge.name, judge.authorised, judge.connected);
 				}
 
 				this._showView(this.ringView);

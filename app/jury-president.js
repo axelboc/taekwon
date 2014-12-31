@@ -6,7 +6,7 @@ var util = require('util');
 var DB = require('./lib/db');
 var User = require('./user').User;
 
-var INBOUND_SPARK_EVENTS = ['openRing', 'enableScoring', 'authoriseCJ', 'rejectCJ', 'removeCJ'];
+var INBOUND_SPARK_EVENTS = ['openRing', 'enableScoring', 'authoriseCJ', 'rejectCJ', 'removeCJ', 'addSlot', 'removeSlot'];
 
 
 /**
@@ -52,6 +52,7 @@ JuryPresident.prototype.restoreSession = function (spark, ringStates) {
 	var data = {
 		ringStates: ringStates,
 		ringIndex: this.ring ? this.ring.index : -1,
+		ringSlotCount: this.ring ? this.ring.slotCount : -1,
 		cornerJudges: []
 	};
 	
@@ -144,6 +145,20 @@ JuryPresident.prototype._onRemoveCJ = function (data) {
 	this.emit('removeCJ', data.id);
 };
 
+/**
+ * Add a Corner Judge slot.
+ */
+JuryPresident.prototype._onAddSlot = function () {
+	this.emit('addSlot');
+};
+
+/**
+ * Remove a Corner Judge slot.
+ */
+JuryPresident.prototype._onRemoveSlot = function () {
+	this.emit('removeSlot');
+};
+
 
 /*
  * ==================================================
@@ -163,7 +178,8 @@ JuryPresident.prototype.ringOpened = function (ring) {
 	
 	if (this.connected) {
 		this.spark.emit('ringOpened', {
-			index: ring.index
+			index: ring.index,
+			slotCount: ring.slotCount
 		});
 	}
 };
@@ -182,6 +198,36 @@ JuryPresident.prototype.cjAdded = function (cj) {
 			id: cj.id,
 			name: cj.name,
 			connected: cj.connected
+		});
+	}
+};
+
+/**
+ * A Corner Judge has been removed from the ring.
+ * @param {CornerJudge} cj
+ */
+JuryPresident.prototype.cjRemoved = function (cj) {
+	assert.provided(cj, 'cj');
+	logger.debug("Corner Judge removed from ring");
+	
+	if (this.connected) {
+		this.spark.emit('cjRemoved', {
+			id: cj.id
+		});
+	}
+};
+
+/**
+ * A Corner Judge has been authorised to join the ring.
+ * @param {CornerJudge} cj
+ */
+JuryPresident.prototype.cjAuthorised = function (cj) {
+	assert.provided(cj, 'cj');
+	logger.debug("> Corner Judge authorised");
+	
+	if (this.connected) {
+		this.spark.emit('cjAuthorised', {
+			id: cj.id
 		});
 	}
 };
@@ -230,6 +276,24 @@ JuryPresident.prototype.cjExited = function (cj) {
 		this.spark.emit('cjExited', {
 			id: cj.id
 		});
+	}
+};
+
+/**
+ * A Corner Judge slot has been added to the ring.
+ */
+JuryPresident.prototype.slotAdded = function () {
+	if (this.connected) {
+		this.spark.emit('slotAdded');
+	}
+};
+
+/**
+ * A Corner Judge slot has been removed to the ring.
+ */
+JuryPresident.prototype.slotRemoved = function () {
+	if (this.connected) {
+		this.spark.emit('slotRemoved');
 	}
 };
 

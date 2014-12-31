@@ -14,31 +14,26 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			ring: {
-				slotAdded: this._onSlotAdded,
-				slotRemoved: this._onSlotRemoved
+				slotsUpdated: this._updateList,
+				cjAdded: this._updateList,
+				cjRemoved: this._updateList
 			},
 			judge: {
-				initialised: this._onJudgeInitialised,
-				authorised: this._onJudgeAuthorised,
-				connectionStateChanged: this._onJudgeConnectionStateChanged
+				authorised: this._updateList,
+				connectionStateChanged: this._updateList
 			}
 		});
 
 		this.list = this.root.querySelector('.js-list');
-		this.judgeTemplate = Handlebars.compile(document.getElementById('js-judge-tmpl').innerHTML);
-		
-		this.slots = [];
-		this.slotsById = {};
+		this.listTemplate = Handlebars.compile(document.getElementById('js-list-tmpl').innerHTML);
+		this._updateList();
 		
 		this.addSlotBtn = this.root.querySelector('.js-add');
 		this.removeSlotBtn = this.root.querySelector('.js-remove');
 		
+		this.list.addEventListener('click', this._onListDelegate.bind(this));
 		this.addSlotBtn.addEventListener('click', this._onAddSlotBtn.bind(this));
 		this.removeSlotBtn.addEventListener('click', this._onRemoveSlotBtn.bind(this));
-		
-		// If restoring session, the list of slots needs to be cleared
-		this.list.innerHTML = '';
-		console.log("Cleared slots");
 	}
 	
 	JudgesSidebar.prototype = {
@@ -47,118 +42,54 @@ define([
 			PubSub.publish('judgesSidebar.' + subTopic, [].slice.call(arguments, 1));
 		},
 		
-		_onSlotAdded: function (index) {
-			console.log("Judge slot added (index=" + index + ")");
-			var elem = document.createElement('li');
-			elem.className = 'js-judge';
-			elem.innerHTML = this.judgeTemplate({ index: index + 1 });
-			this.list.appendChild(elem);
+		_updateList: function () {
+			// Prepare template context
+			var slots = [];
+			for (var i = 0, len = this.ring.slotCount; i < len; i += 1) {
+				var cj = this.ring.cornerJudges[i];
+				slots.push({
+					index: i + 1,
+					cj: !cj ? null : {
+						id: cj.id,
+						name: cj.name,
+						authorised: cj.authorised,
+						connected: cj.connected
+					}
+				});
+			};
 			
-			var slot = {
-				index: index,
-				judge: null,
-				root: elem,
-				name: elem.querySelector('.js-judge-name'),
-				state: elem.querySelector('.js-judge-state'),
-				btnList: elem.querySelector('.js-judge-btns'),
-				acceptBtn: elem.querySelector('.js-judge-accept'),
-				rejectBtn: elem.querySelector('.js-judge-reject'),
-				disconnectBtn: elem.querySelector('.js-judge-disconnect')
-			}
-			
-			slot.acceptBtn.addEventListener('click', this._onAcceptBtn.bind(this, index));
-			slot.rejectBtn.addEventListener('click', this._onRejectBtn.bind(this, index));
-			slot.disconnectBtn.addEventListener('click', this._onDisconnectBtn.bind(this, index));
-			
-			this.slots.push(slot);
+			// Execute template
+			this.list.innerHTML = this.listTemplate({
+				slots: slots
+			});
 		},
 		
-		_onSlotRemoved: function (index) {
-			console.log("Judge slot removed (index=" + index + ")");
-			this.list.removeChild(this.slots[index].root);
-			this.slots.splice(index, 1);
+		_onListDelegate: function (evt) {
+			var btn = evt.target;
+			if (btn && btn.nodeName == 'BUTTON') {
+				var id = btn.dataset.id;
+				if (btn.classList.contains('js-judge-remove')) {
+					/*var confirmText = "Match in progress. If you continue, this judge's scoreboard will be erased completely. Disconnect anyway?"; if (!this.ring.match || !this.ring.match.isInProgress() || confirm(confirmText)) {*/
+					console.log("Judge removed");
+					IO.removeCJ(id);
+				} else if (btn.classList.contains('js-judge-accept')) {
+					console.log("Judge authorised");
+					IO.authoriseCJ(id);
+				} else if (btn.classList.contains('js-judge-reject')) {
+					console.log("Judge rejected");
+					IO.rejectCJ(id, "Not authorised to join ring");
+				}
+			}
 		},
 		
 		_onAddSlotBtn: function () {
 			this.addSlotBtn.blur();
-			this.ring.addSlot(this.ring.judgeSlotCount);
+			IO.addSlot();
 		},
 		
 		_onRemoveSlotBtn: function () {
 			this.removeSlotBtn.blur();
-			this.ring.removeSlot(this.slots.length - 1);
-		},
-		
-		_updateSlot: function (slot) {
-			var judge = slot.judge;
-			
-			// Update name and state
-			if (!judge) {
-				slot.name.textContent = "Judge #" + (slot.index + 1);
-				slot.state.textContent = "Waiting for connection";
-			} else {
-				slot.name.textContent = judge.name;
-				if (judge.connected) {
-					slot.state.textContent = "Connected";
-				} else {
-					slot.state.textContent = "Connection lost. Waiting for reconnection...";
-				}
-			}
-			
-			// Toggle elements
-			slot.state.classList.toggle('hidden', judge && !judge.authorised);
-			slot.btnList.classList.toggle('hidden', !judge || judge.authorised);
-			slot.disconnectBtn.classList.toggle('hidden', !judge || !judge.authorised);
-		},
-		
-		_onJudgeInitialised: function (id, judge) {
-			var slot = this.slots[judge.index];
-			slot.judge = judge;
-			this.slotsById[id] = slot;
-			this._updateSlot(slot);
-		},
-		
-		_onJudgeAuthorised: function (id) {
-			var slot = this.slotsById[id];
-			this._updateSlot(slot);
-		},
-		
-		_onJudgeConnectionStateChanged: function (id, connected) {
-			this._updateSlot(this.slotsById[id]);
-		},
-		
-		_detachJudge: function (slot) {
-			var id = slot.judge.id;
-			delete this.slotsById[id]
-			slot.judge = null;
-			this._updateSlot(slot);
-			this._publish('judgeDetached', id, slot.index);
-		},
-		
-		detachJudgeWithId: function (id) {
-			this._detachJudge(this.slotsById[id]);
-		},
-		
-		_onAcceptBtn: function (index) {
-			this.slots[index].judge.authorise();
-		},
-		
-		_onRejectBtn: function (index) {
-			console.log("Judge rejected");
-			var slot = this.slots[index];
-			IO.rejectCJ(slot.judge.id, "Not authorised to join ring");
-			this._detachJudge(slot);
-		},
-		
-		_onDisconnectBtn: function (index) {
-			var confirmText = "Match in progress. If you continue, this judge's scoreboard will be erased completely. Disconnect anyway?";
-			
-			if (!this.ring.match || !this.ring.match.isInProgress() || confirm(confirmText)) {
-				console.log("Judge disconnected");
-				var slot = this.slots[index];
-				IO.removeCJ(slot.judge.id);
-				this._detachJudge(slot);
-			}
+			IO.removeSlot();
 		}
 		
 	};

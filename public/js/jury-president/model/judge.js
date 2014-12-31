@@ -5,17 +5,14 @@ define([
 
 ], function (PubSub, Competitors) {
 	
-	function Judge(id, index, name, authorised, connected) {
+	function Judge(id, name, authorised, connected) {
 		this.id = id;
-		this.index = index;
 		this.name = name;
 		this.connected = connected;
 		this.authorised = authorised;
 		
 		this.scoreboard;
 		this.resetScoreboard();
-		
-		this._publish('initialised', this);
 	}
 	
 	Judge.prototype = {
@@ -42,7 +39,7 @@ define([
 			this.scoreboard = {};
 		},
 		
-		_getCurrentScores: function (columnId) {
+		getCurrentScores: function (columnId) {
 			var scores = this.scoreboard[columnId];
 			
 			// If column doesn't exist, create it
@@ -54,15 +51,15 @@ define([
 		},
 		
 		score: function (columnId, competitor, points) {
-			var scores = this._getCurrentScores(columnId);
+			var scores = this.getCurrentScores(columnId);
 			var competitorIndex = (competitor === Competitors.HONG ? 0 : 1);
 			scores[competitorIndex] += points;
-			this._publish('scoresUpdated', scores);
+			this._publish('scored', scores);
 		},
 		
 		computeTotal: function (columnId, totalColumnId, maluses) {
 			// Sum scores and maluses (negative integers)
-			var scores = this._getCurrentScores(columnId);
+			var scores = this.getCurrentScores(columnId);
 			var totals = [scores[0] + maluses[0], scores[1] + maluses[1]];
 			
 			// Store totals in scoreboard

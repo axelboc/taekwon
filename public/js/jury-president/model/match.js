@@ -78,8 +78,8 @@ define([
 			this.penalties[totalColumnId] = maluses;
 			
 			// Ask judges to compute their total scores
-			Object.keys(this.ring.judgeById).forEach(function (judgeId) {
-				this.ring.judgeById[judgeId].computeTotal(this.scoreboardColumnId, totalColumnId, maluses);
+			this.ring.cornerJudges.forEach(function (cj) {
+				cj.computeTotal(this.scoreboardColumnId, totalColumnId, maluses);
 			}, this);
 			
 			return totalColumnId;
@@ -93,10 +93,10 @@ define([
 			var ties = 0;
 			
 			// Ask judges to return their winner
-			var judgeIds = Object.keys(this.ring.judgeById);
-			judgeIds.forEach(function (judgeId) {
+			var cjs = this.ring.cornerJudges;
+			cjs.forEach(function (cj) {
 				// Get winner
-				var winner = this.ring.judgeById[judgeId].getWinner(totalColumnId);
+				var winner = cj.getWinner(totalColumnId);
 				
 				// +1 if hong wins, -1 if chong wins, 0 if tie (null)
 				diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
@@ -104,7 +104,7 @@ define([
 			}, this);
 			
 			// If majority of ties, match is also a tie
-			if (judgeIds.length > 2 && ties > Math.floor(judgeIds.length % 2)) {
+			if (cjs.length > 2 && ties > Math.floor(cjs.length % 2)) {
 				return null;
 			} else {
 				// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
@@ -216,10 +216,6 @@ define([
 		setScoringState: function (enabled) {
 			this.scoringEnabled = enabled;
 			this._publish('scoringStateChanged', enabled);
-		},
-		
-		judgeScored: function (id, competitor, points) {
-			this.ring.judgeById[id].score(this.scoreboardColumnId, competitor, points);
 		},
 		
 		incrementPenalty: function (type, competitor) {

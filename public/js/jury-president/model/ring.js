@@ -6,15 +6,11 @@ define([
 
 ], function (PubSub, Judge, Match) {
 	
-	function Ring(index) {
+	function Ring(index, slotCount) {
 		this.index = index;
+		this.slotCount = slotCount;
 		
-		this.judgeSlots = [];
-		this.judgeSlotCount = 0;
-		
-		this.judgeById = {};
-		this.judgeCount = 0;
-		
+		this.cornerJudges = [];
 		this.match = null;
 	}
 	
@@ -24,81 +20,82 @@ define([
 			PubSub.publish('ring.' + subTopic, [].slice.call(arguments, 1));
 		},
 		
-		addSlot: function (index) {
-			this.judgeSlotCount += 1;
-			this.judgeSlots.push({
-				index: index,
-				judge: null
-			});
-			this._publish('slotAdded', index);
+		getCornerJudgeById: function (id) {
+			// Find the Corner Judge with the given ID
+			var cornerJudge = this.cornerJudges.filter(function (cj) {
+				return cj.id === id;
+			}, this);
+			
+			if (cornerJudge.length !== 1) {
+				console.error("Error while getting Corner Judge by ID (ID=" + id + ", found=" + cornerJudge.length + ")");
+			}
+			
+			return cornerJudge[0];
 		},
 		
-		removeSlot: function (index) {
-			if (this.judgeSlotCount === 1) {
+		addSlot: function () {
+			this.slotCount += 1;
+			this._publish('slotsUpdated');
+		},
+		
+		removeSlot: function () {
+			/*if (this.slotCount === 1) {
 				alert("Ring must contain at least one judge slot.");
-			} else if (this.judgeSlots[index].judge) {
+			} else if (this.slots[index].judge) {
 				alert("To proceed, first disconnect corner judge from last slot.");
-			} else {
-				this.judgeSlotCount -= 1;
-				this.judgeSlots.splice(index, 1);
-				this._publish('slotRemoved', index);
-			}
+			} else {*/
+			this.slotCount -= 1;
+			this._publish('slotsUpdated');
 		},
 		
-		_findFreeJudgeSlot: function () {
-			for (var i = 0; i < this.judgeSlotCount; i += 1) {
-				if (!this.judgeSlots[i].judge) {
-					return i;
-				}
-			}
-			// No free slot found
-			return -1;
-		},
-		
-		newJudge: function (id, name, authorised, connected) {
-			var index = this._findFreeJudgeSlot();
-			if (index === -1) {
-				console.error("No free slot: ring is full");
+		addCJ: function (id, name, authorised, connected) {
+			if (this.cornerJudges.length > this.slotCount) {
+				console.error("Ring is full");
 			} else if (this.match && this.match.isInProgress()) {
+				console.error("Corner Judge cannot join ring while match is in progress");
 				this._publish('matchInProgress', id);
 			} else {
-				var judge = new Judge(id, index, name, authorised, connected);
-				this.judgeSlots[index].judge = judge;
-				this.judgeCount += 1;
-				this.judgeById[judge.id] = judge;
-				this._publish('judgeAttached', judge);
+				var cj = new Judge(id, name, authorised, connected);
+				this.cornerJudges.push(cj);
+				this._publish('cjAdded', cj);
 			}
 		},
 		
-		judgeDetached: function (id) {
-			var judge = this.judgeById[id];
-			delete this.judgeById[id];
-			this.judgeSlots[judge.index].judge = null;
-			this.judgeCount -= 1;
-			this._publish('judgeDetached', judge);
+		removeCJ: function (id) {
+			var cj = this.getCornerJudgeById(id);
+			this.cornerJudges.splice(this.cornerJudges.indexOf(cj), 1);
+			this._publish('cjRemoved', cj);
+		},
+		
+		authoriseCJ: function (id) {
+			this.getCornerJudgeById(id).authorise();
+		},
+		
+		score: function (id, competitor, points) {
+			this.getCornerJudgeById(id).score(this.match.scoreboardColumnId, competitor, points);
 		},
 		
 		judgeStateChanged: function (id, connected) {
-			this.judgeById[id].setConnectionState(connected);
+			this.getCornerJudgeById(id).setConnectionState(connected);
 		},
 		
 		newMatch: function (config) {
 			// Check for empty slots
-			var diff = this.judgeSlotCount - this.judgeCount;
+			var diff = this.slotCount - this.cornerJudges.length;
 			if (diff > 0) {
 				alert("Waiting for " + diff + " more corner judge" + (diff > 1 ? "s" : "") + " to join the ring.");
 			} else {
 				// Check for unauthorised Corner Judges
-				var unauthorised = this.judgeSlots.filter(function (slot) {
-					return !slot.judge.authorised;
+				var unauthorised = this.cornerJudges.filter(function (cj) {
+					return !cj.authorised;
 				}).length;
 				
 				if (unauthorised > 0) {
 					alert(unauthorised + " corner judge" + (unauthorised > 1 ? "s are" : " is") + " awaiting your authorisation to join the ring.");
 				} else {
 					// Check for disconnected Corner Judges
-					var disconnected = this.judgeSlots.filter(function (slot) {
-						return !slot.judge.connected;
+					var disconnected = this.cornerJudges.filter(function (cj) {
+						return !cj.connected;
 					}).length;
 					
 					if (disconnected > 0) {
@@ -113,9 +110,9 @@ define([
 		
 		resetScoreboards: function () {
 			// Ask judges to reset their scoreboard
-			Object.keys(this.judgeById).forEach(function (judgeId) {
-				this.judgeById[judgeId].resetScoreboard();
-			}, this);
+			this.cornerJudges.forEach(function (cj) {
+				cj.resetScoreboard();
+			});
 		}
 		
 	};

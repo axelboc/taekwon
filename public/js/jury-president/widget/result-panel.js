@@ -144,9 +144,8 @@ define([
 			this._buildPenaltiesRow(columns, match.penalties, 'fouls');
 
 			// Build judge rows
-			Object.keys(this.ring.judgeById).forEach(function (judgeId) { 
-				var judge = this.ring.judgeById[judgeId];
-				this._buildJudgeRow(columns, judge.name, judge.scoreboard);
+			this.ring.cornerJudges.forEach(function (cj) { 
+				this._buildJudgeRow(columns, cj.name, cj.scoreboard);
 			}, this);
 		},
 		
