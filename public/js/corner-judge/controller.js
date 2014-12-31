@@ -151,8 +151,7 @@ define([
 		 * The Corner Judge's request to join a ring has been rejected.
 		 * Potential causes:
 		 * - rejected by Jury President,
-		 * - ring full,
-		 * - match in progress.
+		 * - ring full.
 		 */
 		_onRejected: function(data) {
 			console.log(data.message);

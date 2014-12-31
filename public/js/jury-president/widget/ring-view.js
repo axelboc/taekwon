@@ -32,9 +32,6 @@ define([
 				cjConnectionStateChanged: this._onCJConnectionStateChanged,
 				cjExited: this._onCJExited
 			},
-			ring: {
-				matchInProgress: this._onMatchInProgress
-			},
 			match: {
 				created: this._onMatchCreated,
 				resultsComputed: this._onResultsComputed
@@ -101,11 +98,6 @@ define([
 			console.log("Judge exited");
 			// Detach judge
 			this.ring.removeCJ(data.id);
-		},
-		
-		_onMatchInProgress: function (judgeId) {
-			console.log("Cannot join ring: match in progress");
-			IO.rejectCJ(judgeId, "Match in progress");
 		},
 		
 		_showPanel: function (panel) {

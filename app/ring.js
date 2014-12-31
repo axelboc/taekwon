@@ -245,7 +245,7 @@ Ring.prototype._jpEnableScoring = function (enable) {
 
 /**
  * A Corner Judge's request to join the ring has been authorised by the Jury President.
- * @param {String} id
+ * @param {String} id - the ID of the Corner Judge who has been authorised
  */
 Ring.prototype._jpAuthoriseCJ = function (id) {
 	assert.string(id, 'id');
@@ -262,15 +262,13 @@ Ring.prototype._jpAuthoriseCJ = function (id) {
 
 /**
  * A Corner Judge's request to join the ring has been rejected by the Jury President.
- * @param {String} id - the ID of the Corner Judge who has been authorised
- * @param {String} message - the reason for the rejection
+ * @param {String} id - the ID of the Corner Judge who has been rejected
  */
-Ring.prototype._jpRejectCJ = function (id, message) {
+Ring.prototype._jpRejectCJ = function (id) {
 	assert.string(id, 'id');
-	assert.string(message, 'message');
 	
 	// Remove Corner Judge from ring
-	this._removeCJ(this._getCornerJudgeById(id), message);
+	this._removeCJ(this._getCornerJudgeById(id), "Not authorised to join ring");
 };
 
 /**
@@ -302,13 +300,20 @@ Ring.prototype._jpAddSlot = function () {
  */
 Ring.prototype._jpRemoveSlot = function () {
 	assert.ok(this.juryPresident, "ring must have Jury President");
-	// TODO: add test (cannot remove last slot; cannot remove slot if ring is full)
+	assert.integerGt0(this.slotCount, 'slotCount');
+	assert.ok(this.cornerJudges.length <= this.slotCount, "number of Corner Judges exceeds slot count");
 	
-	// Update the database
-	DB.setRingSlotCount(this.id, this.slotCount - 1, function () {
-		this.slotCount -= 1;
-		this.juryPresident.slotRemoved();
-	}.bind(this));
+	if (this.slotCount === 1) {
+		this.juryPresident.slotError("The ring requires at least one Corner Judge.");
+	} else if (this.cornerJudges.length === this.slotCount) {
+		this.juryPresident.slotError("Please remove a Corner Judge before proceeding.");
+	} else {
+		// Update the database
+		DB.setRingSlotCount(this.id, this.slotCount - 1, function () {
+			this.slotCount -= 1;
+			this.juryPresident.slotRemoved();
+		}.bind(this));
+	}
 };
 
 /**

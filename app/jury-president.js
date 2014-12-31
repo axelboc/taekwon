@@ -123,14 +123,12 @@ JuryPresident.prototype._onAuthoriseCJ = function (data) {
  * Reject a Corner Judge's request to join the ring.
  * @param {Object} data
  * 		  {String} data.id - the ID of the Corner Judge to reject
- * 		  {String} data.message - the reason for the rejection
  */
 JuryPresident.prototype._onRejectCJ = function (data) {
 	assert.object(data, 'data');
 	assert.string(data.id, 'data.id');
-	assert.string(data.message, 'data.message');
 	
-	this.emit('rejectCJ', data.id, data.message);
+	this.emit('rejectCJ', data.id);
 };
 
 /**
@@ -294,6 +292,20 @@ JuryPresident.prototype.slotAdded = function () {
 JuryPresident.prototype.slotRemoved = function () {
 	if (this.connected) {
 		this.spark.emit('slotRemoved');
+	}
+};
+
+/**
+ * A Corner Judge slot could not be removed from the ring.
+ * @param {String} message - the reason for the error
+ */
+JuryPresident.prototype.slotError = function (message) {
+	assert.string(message, 'message');
+	
+	if (this.connected) {
+		this.spark.emit('slotError', {
+			message: message
+		});
 	}
 };
 

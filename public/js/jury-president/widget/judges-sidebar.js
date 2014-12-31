@@ -13,6 +13,9 @@ define([
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
+			io: {
+				slotError: this._onSlotError	
+			},
 			ring: {
 				slotsUpdated: this._updateList,
 				cjAdded: this._updateList,
@@ -68,20 +71,28 @@ define([
 			});
 		},
 		
+		_onSlotError: function (data) {
+			alert(data.message);
+		},
+		
 		_onListDelegate: function (evt) {
 			var btn = evt.target;
 			if (btn && btn.nodeName == 'BUTTON') {
 				var id = btn.dataset.id;
 				if (btn.classList.contains('js-judge-remove')) {
-					/*var confirmText = "Match in progress. If you continue, this judge's scoreboard will be erased completely. Disconnect anyway?"; if (!this.ring.match || !this.ring.match.isInProgress() || confirm(confirmText)) {*/
-					console.log("Judge removed");
-					IO.removeCJ(id);
+					// Ask for confirmation if a match is in progress
+					if (!this.ring.match || !this.ring.match.isInProgress() || 
+						confirm("Match in progress. If you continue, this judge's scores will be erased. " +
+								"Remove anyway?")) {
+						console.log("Judge removed");
+						IO.removeCJ(id);
+					}
 				} else if (btn.classList.contains('js-judge-accept')) {
 					console.log("Judge authorised");
 					IO.authoriseCJ(id);
 				} else if (btn.classList.contains('js-judge-reject')) {
 					console.log("Judge rejected");
-					IO.rejectCJ(id, "Not authorised to join ring");
+					IO.rejectCJ(id);
 				}
 			}
 		},

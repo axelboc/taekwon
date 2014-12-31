@@ -20,6 +20,7 @@ define([
 		'ringOpened',
 		'slotAdded',
 		'slotRemoved',
+		'slotError',
 		'cjAdded',
 		'cjRemoved',
 		'cjAuthorised',
@@ -124,10 +125,9 @@ define([
 		});
 	}
 	
-	function rejectCJ(id, message) {
+	function rejectCJ(id) {
 		primus.emit('rejectCJ', {
-			id: id,
-			message: message
+			id: id
 		});
 	}
 	
