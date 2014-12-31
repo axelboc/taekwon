@@ -7,8 +7,8 @@ define([
 
 ], function (PubSub, Handlebars, Helpers, IO) {
 	
-	function JudgesSidebar(ring) {
-		this.ring = ring;
+	function JudgesSidebar() {
+		this.ring = null;
 		this.root = document.getElementById('judges-sidebar');
 		
 		// Subscribe to events
@@ -26,7 +26,6 @@ define([
 
 		this.list = this.root.querySelector('.js-list');
 		this.listTemplate = Handlebars.compile(document.getElementById('js-list-tmpl').innerHTML);
-		this._updateList();
 		
 		this.addSlotBtn = this.root.querySelector('.js-add');
 		this.removeSlotBtn = this.root.querySelector('.js-remove');
@@ -40,6 +39,11 @@ define([
 		
 		_publish: function (subTopic) {
 			PubSub.publish('judgesSidebar.' + subTopic, [].slice.call(arguments, 1));
+		},
+		
+		setRing: function (ring) {
+			this.ring = ring;
+			this._updateList();
 		},
 		
 		_updateList: function () {

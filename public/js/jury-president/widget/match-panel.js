@@ -9,8 +9,8 @@ define([
 
 ], function (PubSub, Handlebars, Helpers, IO, MatchStates, Timer) {
 	
-	function MatchPanel(ring) {
-		this.ring = ring;
+	function MatchPanel() {
+		this.ring = null;
 		this.match = null;
 		this.root = document.getElementById('match-panel');
 		
@@ -92,6 +92,10 @@ define([
 		
 		_publish: function (subTopic) {
 			PubSub.publish('matchPanel.' + subTopic, [].slice.call(arguments, 1));
+		},
+		
+		setRing: function (ring) {
+			this.ring = ring;
 		},
 		
 		_onTimerTick: function (name, value) {

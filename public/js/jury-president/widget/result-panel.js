@@ -8,8 +8,8 @@ define([
 	
 ], function (PubSub, Handlebars, Helpers, Competitor, MatchStates) {
 	
-	function ResultPanel(ring) {
-		this.ring = ring;
+	function ResultPanel() {
+		this.ring = null;
 		this.root = document.getElementById('result-panel');
 		
 		// Subscribe to events
@@ -43,6 +43,10 @@ define([
 		
 		_publish: function (subTopic) {
 			PubSub.publish('resultPanel.' + subTopic, [].slice.call(arguments, 1));
+		},
+		
+		setRing: function (ring) {
+			this.ring = ring;
 		},
 		
 		_showWinner: function () {

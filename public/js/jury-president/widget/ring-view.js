@@ -11,15 +11,14 @@ define([
 	
 ], function (PubSub, Helpers, IO, defaults, JudgesSidebar, ConfigPanel, MathPanel, ResultPanel) {
 	
-	function RingView(ring) {
-		this.ring = ring;
+	function RingView() {
 		this.root = document.getElementById('ring');
 		
 		// Initialise sidebar and panels
-		this.judgesSidebar = new JudgesSidebar(ring);
-		this.configPanel = new ConfigPanel(ring, defaults.match);
-		this.matchPanel = new MathPanel(ring);
-		this.resultPanel = new ResultPanel(ring);
+		this.judgesSidebar = new JudgesSidebar();
+		this.configPanel = new ConfigPanel(defaults.match);
+		this.matchPanel = new MathPanel();
+		this.resultPanel = new ResultPanel();
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
@@ -55,6 +54,14 @@ define([
 		
 		_publish: function (subTopic) {
 			PubSub.publish('ringView.' + subTopic, [].slice.call(arguments, 1));
+		},
+		
+		setRing: function (ring) {
+			this.ring = ring;
+			this.judgesSidebar.setRing(ring);
+			this.configPanel.setRing(ring);
+			this.matchPanel.setRing(ring);
+			this.resultPanel.setRing(ring);
 		},
 		
 		_onSlotAdded: function () {

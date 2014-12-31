@@ -44,7 +44,7 @@ define([
 		this.wsErrorView = new WsErrorView();
 		this.pwdView = new PwdView();
 		this.ringListView = new RingListView();
-		this.ringView = null;
+		this.ringView = new RingView();
 		
 		// Initialise backdrop
 		this.backdrop = new Backdrop();
@@ -113,7 +113,7 @@ define([
 		_initRing: function(index, slotCount) {
 			// Initialise ring model, view and controller
 			var ring = new Ring(index, slotCount);
-			this.ringView = new RingView(ring);
+			this.ringView.setRing(ring);
 			
 			// Update page title to show ring number
 			document.title = "Jury President | Ring " + (index + 1);

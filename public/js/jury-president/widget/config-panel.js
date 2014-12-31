@@ -6,8 +6,8 @@ define([
 
 ], function (PubSub, Helpers, defaults) {
 	
-	function ConfigPanel(ring) {
-		this.ring = ring;
+	function ConfigPanel() {
+		this.ring = null;
 		this.config = defaults.match;
 		this.root = document.getElementById('config-panel');
 		
@@ -43,6 +43,10 @@ define([
 		
 		_publish: function (subTopic) {
 			PubSub.publish('configPanel.' + subTopic, [].slice.call(arguments, 1));
+		},
+		
+		setRing: function (ring) {
+			this.ring = ring;
 		},
 		
 		_numToTime: function (num) {
