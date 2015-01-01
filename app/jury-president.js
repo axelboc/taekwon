@@ -237,12 +237,30 @@ JuryPresident.prototype.cjAuthorised = function (cj) {
  */
 JuryPresident.prototype.cjScored = function (cj, score) {
 	assert.provided(cj, 'cj');
-	
-	// Add Corner Judge ID to data to transmit
-	score.judgeId = cj.id;
+	assert.provided(score, 'score');
 	
 	if (this.connected) {
-		this.spark.emit('cjScored', score);
+		this.spark.emit('cjScored', {
+			id: cj.id,
+			score: score
+		});
+	}
+};
+
+/**
+ * A Corner Judge has undone a previous score.
+ * @param {CornerJudge} cj
+ * @param {Object} score
+ */
+JuryPresident.prototype.cjUndid = function (cj, score) {
+	assert.provided(cj, 'cj');
+	assert.provided(score, 'score');
+	
+	if (this.connected) {
+		this.spark.emit('cjUndid', {
+			id: cj.id,
+			score: score
+		});
 	}
 };
 

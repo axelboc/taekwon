@@ -29,6 +29,7 @@ define([
 				cjRemoved: this._onCJRemoved,
 				cjAuthorised: this._onCJAuthorised,
 				cjScored: this._onCJScored,
+				cjUndid: this._onCJUndid,
 				cjConnectionStateChanged: this._onCJConnectionStateChanged,
 				cjExited: this._onCJExited
 			},
@@ -85,8 +86,13 @@ define([
 		},
 		
 		_onCJScored: function (data) {
-			console.log("Judge scored (points=" + data.points + ")");
-			this.ring.score(data.id, data.competitor, data.points);
+			console.log("Judge scored (points=" + data.score.points + ")");
+			this.ring.score(data.id, data.score);
+		},
+		
+		_onCJUndid: function (data) {
+			console.log("Judge undid score (points=" + data.score.points + ")");
+			this.ring.undo(data.id, data.score);
 		},
 		
 		_onCJConnectionStateChanged: function (data) {

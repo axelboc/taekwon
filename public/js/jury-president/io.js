@@ -25,6 +25,7 @@ define([
 		'cjRemoved',
 		'cjAuthorised',
 		'cjScored',
+		'cjUndid',
 		'cjConnectionStateChanged',
 		'cjExited',
 		'restoreSession'

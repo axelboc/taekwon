@@ -68,8 +68,12 @@ define([
 			this.getCornerJudgeById(id).authorise();
 		},
 		
-		score: function (id, competitor, points) {
-			this.getCornerJudgeById(id).score(this.match.scoreboardColumnId, competitor, points);
+		score: function (id, score) {
+			this.getCornerJudgeById(id).score(this.match.scoreboardColumnId, score);
+		},
+		
+		undo: function (id, score) {
+			this.getCornerJudgeById(id).undo(this.match.scoreboardColumnId, score);
 		},
 		
 		judgeStateChanged: function (id, connected) {

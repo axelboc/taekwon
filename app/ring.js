@@ -13,7 +13,7 @@ var JP_EVENTS = ['enableScoring', 'authoriseCJ','rejectCJ', 'removeCJ', 'addSlot
 				 'connectionStateChanged', 'exited'];
 
 var CJ_HANDLER_PREFIX = '_cj';
-var CJ_EVENTS = ['connectionStateChanged', 'exited'];
+var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged', 'exited'];
 
 
 /**
@@ -346,16 +346,31 @@ Ring.prototype._jpExited = function () {
  */
 
 /**
- * A Corner Judge has scored or undone a previous score.
+ * A Corner Judge has scored.
  * @param {CornerJudge} cj
  * @param {Object} score
  */
 Ring.prototype._cjScore = function (cj, score) {
 	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.provided(score, 'score');
 	assert.ok(this.juryPresident, "ring must have Jury President");
 
-	// Notify Jury President
 	this.juryPresident.cjScored(cj, score);
+	cj.scored(score);
+};
+
+/**
+ * A Corner Judge has undone a previous score.
+ * @param {CornerJudge} cj
+ * @param {Object} score
+ */
+Ring.prototype._cjUndo = function (cj, score) {
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.provided(score, 'score');
+	assert.ok(this.juryPresident, "ring must have Jury President");
+
+	this.juryPresident.cjUndid(cj, score);
+	cj.undid(score);
 };
 
 /**

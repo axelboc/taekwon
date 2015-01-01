@@ -50,11 +50,18 @@ define([
 			return scores;
 		},
 		
-		score: function (columnId, competitor, points) {
+		score: function (columnId, score) {
 			var scores = this.getCurrentScores(columnId);
-			var competitorIndex = (competitor === Competitors.HONG ? 0 : 1);
-			scores[competitorIndex] += points;
+			var competitorIndex = (score.competitor === Competitors.HONG ? 0 : 1);
+			scores[competitorIndex] += score.points;
 			this._publish('scored', scores);
+		},
+		
+		undo: function (columnId, score) {
+			var scores = this.getCurrentScores(columnId);
+			var competitorIndex = (score.competitor === Competitors.HONG ? 0 : 1);
+			scores[competitorIndex] -= score.points;
+			this._publish('undid', scores);
 		},
 		
 		computeTotal: function (columnId, totalColumnId, maluses) {

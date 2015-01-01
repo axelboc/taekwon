@@ -35,7 +35,8 @@ define([
 				penaltiesReset: this._onPenaltiesReset
 			},
 			judge: {
-				scored: this._updateJudgeScores
+				scored: this._updateJudgeScores,
+				undid: this._updateJudgeScores
 			},
 			timer: {
 				tick: this._onTimerTick,

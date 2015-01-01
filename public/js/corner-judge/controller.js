@@ -132,7 +132,7 @@ define([
 			console.log("Joined ring (index=" + data.ringIndex + ")");
 
 			// Enable/disable undo button
-			Helpers.enableBtn(this.roundView.undoBtn, data.canUndo);
+			Helpers.enableBtn(this.roundView.undoBtn, data.undoEnabled);
 			
 			// Show round view
 			this._showView(this.roundView);

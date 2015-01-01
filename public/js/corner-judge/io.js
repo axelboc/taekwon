@@ -22,10 +22,10 @@ define([
 		'ringJoined',
 		'ringLeft',
 		'jpConnectionStateChanged',
-		'scoreConfirmed',
+		'scored',
+		'undid',
 		'scoringStateChanged',
-		'canUndo',
-		'undoConfirmed',
+		'undoStateChanged',
 		'restoreSession'
 	];
 	

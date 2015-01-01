@@ -47,4 +47,19 @@ util.removeEventListeners = function (from, events) {
 	});
 };
 
+/**
+ * Create a score object.
+ * @param {String} competitor
+ * @param {Number} points
+ */
+util.createScoreObject = function (competitor, points) {
+	assert.string(competitor, 'competitor');
+	assert.integerGt0(points, 'points');
+	
+	return {
+		competitor: competitor,
+		points: points
+	};
+};
+
 module.exports = util;

@@ -14,9 +14,9 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
-				scoreConfirmed: this._onScoreConfirmed,
-				canUndo: this._onCanUndo,
-				undoConfirmed: this._onUndoConfirmed
+				scored: this._onScored,
+				undid: this._onUndid,
+				undoStateChanged: this._onUndoStateChanged
 			}
 		});
 		
@@ -68,31 +68,31 @@ define([
 			IO.score(competitor, points);
 		},
 		
-		_onScoreConfirmed: function (score) {
+		_onScored: function (data) {
 			console.log("> Score confirmed");
 			this._newFdb([
-				'fdb--' + score.competitor,
-				score.competitor + '-bg'
-			], score.points);
+				'fdb--' + data.score.competitor,
+				data.score.competitor + '-bg'
+			], data.score.points);
 		},
 		
-		_onCanUndo: function (canUndo) {
-			console.log((canUndo ? "Can" : "Cannot") + " undo");
-			Helpers.enableBtn(this.undoBtn, canUndo);
+		_onUndid: function (data) {
+			console.log("> Undo confirmed");
+			this._newFdb([
+				'fdb--' + data.score.competitor,
+				'fdb--undo'
+			], data.score.points);
+		},
+		
+		_onUndoStateChanged: function (data) {
+			console.log("Undo " + (data.enabled ? "enabled" : "disabled"));
+			Helpers.enableBtn(this.undoBtn, data.enabled);
 		},
 		
 		_onUndoBtn: function () {
 			console.log("Undoing previous score");
 			this.undoBtn.blur();
 			IO.undo();
-		},
-		
-		_onUndoConfirmed: function (score) {
-			console.log("> Undo confirmed");
-			this._newFdb([
-				'fdb--' + score.competitor,
-				'fdb--undo'
-			], score.points * -1);
 		},
 		
 		_newFdb: function (classArr, value) {

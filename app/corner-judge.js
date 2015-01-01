@@ -2,7 +2,7 @@
 // Modules
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('cj');
-var util = require('util');
+var util = require('./lib/util');
 var DB = require('./lib/db');
 var User = require('./user').User;
 
@@ -28,6 +28,7 @@ function CornerJudge(id, spark, connected, name, authorised) {
 	
 	// Store scores for undo feature
 	this.scores = [];
+	this.undoEnabled = false;
 }
 
 // Inherit from User
@@ -64,7 +65,7 @@ CornerJudge.prototype.restoreSession = function (spark, ringStates) {
 		ringIndex: this.ring ? this.ring.index : -1,
 		authorised: this.authorised,
 		scoringEnabled: this.ring && this.ring.scoringEnabled,
-		canUndo: this.scores.length > 0,
+		undoEnabled: this.undoEnabled,
 		jpConnected: this.ring && this.ring.juryPresident && this.ring.juryPresident.connected
 	};
 	
@@ -97,29 +98,15 @@ CornerJudge.prototype._onJoinRing = function (data) {
 /**
  * Score.
  * @param {Object} data
- * 		  {Number} data.points - the number of points to score, as an integer greater than 0
  * 		  {String} data.competitor - the competitor who scored, as a non-empty string
+ * 		  {Number} data.points - the number of points to score, as an integer greater than 0
  */
 CornerJudge.prototype._onScore = function (data) {
 	assert.object(data, 'data');
-	assert.integerGt0(data.points, 'data.points');
 	assert.string(data.competitor, 'data.competitor');
+	assert.integerGt0(data.points, 'data.points');
 	
-	this.emit('score', this, data);
-	logger.debug("Scored " + data.points + " for " + data.competitor);
-	
-	// Store the score so it can be undone
-	this.scores.push(data);
-	
-	if (this.connected) {
-		// Acknowledge that the score has been processed
-		this.spark.emit('scoreConfirmed', data);
-
-		// When relevant, notify the client that the undo feature can be used
-		if (this.scores.length === 1){
-			this.spark.emit('canUndo', true);
-		}
-	}
+	this.emit('score', this, util.createScoreObject(data.competitor, data.points));
 };
 
 /**
@@ -128,27 +115,12 @@ CornerJudge.prototype._onScore = function (data) {
 CornerJudge.prototype._onUndo = function () {
 	// Fail silently if there's no score to undo 
 	if (this.scores.length === 0) {
-		logger.debug("Nothing to undo");
+		logger.error("No score to undo");
 		return;
 	}
 	
-	// Retrieve the latest score
-	var score = this.scores.pop();
-
-	// Treat like a normal score, but with a negative points value
-	score.points *= -1;
-	this.emit('score', this, score);
-	logger.debug("Undid score of " + score.points + " for " + score.competitor);
-	
-	if (this.connected) {
-		// Acknowledge that the score has been undone
-		this.spark.emit('undoConfirmed', score);
-
-		// When relevant, notify the client that the undo feature can no longer be used
-		if (this.scores.length === 0) {
-			this.spark.emit('canUndo', false);
-		}
-	}
+	// Undo the latest score
+	this.emit('undo', this, this.scores.pop());
 };
 
 
@@ -252,6 +224,57 @@ CornerJudge.prototype.scoringStateChanged = function (enabled) {
 		this.spark.emit('scoringStateChanged', {
 			enabled: enabled
 		});
+	}
+};
+
+/**
+ * The Corner Judge has scored.
+ * @param {Object} score
+ */
+CornerJudge.prototype.scored = function (score) {
+	assert.provided(score, 'score');
+	logger.debug("Scored " + score.points + " for " + score.competitor);
+	
+	// Store the score so it can be undone
+	this.scores.push(score);
+	
+	if (this.connected) {
+		// Acknowledge that the score has been processed
+		this.spark.emit('scored', {
+			score: score
+		});
+
+		if (this.scores.length === 1){
+			// Enable the undo feature
+			this.undoEnabled = true;
+			this.spark.emit('undoStateChanged', {
+				enabled: true
+			});
+		}
+	}
+};
+
+/**
+ * The Corner Judge has undone a previous score.
+ * @param {Object} score
+ */
+CornerJudge.prototype.undid = function (score) {
+	assert.provided(score, 'score');
+	logger.debug("Undid score of " + score.points + " for " + score.competitor);
+	
+	if (this.connected) {
+		// Acknowledge that the score has been undone
+		this.spark.emit('undid', {
+			score: score
+		});
+
+		if (this.scores.length === 0) {
+			// Disable the undo feature
+			this.undoEnabled = false;
+			this.spark.emit('undoStateChanged', {
+				enabled: false
+			});
+		}
 	}
 };
 
