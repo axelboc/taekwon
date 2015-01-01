@@ -18,7 +18,6 @@ var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged', 'exited'];
 
 /**
  * Ring.
- * @param {Primus} primus
  * @param {String} id
  * @param {Number} index - the ring index, as a positive integer
  * @param {Number} slotCount - the number of Corner Judge slots available
@@ -35,6 +34,7 @@ function Ring(id, index, slotCount) {
 	this.number = index + 1;
 	this.juryPresident = null;
 	this.cornerJudges = [];
+	this.match = null;
 	this.scoringEnabled = false;
 }
 
