@@ -123,15 +123,21 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 
 		// Insert the new user in the database
 		DB.insertUser(this.id, sessionId, data.identity, data.name, function (newDoc) {
-			var user = this._initUser(spark, true, newDoc);
-			logger.info('newUser', newDoc);
+			if (newDoc) {
+				var user = this._initUser(spark, true, newDoc);
+				logger.info('newUser', newDoc);
 
-			// Notify client of success
-			logger.debug("> Successful identification (identity=" + data.identity + ")");
-			spark.emit('idSuccess');
+				// Notify client of success
+				logger.debug("> Successful identification (identity=" + data.identity + ")");
+				spark.emit('idSuccess');
 
-			// Send ring states right away
-			spark.emit('ringStates', this._getRingStates());
+				// Send ring states right away
+				spark.emit('ringStates', this._getRingStates());
+			} else {
+				// If database insertion failed, notify client that identification failed
+				spark.emit('idFail');
+				spark.once('identification', onIdentification);
+			}
 		}.bind(this));
 	}.bind(this);
 	
