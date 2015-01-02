@@ -24,6 +24,7 @@ define([
 		'cjAdded',
 		'cjRemoved',
 		'cjAuthorised',
+		'matchCreated',
 		'cjScored',
 		'cjUndid',
 		'cjConnectionStateChanged',
@@ -119,6 +120,14 @@ define([
 			index: index
 		});
 	}
+	
+	function addSlot() {
+		primus.emit('addSlot');
+	}
+	
+	function removeSlot() {
+		primus.emit('removeSlot');
+	}
 
 	function authoriseCJ(id) {
 		primus.emit('authoriseCJ', {
@@ -149,12 +158,8 @@ define([
 		});
 	}
 	
-	function addSlot() {
-		primus.emit('addSlot');
-	}
-	
-	function removeSlot() {
-		primus.emit('removeSlot');
+	function createMatch() {
+		primus.emit('createMatch');
 	}
 
 	return {
@@ -162,13 +167,14 @@ define([
 		sendId: sendId,
 		sendIdentityConfirmation: sendIdentityConfirmation,
 		openRing: openRing,
+		addSlot: addSlot,
+		removeSlot: removeSlot,
 		authoriseCJ: authoriseCJ,
 		rejectCJ: rejectCJ,
 		removeCJ: removeCJ,
 		sessionRestored: sessionRestored,
 		enableScoring: enableScoring,
-		addSlot: addSlot,
-		removeSlot: removeSlot
+		createMatch: createMatch
 	};
 	
 });

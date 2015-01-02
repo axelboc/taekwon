@@ -170,6 +170,18 @@ var DB = {
 	},
 	
 	/**
+	 * Insert a new match.
+	 * @param {String} ringId
+	 * @param {Function} cb
+	 */
+	insertMatch: function (ringId, cb) {
+		assert.string(ringId, 'ringId');
+		matchesDb.insert({
+			ringId: ringId
+		}, callback(cb));
+	},
+	
+	/**
 	 * Set a ring's Jury President ID.
 	 * @param {String} ringId
 	 * @param {String} jpId

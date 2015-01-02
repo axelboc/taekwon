@@ -80,7 +80,7 @@ define([
 			this.getCornerJudgeById(id).setConnectionState(connected);
 		},
 		
-		newMatch: function (config) {
+		createMatch: function (config) {
 			this.match = new Match(config, this);
 		},
 		

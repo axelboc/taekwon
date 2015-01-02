@@ -37,9 +37,6 @@ define([
 		 * Total maluses are stored against 'total' columns (as negative integers).
 		 */
 		this.penalties = {};
-
-		this._publish('created', this);
-		this._nextState();
 	}
 	
 	Match.prototype = {
@@ -120,7 +117,7 @@ define([
 			this._publish('resultsComputed');
 		},
 		
-		_nextState: function () {
+		nextState: function () {
 			// If no more states in array, add more if appropriate or end match
 			if (this.stateIndex === this.states.length - 1) {
 				if (this.state === MatchStates.ROUND_1 && this.config.twoRounds) {
@@ -200,7 +197,7 @@ define([
 				this._publish('stateEnded', this.state);
 				
 				// Move to next state
-				this._nextState();
+				this.nextState();
 			}
 		},
 		

@@ -6,7 +6,8 @@ var util = require('util');
 var DB = require('./lib/db');
 var User = require('./user').User;
 
-var INBOUND_SPARK_EVENTS = ['openRing', 'enableScoring', 'authoriseCJ', 'rejectCJ', 'removeCJ', 'addSlot', 'removeSlot'];
+var INBOUND_SPARK_EVENTS = ['openRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
+							'createMatch', 'enableScoring'];
 
 
 /**
@@ -95,15 +96,17 @@ JuryPresident.prototype._onOpenRing = function (data) {
 };
 
 /**
- * Enable or disable scoring on the ring.
- * @param {Object}  data
- * 		  {Boolean} data.enable - `true` to enable; `false` to disable
+ * Add a Corner Judge slot.
  */
-JuryPresident.prototype._onEnableScoring = function (data) {
-	assert.object(data, 'data');
-	assert.boolean(data.enable, 'data.enable');
-	
-	this.emit('enableScoring', data.enable);
+JuryPresident.prototype._onAddSlot = function () {
+	this.emit('addSlot');
+};
+
+/**
+ * Remove a Corner Judge slot.
+ */
+JuryPresident.prototype._onRemoveSlot = function () {
+	this.emit('removeSlot');
 };
 
 /**
@@ -144,17 +147,22 @@ JuryPresident.prototype._onRemoveCJ = function (data) {
 };
 
 /**
- * Add a Corner Judge slot.
+ * Create a new match.
  */
-JuryPresident.prototype._onAddSlot = function () {
-	this.emit('addSlot');
+JuryPresident.prototype._onCreateMatch = function () {
+	this.emit('createMatch');
 };
 
 /**
- * Remove a Corner Judge slot.
+ * Enable or disable scoring on the ring.
+ * @param {Object}  data
+ * 		  {Boolean} data.enable - `true` to enable; `false` to disable
  */
-JuryPresident.prototype._onRemoveSlot = function () {
-	this.emit('removeSlot');
+JuryPresident.prototype._onEnableScoring = function (data) {
+	assert.object(data, 'data');
+	assert.boolean(data.enable, 'data.enable');
+	
+	this.emit('enableScoring', data.enable);
 };
 
 
@@ -178,6 +186,38 @@ JuryPresident.prototype.ringOpened = function (ring) {
 		this.spark.emit('ringOpened', {
 			index: ring.index,
 			slotCount: ring.slotCount
+		});
+	}
+};
+
+/**
+ * A Corner Judge slot has been added to the ring.
+ */
+JuryPresident.prototype.slotAdded = function () {
+	if (this.connected) {
+		this.spark.emit('slotAdded');
+	}
+};
+
+/**
+ * A Corner Judge slot has been removed to the ring.
+ */
+JuryPresident.prototype.slotRemoved = function () {
+	if (this.connected) {
+		this.spark.emit('slotRemoved');
+	}
+};
+
+/**
+ * A Corner Judge slot could not be removed from the ring.
+ * @param {String} message - the reason for the error
+ */
+JuryPresident.prototype.slotError = function (message) {
+	assert.string(message, 'message');
+	
+	if (this.connected) {
+		this.spark.emit('slotError', {
+			message: message
 		});
 	}
 };
@@ -227,6 +267,15 @@ JuryPresident.prototype.cjAuthorised = function (cj) {
 		this.spark.emit('cjAuthorised', {
 			id: cj.id
 		});
+	}
+};
+
+/**
+ * A match has been created
+ */
+JuryPresident.prototype.matchCreated = function () {
+	if (this.connected) {
+		this.spark.emit('matchCreated');
 	}
 };
 
@@ -291,38 +340,6 @@ JuryPresident.prototype.cjExited = function (cj) {
 	if (this.connected) {
 		this.spark.emit('cjExited', {
 			id: cj.id
-		});
-	}
-};
-
-/**
- * A Corner Judge slot has been added to the ring.
- */
-JuryPresident.prototype.slotAdded = function () {
-	if (this.connected) {
-		this.spark.emit('slotAdded');
-	}
-};
-
-/**
- * A Corner Judge slot has been removed to the ring.
- */
-JuryPresident.prototype.slotRemoved = function () {
-	if (this.connected) {
-		this.spark.emit('slotRemoved');
-	}
-};
-
-/**
- * A Corner Judge slot could not be removed from the ring.
- * @param {String} message - the reason for the error
- */
-JuryPresident.prototype.slotError = function (message) {
-	assert.string(message, 'message');
-	
-	if (this.connected) {
-		this.spark.emit('slotError', {
-			message: message
 		});
 	}
 };

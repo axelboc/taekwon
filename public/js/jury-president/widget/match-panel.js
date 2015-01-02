@@ -23,7 +23,6 @@ define([
 				cjRemoved: this._updateJudgeScores
 			},
 			match: {
-				created: this._onMatchCreated,
 				ended: this._onMatchEnded,
 				stateChanged: this._onStateChanged,
 				stateStarted: this._onStateStarted,
@@ -144,9 +143,11 @@ define([
 			}
 		},
 		
-		_onMatchCreated: function (match) {
-			console.log("Match created");
+		setMatch: function (match) {
 			this.match = match;
+			this.match.nextState();
+			
+			// Initialise UI
 			this._updateStateBtns(null, false);
 			this.stateStartBtn.classList.remove('hidden');
 			this.stateEndBtn.classList.remove('hidden');
