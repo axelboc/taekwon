@@ -3,37 +3,17 @@ define([
 	'minpubsub',
 	'../common/helpers',
 	'./io',
-	'../common/ws-error-view',
 	'./widget/name-view',
-	'../common/ring-list-view',
+	'./widget/ring-list-view',
 	'./widget/round-view',
+	'./widget/ws-error-view',
 	'../common/backdrop'
 
-], function (PubSub, Helpers, IO, WsErrorView, NameView, RingListView, RoundView, Backdrop) {
+], function (PubSub, Helpers, IO, NameView, RingListView, RoundView, WsErrorView, Backdrop) {
 	
 	function Controller() {
 		// Initialise socket connection with server
 		IO.init();
-		
-		// Subscribe to events
-		Helpers.subscribeToEvents(this, {
-			io: {
-				wsError: this._onWsError,
-				identify: this._onIdentify,
-				idSuccess: this._onIdSuccess,
-				idFail: this._onIdFail,
-				confirmIdentity: this._onConfirmIdentity,
-				ringStates: this._onRingStates,
-				ringStateChanged: this._onRingStateChanged,
-				waitingForAuthorisation: this._onWaitingForAuthorisation,
-				rejected: this._onRejected,
-				ringJoined: this._onRingJoined,
-				ringLeft: this._onRingLeft,
-				jpConnectionStateChanged: this._onJPConnectionStateChanged,
-				scoringStateChanged: this._onScoringStateChanged,
-				restoreSession: this._onRestoreSession
-			}
-		});
 		
 		// Flags
 		this.isAuthorised = false;
@@ -53,6 +33,23 @@ define([
 		
 		// Initialise backdrop
 		this.backdrop = new Backdrop();
+		
+		// Subscribe to events
+		Helpers.subscribeToEvents(this, {
+			io: {
+				identify: this._showView.bind(this, this.nameView),
+				confirmIdentity: IO.sendIdentityConfirmation,
+				ringStates: this._showView.bind(this, this.ringListView),
+				waitingForAuthorisation: this._showView.bind(this, this.authorisationView),
+				rejected: this._showView.bind(this, this.ringListView),
+				ringJoined: this._onRingJoined,
+				ringLeft: this._onRingLeft,
+				jpConnectionStateChanged: this._onJPConnectionStateChanged,
+				scoringStateChanged: this._onScoringStateChanged,
+				restoreSession: this._onRestoreSession,
+				wsError: this._showView.bind(this, this.wsErrorView)
+			}
+		});
 	}
 	
 	Controller.prototype = {
@@ -77,48 +74,6 @@ define([
 				this.backdrop.hide();
 			}
 		},
-		
-		_onWsError: function (data) {
-			console.log("Error:", data.reason);
-			this.wsErrorView.updateInstr(data.reason);
-			this._showView(this.wsErrorView);
-		},
-		
-		_onIdentify: function() {
-			console.log("Server waiting for identification");
-			this._showView(this.nameView);
-			this.nameView.init();
-		},
-
-		_onIdSuccess: function() {
-			console.log("Identification succeeded");
-		},
-
-		_onIdFail: function() {
-			console.log("Identification failed");
-			this.nameView.invalidName();
-		},
-
-		_onConfirmIdentity: function () {
-			console.log("Server waiting for identity confirmation");
-			IO.sendIdentityConfirmation();
-		},
-
-		_onRingStates: function(states) {
-			console.log("Ring states received (count=\"" + states.length + "\")");
-			this.ringListView.init(states);
-			this._showView(this.ringListView);
-		},
-
-		_onRingStateChanged: function(state) {
-			console.log("Ring state changed (index=\"" + state.index + "\")");
-			this.ringListView.updateRingBtn(state.index, state.open);
-		},
-		
-		_onWaitingForAuthorisation: function () {
-			console.log("Waiting for authorisation to join ring");
-			this._showView(this.authorisationView);
-		},
 
 		_onRingJoined: function(data) {
 			console.log("Joined ring (index=" + data.ringIndex + ")");
@@ -138,29 +93,12 @@ define([
 			// Update page title to show ring number
 			document.title = "Corner Judge | Ring " + (data.ringIndex + 1);
 		},
-		
-		/**
-		 * The Corner Judge's request to join a ring has been rejected.
-		 * Potential causes:
-		 * - rejected by Jury President,
-		 * - ring full.
-		 */
-		_onRejected: function(data) {
-			console.log(data.message);
-			
-			// Show ring list view. 
-			this.ringListView.updateInstr(data.message);
-			this._showView(this.ringListView);
-		},
 
 		/**
 		 * Corner Judge has left the ring, willingly or not.
 		 */
 		_onRingLeft: function(data) {
-			console.log(data.message);
-			
-			// Show ring list view with custom message. 
-			this.ringListView.updateInstr(data.message);
+			// Show ring list view
 			this._showView(this.ringListView);
 			
 			// Update flag and backdrop

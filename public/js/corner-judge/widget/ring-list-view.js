@@ -1,12 +1,25 @@
 
 define([
 	'minpubsub',
-	'handlebars'
+	'handlebars',
+	'../../common/helpers',
+	'../io'
 
-], function (PubSub, Handlebars) {
+], function (PubSub, Handlebars, Helpers, IO) {
 	
 	function RingListView() {
 		this.root = document.getElementById('ring-list');
+		
+		// Subscribe to events from server and views
+		Helpers.subscribeToEvents(this, {
+			io: {
+				ringStates: this._onRingStates,
+				ringStateChanged: this._onRingStateChanged,
+				rejected: this._updateInstr,
+				ringLeft: this._updateInstr
+			}
+		});
+		
 		this.instr = this.root.querySelector('.rl-instr');
 		this.btns = null;
 		this.template = Handlebars.compile(document.getElementById('rl-ring-tmpl').innerHTML);
@@ -36,32 +49,34 @@ define([
 			this.initialised = true;
 		},
 		
-		_onBtn: function (btn, index) {
-			btn.blur();
-			
-			// Call appropriate IO function
-			if (IO.joinRing) {
-				IO.joinRing(index);
-			} else {
-				IO.openRing(index);
-			}
+		_onRingStates: function(data) {
+			console.log("Ring states received (count=\"" + data.rings.length + "\")");
+			this.init(data.rings);
 		},
-		
-		updateRingBtn: function (index, enable) {
+
+		_onRingStateChanged: function(data) {
+			console.log("Ring state changed (index=\"" + data.index + "\")");
+			
 			if (!this.initialised) {
 				return;
 			}
 			
-			var btn = this.btns[index];
-			if (enable) {
+			var btn = this.btns[data.index];
+			if (data.open) {
 				btn.removeAttribute("disabled");
 			} else {
 				btn.setAttribute("disabled", "disabled");
 			}
 		},
 		
-		updateInstr: function (instr) {
-			this.instr.textContent = instr;
+		_onBtn: function (btn, index) {
+			btn.blur();
+			IO.joinRing(index);
+		},
+		
+		_updateInstr: function (data) {
+			console.log(data.message);
+			this.instr.textContent = data.message;
 		}
 		
 	};

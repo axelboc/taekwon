@@ -3,14 +3,14 @@ define([
 	'minpubsub',
 	'../common/helpers',
 	'./io',
-	'../common/ws-error-view',
 	'./widget/pwd-view',
-	'../common/ring-list-view',
+	'./widget/ring-list-view',
 	'./model/ring',
 	'./widget/ring-view',
+	'./widget/ws-error-view',
 	'../common/backdrop'
 
-], function (PubSub, Helpers, IO, WsErrorView, PwdView, RingListView, Ring, RingView, Backdrop) {
+], function (PubSub, Helpers, IO, PwdView, RingListView, Ring, RingView, WsErrorView, Backdrop) {
 	
 	function Controller() {
 		// Initialise socket connection with server
@@ -18,10 +18,10 @@ define([
 		
 		// Initialise views
 		this.currentView = null;
-		this.wsErrorView = new WsErrorView();
 		this.pwdView = new PwdView();
 		this.ringListView = new RingListView();
 		this.ringView = new RingView();
+		this.wsErrorView = new WsErrorView();
 		
 		// Initialise backdrop
 		this.backdrop = new Backdrop();
@@ -29,13 +29,12 @@ define([
 		// Subscribe to events from server and views
 		Helpers.subscribeToEvents(this, {
 			io: {
-				wsError: this._onWsError,
 				identify: this._showView.bind(this, this.pwdView),
-				confirmIdentity: this._onConfirmIdentity,
-				ringStates: this._onRingStates,
-				ringStateChanged: this._onRingStateChanged,
+				confirmIdentity: IO.sendIdentityConfirmation,
+				ringStates: this._showView.bind(this, this.ringListView),
 				ringOpened: this._onRingOpened,
-				restoreSession: this._onRestoreSession
+				restoreSession: this._onRestoreSession,
+				wsError: this._showView.bind(this, this.wsErrorView)
 			}
 		});
 	}
@@ -51,28 +50,6 @@ define([
 			// Show the new view
 			newView.root.classList.remove('hidden');
 			this.curentView = newView;
-		},
-		
-		_onWsError: function (data) {
-			console.log("Error:", data.reason);
-			this.wsErrorView.updateInstr(data.reason);
-			this._showView(this.wsErrorView);
-		},
-
-		_onConfirmIdentity: function () {
-			console.log("Server waiting for identity confirmation");
-			IO.sendIdentityConfirmation();
-		},
-		
-		_onRingStates: function(states) {
-			console.log("Ring states received (count=\"" + states.length + "\")");
-			this.ringListView.init(states);
-			this._showView(this.ringListView);
-		},
-
-		_onRingStateChanged: function(state) {
-			console.log("Ring state changed (index=\"" + state.index + "\")");
-			this.ringListView.updateRingBtn(state.index, !state.open);
 		},
 
 		_initRing: function(index, slotCount) {

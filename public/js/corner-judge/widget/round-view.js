@@ -1,12 +1,11 @@
 
 define([
 	'minpubsub',
-	'handlebars',
 	'../../common/helpers',
 	'../io',
 	'../../common/competitors'
 
-], function (PubSub, Handlebars, Helpers, IO, Competitors) {
+], function (PubSub, Helpers, IO, Competitors) {
 	
 	function RoundView() {
 		this.root = document.getElementById('round');
@@ -14,6 +13,7 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
+				ringJoined: this._onRingJoined,
 				scored: this._onScored,
 				undid: this._onUndid,
 				undoStateChanged: this._onUndoStateChanged
@@ -56,6 +56,10 @@ define([
 		
 		_bindScoreBtn: function (eventName, competitor, btn, index) {
 			btn.addEventListener(eventName, this._onScoreBtn.bind(this, btn, competitor, index * -1 + 5));
+		},
+
+		_onRingJoined: function(data) {
+			Helpers.enableBtn(this.undoBtn, data.undoEnabled);
 		},
 		
 		_onScoreBtn: function(btn, competitor, points) {

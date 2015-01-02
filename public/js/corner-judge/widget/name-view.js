@@ -1,21 +1,30 @@
 
 define([
 	'minpubsub',
-	'handlebars',
+	'../../common/helpers',
 	'../io'
 
-], function (PubSub, Handlebars, IO) {
+], function (PubSub, Helpers, IO) {
 	
 	function NameView() {
 		this.root = document.getElementById('name');
+		
+		// Subscribe to events from server and views
+		Helpers.subscribeToEvents(this, {
+			io: {
+				identify: this._onIdentify,
+				idFail: this._onIdFail,
+				idSuccess: this._onIdSuccess
+			}
+		});
+		
 		this.field = this.root.querySelector('.name-field');
+		this.field.addEventListener('keypress', this._onNameField.bind(this));
 		
 		// Cancel form submission
 		this.root.querySelector('.name-form').addEventListener('submit', function (evt) {
 			evt.preventDefault();
 		});
-		
-		this.field.addEventListener('keypress', this._onNameField.bind(this));
 	}
 	
 	NameView.prototype = {
@@ -24,16 +33,23 @@ define([
 			PubSub.publish('nameView.' + subTopic, [].slice.call(arguments, 1));
 		},
 		
-		init: function () {
+		_onIdentify: function() {
+			console.log("Server waiting for identification");
+			
+			// Set focus on field
 			setTimeout(function () {
 				this.field.focus();
 			}.bind(this), 100);
 		},
-		
-		invalidName: function () {
-			// Reset field
+
+		_onIdSuccess: function() {
+			console.log("Identification succeeded");
+		},
+
+		_onIdFail: function() {
+			console.log("Identification failed");
+			// Reset and shake field
 			this.field.value = "";
-			// Shake field
 			this._shake(this.field);
 		},
 		
