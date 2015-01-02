@@ -38,7 +38,13 @@ define([
 		
 		_onBtn: function (btn, index) {
 			btn.blur();
-			this._publish('ringSelected', index);
+			
+			// Call appropriate IO function
+			if (IO.joinRing) {
+				IO.joinRing(index);
+			} else {
+				IO.openRing(index);
+			}
 		},
 		
 		updateRingBtn: function (index, enable) {

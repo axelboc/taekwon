@@ -3,7 +3,6 @@ define([
 	'minpubsub',
 	'../common/helpers',
 	'./io',
-	'./defaults',
 	'../common/ws-error-view',
 	'./widget/pwd-view',
 	'../common/ring-list-view',
@@ -11,9 +10,8 @@ define([
 	'./widget/ring-view',
 	'../common/backdrop'
 
-], function (PubSub, Helpers, IO, defaults, WsErrorView, PwdView, RingListView, Ring, RingView, Backdrop) {
+], function (PubSub, Helpers, IO, WsErrorView, PwdView, RingListView, Ring, RingView, Backdrop) {
 	
-	// TODO: manage errors (subscribe to error event)
 	function Controller() {
 		// Initialise socket connection with server
 		IO.init();
@@ -30,12 +28,6 @@ define([
 				ringStateChanged: this._onRingStateChanged,
 				ringOpened: this._onRingOpened,
 				restoreSession: this._onRestoreSession
-			},
-			pwdView: {
-				pwdSubmitted: this._onPwdSubmitted
-			},
-			ringListView: {
-				ringSelected: this._onRingSelected
 			}
 		});
 		
@@ -74,11 +66,6 @@ define([
 			this._showView(this.pwdView);
 			this.pwdView.init();
 		},
-	
-		_onPwdSubmitted: function(pwd) {
-			console.log("Sending identification (pwd=\"" + pwd + "\")");
-			IO.sendId(pwd);
-		},
 
 		_onIdSuccess: function() {
 			console.log("Identification succeeded");
@@ -105,11 +92,6 @@ define([
 			this.ringListView.updateRingBtn(state.index, !state.open);
 		},
 
-		_onRingSelected: function(index) {
-			console.log("Opening ring (index=" + index + ")");
-			IO.openRing(index);
-		},
-
 		_initRing: function(index, slotCount) {
 			// Initialise ring model, view and controller
 			var ring = new Ring(index, slotCount);
@@ -123,10 +105,6 @@ define([
 			console.log("Ring opened (index=" + data.index + ", slotCount=" + data.slotCount + ")");
 			this._initRing(data.index, data.slotCount);
 			this._showView(this.ringView);
-		},
-
-		_onRingAlreadyOpen: function(index) {
-			console.error("Ring already open (index=" + index + ")");
 		},
 
 		_onRestoreSession: function(data) {

@@ -43,7 +43,7 @@ define([
 			// If Enter key was pressed...
 			if (evt.which === 13 || evt.keyCode === 13) {
 				if (this.field.value.length > 0) {
-					this._publish('pwdSubmitted', this.field.value);
+					IO.sendId(this.field.value);
 				} else {
 					this.invalidPwd();
 				}

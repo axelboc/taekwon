@@ -104,6 +104,7 @@ define([
 	}
 
 	function sendId(pwd) {
+		console.log("Sending identification (pwd=\"" + pwd + "\")");
 		primus.emit('identification', {
 			identity: 'juryPresident',
 			password: pwd

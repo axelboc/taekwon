@@ -113,6 +113,7 @@ define([
 	}
 
 	function joinRing(index) {
+		console.log("Joining ring (index=" + index + ")");
 		primus.emit('joinRing', {
 			index: index
 		});

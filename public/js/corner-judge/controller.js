@@ -32,9 +32,6 @@ define([
 				jpConnectionStateChanged: this._onJPConnectionStateChanged,
 				scoringStateChanged: this._onScoringStateChanged,
 				restoreSession: this._onRestoreSession
-			},
-			ringListView: {
-				ringSelected: this._onRingSelected
 			}
 		});
 		
@@ -116,11 +113,6 @@ define([
 		_onRingStateChanged: function(state) {
 			console.log("Ring state changed (index=\"" + state.index + "\")");
 			this.ringListView.updateRingBtn(state.index, state.open);
-		},
-
-		_onRingSelected: function(index) {
-			console.log("Joining ring (index=" + index + ")");
-			IO.joinRing(index);
 		},
 		
 		_onWaitingForAuthorisation: function () {
