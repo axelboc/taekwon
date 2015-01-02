@@ -28,7 +28,7 @@ define([
 				cjAdded: this._onCJAdded,
 				cjRemoved: this._onCJRemoved,
 				cjAuthorised: this._onCJAuthorised,
-				matchCreated: this._onMatchCreated,
+				matchCreated: this.initMatch,
 				cjScored: this._onCJScored,
 				cjUndid: this._onCJUndid,
 				cjConnectionStateChanged: this._onCJConnectionStateChanged,
@@ -62,6 +62,19 @@ define([
 			this.resultPanel.setRing(ring);
 		},
 		
+		initMatch: function () {
+			// Create the match
+			this.ring.createMatch(this.configPanel.getConfig());
+			this.matchPanel.setMatch(this.ring.match);
+			console.log("Match created");
+			
+			// Ask judges to reset their scoreboard
+			this.ring.resetScoreboards();
+			
+			// Show match panel
+			this._showPanel(this.matchPanel);
+		},
+		
 		_onSlotAdded: function () {
 			this.ring.addSlot();
 		},
@@ -83,19 +96,6 @@ define([
 		_onCJAuthorised: function (data) {
 			console.log("Corner judge authorised (id=" + data.id + ")");
 			this.ring.authoriseCJ(data.id);
-		},
-		
-		_onMatchCreated: function () {
-			// Create the match
-			this.ring.createMatch(this.configPanel.getConfig());
-			this.matchPanel.setMatch(this.ring.match);
-			console.log("Match created");
-			
-			// Ask judges to reset their scoreboard
-			this.ring.resetScoreboards();
-			
-			// Show match panel
-			this._showPanel(this.matchPanel);
 		},
 		
 		_onCJScored: function (data) {

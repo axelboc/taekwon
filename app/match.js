@@ -11,7 +11,7 @@ var EventEmitter = require('events').EventEmitter;
  * Match.
  * @param {String} id
  */
-function Match(id) {
+function Match(id, config) {
 	assert.string(id, 'id');
 	
 	this.id = id;

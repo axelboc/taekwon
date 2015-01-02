@@ -17,6 +17,9 @@ var JP_EVENTS = ['addSlot', 'removeSlot', 'authoriseCJ','rejectCJ', 'removeCJ',
 var CJ_HANDLER_PREFIX = '_cj';
 var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged', 'exited'];
 
+var MATCH_HANDLER_PREFIX = '_match';
+var MATCH_EVENTS = [];
+
 
 /**
  * Ring.
@@ -222,6 +225,33 @@ Ring.prototype._removeCJ = function (cj, message) {
 	}.bind(this));
 };
 
+/**
+ * Instanciate and initialise a new match object based on a database document.
+ * @param {Object} doc
+ */
+Ring.prototype._initMatch = function (doc) {
+	assert.object(doc, 'doc');
+	
+	this.match = new Match(doc._id);
+	util.addEventListeners(this, this.match, MATCH_EVENTS, MATCH_HANDLER_PREFIX);
+};
+
+/**
+ * Restore the ring's match, if applicable.
+ * @param {Function} cb
+ */
+Ring.prototype.restoreMatch = function (cb) {
+	assert.function(cb, 'cb');
+	
+	DB.findMatchInProgress(this.id, function (doc) {
+		if (doc) {
+			this._initMatch(doc);
+			logger.debug("> Match restored");
+		}
+		cb();
+	}.bind(this));
+};
+
 
 /*
  * ==================================================
@@ -309,9 +339,8 @@ Ring.prototype._jpCreateMatch = function () {
 	// Insert a new match in the database
 	DB.insertMatch(this.id, function (newDoc) {
 		if (newDoc) {
-			// Create the match
-			this.match = new Match(newDoc._id);
-			logger.debug("Match created");
+			// Initialise the match
+			this._initMatch(newDoc);
 			
 			// Acknowledge
 			this.juryPresident.matchCreated();
@@ -418,5 +447,15 @@ Ring.prototype._cjExited = function (cj) {
 	// Notify Jury President
 	this.juryPresident.cjExited(cj);
 };
+
+
+/*
+ * ==================================================
+ * Match events
+ * ==================================================
+ */
+
+
+
 
 exports.Ring = Ring;

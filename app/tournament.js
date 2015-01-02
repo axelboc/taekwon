@@ -189,7 +189,7 @@ Tournament.prototype._confirmUserIdentity = function (sessionId, spark, user) {
 };
 
 /**
- * Instanciate and initialise a new JuryPresident or CornerJudge object based on a user database document.
+ * Instanciate and initialise a new JuryPresident or CornerJudge object based on a database document.
  * @param {Spark} spark
  * @param {Boolean} connected
  * @param {Object} doc
@@ -215,7 +215,7 @@ Tournament.prototype._initUser = function (spark, connected, doc) {
 };
 
 /**
- * Instanciate and initialise a new Ring object based on a ring database document.
+ * Instanciate and initialise a new Ring object based on a database document.
  * @param {Object} doc
  */
 Tournament.prototype._initRing = function (doc) {
@@ -230,6 +230,10 @@ Tournament.prototype._initRing = function (doc) {
 		if (jp) {
 			jp.ring = ring;
 			ring.initJP(jp);
+		} else {
+			logger.error("Jury President is not in the system", {
+				id: doc.jpId
+			});
 		}
 	}
 
@@ -240,6 +244,10 @@ Tournament.prototype._initRing = function (doc) {
 			if (cj) {
 				cj.ring = ring;
 				ring.initCJ(cj);
+			} else {
+				logger.error("Corner Judge is not in the system", {
+					id: id
+				});
 			}
 		}, this);
 	}
@@ -279,13 +287,13 @@ Tournament.prototype.restoreUsers = function (cb) {
 
 	DB.findUsers(this.id, function (docs) {
 		docs.forEach(this._initUser.bind(this, null, false));
-		logger.debug("Users restored");
+		logger.debug("> Users restored");
 		cb();
 	}.bind(this));
 };
 
 /**
- * Restore the tournament's rings.
+ * Restore the tournament's rings and their matches.
  * @param {Function} cb - a function called when the restoration is complete
  */
 Tournament.prototype.restoreRings = function (cb) {
@@ -293,8 +301,14 @@ Tournament.prototype.restoreRings = function (cb) {
 
 	DB.findRings(this.id, function (docs) {
 		docs.forEach(this._initRing, this);
-		logger.debug("Rings restored");
-		cb();
+		
+		// Restore matches
+		async.each(this.rings, function (ring, next) {
+			ring.restoreMatch(next);
+		}, function () {
+			logger.debug("> Rings restored");
+			cb();
+		});
 	}.bind(this));
 };
 

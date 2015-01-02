@@ -68,6 +68,11 @@ JuryPresident.prototype.restoreSession = function (spark, ringStates) {
 				authorised: judge.authorised
 			});
 		}, this);
+		
+		var match = this.ring.match;
+		if (match) {
+			data.match = {};
+		}
 	}
 	
 	// Send restore session event with all the required data

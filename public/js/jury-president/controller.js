@@ -147,6 +147,11 @@ define([
 					var judge = data.cornerJudges[i];
 					this.ringView.ring.addCJ(judge.id, judge.name, judge.authorised, judge.connected);
 				}
+				
+				if (data.match) {
+					// Initialise match
+					this.ringView.initMatch();
+				}
 
 				this._showView(this.ringView);
 				IO.enableScoring(false);				
