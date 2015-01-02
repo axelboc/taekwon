@@ -25,6 +25,7 @@ define([
 		'cjRemoved',
 		'cjAuthorised',
 		'matchCreated',
+		'matchEnded',
 		'cjScored',
 		'cjUndid',
 		'cjConnectionStateChanged',
@@ -146,9 +147,13 @@ define([
 			id: id
 		});
 	}
-
-	function sessionRestored() {
-		primus.emit('sessionRestored');
+	
+	function createMatch() {
+		primus.emit('createMatch');
+	}
+	
+	function endMatch() {
+		primus.emit('endMatch');
 	}
 	
 	function enableScoring(enable) {
@@ -157,9 +162,9 @@ define([
 			enable: enable
 		});
 	}
-	
-	function createMatch() {
-		primus.emit('createMatch');
+
+	function sessionRestored() {
+		primus.emit('sessionRestored');
 	}
 
 	return {
@@ -172,9 +177,10 @@ define([
 		authoriseCJ: authoriseCJ,
 		rejectCJ: rejectCJ,
 		removeCJ: removeCJ,
-		sessionRestored: sessionRestored,
+		createMatch: createMatch,
+		endMatch: endMatch,
 		enableScoring: enableScoring,
-		createMatch: createMatch
+		sessionRestored: sessionRestored
 	};
 	
 });

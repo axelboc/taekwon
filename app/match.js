@@ -1,7 +1,7 @@
 
 // Modules
 var assert = require('./lib/assert');
-var logger = require('./lib/log')('ring');
+var logger = require('./lib/log')('match');
 var util = require('./lib/util');
 var DB = require('./lib/db');
 var EventEmitter = require('events').EventEmitter;
@@ -20,6 +20,18 @@ function Match(id, config) {
 // Inherit EventEmitter
 util.inherits(Match, EventEmitter);
 
-
+/**
+ * End the match.
+ * @param {Function} cb
+ */
+Match.prototype.end = function (cb) {
+	// Update the database
+	DB.setMatchEnded(this.id, function () {
+		logger.info('ended', {
+			id: this.id
+		});
+		cb();
+	}.bind(this));
+};
 
 exports.Match = Match;

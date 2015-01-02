@@ -241,6 +241,17 @@ var DB = {
 	},
 	
 	/**
+	 * Set the `ended` flag of a match to `true`.
+	 * @param {String} matchId
+	 * @param {Function} cb
+	 */
+	setMatchEnded: function (matchId, cb) {
+		assert.string(matchId, 'matchId');
+		
+		matchesDb.update({ _id: matchId }, { $set: { ended: true } }, callback(cb));
+	},
+	
+	/**
 	 * Add a Corner Judge ID to a ring.
 	 * @param {String} ringId
 	 * @param {String} cjId

@@ -16,6 +16,9 @@ define([
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
+			io: {
+				matchEnded: this._onMatchEnded
+			},
 			ring: {
 				slotAdded: this._updateJudgeScores,
 				slotRemoved: this._updateJudgeScores,
@@ -23,13 +26,13 @@ define([
 				cjRemoved: this._updateJudgeScores
 			},
 			match: {
-				ended: this._onMatchEnded,
+				ended: IO.endMatch,
 				stateChanged: this._onStateChanged,
 				stateStarted: this._onStateStarted,
 				stateEnded: this._onStateEnded,
 				injuryStarted: this._onInjuryStarted,
 				injuryEnded: this._onInjuryEnded,
-				scoringStateChanged: this._onScoringStateChanged,
+				scoringStateChanged: IO.enableScoring,
 				scoresReset: this._updateJudgeScores,
 				penaltiesReset: this._onPenaltiesReset
 			},
@@ -257,10 +260,6 @@ define([
 			this.scoringInner.innerHTML = this.scoringInnerTemplate({
 				slots: slots
 			});
-		},
-		
-		_onScoringStateChanged: function (enabled) {
-			IO.enableScoring(enabled);
 		},
 		
 		_onPenaltiesReset: function (state) {

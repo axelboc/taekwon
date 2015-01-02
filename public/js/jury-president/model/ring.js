@@ -84,6 +84,11 @@ define([
 			this.match = new Match(config, this);
 		},
 		
+		endMatch: function () {
+			this.match.end();
+			this.match = null;
+		},
+		
 		resetScoreboards: function () {
 			// Ask judges to reset their scoreboard
 			this.cornerJudges.forEach(function (cj) {

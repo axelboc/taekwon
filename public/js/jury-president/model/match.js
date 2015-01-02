@@ -137,11 +137,11 @@ define([
 						if (extraRound) {
 							this.states.push(MatchStates.BREAK, extraRound);
 						} else {
-							this._endMatch();
+							this.end();
 							return;
 						}
 					} else {
-						this._endMatch();
+						this.end();
 						return;
 					}
 				}
@@ -167,7 +167,7 @@ define([
 			this._publish('stateChanged', this.state);
 		},
 		
-		_endMatch: function () {
+		end: function () {
 			this.state = null;
 			this._publish('ended');
 		},

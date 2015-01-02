@@ -7,7 +7,7 @@ var DB = require('./lib/db');
 var User = require('./user').User;
 
 var INBOUND_SPARK_EVENTS = ['openRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
-							'createMatch', 'enableScoring'];
+							'createMatch', 'endMatch', 'enableScoring'];
 
 
 /**
@@ -159,6 +159,13 @@ JuryPresident.prototype._onCreateMatch = function () {
 };
 
 /**
+ * End the match.
+ */
+JuryPresident.prototype._onEndMatch = function () {
+	this.emit('endMatch');
+};
+
+/**
  * Enable or disable scoring on the ring.
  * @param {Object}  data
  * 		  {Boolean} data.enable - `true` to enable; `false` to disable
@@ -276,11 +283,20 @@ JuryPresident.prototype.cjAuthorised = function (cj) {
 };
 
 /**
- * A match has been created
+ * A new match has been created.
  */
 JuryPresident.prototype.matchCreated = function () {
 	if (this.connected) {
 		this.spark.emit('matchCreated');
+	}
+};
+
+/**
+ * The match has been ended.
+ */
+JuryPresident.prototype.matchEnded = function () {
+	if (this.connected) {
+		this.spark.emit('matchEnded');
 	}
 };
 

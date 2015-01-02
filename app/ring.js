@@ -11,7 +11,7 @@ var Match = require('./match').Match;
 
 var JP_HANDLER_PREFIX = '_jp';
 var JP_EVENTS = ['addSlot', 'removeSlot', 'authoriseCJ','rejectCJ', 'removeCJ',
-				 'createMatch', 'enableScoring',
+				 'createMatch', 'endMatch', 'enableScoring',
 				 'connectionStateChanged', 'exited'];
 
 var CJ_HANDLER_PREFIX = '_cj';
@@ -336,6 +336,8 @@ Ring.prototype._jpRemoveCJ = function (id) {
  * Create a new match.
  */
 Ring.prototype._jpCreateMatch = function () {
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	
 	// Insert a new match in the database
 	DB.insertMatch(this.id, function (newDoc) {
 		if (newDoc) {
@@ -345,6 +347,23 @@ Ring.prototype._jpCreateMatch = function () {
 			// Acknowledge
 			this.juryPresident.matchCreated();
 		}
+	}.bind(this));
+};
+
+/**
+ * End the match.
+ */
+Ring.prototype._jpEndMatch = function () {
+	assert.ok(this.match, "ring must have a match");
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	
+	// End match
+	this.match.end(function () {
+		// Remove match
+		this.match = null;
+		
+		// Acknowledge
+		this.juryPresident.matchEnded();
 	}.bind(this));
 };
 

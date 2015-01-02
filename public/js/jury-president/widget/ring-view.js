@@ -41,8 +41,9 @@ define([
 				newMatchBtn: this._onNewMatchBtn
 			},
 			resultPanel: {
-				matchConfigBtn: this._onMatchConfigBtn,
+				endMatchBtn: this._onEndMatchBtn,
 				continueMatchBtn: this._onContinueMatchBtn,
+				matchConfigBtn: this._onMatchConfigBtn,
 				newMatchBtn: this._onNewMatchBtn
 			}
 		});
@@ -125,14 +126,20 @@ define([
 			this.resultPanel.root.classList.toggle('hidden', panel !== this.resultPanel);
 		},
 		
-		_onNewMatchBtn: function (btn) {
-			btn.blur();
-			IO.createMatch();
-		},
-		
 		_onResultsComputed: function () {
 			// Show result panel
 			this._showPanel(this.resultPanel);
+		},
+		
+		_onEndMatchBtn: function () {
+			// End match and show config panel
+			this.ring.endMatch();
+			this._showPanel(this.configPanel);
+		},
+		
+		_onContinueMatchBtn: function () {
+			// Show match panel
+			this._showPanel(this.matchPanel);
 		},
 		
 		_onMatchConfigBtn: function () {
@@ -140,9 +147,9 @@ define([
 			this._showPanel(this.configPanel);
 		},
 		
-		_onContinueMatchBtn: function () {
-			// Show match panel
-			this._showPanel(this.matchPanel);
+		_onNewMatchBtn: function (btn) {
+			btn.blur();
+			IO.createMatch();
 		}
 		
 	};

@@ -14,23 +14,25 @@ define([
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
+			io: {
+				matchEnded: this._onMatchEnded
+			},
 			match: {
-				resultsComputed: this._onResultsComputed,
-				ended: this._onMatchEnded
+				resultsComputed: this._onResultsComputed
 			}
 		});
 		
 		this.winner = this.root.querySelector('.rp-winner');
 		this.continueBtnsWrap = document.getElementById('rp-buttons--continue');
-		this.endBtnsWrap = document.getElementById('rp-buttons--end');
-		this.matchConfigBtns = this.root.querySelectorAll('.match-btn--config');
+		this.endMatchBtn = this.root.querySelector('.match-btn--end');
 		this.continueMatchBtn = this.root.querySelector('.match-btn--continue');
+		this.endBtnsWrap = document.getElementById('rp-buttons--end');
+		this.matchConfigBtn = this.root.querySelector('.match-btn--config');
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
 		
-		[].forEach.call(this.matchConfigBtns, function (btn) {
-			btn.addEventListener('click', this._publish.bind(this, 'matchConfigBtn'));
-		}, this);
+		this.endMatchBtn.addEventListener('click', this._publish.bind(this, 'endMatchBtn'));
 		this.continueMatchBtn.addEventListener('click', this._publish.bind(this, 'continueMatchBtn'));
+		this.matchConfigBtn.addEventListener('click', this._publish.bind(this, 'matchConfigBtn'));
 		this.newMatchBtn.addEventListener('click', this._publish.bind(this, 'newMatchBtn', this.newMatchBtn));
 		
 		// Scoreboard
