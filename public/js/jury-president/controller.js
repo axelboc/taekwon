@@ -16,21 +16,6 @@ define([
 		// Initialise socket connection with server
 		IO.init();
 		
-		// Subscribe to events from server and views
-		Helpers.subscribeToEvents(this, {
-			io: {
-				wsError: this._onWsError,
-				identify: this._onIdentify,
-				idSuccess: this._onIdSuccess,
-				idFail: this._onIdFail,
-				confirmIdentity: this._onConfirmIdentity,
-				ringStates: this._onRingStates,
-				ringStateChanged: this._onRingStateChanged,
-				ringOpened: this._onRingOpened,
-				restoreSession: this._onRestoreSession
-			}
-		});
-		
 		// Initialise views
 		this.currentView = null;
 		this.wsErrorView = new WsErrorView();
@@ -40,6 +25,19 @@ define([
 		
 		// Initialise backdrop
 		this.backdrop = new Backdrop();
+		
+		// Subscribe to events from server and views
+		Helpers.subscribeToEvents(this, {
+			io: {
+				wsError: this._onWsError,
+				identify: this._showView.bind(this, this.pwdView),
+				confirmIdentity: this._onConfirmIdentity,
+				ringStates: this._onRingStates,
+				ringStateChanged: this._onRingStateChanged,
+				ringOpened: this._onRingOpened,
+				restoreSession: this._onRestoreSession
+			}
+		});
 	}
 	
 	Controller.prototype = {
@@ -59,21 +57,6 @@ define([
 			console.log("Error:", data.reason);
 			this.wsErrorView.updateInstr(data.reason);
 			this._showView(this.wsErrorView);
-		},
-		
-		_onIdentify: function () {
-			console.log("Server waiting for identification");
-			this._showView(this.pwdView);
-			this.pwdView.init();
-		},
-
-		_onIdSuccess: function() {
-			console.log("Identification succeeded");
-		},
-
-		_onIdFail: function() {
-			console.log("Identification failed");
-			this.pwdView.invalidPwd();
 		},
 
 		_onConfirmIdentity: function () {

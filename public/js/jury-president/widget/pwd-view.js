@@ -1,21 +1,32 @@
 
 define([
 	'minpubsub',
-	'handlebars'
+	'../../common/helpers',
+	'../io'
 
-], function (PubSub, Handlebars) {
+], function (PubSub, Helpers, IO) {
 	
 	function PwdView() {
 		this.root = document.getElementById('pwd');
+		
+		// Subscribe to events from server and views
+		Helpers.subscribeToEvents(this, {
+			io: {
+				identify: this._onIdentify,
+				idSuccess: this._onIdSuccess,
+				idFail: this._onIdFail
+			}
+		});
+		
 		this.instr = this.root.querySelector('.pwd-instr');
 		this.field = this.root.querySelector('.pwd-field');
+		
+		this.field.addEventListener('keypress', this._onPwdField.bind(this));
 		
 		// Cancel form submission
 		this.root.querySelector('.pwd-form').addEventListener('submit', function (evt) {
 			evt.preventDefault();
 		});
-		
-		this.field.addEventListener('keypress', this._onPwdField.bind(this));
 	}
 	
 	PwdView.prototype = {
@@ -24,13 +35,21 @@ define([
 			PubSub.publish('pwdView.' + subTopic, [].slice.call(arguments, 1));
 		},
 		
-		init: function () {
+		_onIdentify: function () {
+			console.log("Server waiting for identification");
+			
 			setTimeout(function () {
 				this.field.focus();
 			}.bind(this), 100);
 		},
 		
-		invalidPwd: function () {
+		_onIdSuccess: function() {
+			console.log("Identification succeeded");
+		},
+		
+		_onIdFail: function () {
+			console.log("Identification failed");
+			
 			// Reset field
 			this.field.value = "";
 			// Update instructions
@@ -39,14 +58,11 @@ define([
 			this._shake(this.field);
 		},
 		
+		
 		_onPwdField: function (evt) {
 			// If Enter key was pressed...
 			if (evt.which === 13 || evt.keyCode === 13) {
-				if (this.field.value.length > 0) {
-					IO.sendId(this.field.value);
-				} else {
-					this.invalidPwd();
-				}
+				IO.sendId(this.field.value);
 			}
 		},
 		
