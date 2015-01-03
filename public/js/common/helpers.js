@@ -4,12 +4,9 @@ define(['minpubsub'], function (PubSub) {
 	return {
 		
 		/**
-		 * Subscribe to events by topic.
-		 * this.events = {
-		 *     topic: {
-		 *         subTopic: handlerFn
-		 *     }
-		 * } 
+		 * Subscribe to events, organised by topic.
+		 * @param {Object} scope
+		 * @param {Object} events
 		 */
 		subscribeToEvents: function (scope, events) {
 			Object.keys(events).forEach(function (topic) {
@@ -21,39 +18,33 @@ define(['minpubsub'], function (PubSub) {
 		},
 		
 		/**
-		 * Return a shallow copy of an object.
+		 * Shake a DOM element (e.g. a text field).
+		 * @param {HTMLElement} elem
 		 */
-		shallowCopy: function (obj) {
-			var copy = {};
-			Object.keys(obj).forEach(function (key) {
-				copy[key] = obj[key];
-			});
-			return copy;
+		shake: function (elem) {
+			var onShakeEnd = function (evt) {
+				// Remove shake class in case another shake animation needs to be performed
+				elem.classList.remove('shake');
+				// Remove listener
+				elem.removeEventListener('animationend', onShakeEnd);
+			};
+
+			// Listen to end of shake animation
+			elem.addEventListener('animationend', onShakeEnd);
+			// Start shake animation
+			elem.classList.add('shake');
 		},
 		
 		/**
-		 * Enable/disable button
+		 * Enable/disable button.
+		 * @param {HTMLButtonElement} btn
+		 * @param {Boolean} enable
 		 */
 		enableBtn: function (btn, enable) {
 			if (enable) {
 				btn.removeAttribute('disabled');
 			} else {
 				btn.setAttribute('disabled', 'disabled');
-			}
-		},
-		
-		/**
-		 *  Cross-browser function to launch full-screen (http://davidwalsh.name/fullscreen)
-		 */
-		fullScreen: function (elem) {
-			if(elem.requestFullscreen) {
-				elem.requestFullscreen();
-			} else if(elem.mozRequestFullScreen) {
-				elem.mozRequestFullScreen();
-			} else if(elem.webkitRequestFullscreen) {
-				elem.webkitRequestFullscreen();
-			} else if(elem.msRequestFullscreen) {
-				elem.msRequestFullscreen();
 			}
 		}
 		

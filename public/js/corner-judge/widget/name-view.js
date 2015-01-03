@@ -1,10 +1,9 @@
 
 define([
-	'minpubsub',
 	'../../common/helpers',
 	'../io'
 
-], function (PubSub, Helpers, IO) {
+], function (Helpers, IO) {
 	
 	function NameView() {
 		this.root = document.getElementById('name');
@@ -27,61 +26,47 @@ define([
 		});
 	}
 	
-	NameView.prototype = {
+	
+	/* ==================================================
+	 * IO events
+	 * ================================================== */
+	
+	NameView.prototype._onIdentify = function() {
+		console.log("Server waiting for identification");
 		
-		_publish: function (subTopic) {
-			PubSub.publish('nameView.' + subTopic, [].slice.call(arguments, 1));
-		},
-		
-		_onIdentify: function() {
-			console.log("Server waiting for identification");
-			
-			// Set focus on field
-			setTimeout(function () {
-				this.field.focus();
-			}.bind(this), 100);
-		},
+		// HACK: set focus on field
+		setTimeout(function () {
+			this.field.focus();
+		}.bind(this), 100);
+	}
 
-		_onIdSuccess: function() {
-			console.log("Identification succeeded");
-		},
+	NameView.prototype._onIdSuccess = function() {
+		console.log("Identification succeeded");
+		this.field.blur();
+	}
 
-		_onIdFail: function() {
-			console.log("Identification failed");
-			// Reset and shake field
-			this.field.value = "";
-			this._shake(this.field);
-		},
-		
-		_onNameField: function (evt) {
-			// If Enter key was pressed...
-			if (evt.which === 13 || evt.keyCode === 13) {
-				var name = this.field.value;
-				if (name.length > 0) {
-					this.field.blur();
-					console.log("Sending identification (name=\"" + name + "\")");
-					IO.sendId(name);
-				} else {
-					this.invalidName();
-				}
-			}
-		},
-		
-		_onShakeEnd: function (evt) {
-			// Remove shake class in case another shake animation needs to be performed
-			evt.target.classList.remove('shake');
-			// Remove listener
-			evt.target.removeEventListener('animationend', this._onShakeEnd);
-		},
+	NameView.prototype._onIdFail = function() {
+		console.log("Identification failed");
 
-		_shake: function (field) {
-			// Listen to end of shake animation
-			field.addEventListener('animationend', this._onShakeEnd);
-			// Start shake animation
-			field.classList.add('shake');
+		// Reset and shake field
+		this.field.value = "";
+		Helpers.shake(this.field);
+	}
+	
+	
+	/* ==================================================
+	 * UI events
+	 * ================================================== */
+	
+	NameView.prototype._onNameField = function (evt) {
+		// If enter key was pressed...
+		if (evt.which === 13 || evt.keyCode === 13) {
+			var name = this.field.value;
+			IO.sendId(name);
+			console.log("> Identification sent (name=\"" + name + "\")");
 		}
-		
-	};
+	}
+	
 	
 	return NameView;
 	
