@@ -203,96 +203,47 @@ JuryPresident.prototype.ringStateChanged = function (ringStates) {
 /**
  * The ring has been opened.
  * @param {Ring} ring
+ * @param {Array} slots
  */
-JuryPresident.prototype.ringOpened = function (ring) {
+JuryPresident.prototype.ringOpened = function (ring, slots) {
 	assert.provided(ring, 'ring');
+	assert.array(slots, 'slots');
 	
 	this.ring = ring;
 	
 	if (this.connected) {
 		this.spark.emit('ringOpened', {
 			index: ring.index,
-			slotCount: ring.slotCount
+			slotCount: ring.slotCount,
+			slots: slots
 		});
 	}
 };
 
 /**
- * A Corner Judge slot has been added to the ring.
+ * A Corner Judge slot has been added or removed from the ring.
+ * @param {Array} slots
  */
-JuryPresident.prototype.slotAdded = function () {
+JuryPresident.prototype.slotsUpdated = function (slots) {
+	assert.array(slots, 'slots');
+	
 	if (this.connected) {
-		this.spark.emit('slotAdded');
-	}
-};
-
-/**
- * A Corner Judge slot has been removed to the ring.
- */
-JuryPresident.prototype.slotRemoved = function () {
-	if (this.connected) {
-		this.spark.emit('slotRemoved');
+		this.spark.emit('slotsUpdated', {
+			slots: slots
+		});
 	}
 };
 
 /**
  * A Corner Judge slot could not be removed from the ring.
- * @param {String} message - the reason for the error
+ * @param {String} reason - the reason for the error
  */
-JuryPresident.prototype.slotError = function (message) {
-	assert.string(message, 'message');
+JuryPresident.prototype.slotNotRemoved = function (reason) {
+	assert.string(reason, 'reason');
 	
 	if (this.connected) {
-		this.spark.emit('slotError', {
-			message: message
-		});
-	}
-};
-
-/**
- * A Corner Judge has been added to the ring.
- * Before it can officially join the ring, the Jury President must give its authorisation.
- * @param {CornerJudge} cj
- */
-JuryPresident.prototype.cjAdded = function (cj) {
-	assert.provided(cj, 'cj');
-	logger.debug("Authorising Corner Judge to join ring...");
-	
-	if (this.connected) {
-		this.spark.emit('cjAdded', {
-			id: cj.id,
-			name: cj.name,
-			connected: cj.connected
-		});
-	}
-};
-
-/**
- * A Corner Judge has been removed from the ring.
- * @param {CornerJudge} cj
- */
-JuryPresident.prototype.cjRemoved = function (cj) {
-	assert.provided(cj, 'cj');
-	logger.debug("Corner Judge removed from ring");
-	
-	if (this.connected) {
-		this.spark.emit('cjRemoved', {
-			id: cj.id
-		});
-	}
-};
-
-/**
- * A Corner Judge has been authorised to join the ring.
- * @param {CornerJudge} cj
- */
-JuryPresident.prototype.cjAuthorised = function (cj) {
-	assert.provided(cj, 'cj');
-	logger.debug("> Corner Judge authorised");
-	
-	if (this.connected) {
-		this.spark.emit('cjAuthorised', {
-			id: cj.id
+		this.spark.emit('slotNotRemoved', {
+			reason: reason
 		});
 	}
 };
@@ -345,23 +296,6 @@ JuryPresident.prototype.cjUndid = function (cj, score) {
 		this.spark.emit('cjUndid', {
 			id: cj.id,
 			score: score
-		});
-	}
-};
-
-/**
- * The connection state of a Corner Judge has changed.
- * @param {String} cjId
- * @param {Boolean} connected
- */
-JuryPresident.prototype.cjConnectionStateChanged = function (cjId, connected) {
-	assert.string(cjId, 'cjId');
-	assert.boolean(connected, 'connected');
-	
-	if (this.connected) {
-		this.spark.emit('cjConnectionStateChanged', {
-			id: cjId,
-			connected: connected
 		});
 	}
 };

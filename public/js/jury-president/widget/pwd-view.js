@@ -37,7 +37,7 @@ define([
 	/* ==================================================
 	 * IO events
 	 * ================================================== */
-		
+	
 	PwdView.prototype._onIdentify = function () {
 		console.log("Server waiting for identification");
 		

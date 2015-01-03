@@ -5,12 +5,11 @@ define([
 	'./io',
 	'./widget/pwd-view',
 	'./widget/ring-list-view',
-	'./model/ring',
 	'./widget/ring-view',
 	'./widget/ws-error-view',
 	'../common/backdrop'
 
-], function (PubSub, Helpers, IO, PwdView, RingListView, Ring, RingView, WsErrorView, Backdrop) {
+], function (PubSub, Helpers, IO, PwdView, RingListView, RingView, WsErrorView, Backdrop) {
 	
 	function Controller() {
 		// Initialise socket connection with server
@@ -52,18 +51,14 @@ define([
 			this.curentView = newView;
 		},
 
-		_initRing: function(index, slotCount) {
-			// Initialise ring model, view and controller
-			var ring = new Ring(index, slotCount);
-			this.ringView.setRing(ring);
-			
+		_updateTitle: function(ringIndex) {
 			// Update page title to show ring number
-			document.title = "Jury President | Ring " + (index + 1);
+			document.title = "Jury President | Ring " + (ringIndex + 1);
 		},
 
 		_onRingOpened: function(data) {
 			console.log("Ring opened (index=" + data.index + ", slotCount=" + data.slotCount + ")");
-			this._initRing(data.index, data.slotCount);
+			this._updateTitle(data.index);
 			this._showView(this.ringView);
 		},
 
@@ -79,7 +74,7 @@ define([
 
 			// If a ring was created, initialise it then add corner judges and show authorisation view
 			} else {
-				this._initRing(data.ringIndex, data.ringSlotCount);
+				this._updateTitle(data.ringIndex, data.ringSlotCount);
 
 				for (var i = 0, len = data.cornerJudges.length; i < len; i += 1) {
 					var judge = data.cornerJudges[i];

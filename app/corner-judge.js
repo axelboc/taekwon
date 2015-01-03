@@ -47,6 +47,19 @@ CornerJudge.prototype._initSpark = function (spark) {
 };
 
 /**
+ * Return a simplified object representation of the Corner Judge.
+ * @return {Array}
+ */
+CornerJudge.prototype.getState = function () {
+	return {
+		id: this.id,
+		name: this.name,
+		authorised: this.authorised,
+		connected: this.connected
+	};
+};
+
+/**
  * Restore the Corner Judge's session.
  * @param {Spark} spark - the spark of the new socket connection
  * @param {Array} ringStates

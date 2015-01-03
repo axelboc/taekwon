@@ -59,6 +59,22 @@ Ring.prototype.getState = function () {
 };
 
 /**
+ * Return and array of objects representing the ring's slots.
+ * @return {Array}
+ */
+Ring.prototype.getSlots = function () {
+	var slots = [];
+	for (var i = 0, len = this.slotCount; i < len; i += 1) {
+		var cj = this.cornerJudges[i];
+		slots.push({
+			index: i + 1,
+			cj: !cj ? null : cj.getState()
+		});
+	}
+	return slots;
+};
+
+/**
  * Return the ring's Corner Judge with the given ID.
  * The function throws if the ID is not associated with exactly one Corner Judge.
  * @private
@@ -107,7 +123,7 @@ Ring.prototype.open = function (jp) {
 		this.emit('stateChanged');
 		
 		// Acknowledge
-		jp.ringOpened(this);
+		jp.ringOpened(this, this.getSlots());
 		
 		logger.info('opened', {
 			number: this.number,
@@ -179,7 +195,7 @@ Ring.prototype.addCJ = function (cj) {
 		this.emit('cjAdded');
 
 		// Request authorisation from Jury President
-		this.juryPresident.cjAdded(cj);
+		this.juryPresident.slotsUpdated(this.getSlots());
 		// Acknowledge
 		cj.waitingForAuthorisation(this);
 
@@ -214,7 +230,7 @@ Ring.prototype.removeCJ = function (cj, message, ringStates) {
 			this.emit('cjRemoved');
 
 			// Acknowledge
-			this.juryPresident.cjRemoved(cj);
+			this.juryPresident.slotsUpdated(this.getSlots());
 			if (!cj.authorised) {
 				cj.rejected(message, ringStates);
 			} else {
@@ -274,7 +290,7 @@ Ring.prototype._jpAddSlot = function () {
 	// Update the database
 	DB.setRingSlotCount(this.id, this.slotCount + 1, function () {
 		this.slotCount += 1;
-		this.juryPresident.slotAdded();
+		this.juryPresident.slotsUpdated(this.getSlots());
 	}.bind(this));
 };
 
@@ -287,14 +303,14 @@ Ring.prototype._jpRemoveSlot = function () {
 	assert.ok(this.cornerJudges.length <= this.slotCount, "number of Corner Judges exceeds slot count");
 	
 	if (this.slotCount === 1) {
-		this.juryPresident.slotError("The ring must have at least one Corner Judge.");
+		this.juryPresident.slotNotRemoved("The ring must have at least one Corner Judge.");
 	} else if (this.cornerJudges.length === this.slotCount) {
-		this.juryPresident.slotError("Please remove a Corner Judge before proceeding.");
+		this.juryPresident.slotNotRemoved("Please remove a Corner Judge before proceeding.");
 	} else {
 		// Update the database
 		DB.setRingSlotCount(this.id, this.slotCount - 1, function () {
 			this.slotCount -= 1;
-			this.juryPresident.slotRemoved();
+			this.juryPresident.slotsUpdated(this.getSlots());
 		}.bind(this));
 	}
 };
@@ -312,7 +328,7 @@ Ring.prototype._jpAuthoriseCJ = function (id) {
 	DB.setCJAuthorised(id, true, function () {
 		// Acknowledge
 		cj.ringJoined();
-		this.juryPresident.cjAuthorised(cj);
+		this.juryPresident.slotsUpdated(this.getSlots());
 	}.bind(this));
 };
 
@@ -425,7 +441,7 @@ Ring.prototype._cjConnectionStateChanged = function (cj) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
 
 	// Notify Jury President
-	this.juryPresident.cjConnectionStateChanged(cj.id, cj.connected);
+	this.juryPresident.slotsUpdated(this.getSlots());
 };
 
 
