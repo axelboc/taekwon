@@ -30,8 +30,8 @@ define([
 		Helpers.subscribeToEvents(this, {
 			io: {
 				identify: this._showView.bind(this, this.pwdView),
+				idSuccess: this._showView.bind(this, this.ringListView),
 				confirmIdentity: IO.sendIdentityConfirmation,
-				ringStates: this._showView.bind(this, this.ringListView),
 				ringOpened: this._onRingOpened,
 				restoreSession: this._onRestoreSession,
 				wsError: this._showView.bind(this, this.wsErrorView)
@@ -70,7 +70,7 @@ define([
 		_onRestoreSession: function(data) {
 			console.log("Restoring session");
 
-			// Init ring list view with ring state data
+			// TODO: Init ring list view with ring state data
 			this.ringListView.init(data.ringStates);
 
 			// If no ring was created, show ring list view

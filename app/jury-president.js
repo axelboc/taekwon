@@ -97,7 +97,7 @@ JuryPresident.prototype._onOpenRing = function (data) {
 	assert.object(data, 'data');
 	assert.integerGte0(data.index, 'data.index');
 	
-	this.emit('openRing', data.index);
+	this.emit('openRing', this, data.index);
 };
 
 /**
@@ -184,6 +184,21 @@ JuryPresident.prototype._onEnableScoring = function (data) {
  * - functions called from Ring module
  * ==================================================
  */
+
+/**
+ * The state of a ring has changed.
+ * @param {Array} ringStates
+ */
+JuryPresident.prototype.ringStateChanged = function (ringStates) {
+	assert.array(ringStates, 'ringStates');
+	
+	// Only send the updated ring states if the Jury President has not opened a ring yet and is connected
+	if (!this.ring && this.connected) {
+		this.spark.emit('ringStateChanged', {
+			ringStates: ringStates
+		});
+	}
+};
 
 /**
  * The ring has been opened.

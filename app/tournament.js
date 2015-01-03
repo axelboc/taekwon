@@ -2,6 +2,7 @@
 // Modules
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('tournament');
+var util = require('./lib/util');
 var DB = require('./lib/db');
 var async = require('async');
 var Spark = require('primus').Spark;
@@ -9,6 +10,15 @@ var Ring = require('./ring').Ring;
 var User = require('./user').User;
 var JuryPresident = require('./jury-president').JuryPresident;
 var CornerJudge = require('./corner-judge').CornerJudge;
+
+var RING_HANDLER_PREFIX = '_ring';
+var RING_EVENTS = ['stateChanged'];
+
+var JP_HANDLER_PREFIX = '_jp';
+var JP_EVENTS = ['openRing','rejectCJ', 'removeCJ', 'exited'];
+
+var CJ_HANDLER_PREFIX = '_cj';
+var CJ_EVENTS = ['joinRing', 'exited'];
 
 
 /**
@@ -127,13 +137,10 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 				var user = this._initUser(spark, true, newDoc);
 				logger.info('newUser', newDoc);
 
-				// Notify client of success
+				// Notify client of success and send along ring states
 				logger.debug("> Successful identification (identity=" + data.identity + ")");
-				spark.emit('idSuccess');
-
-				// Send ring states right away
-				spark.emit('ringStates', {
-					rings: this._getRingStates()
+				spark.emit('idSuccess', {
+					ringStates: this._getRingStates()
 				});
 			} else {
 				// If database insertion failed, notify client that identification failed
@@ -204,11 +211,11 @@ Tournament.prototype._initUser = function (spark, connected, doc) {
 	switch(doc.identity) {
 		case 'juryPresident':
 			user = new JuryPresident(doc._id, spark, connected);
-			user.on('openRing', this._jpOpenRing.bind(this, user));
+			util.addEventListeners(this, user, JP_EVENTS, JP_HANDLER_PREFIX);
 			break;
 		case 'cornerJudge':
 			user = new CornerJudge(doc._id, spark, connected, doc.name, doc.authorised);
-			user.on('joinRing', this._cjJoinRing.bind(this, user));
+			util.addEventListeners(this, user, CJ_EVENTS, CJ_HANDLER_PREFIX);
 			break;
 	}
 
@@ -255,7 +262,7 @@ Tournament.prototype._initRing = function (doc) {
 	}
 
 	// Add events listeners
-	ring.on('stateChanged', this._ringStateChanged.bind(this, ring));
+	util.addEventListeners(this, ring, RING_EVENTS, RING_HANDLER_PREFIX);
 };
 
 /**
@@ -315,6 +322,43 @@ Tournament.prototype.restoreRings = function (cb) {
 };
 
 /**
+ * Build and return an array of the rings' states.
+ * @return {Array}
+ */
+Tournament.prototype._getRingStates = function () {
+	return this.rings.reduce(function (arr, ring) {
+		arr.push(ring.getState());
+		return arr;
+	}, []);
+};
+
+
+/*
+ * ==================================================
+ * Ring events
+ * ==================================================
+ */
+
+/**
+ * Notify users that the state of a ring has changed.
+ */
+Tournament.prototype._ringStateChanged = function () {
+	assert.object(this.users, 'users');
+
+	var ringStates = this._getRingStates();
+	Object.keys(this.users).forEach(function (userId) {
+		this.users[userId].ringStateChanged(ringStates);
+	}.bind(this));
+};
+
+
+/*
+ * ==================================================
+ * Jury President events
+ * ==================================================
+ */
+
+/**
  * Open a ring on a Jury President's request.
  * @param {JuryPresident} jp
  * @param {Number} ringIndex
@@ -332,6 +376,56 @@ Tournament.prototype._jpOpenRing = function (jp, ringIndex) {
 };
 
 /**
+ * A Corner Judge's request to join the ring has been rejected by the Jury President.
+ * @param {String} id - the ID of the Corner Judge who has been rejected
+ */
+Tournament.prototype._jpRejectCJ = function (id) {
+	assert.string(id, 'id');
+	
+	var cj = this.users[id];
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.ok(cj.ring, "Corner Judge not in a ring");
+	
+	// Remove Corner Judge from ring
+	cj.ring.removeCJ(cj, "Not authorised to join ring", this._getRingStates());
+};
+
+/**
+ * A Corner Judge has been removed from the ring by the Jury President.
+ * @param {String} id - the ID of the Corner Judge who has been removed
+ */
+Tournament.prototype._jpRemoveCJ = function (id) {
+	assert.string(id, 'id');
+	
+	var cj = this.users[id];
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	assert.ok(cj.ring, "Corner Judge not in a ring");
+	
+	// Remove Corner Judge from ring
+	cj.ring.removeCJ(cj, "Removed from ring", this._getRingStates());
+};
+
+/**
+ * A Jury President has exited the system.
+ * @param {JuryPresident} jp
+ */
+Tournament.prototype._jpExited = function (jp) {
+	assert.instanceOf(jp, 'jp', JuryPresident, 'JuryPresident');
+	
+	if (jp.ring) {
+		// Close the ring
+		jp.ring.close(this._getRingStates());
+	}
+};
+
+
+/*
+ * ==================================================
+ * Corner Judge events
+ * ==================================================
+ */
+
+/**
  * A Corner Judge wishes to join a ring; add the Corner Judge to the ring.
  * @param {CornerJudge} cj
  * @param {Number} ringIndex
@@ -343,33 +437,34 @@ Tournament.prototype._cjJoinRing = function (cj, ringIndex) {
 	// Get the ring at the given index
 	var ring = this.rings[ringIndex];
 	assert.ok(ring, "no ring at index=" + ringIndex);
-
-	// Add the Corner Judge to the ring
-	ring.addCJ(cj);
+	
+	if (ring.isFull()) {
+		// If the ring is full, reject the Corner Judge
+		cj.rejected("Ring full", this._getRingStates());
+	} else {
+		// Add the Corner Judge to the ring
+		ring.addCJ(cj);
+	}
 };
 
 /**
- * Build and return an array of the rings' states.
- * @return {Array}
+ * A Corner Judge has exited the system.
+ * @param {CornerJudge} cj
  */
-Tournament.prototype._getRingStates = function () {
-	return this.rings.reduce(function (arr, ring) {
-		arr.push(ring.getState());
-		return arr;
-	}, []);
-};
+Tournament.prototype._cjExited = function (cj) {
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	
+	// Remove event listeners
+	util.removeEventListeners(cj, CJ_EVENTS);
+	
+	var ring = cj.ring;
+	if (ring) {
+		// Remove Corner Judge from ring
+		ring.removeCJ(cj, "Exited system", this._getRingStates());
 
-/**
- * Broadcast to all users that the state of a ring (open/closed) has changed.
- * @param {Ring} ring
- */
-Tournament.prototype._ringStateChanged = function (ring) {
-	assert.instanceOf(ring, 'ring', Ring, 'Ring');
-
-	var state = ring.getState();
-	this.primus.forEach(function (spark) {
-		spark.emit('ringStateChanged', state);
-	}.bind(this));
+		// Notify Jury President
+		ring.juryPresident.cjExited(cj);
+	}
 };
 
 

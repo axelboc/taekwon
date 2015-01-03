@@ -15,7 +15,6 @@ define([
 		'idSuccess',
 		'idFail',
 		'confirmIdentity',
-		'ringStates',
 		'ringStateChanged',
 		'ringOpened',
 		'slotAdded',

@@ -13,74 +13,50 @@ define([
 		// Subscribe to events from server and views
 		Helpers.subscribeToEvents(this, {
 			io: {
-				ringStates: this._onRingStates,
-				ringStateChanged: this._onRingStateChanged,
-				rejected: this._updateInstr,
-				ringLeft: this._updateInstr
+				idSuccess: this._update,
+				ringStateChanged: this._update,
+				rejected: this._update,
+				ringLeft: this._update
 			}
 		});
 		
+		this.list = this.root.querySelector('.rl-list');
+		this.listTemplate = Handlebars.compile(document.getElementById('rl-list-tmpl').innerHTML);
 		this.instr = this.root.querySelector('.rl-instr');
-		this.btns = null;
-		this.template = Handlebars.compile(document.getElementById('rl-ring-tmpl').innerHTML);
-		this.initialised = false;
+		
+		this.list.addEventListener('click', this._onListDelegate.bind(this));
 	}
 	
-	RingListView.prototype = {
-		
-		_publish: function (subTopic) {
-			PubSub.publish('ringListView.' + subTopic, [].slice.call(arguments, 1));
-		},
-		
-		init: function (rings) {
-			// Populate rings list from template
-			var list = this.root.querySelector('.rl-list');
-			list.innerHTML = this.template({
-				rings: rings
-			});
-			
-			// Retrieve ring buttons and listen for events
-			this.btns = list.querySelectorAll('.rl-btn');
-			[].forEach.call(this.btns, function (btn, index) {
-				btn.addEventListener('click', this._onBtn.bind(this, btn, index));
-			}, this);
-			
-			// Mark view as initialised
-			this.initialised = true;
-		},
-		
-		_onRingStates: function(data) {
-			console.log("Ring states received (count=\"" + data.rings.length + "\")");
-			this.init(data.rings);
-		},
-
-		_onRingStateChanged: function(data) {
-			console.log("Ring state changed (index=\"" + data.index + "\")");
-			
-			if (!this.initialised) {
-				return;
-			}
-			
-			var btn = this.btns[data.index];
-			if (data.open) {
-				btn.removeAttribute("disabled");
-			} else {
-				btn.setAttribute("disabled", "disabled");
-			}
-		},
-		
-		_onBtn: function (btn, index) {
-			btn.blur();
-			IO.joinRing(index);
-		},
-		
-		_updateInstr: function (data) {
-			console.log(data.message);
-			this.instr.textContent = data.message;
-		}
-		
+	RingListView.prototype._publish = function (subTopic) {
+		PubSub.publish('ringListView.' + subTopic, [].slice.call(arguments, 1));
 	};
-	
+		
+	RingListView.prototype._update = function (data) {
+		// Populate rings list from template
+		this.list.innerHTML = this.listTemplate({
+			ringStates: data.ringStates
+		});
+
+		if (data.message) {
+			// Update instructions
+			this.instr.textContent = data.message;
+			console.log(data.message);
+		}
+
+		console.log("Ring list view updated");
+	};
+		
+	RingListView.prototype._onListDelegate = function (evt) {
+		var btn = evt.target;
+		if (btn && btn.nodeName == 'BUTTON') {
+			btn.blur();
+			
+			var index = parseInt(btn.dataset.index, 10);
+			IO.joinRing(index);
+			console.log("Join ring #" + (index + 1));
+		}
+	};
+
 	return RingListView;
 	
 });

@@ -38,8 +38,8 @@ define([
 		Helpers.subscribeToEvents(this, {
 			io: {
 				identify: this._showView.bind(this, this.nameView),
+				idSuccess: this._showView.bind(this, this.ringListView),
 				confirmIdentity: IO.sendIdentityConfirmation,
-				ringStates: this._showView.bind(this, this.ringListView),
 				waitingForAuthorisation: this._showView.bind(this, this.authorisationView),
 				rejected: this._showView.bind(this, this.ringListView),
 				ringJoined: this._onRingJoined,

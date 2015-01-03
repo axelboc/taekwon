@@ -17,9 +17,9 @@
 		<p class="rl-instr instr">Select ring number</p>
 		<ul class="rl-list list-reset list-grid"></ul>
 	</div>
-	<script id="rl-ring-tmpl" type="x-handlebars-template">
-		\{{#each rings}}
-			<li><button type="button" class="btn rl-btn"\{{#if open}} disabled\{{/if}}>\{{number}}</button></li>
+	<script id="rl-list-tmpl" type="x-handlebars-template">
+		\{{#each ringStates}}
+			<li><button type="button" class="btn rl-btn" data-index="\{{index}}"\{{#if open}} disabled\{{/if}}>\{{number}}</button></li>
 		\{{/each}}
 	</script>
 </div>

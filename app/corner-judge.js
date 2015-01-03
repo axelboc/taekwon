@@ -92,7 +92,7 @@ CornerJudge.prototype._onJoinRing = function (data) {
 	assert.integerGte0(data.index, 'data.index');
 	
 	logger.debug("Joining ring #" + (data.index + 1) + "...");
-	this.emit('joinRing', data.index);
+	this.emit('joinRing', this, data.index);
 };
 
 /**
@@ -132,11 +132,27 @@ CornerJudge.prototype._onUndo = function () {
  */
 
 /**
+ * The state of a ring has changed.
+ * @param {Array} ringStates
+ */
+CornerJudge.prototype.ringStateChanged = function (ringStates) {
+	assert.array(ringStates, 'ringStates');
+	
+	// Only send the updated ring states if the Corner Judge has not joined a ring yet and is connected
+	if (!this.ring && this.connected) {
+		this.spark.emit('ringStateChanged', {
+			ringStates: ringStates
+		});
+	}
+};
+
+/**
  * Waiting for authorisation to join the ring.
  * @param {Ring} ring
  */
 CornerJudge.prototype.waitingForAuthorisation = function (ring) {
 	assert.provided(ring, 'ring');
+	assert.ok(!this.ring, "already in a ring");
 	
 	this.ring = ring;
 	
@@ -150,13 +166,20 @@ CornerJudge.prototype.waitingForAuthorisation = function (ring) {
  * - rejected by Jury President,
  * - ring full.
  * @param {Ring} ring
+ * @param {Array} ringStates
  */
-CornerJudge.prototype.rejected = function (message) {
+CornerJudge.prototype.rejected = function (message, ringStates) {
+	assert.string(message, 'message');
+	assert.array(ringStates, 'ringStates');
+	assert.ok(!this.authorised, "already authorised");
 	logger.debug("> " + message);
+
+	this.ring = null;
 	
 	if (this.connected) {
 		this.spark.emit('rejected', {
-			message: message
+			message: message,
+			ringStates: ringStates
 		});
 	}
 };
@@ -190,9 +213,11 @@ CornerJudge.prototype.ringJoined = function () {
  * - The Jury President has rejected the Corner Judge's request to join the ring.
  * - The Jury President has removed the Corner Judge from the ring.
  * @param {String} message - an explanation intended to be displayed to the human user
+ * @param {Array} ringStates
  */
-CornerJudge.prototype.ringLeft = function (message) {
+CornerJudge.prototype.ringLeft = function (message, ringStates) {
 	assert.string(message, 'message');
+	assert.array(ringStates, 'ringStates');
 	assert.ok(this.ring, "not in a ring");
 	var ringNumber = this.ring.number;
 
@@ -202,7 +227,8 @@ CornerJudge.prototype.ringLeft = function (message) {
 
 	if (this.connected) {
 		this.spark.emit('ringLeft', {
-			message: message
+			message: message,
+			ringStates: ringStates
 		});
 	}
 
