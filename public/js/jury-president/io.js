@@ -10,15 +10,14 @@ define([
 	
 	var primus;
 	var events = [
-		'wsError',
 		'identify',
 		'idSuccess',
 		'idFail',
 		'confirmIdentity',
 		'ringStateChanged',
 		'ringOpened',
-		'slotsUpdated',
 		'slotNotRemoved',
+		'judgesSidebar.slots',
 		'cjAdded',
 		'cjRemoved',
 		'cjAuthorised',
@@ -28,7 +27,8 @@ define([
 		'cjUndid',
 		'cjConnectionStateChanged',
 		'cjExited',
-		'restoreSession'
+		'restoreSession',
+		'wsError'
 	];
 	
 	function init() {
@@ -44,6 +44,7 @@ define([
 		
 		// Listen for incoming data
 		primus.on('data', function data(data) {
+			console.log(data);
 			PubSub.publish('io.' + data.event, data.value);
 		});
 		

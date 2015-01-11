@@ -18,7 +18,7 @@
 		<ul class="rl-list list-reset list-grid"></ul>
 	</div>
 	<script id="rl-list-tmpl" type="x-handlebars-template">
-		\{{#each ringStates}}
+		\{{#each rings}}
 			<li><button type="button" class="btn rl-btn" data-index="\{{index}}"\{{#if open}} disabled\{{/if}}>\{{number}}</button></li>
 		\{{/each}}
 	</script>
@@ -94,7 +94,7 @@
 			<h2 class="mp-state"></h2>
 			<div class="mp-row mp-row--top">
 				{{!-- Time keeping --}}
-				<div class="mp-cell time-keeping tk_off">
+				<div class="time-keeping tk_off mp-cell">
 					<audio id="tk-beeps">
 						<source src="audio/beeps.ogg" type="audio/ogg">
 						<source src="audio/beeps.mp3" type="audio/mp3">
@@ -109,12 +109,13 @@
 					</div>
 				</div>
 				{{!-- Match state management --}}
-				<div class="mp-cell state-management">
-					<div class="sm-inner">
-						<button class="sm-btn sm-btn--start match-btn btn" type="button">Start</button>
-						<button class="sm-btn sm-btn--end match-btn btn" type="button">End</button>
-						<button class="sm-btn sm-btn--injury match-btn btn btn--minor" type="button">Start Injury</button>
-					</div>
+				<div class="state-management mp-cell">
+					<div class="sm-inner"></div>
+					<script id="sm-inner-tmpl" type="x-handlebars-template">
+						<button type="button" class="sm-btn sm-btn--start match-btn btn\{{unless isBreak}} btn--major\{{/unless}}"\{{if started}} disabled\{{/if}}>Start</button>
+						<button type="button" class="sm-btn sm-btn--end match-btn btn\{{unless isBreak}} btn--major\{{/unless}}"\{{unless started}} disabled\{{/unless}}>End</button>
+						<button type="button" class="sm-btn sm-btn--injury match-btn btn btn--minor"\{{unless isBreak}}\{{if started}} disabled\{{/if}}\{{unless}}>\{{unless isInjuryStarted}}Start\{{else}}End\{{/unless}} Injury</button>
+					</script>
 				</div>
 			</div>
 			<div class="mp-row mp-row--bottom">

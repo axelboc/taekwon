@@ -9,6 +9,15 @@ define([
 	function PwdView() {
 		this.root = document.getElementById('pwd');
 		
+		this.instr = this.root.querySelector('.pwd-instr');
+		this.field = this.root.querySelector('.pwd-field');
+		this.field.addEventListener('keypress', this._onPwdField.bind(this));
+		
+		// Cancel form submission
+		this.root.querySelector('.pwd-form').addEventListener('submit', function (evt) {
+			evt.preventDefault();
+		});
+		
 		// Subscribe to events from server and views
 		Helpers.subscribeToEvents(this, {
 			io: {
@@ -16,16 +25,6 @@ define([
 				idSuccess: this._onIdSuccess,
 				idFail: this._onIdFail
 			}
-		});
-		
-		this.instr = this.root.querySelector('.pwd-instr');
-		this.field = this.root.querySelector('.pwd-field');
-		
-		this.field.addEventListener('keypress', this._onPwdField.bind(this));
-		
-		// Cancel form submission
-		this.root.querySelector('.pwd-form').addEventListener('submit', function (evt) {
-			evt.preventDefault();
 		});
 	}
 	
@@ -76,7 +75,6 @@ define([
 			console.log("> Identification sent (pwd=\"" + pwd + "\")");
 		}
 	};
-	
 	
 	return PwdView;
 	

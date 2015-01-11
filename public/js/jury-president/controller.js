@@ -6,7 +6,7 @@ define([
 	'./widget/pwd-view',
 	'./widget/ring-list-view',
 	'./widget/ring-view',
-	'./widget/ws-error-view',
+	'../common/ws-error-view',
 	'../common/backdrop'
 
 ], function (PubSub, Helpers, IO, PwdView, RingListView, RingView, WsErrorView, Backdrop) {
@@ -15,14 +15,12 @@ define([
 		// Initialise socket connection with server
 		IO.init();
 		
-		// Initialise views
+		// Initialise views and backdrop
 		this.currentView = null;
 		this.pwdView = new PwdView();
 		this.ringListView = new RingListView();
 		this.ringView = new RingView();
 		this.wsErrorView = new WsErrorView();
-		
-		// Initialise backdrop
 		this.backdrop = new Backdrop();
 		
 		// Subscribe to events from server and views
@@ -42,13 +40,13 @@ define([
 	
 		_showView: function(newView) {
 			// Hide the previously visible view
-			if (this.curentView) {
-				this.curentView.root.classList.add('hidden');
+			if (this.currentView) {
+				this.currentView.root.classList.add('hidden');
 			}
 			
 			// Show the new view
 			newView.root.classList.remove('hidden');
-			this.curentView = newView;
+			this.currentView = newView;
 		},
 
 		_updateTitle: function(ringIndex) {
@@ -74,7 +72,7 @@ define([
 
 			// If a ring was created, initialise it then add corner judges and show authorisation view
 			} else {
-				this._updateTitle(data.ringIndex, data.ringSlotCount);
+				this._updateTitle(data.ringIndex);
 
 				for (var i = 0, len = data.cornerJudges.length; i < len; i += 1) {
 					var judge = data.cornerJudges[i];

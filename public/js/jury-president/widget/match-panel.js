@@ -10,20 +10,13 @@ define([
 ], function (PubSub, Handlebars, Helpers, IO, MatchStates, Timer) {
 	
 	function MatchPanel() {
-		this.ring = null;
-		this.match = null;
 		this.root = document.getElementById('match-panel');
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
+				slotsUpdated: this._onSlotsUpdated,
 				matchEnded: this._onMatchEnded
-			},
-			ring: {
-				slotAdded: this._updateJudgeScores,
-				slotRemoved: this._updateJudgeScores,
-				cjAdded: this._updateJudgeScores,
-				cjRemoved: this._updateJudgeScores
 			},
 			match: {
 				ended: IO.endMatch,
@@ -68,6 +61,10 @@ define([
 		};
 		
 		// Match state management
+		this.smInner = this.root.querySelector('.sm-inner');
+		this.smInnerTemplate = Handlebars.compile(document.getElementById('sm-inner-tmpl').innerHTML);
+		this.smInner.addEventListener('click', this._onSmInnerDelegate.bind(this));
+		
 		this.stateStartBtn = this.root.querySelector('.sm-btn--start');
 		this.stateEndBtn = this.root.querySelector('.sm-btn--end');
 		this.injuryBtn = this.root.querySelector('.sm-btn--injury');
@@ -95,10 +92,6 @@ define([
 		
 		_publish: function (subTopic) {
 			PubSub.publish('matchPanel.' + subTopic, [].slice.call(arguments, 1));
-		},
-		
-		setRing: function (ring) {
-			this.ring = ring;
 		},
 		
 		_onTimerTick: function (name, value) {
@@ -262,6 +255,10 @@ define([
 			});
 		},
 		
+		_onSlotsUpdated: function (data) {
+			this._updateJudgeScores(data.slots);
+		},
+		
 		_onPenaltiesReset: function (state) {
 			// If Round 2, keep penalties from Round 1 on screen
 			if (state !== MatchStates.ROUND_2) {
@@ -322,7 +319,28 @@ define([
 			
 			// Display new value
 			valueElem.textContent = value;
+		},
+		
+		
+		
+		
+		_updateStateManagement: function (state) {
+			this.smInner.innerHTML = this.smInnerTemplate(state);
 		}
+		
+		
+		/* ==================================================
+		 * IO events
+		 * ================================================== */
+		
+		
+		
+		
+		/* ==================================================
+		 * UI events
+		 * ================================================== */
+		
+		
 		
 	};
 	

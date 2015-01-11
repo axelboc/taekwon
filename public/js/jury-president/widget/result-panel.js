@@ -9,7 +9,6 @@ define([
 ], function (PubSub, Handlebars, Helpers, Competitor, MatchStates) {
 	
 	function ResultPanel() {
-		this.ring = null;
 		this.root = document.getElementById('result-panel');
 		
 		// Subscribe to events
@@ -30,10 +29,10 @@ define([
 		this.matchConfigBtn = this.root.querySelector('.match-btn--config');
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
 		
-		this.endMatchBtn.addEventListener('click', this._publish.bind(this, 'endMatchBtn'));
-		this.continueMatchBtn.addEventListener('click', this._publish.bind(this, 'continueMatchBtn'));
-		this.matchConfigBtn.addEventListener('click', this._publish.bind(this, 'matchConfigBtn'));
-		this.newMatchBtn.addEventListener('click', this._publish.bind(this, 'newMatchBtn', this.newMatchBtn));
+		this.endMatchBtn.addEventListener('click', IO.endMatch);
+		this.continueMatchBtn.addEventListener('click', IO.continueMatch);
+		this.matchConfigBtn.addEventListener('click', this._publish.bind(this, 'configureMatch'));
+		this.newMatchBtn.addEventListener('click', IO.createMatch);
 		
 		// Scoreboard
 		this.scoreboard = this.root.querySelector('.scoreboard');
@@ -45,10 +44,6 @@ define([
 		
 		_publish: function (subTopic) {
 			PubSub.publish('resultPanel.' + subTopic, [].slice.call(arguments, 1));
-		},
-		
-		setRing: function (ring) {
-			this.ring = ring;
 		},
 		
 		_showWinner: function () {

@@ -7,12 +7,11 @@ define([
 ], function (PubSub, Helpers, defaults) {
 	
 	function ConfigPanel() {
-		this.ring = null;
 		this.config = defaults.match;
 		this.root = document.getElementById('config-panel');
 		
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
-		this.newMatchBtn.addEventListener('click', this._publish.bind(this, 'newMatchBtn', this.newMatchBtn));
+		this.newMatchBtn.addEventListener('click', IO.createMatch);
 		
 		// Loop through configuration items
 		[].forEach.call(this.root.querySelectorAll('.config-item'), function (item) {
@@ -43,10 +42,6 @@ define([
 		
 		_publish: function (subTopic) {
 			PubSub.publish('configPanel.' + subTopic, [].slice.call(arguments, 1));
-		},
-		
-		setRing: function (ring) {
-			this.ring = ring;
 		},
 		
 		_numToTime: function (num) {

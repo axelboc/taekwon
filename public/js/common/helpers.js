@@ -1,19 +1,23 @@
 
 define(['minpubsub'], function (PubSub) {
 	
-	return {
+	var Helpers = {
 		
 		/**
 		 * Subscribe to events, organised by topic.
 		 * @param {Object} scope
 		 * @param {Object} events
+		 * @param {String} path - for recursion
 		 */
-		subscribeToEvents: function (scope, events) {
+		subscribeToEvents: function (scope, events, path) {
+			path = path || '';
 			Object.keys(events).forEach(function (topic) {
-				var topicEvents = events[topic];
-				Object.keys(topicEvents).forEach(function (subTopic) {
-					PubSub.subscribe(topic + '.' + subTopic, topicEvents[subTopic].bind(scope));
-				});
+				var event = (path ? path + '.' : '') + topic;
+				if (typeof events[topic] === 'function') {
+					PubSub.subscribe(event, events[topic].bind(scope));
+				} else {
+					Helpers.subscribeToEvents(scope, events[topic], event);
+				}
 			}, this);
 		},
 		
@@ -49,5 +53,7 @@ define(['minpubsub'], function (PubSub) {
 		}
 		
 	};
+	
+	return Helpers;
 	
 });

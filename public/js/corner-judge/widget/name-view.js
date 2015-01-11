@@ -1,21 +1,13 @@
 
 define([
+	'minpubsub',
 	'../../common/helpers',
 	'../io'
 
-], function (Helpers, IO) {
+], function (PubSub, Helpers, IO) {
 	
 	function NameView() {
 		this.root = document.getElementById('name');
-		
-		// Subscribe to events from server and views
-		Helpers.subscribeToEvents(this, {
-			io: {
-				identify: this._onIdentify,
-				idFail: this._onIdFail,
-				idSuccess: this._onIdSuccess
-			}
-		});
 		
 		this.field = this.root.querySelector('.name-field');
 		this.field.addEventListener('keypress', this._onNameField.bind(this));
@@ -24,7 +16,20 @@ define([
 		this.root.querySelector('.name-form').addEventListener('submit', function (evt) {
 			evt.preventDefault();
 		});
+		
+		// Subscribe to events from server and views
+		Helpers.subscribeToEvents(this, {
+			io: {
+				identify: this._onIdentify,
+				idSuccess: this._onIdSuccess,
+				idFail: this._onIdFail
+			}
+		});
 	}
+	
+	NameView.prototype._publish = function (subTopic) {
+		PubSub.publish('nameView.' + subTopic, [].slice.call(arguments, 1));
+	};
 	
 	
 	/* ==================================================
@@ -66,7 +71,6 @@ define([
 			console.log("> Identification sent (name=\"" + name + "\")");
 		}
 	}
-	
 	
 	return NameView;
 	

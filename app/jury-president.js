@@ -76,17 +76,15 @@ JuryPresident.prototype.restoreSession = function (spark, ringStates) {
 	}
 	
 	// Send restore session event with all the required data
-	this.spark.emit('restoreSession', data);
+	this._send('restoreSession', data);
 };
 
 
-/*
- * ==================================================
+/* ==================================================
  * Inbound spark events:
  * - assert spark event data
  * - propagate to Tournament and Ring via events
- * ==================================================
- */
+ * ================================================== */
 
 /**
  * Open a ring.
@@ -178,27 +176,9 @@ JuryPresident.prototype._onEnableScoring = function (data) {
 };
 
 
-/*
- * ==================================================
- * Outbound spark events:
- * - functions called from Ring module
- * ==================================================
- */
-
-/**
- * The state of a ring has changed.
- * @param {Array} ringStates
- */
-JuryPresident.prototype.ringStateChanged = function (ringStates) {
-	assert.array(ringStates, 'ringStates');
-	
-	// Only send the updated ring states if the Jury President has not opened a ring yet and is connected
-	if (!this.ring && this.connected) {
-		this.spark.emit('ringStateChanged', {
-			ringStates: ringStates
-		});
-	}
-};
+/* ==================================================
+ * Outbound spark events
+ * ================================================== */
 
 /**
  * The ring has been opened.
@@ -210,14 +190,7 @@ JuryPresident.prototype.ringOpened = function (ring, slots) {
 	assert.array(slots, 'slots');
 	
 	this.ring = ring;
-	
-	if (this.connected) {
-		this.spark.emit('ringOpened', {
-			index: ring.index,
-			slotCount: ring.slotCount,
-			slots: slots
-		});
-	}
+	this._updateWidget('judgesSidebar', 'slotList', { slots: slots });
 };
 
 /**
@@ -227,11 +200,8 @@ JuryPresident.prototype.ringOpened = function (ring, slots) {
 JuryPresident.prototype.slotsUpdated = function (slots) {
 	assert.array(slots, 'slots');
 	
-	if (this.connected) {
-		this.spark.emit('slotsUpdated', {
-			slots: slots
-		});
-	}
+	// Update slots in judges sidebar
+	this._updateWidget('judgesSidebar', 'slotList', { slots: slots });
 };
 
 /**
@@ -241,29 +211,23 @@ JuryPresident.prototype.slotsUpdated = function (slots) {
 JuryPresident.prototype.slotNotRemoved = function (reason) {
 	assert.string(reason, 'reason');
 	
-	if (this.connected) {
-		this.spark.emit('slotNotRemoved', {
-			reason: reason
-		});
-	}
+	this._send('slotNotRemoved', {
+		reason: reason
+	});
 };
 
 /**
  * A new match has been created.
  */
 JuryPresident.prototype.matchCreated = function () {
-	if (this.connected) {
-		this.spark.emit('matchCreated');
-	}
+	this._send('matchCreated');
 };
 
 /**
  * The match has been ended.
  */
 JuryPresident.prototype.matchEnded = function () {
-	if (this.connected) {
-		this.spark.emit('matchEnded');
-	}
+	this._send('matchEnded');
 };
 
 /**
@@ -275,12 +239,10 @@ JuryPresident.prototype.cjScored = function (cj, score) {
 	assert.provided(cj, 'cj');
 	assert.provided(score, 'score');
 	
-	if (this.connected) {
-		this.spark.emit('cjScored', {
-			id: cj.id,
-			score: score
-		});
-	}
+	this._send('cjScored', {
+		id: cj.id,
+		score: score
+	});
 };
 
 /**
@@ -292,12 +254,10 @@ JuryPresident.prototype.cjUndid = function (cj, score) {
 	assert.provided(cj, 'cj');
 	assert.provided(score, 'score');
 	
-	if (this.connected) {
-		this.spark.emit('cjUndid', {
-			id: cj.id,
-			score: score
-		});
-	}
+	this._send('cjUndid', {
+		id: cj.id,
+		score: score
+	});
 };
 
 /**
@@ -307,11 +267,9 @@ JuryPresident.prototype.cjUndid = function (cj, score) {
 JuryPresident.prototype.cjExited = function (cj) {
 	assert.provided(cj, 'cj');
 	
-	if (this.connected) {
-		this.spark.emit('cjExited', {
-			id: cj.id
-		});
-	}
+	this._send('cjExited', {
+		id: cj.id
+	});
 };
 
 

@@ -5,18 +5,18 @@ define([
 	'./io',
 	'./widget/name-view',
 	'./widget/ring-list-view',
+	'./widget/authorisation-view',
 	'./widget/round-view',
-	'./widget/ws-error-view',
+	'../common/ws-error-view',
 	'../common/backdrop'
 
-], function (PubSub, Helpers, IO, NameView, RingListView, RoundView, WsErrorView, Backdrop) {
+], function (PubSub, Helpers, IO, NameView, RingListView, AuthorisationView, RoundView, WsErrorView, Backdrop) {
 	
 	function Controller() {
 		// Initialise socket connection with server
 		IO.init();
 		
 		// Flags
-		this.isAuthorised = false;
 		this.isJPConnected = false;
 		this.isScoringEnabled = false;
 		
@@ -25,13 +25,8 @@ define([
 		this.wsErrorView = new WsErrorView();
 		this.nameView = new NameView();
 		this.ringListView = new RingListView();
-		// Authorisation view doesn't need to be defined as a separate module
-		this.authorisationView = {
-			root: document.getElementById('authorisation')
-		};
+		this.authorisationView = new AuthorisationView();
 		this.roundView = new RoundView();
-		
-		// Initialise backdrop
 		this.backdrop = new Backdrop();
 		
 		// Subscribe to events
@@ -77,15 +72,11 @@ define([
 
 		_onRingJoined: function(data) {
 			console.log("Joined ring (index=" + data.ringIndex + ")");
-
-			// Enable/disable undo button
-			Helpers.enableBtn(this.roundView.undoBtn, data.undoEnabled);
 			
 			// Show round view
 			this._showView(this.roundView);
 
 			// Update flags and backdrop
-			this.isAuthorised = true;
 			this.isScoringEnabled = data.scoringEnabled;
 			this.isJPConnected = data.jpConnected;
 			this._updateBackdrop();
@@ -100,10 +91,6 @@ define([
 		_onRingLeft: function(data) {
 			// Show ring list view
 			this._showView(this.ringListView);
-			
-			// Update flag and backdrop
-			this.isAuthorised = false;
-			this._updateBackdrop();
 			
 			// Reset page title
 			document.title = "Corner Judge";

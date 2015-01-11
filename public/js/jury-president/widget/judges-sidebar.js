@@ -13,9 +13,10 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
-				ringOpened: this._onRingOpened,
-				slotsUpdated: this._onSlotsUpdated,
-				slotNotRemoved: this._onSlotNotRemoved
+				slotNotRemoved: this._onSlotNotRemoved,
+				judgesSidebar: {
+					slotList: this._updateSlotList,
+				}
 			}
 		});
 
@@ -33,29 +34,22 @@ define([
 	JudgesSidebar.prototype._publish = function (subTopic) {
 		PubSub.publish('judgesSidebar.' + subTopic, [].slice.call(arguments, 1));
 	};
-
-	JudgesSidebar.prototype.update = function (slots) {
-		// Execute template
-		this.list.innerHTML = this.listTemplate({
-			slots: slots
-		});
-	};
 	
 	
 	/* ==================================================
 	 * IO events
 	 * ================================================== */
-	
-	JudgesSidebar.prototype._onRingOpened = function (data) {
-		this.update(data.slots);
-	};
-	
-	JudgesSidebar.prototype._onSlotsUpdated = function (data) {
-		this.update(data.slots);
-	};
 
 	JudgesSidebar.prototype._onSlotNotRemoved = function (data) {
+		// Alert the user on the reason for which a slot could not be removed
 		alert(data.reason);
+	};
+
+	JudgesSidebar.prototype._updateSlotList = function (data) {
+		// Execute template
+		this.list.innerHTML = this.listTemplate({
+			slots: data.slots
+		});
 	};
 
 	

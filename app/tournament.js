@@ -139,9 +139,7 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 
 				// Notify client of success and send along ring states
 				logger.debug("> Successful identification (identity=" + data.identity + ")");
-				spark.emit('idSuccess', {
-					ringStates: this._getRingStates()
-				});
+				user.idSuccess(this._getRingStates());
 			} else {
 				// If database insertion failed, notify client that identification failed
 				spark.emit('idFail');
