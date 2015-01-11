@@ -231,6 +231,15 @@ JuryPresident.prototype.matchEnded = function () {
 };
 
 /**
+ * The scoring state has changed.
+ */
+JuryPresident.prototype.scoringStateChanged = function (enabled) {
+	this._send('scoringStateChanged', {
+		enabled: enabled
+	});
+};
+
+/**
  * A Corner Judge has scored.
  * @param {CornerJudge} cj
  * @param {Object} score

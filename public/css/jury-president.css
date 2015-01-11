@@ -277,23 +277,23 @@
 
 /* Match state management */
 
-.sm-inner {
+.st-inner {
 	max-width: 28em;
 	margin: 0 auto;
 }
 
-.sm-btn {
+.st-btn {
 	float: left;
 	display: block;
 	width: 48%;
 	padding: .5em .2em;
 }
 
-.sm-btn--start {
+.st-btn--start {
 	margin-right: 4%;
 }
 
-.sm-btn--injury {
+.st-btn--injury {
 	width: 100%;
 	margin-top: .6em;
 	font-size: 120%;

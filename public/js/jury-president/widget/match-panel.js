@@ -15,8 +15,13 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
-				slotsUpdated: this._onSlotsUpdated,
-				matchEnded: this._onMatchEnded
+				matchEnded: this._onMatchEnded,
+				scoringStateChanged: this._onScoringStateChanged,
+				matchPanel: {
+					state: this._updateState,
+					scores: this._updateScores,
+					penalties: this._updatePenalties
+				}
 			},
 			match: {
 				ended: IO.endMatch,
@@ -25,7 +30,6 @@ define([
 				stateEnded: this._onStateEnded,
 				injuryStarted: this._onInjuryStarted,
 				injuryEnded: this._onInjuryEnded,
-				scoringStateChanged: IO.enableScoring,
 				scoresReset: this._updateJudgeScores,
 				penaltiesReset: this._onPenaltiesReset
 			},
@@ -60,32 +64,19 @@ define([
 			sec: this.timeKeeping.querySelector('.tk-timer--injury > .tk-timer-sec')
 		};
 		
-		// Match state management
-		this.smInner = this.root.querySelector('.sm-inner');
-		this.smInnerTemplate = Handlebars.compile(document.getElementById('sm-inner-tmpl').innerHTML);
-		this.smInner.addEventListener('click', this._onSmInnerDelegate.bind(this));
+		// Match state
+		this.stateInner = this.root.querySelector('.st-inner');
+		this.stateInnerTemplate = Handlebars.compile(document.getElementById('st-inner-tmpl').innerHTML);
+		this.stateInner.addEventListener('click', this._onStateInnerDelegate.bind(this));
 		
-		this.stateStartBtn = this.root.querySelector('.sm-btn--start');
-		this.stateEndBtn = this.root.querySelector('.sm-btn--end');
-		this.injuryBtn = this.root.querySelector('.sm-btn--injury');
-		
-		this.stateStartBtn.addEventListener('click', this._onStateStartBtn.bind(this));
-		this.stateEndBtn.addEventListener('click', this._onStateEndBtn.bind(this));
-		this.injuryBtn.addEventListener('click', this._onInjuryBtn.bind(this));
-		
-		// Scoring
-		this.scoringInner = this.root.querySelector('.sc-inner');
-		this.scoringInnerTemplate = Handlebars.compile(document.getElementById('sc-inner-tmpl').innerHTML);
+		// Scores
+		this.scoresInner = this.root.querySelector('.sc-inner');
+		this.scoresInnerTemplate = Handlebars.compile(document.getElementById('sc-inner-tmpl').innerHTML);
 		
 		// Penalties
-		this.penalties = this.root.querySelector('.penalties');
-		this.penaltyBtns = this.penalties.querySelectorAll('.pe-btn');
-		
-		// Loop through penalty items
-		[].forEach.call(this.root.querySelectorAll('.pe-item'), function (item) {
-			// Use event delegation
-			item.addEventListener('click', this._onPenaltyItem.bind(this, item));
-		}, this);
+		this.penaltiesInner = this.root.querySelector('.pe-inner');
+		this.penaltiesInnerTempalte = Handlebars.compile(document.getElementById('pe-inner-tmpl').innerHTML);
+		this.penaltiesInner.addEventListener('click', this._onPenaltiesInnerDelegate.bind(this));
 	}
 	
 	MatchPanel.prototype = {
@@ -105,37 +96,23 @@ define([
 			this.tkBeeps.play();
 		},
 
-		_onStateStartBtn: function (evt) {
-			evt.target.blur();
-			this.match.startState();
-		},
+		_slideInjuryTimer: function () {
+			// Transition end event listener
+			var slidingEnd = function () {
+				// Remove listener
+				this.tkInner.removeEventListener('transitionend', slidingEnd);
 
-		_onStateEndBtn: function (evt) {
-			evt.target.blur();
-			
-			if (!this.timersSliding) {
-				this.match.endState();
-			}
-		},
-		
-		_timersSlidingEnd: function () {
-			// Timer intervals start after a delay of 600ms:
-			// 300ms to account for the sliding transition, plus 300ms for usability purposes
-			window.setTimeout(function () {
-				this.timersSliding = false;
-			}.bind(this), 300);
-			this.tkInner.removeEventListener('transitionend', this._timersSlidingEnd);
-		},
-
-		_onInjuryBtn: function (evt) {
-			evt.target.blur();
+				// Timer intervals start after a delay of 600ms =
+				// 300ms to account for the sliding transition + 300ms for usability purposes
+				window.setTimeout(function () {
+					this.timersSliding = false;
+				}.bind(this), 300);
+			};
 			
 			if (!this.timersSliding) {
 				// Prevent action on buttons while timers are sliding
 				this.timersSliding = true;
-				this.tkInner.addEventListener('transitionend', this._timersSlidingEnd.bind(this));
-
-				this.match.startEndInjury();
+				this.tkInner.addEventListener('transitionend', slidingEnd.bind(this));
 			}
 		},
 		
@@ -175,8 +152,7 @@ define([
 			this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, false);
 
 			if (state !== MatchStates.BREAK) {
-				this.match.setScoringState(true);
-				this._enablePenaltyBtns(true);
+				IO.enableScoring(true);
 			}
 		},
 
@@ -186,8 +162,7 @@ define([
 			this.roundTimer.timer.stop();
 
 			if (state !== MatchStates.BREAK) {
-				this.match.setScoringState(false);
-				this._enablePenaltyBtns(false);
+				IO.enableScoring(false);
 			}
 		},
 
@@ -205,58 +180,6 @@ define([
 			this.stateStartBtn.classList.add("hidden");
 			this.stateEndBtn.classList.add("hidden");
 			this.roundTimer.timer.reset(0);
-		},
-
-		_onInjuryStarted: function () {
-			Helpers.enableBtn(this.stateEndBtn, false);
-			this.injuryBtn.textContent = "End Injury";
-			this.timeKeeping.classList.add('tk_injury');
-
-			this.injuryTimer.timer.reset(this.match.config.injuryTime);
-			this.injuryTimer.timer.start(true, true);
-			this.roundTimer.timer.stop();
-
-			this.match.setScoringState(false);
-		},
-
-		_onInjuryEnded: function (state) {
-			Helpers.enableBtn(this.stateEndBtn, true);
-			this.injuryBtn.textContent = "Start Injury";
-			this.timeKeeping.classList.remove('tk_injury');
-
-			this.injuryTimer.timer.stop();
-			this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, true);
-
-			this.match.setScoringState(true);
-		},
-		
-		_updateJudgeScores: function () {
-			// Do not update if no match has been created
-			if (this.match === null) {
-				return;
-			}
-			
-			// Prepare template context
-			var slots = [];
-			for (var i = 0, len = this.ring.slotCount; i < len; i += 1) {
-				var cj = this.ring.cornerJudges[i];
-				slots.push({
-					index: i + 1,
-					cj: !cj ? null : {
-						name: cj.name,
-						scores: cj.getCurrentScores(this.match.scoreboardColumnId)
-					}
-				});
-			};
-			
-			// Execute template
-			this.scoringInner.innerHTML = this.scoringInnerTemplate({
-				slots: slots
-			});
-		},
-		
-		_onSlotsUpdated: function (data) {
-			this._updateJudgeScores(data.slots);
 		},
 		
 		_onPenaltiesReset: function (state) {
@@ -300,7 +223,7 @@ define([
 			
 			// Increment or decrement time
 			if (elem.classList.contains('pe-inc')) {
-				this.match.incrementPenalty(type, competitor);
+				IO.incrementPenalty(type, competitor);
 				value += 1;
 				
 				if (value === 1) {
@@ -308,7 +231,7 @@ define([
 					elem.nextElementSibling.classList.remove('pe-btn_disabled');
 				}
 			} else if (elem.classList.contains('pe-dec')) {
-				this.match.decrementPenalty(type, competitor);
+				IO.decrementPenalty(type, competitor);
 				value -= 1;
 				
 				if (value === 0) {
@@ -323,24 +246,93 @@ define([
 		
 		
 		
-		
-		_updateStateManagement: function (state) {
-			this.smInner.innerHTML = this.smInnerTemplate(state);
-		}
-		
-		
 		/* ==================================================
 		 * IO events
 		 * ================================================== */
 		
+		_onScoringStateChanged: function (data) {
+			this._enablePenaltyBtns(data.enabled);
+		},
+
+		_onInjuryStarted: function () {
+			Helpers.enableBtn(this.stateEndBtn, false);
+			this.injuryBtn.textContent = "End Injury";
+			
+			this._slideInjuryTimer();
+			this.timeKeeping.classList.add('tk_injury');
+
+			this.injuryTimer.timer.reset(this.match.config.injuryTime);
+			this.injuryTimer.timer.start(true, true);
+			this.roundTimer.timer.stop();
+		},
+
+		_onInjuryEnded: function (data) {
+			Helpers.enableBtn(this.stateEndBtn, true);
+			this.injuryBtn.textContent = "Start Injury";
+			
+			this._slideInjuryTimer();
+			this.timeKeeping.classList.remove('tk_injury');
+
+			this.injuryTimer.timer.stop();
+			this.roundTimer.timer.start(data.state !== MatchStates.GOLDEN_POINT, true);
+		},
 		
+		
+		/* ==================================================
+		 * UI updates
+		 * ================================================== */
+		
+		_updateStateManagement: function (state) {
+			this.smInner.innerHTML = this.smInnerTemplate(state);
+		},
+		
+		_updateScores: function (scores) {
+			this.scoresInner.innerHTML = this.scoresInnerTemplate(scores);
+			
+			// Prepare template context
+			/*var slots = [];
+			for (var i = 0, len = this.ring.slotCount; i < len; i += 1) {
+				var cj = this.ring.cornerJudges[i];
+				slots.push({
+					index: i + 1,
+					cj: !cj ? null : {
+						name: cj.name,
+						scores: cj.getCurrentScores(this.match.scoreboardColumnId)
+					}
+				});
+			};*/
+		},
+		
+		_updatePenalties: function (penalties) {
+			this.penalties.innerHTML = this.penaltiesTempalte(penalties);
+		},
 		
 		
 		/* ==================================================
 		 * UI events
 		 * ================================================== */
 		
+		_onStateInnerDelegate: function (evt) {
+			var btn = evt.target;
+			if (btn && btn.nodeName == 'BUTTON') {
+				btn.blur();
+				if (btn.classList.contains('st-btn--start')) {
+					IO.startMatchState();
+				} else if (btn.classList.contains('st-btn--end')) {
+					if (!this.timersSliding) {
+						IO.endMatchState();
+					}
+				} else if (btn.classList.contains('st-btn--injury')) {
+					IO.startEndInjury();
+				}
+			}
+		},
 		
+		_onPenaltiesInnerDelegate: function (evt) {
+			var btn = evt.target;
+			if (btn && btn.nodeName == 'BUTTON') {
+			}
+		}
 		
 	};
 	

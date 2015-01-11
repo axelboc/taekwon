@@ -17,7 +17,6 @@ define([
 		'ringStateChanged',
 		'ringOpened',
 		'slotNotRemoved',
-		'judgesSidebar.slots',
 		'cjAdded',
 		'cjRemoved',
 		'cjAuthorised',
@@ -28,7 +27,9 @@ define([
 		'cjConnectionStateChanged',
 		'cjExited',
 		'restoreSession',
-		'wsError'
+		'wsError',
+		'judgesSidebar.slots',
+		'matchPanel.scores', 'matchPanel.penalties'
 	];
 	
 	function init() {
@@ -162,6 +163,44 @@ define([
 			enable: enable
 		});
 	}
+	
+	function startMatchState() {
+		primus.emit('startMatchState');
+	}
+	
+	function endMatchState() {
+		primus.emit('endMatchState');
+	}
+	
+	function startEndInjury() {
+		primus.emit('startEndInjury');
+	}
+	
+	function () {
+		primus.emit('');
+	}
+	
+	function () {
+		primus.emit('');
+	}
+	
+	function () {
+		primus.emit('');
+	}
+	
+	function incrementPenalty(type, competitor) {
+		primus.emit('incrementPenalty', {
+			type: type,
+			competitor: competitor
+		});
+	}
+	
+	function decrementPenalty(type, competitor) {
+		primus.emit('decrementPenalty', {
+			type: type,
+			competitor: competitor
+		});
+	}
 
 	function sessionRestored() {
 		primus.emit('sessionRestored');
@@ -180,6 +219,11 @@ define([
 		createMatch: createMatch,
 		endMatch: endMatch,
 		enableScoring: enableScoring,
+		startMatchState: startMatchState,
+		endMatchState: endMatchState,
+		startEndInjury: startEndInjury,
+		incrementPenalty: incrementPenalty,
+		decrementPenalty: decrementPenalty,
 		sessionRestored: sessionRestored
 	};
 	

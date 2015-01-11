@@ -210,11 +210,6 @@ define([
 			}
 		},
 		
-		setScoringState: function (enabled) {
-			this.scoringEnabled = enabled;
-			this._publish('scoringStateChanged', enabled);
-		},
-		
 		incrementPenalty: function (type, competitor) {
 			this.penalties[this.scoreboardColumnId][type][competitor === Competitors.HONG ? 0 : 1] += 1;
 		},

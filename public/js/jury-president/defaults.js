@@ -8,8 +8,6 @@ define({
 		roundTime: 120,
 		breakTime: 60,
 		injuryTime: 120,
-		twoRounds: true,
-		tieBreaker: true,
-		goldenPoint: true
+		twoRounds: true
 	}
 });

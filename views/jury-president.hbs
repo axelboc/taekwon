@@ -79,14 +79,6 @@
 					<span class="ci-lbl">Number of rounds</span>
 					<span class="ci-controls"><button class="ci-false ci-btn btn btn--toggle" type="button">1</button><button class="ci-true ci-btn btn btn--toggle" type="button">2</button></span>
 				</div>
-				<div class="config-item" data-name="tieBreaker" data-type="boolean">
-					<span class="ci-lbl">Tie breaker</span>
-					<span class="ci-controls"><button class="ci-false ci-btn btn btn--toggle" type="button">Off</button><button class="ci-true ci-btn btn btn--toggle" type="button">On</button></span>
-				</div>
-				<div class="config-item" data-name="goldenPoint" data-type="boolean">
-					<span class="ci-lbl">Golden point</span>
-					<span class="ci-controls"><button class="ci-false ci-btn btn btn--toggle" type="button">Off</button><button class="ci-true ci-btn btn btn--toggle" type="button">On</button></span>
-				</div>
 			</div>
 		</div>
 		{{!-- Match panel --}}
@@ -109,18 +101,18 @@
 					</div>
 				</div>
 				{{!-- Match state management --}}
-				<div class="state-management mp-cell">
-					<div class="sm-inner"></div>
-					<script id="sm-inner-tmpl" type="x-handlebars-template">
-						<button type="button" class="sm-btn sm-btn--start match-btn btn\{{unless isBreak}} btn--major\{{/unless}}"\{{if started}} disabled\{{/if}}>Start</button>
-						<button type="button" class="sm-btn sm-btn--end match-btn btn\{{unless isBreak}} btn--major\{{/unless}}"\{{unless started}} disabled\{{/unless}}>End</button>
-						<button type="button" class="sm-btn sm-btn--injury match-btn btn btn--minor"\{{unless isBreak}}\{{if started}} disabled\{{/if}}\{{unless}}>\{{unless isInjuryStarted}}Start\{{else}}End\{{/unless}} Injury</button>
+				<div class="state st-cell">
+					<div class="st-inner"></div>
+					<script id="st-inner-tmpl" type="x-handlebars-template">
+						<button type="button" class="st-btn st-btn--start match-btn btn\{{unless isBreak}} btn--major\{{/unless}}"\{{if started}} disabled\{{/if}}>Start</button>
+						<button type="button" class="st-btn st-btn--end match-btn btn\{{unless isBreak}} btn--major\{{/unless}}"\{{unless started}} disabled\{{/unless}}>End</button>
+						<button type="button" class="st-btn st-btn--injury match-btn btn btn--minor"\{{unless isBreak}}\{{if started}} disabled\{{/if}}\{{unless}}>\{{unless isInjuryStarted}}Start\{{else}}End\{{/unless}} Injury</button>
 					</script>
 				</div>
 			</div>
 			<div class="mp-row mp-row--bottom">
 				{{!-- Scores --}}
-				<div class="scoring mp-cell">
+				<div class="scores mp-cell">
 					<div class="sc-inner"></div>
 					<script id="sc-inner-tmpl" type="x-handlebars-template">
 						\{{#each slots}}

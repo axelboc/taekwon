@@ -5,6 +5,8 @@ var logger = require('./lib/log')('match');
 var util = require('./lib/util');
 var DB = require('./lib/db');
 var EventEmitter = require('events').EventEmitter;
+var States = require('./enum/states');
+var Competitors = require('./enum/competitors');
 
 
 /**
@@ -13,12 +15,185 @@ var EventEmitter = require('events').EventEmitter;
  */
 function Match(id, config) {
 	assert.string(id, 'id');
+	assert.object(config, 'config');
 	
 	this.id = id;
+	this.config = config;
+	
+	this.state = null;
+	this.states = [MatchStates.ROUND_1];
+	this.stateIndex = -1;
+
+	this.stateStarted = false;
+	this.injuryStarted = false;
+	this.scoringEnabled = false;
+	
+	this.winner = null;
+	
+	/**
+	 * Columns in the scoreboards and penalties array.
+	 * A column is added for each non-break state during the match, as well as when 
+	 * computing the total scores of previous rounds.
+	 * Examples of column ID sequences for various matches:
+	 * - 1-round match: 		round-1, total-1
+	 * - 2-round match: 		round-1, round-2, total-2
+	 * - up to golden point: 	round-1, round-2, total-2, tie-breaker, total-4, golden point, total-6
+	 */
+	this.scoreboardColumns = [];
+	// The latest scoreboard column created
+	this.scoreboardColumnId;
+	
+	/**
+	 * Scoreboards of each Corner Judge.
+	 */
+	this.scoreboards = {};
+
+	/**
+	 * Penalties ('warnings' and 'fouls') for each scoreboard column (except break states).
+	 * Total maluses are stored against 'total' columns (as negative integers).
+	 */
+	this.penalties = {};
 }
 
 // Inherit EventEmitter
 util.inherits(Match, EventEmitter);
+
+
+/**
+ * Compute maluses from one or more scoreboard columns' penalties, knowing that:
+ * - 3 warnings = -1 pt
+ * - 1 foul 	= -1 pt
+ */
+Match.prototype._computeMaluses = function (columnId) {
+	var penalties = this.penalties[columnId];
+
+	var maluses = [0, 0];
+	for (var i = 0; i <= 1; i += 1) {
+		maluses[i] -= Math.floor(penalties.warnings[i] / 3) + penalties.fouls[i];
+	}
+
+	return maluses;
+};
+
+/**
+ * Ask judges to compute their total scores,
+ * and compute total maluses for the last round(s)
+ */
+Match.prototype._computeTotals = function () {
+	// Create a unique key for the new total column
+	var totalColumnId = 'total-' + this.scoreboardColumns.length;
+	this.scoreboardColumns.push(totalColumnId);
+
+	// Compute total maluses in penalties object
+	var maluses = this._computeMaluses(this.scoreboardColumnId);
+	this.penalties[totalColumnId] = maluses;
+
+	// Compute total scores in scorboard objects
+	Object.keys(this.scoreboards).forEach(function (cjId) {
+		// Retrieve Corner Judge's scoreboard and latest round's scores
+		var scoreboard = this.scoreboards[cjId];
+		var scores = scoreboard[this.scoreboardColumnId];
+			
+		// If scoreboard column doesn't exist, create it
+		if (!scores) {
+			scores = scoreboard[this.scoreboardColumnId] = [0, 0];
+		}
+		
+		// Sum scores and maluses (negative integers)
+		var totals = [scores[0] + maluses[0], scores[1] + maluses[1]];
+		scoreboard[totalColumnId] = totals;
+	}, this);
+
+	return totalColumnId;
+};
+
+/**
+ * Compute the winner for the last round(s).
+ */
+Match.prototype._computeWinner = function (totalColumnId) {
+	var diff = 0;
+	var ties = 0;
+
+	// Compute each Corner Judge's winner
+	var cjIds = Object.keys(this.scoreboards);
+	cjIds.forEach(function (cjId) {
+		// Retrieve Corner Judge's totals
+		var totals = this.scoreboards[cjId][totalColumnId];
+		
+		// Compute winner
+		var winner = totals[0] > totals[1] ? Competitors.HONG : (totals[1] > totals[0] ? Competitors.CHONG : null);
+
+		// +1 if hong wins, -1 if chong wins, 0 if tie (null)
+		diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
+		ties += (!winner ? 1 : 0);
+	}, this);
+
+	// If majority of ties, match is also a tie
+	if (cjIds.length > 2 && ties > Math.floor(cjIds.length % 2)) {
+		return null;
+	} else {
+		// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
+		return (diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null));
+	}
+};
+
+/**
+ * Compute the winner, maluses and total scores for the last round(s).
+ */
+Match.prototype._computeResult = function () {
+	this.winner = this._computeWinner(this._computeTotals());
+	this.emit('resultsComputed');
+};
+
+Match.prototype.nextState = function () {
+	// If no more states in array, add more if appropriate or end match
+	if (this.stateIndex === this.states.length - 1) {
+		if (this.state === MatchStates.ROUND_1 && this.config.twoRounds) {
+			// Add Break and Round 2 states
+			this.states.push(MatchStates.BREAK, MatchStates.ROUND_2);
+		} else {
+			// Compute the result for the last round(s)
+			this._computeResult();
+			var isTie = this.winner === null;
+
+			if (this.state !== MatchStates.GOLDEN_POINT && isTie) {
+				var tbOrNull = this.config.tieBreaker ? MatchStates.TIE_BREAKER : null;
+				var gpOrNull = this.config.goldenPoint ? MatchStates.GOLDEN_POINT : null;
+				var eitherOrNull = tbOrNull ? tbOrNull : gpOrNull;
+
+				var extraRound = this.state === MatchStates.TIE_BREAKER ? gpOrNull : eitherOrNull;
+				if (extraRound) {
+					this.states.push(MatchStates.BREAK, extraRound);
+				} else {
+					this.end();
+					return;
+				}
+			} else {
+				this.end();
+				return;
+			}
+		}
+	}
+
+	this.stateIndex += 1;
+	this.state = this.states[this.stateIndex];
+
+	if (this.state !== MatchStates.BREAK && this.state !== MatchStates.ROUND_2) {
+		// Add a new column to the judges' scoreboards
+		this.scoreboardColumnId = this.state === MatchStates.ROUND_1 ? 'main' : this.state;
+		this.scoreboardColumns.push(this.scoreboardColumnId);
+		this.emit('scoresReset', this.scoreboardColumnId);
+
+		// Initialise penalty arrays for new state
+		this.penalties[this.scoreboardColumnId] = {
+			warnings: [0, 0],
+			fouls: [0, 0]
+		};
+		this.emit('penaltiesReset', this.state);
+	}
+
+	this.emit('stateChanged', this.state);
+};
 
 /**
  * End the match.
@@ -27,11 +202,62 @@ util.inherits(Match, EventEmitter);
 Match.prototype.end = function (cb) {
 	// Update the database
 	DB.setMatchEnded(this.id, function () {
+		
+		this.state = null;
+		this.emit('ended');
+		
 		logger.info('ended', {
 			id: this.id
 		});
 		cb();
 	}.bind(this));
 };
+
+Match.prototype.isInProgress = function () {
+	return this.state !== null && (this.stateStarted || this.stateIndex > 0);
+};
+
+Match.prototype.startState = function () {
+	if (this.state === null) {
+		this.emit('error', "Cannot start state: match ended.");
+	} else if (this.stateStarted) {
+		this.emit('error', "Cannot start state: already started.");
+	} else {
+		this.stateStarted = true;
+		this.emit('stateStarted', this.state);
+	}
+};
+
+Match.prototype.endState = function () {
+	if (this.state === null) {
+		this.emit('error', "Cannot end state: match ended.");
+	} else if (!this.stateStarted) {
+		this.emit('error', "Cannot end state: not yet started.");
+	} else {
+		this.stateStarted = false;
+		this.emit('stateEnded', this.state);
+
+		// Move to next state
+		this.nextState();
+	}
+};
+
+Match.prototype.startEndInjury = function () {
+	this.injuryStarted = !this.injuryStarted;
+	if (this.injuryStarted) {
+		this.emit('injuryStarted', this.state);
+	} else {
+		this.emit('injuryEnded', this.state);
+	}
+};
+
+Match.prototype.incrementPenalty = function (type, competitor) {
+	this.penalties[this.scoreboardColumnId][type][competitor === Competitors.HONG ? 0 : 1] += 1;
+};
+
+Match.prototype.decrementPenalty = function (type, competitor) {
+	this.penalties[this.scoreboardColumnId][type][competitor === Competitors.HONG ? 0 : 1] -= 1;
+};
+
 
 exports.Match = Match;

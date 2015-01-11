@@ -377,7 +377,7 @@ Ring.prototype._jpEnableScoring = function (enable) {
 
 	this.scoringEnabled = enable;
 
-	// Notify Corner Judges
+	this.juryPresident.scoringStateChanged(enable);
 	this.cornerJudges.forEach(function (cj) {
 		cj.scoringStateChanged(enable);
 	}, this);

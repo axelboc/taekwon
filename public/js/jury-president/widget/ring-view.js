@@ -24,7 +24,7 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
-				matchCreated: this.initMatch,
+				matchCreated: this._showPanel.bind(this, this.matchPanel),
 			},
 			match: {
 				resultsComputed: this._onResultsComputed
@@ -50,19 +50,6 @@ define([
 			// Show the new panel
 			newPanel.root.classList.remove('hidden');
 			this.currentPanel = newPanel;
-		},
-		
-		initMatch: function () {
-			// Create the match
-			this.ring.createMatch(this.configPanel.getConfig());
-			this.matchPanel.setMatch(this.ring.match);
-			console.log("Match created");
-			
-			// Ask judges to reset their scoreboard
-			this.ring.resetScoreboards();
-			
-			// Show match panel
-			this._showPanel(this.matchPanel);
 		},
 		
 		_onResultsComputed: function () {
