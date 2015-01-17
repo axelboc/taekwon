@@ -137,39 +137,41 @@
 				{{!-- Penalties --}}
 				<div class="penalties mp-cell">
 					<h2 class="pe-heading">Warnings</h2>
-					<div class="pe-inner pe-inner--warnings">
-						<div class="pe-item" data-type="warnings" data-competitor="hong">
-							<span class="pe-value hong-bg">0</span>
+					<div class="pe-inner pe-inner--warnings"></div>
+					<script id="pe-warnings-tmpl" type="x-handlebars-template">
+						<div class="pe-item">
+							<span class="pe-value hong-bg">\{{hong}}</span>
 							<div class="pe-btns">
-								<button class="pe-inc pe-btn btn" type="button">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button">&minus;</button>
+								<button class="pe-inc pe-btn btn" type="button" data-competitor="hong">+</button>
+								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="hong"\{{unless allowDecHong}} disabled\{{unless}}>&minus;</button>
 							</div>
 						</div>
-						<div class="pe-item" data-type="warnings" data-competitor="chong">
-							<span class="pe-value chong-bg">0</span>
+						<div class="pe-item">
+							<span class="pe-value chong-bg">\{{chong}}</span>
 							<div class="pe-btns">
-								<button class="pe-inc pe-btn btn" type="button">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button">&minus;</button>
+								<button class="pe-inc pe-btn btn" type="button" data-competitor="chong">+</button>
+								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="chong"\{{unless allowDecChong}} disabled\{{unless}}>&minus;</button>
 							</div>
 						</div>
-					</div>
+					</script>
 					<h2 class="pe-heading">Fouls</h2>
-					<div class="pe-inner pe-inner--fouls">
-						<div class="pe-item" data-type="fouls" data-competitor="hong">
-							<span class="pe-value hong-bg">0</span>
+					<div class="pe-inner pe-inner--fouls"></div>
+					<script id="pe-fouls-tmpl" type="x-handlebars-template">
+						<div class="pe-item">
+							<span class="pe-value hong-bg">\{{hong}}</span>
 							<div class="pe-btns">
-								<button class="pe-inc pe-btn btn" type="button">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button">&minus;</button>
+								<button class="pe-inc pe-btn btn" type="button" data-competitor="hong">+</button>
+								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="hong"\{{unless allowDecHong}} disabled\{{unless}}>&minus;</button>
 							</div>
 						</div>
-						<div class="pe-item" data-type="fouls" data-competitor="chong">
-							<span class="pe-value chong-bg">0</span>
+						<div class="pe-item">
+							<span class="pe-value chong-bg">\{{chong}}</span>
 							<div class="pe-btns">
-								<button class="pe-inc pe-btn btn" type="button">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button">&minus;</button>
+								<button class="pe-inc pe-btn btn" type="button" data-competitor="chong">+</button>
+								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="chong"\{{unless allowDecChong}} disabled\{{unless}}>&minus;</button>
 							</div>
 						</div>
-					</div>
+					</script>
 				</div>
 			</div>
 		</div>

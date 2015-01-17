@@ -15,27 +15,19 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
-				matchEnded: this._onMatchEnded,
-				scoringStateChanged: this._onScoringStateChanged,
-				matchPanel: {
-					state: this._updateState,
-					scores: this._updateScores,
-					penalties: this._updatePenalties
-				}
-			},
-			match: {
-				ended: IO.endMatch,
 				stateChanged: this._onStateChanged,
 				stateStarted: this._onStateStarted,
 				stateEnded: this._onStateEnded,
 				injuryStarted: this._onInjuryStarted,
 				injuryEnded: this._onInjuryEnded,
-				scoresReset: this._updateJudgeScores,
-				penaltiesReset: this._onPenaltiesReset
-			},
-			judge: {
-				scored: this._updateJudgeScores,
-				undid: this._updateJudgeScores
+				scoringStateChanged: this._onScoringStateChanged,
+				matchEnded: this._onMatchEnded,
+				matchPanel: {
+					state: this._updateState,
+					scores: this._updateScores,
+					warnings: this._updateWarnings,
+					fouls: this._updateFouls
+				}
 			},
 			timer: {
 				tick: this._onTimerTick,
@@ -74,26 +66,19 @@ define([
 		this.scoresInnerTemplate = Handlebars.compile(document.getElementById('sc-inner-tmpl').innerHTML);
 		
 		// Penalties
-		this.penaltiesInner = this.root.querySelector('.pe-inner');
-		this.penaltiesInnerTempalte = Handlebars.compile(document.getElementById('pe-inner-tmpl').innerHTML);
-		this.penaltiesInner.addEventListener('click', this._onPenaltiesInnerDelegate.bind(this));
+		this.penaltyBtns = this.root.querySelectorAll('.pe-btn');
+		this.warningsInner = this.root.querySelector('.pe-inner--warnings');
+		this.warningsInnerTemplate = Handlebars.compile(document.getElementById('pe-warnings-tmpl').innerHTML);
+		this.warningsInner.addEventListener('click', this._onWarningsDelegate.bind(this));
+		this.foulsInner = this.root.querySelector('.pe-inner--fouls');
+		this.foulsInnerTemplate = Handlebars.compile(document.getElementById('pe-fouls-tmpl').innerHTML);
+		this.foulsInner.addEventListener('click', this._onFoulsDelegate.bind(this));
 	}
 	
 	MatchPanel.prototype = {
 		
 		_publish: function (subTopic) {
 			PubSub.publish('matchPanel.' + subTopic, [].slice.call(arguments, 1));
-		},
-		
-		_onTimerTick: function (name, value) {
-			var timer = this[name + 'Timer'];
-			var sec = value % 60
-			timer.sec.textContent = (sec < 10 ? '0' : '') + sec;
-			timer.min.textContent = Math.floor(value / 60);
-		},
-		
-		_onTimerZero: function () {
-			this.tkBeeps.play();
 		},
 
 		_slideInjuryTimer: function () {
@@ -116,17 +101,10 @@ define([
 			}
 		},
 		
-		setMatch: function (match) {
-			this.match = match;
-			this.match.nextState();
-			
-			// Initialise UI
-			this._updateStateBtns(null, false);
-			this.stateStartBtn.classList.remove('hidden');
-			this.stateEndBtn.classList.remove('hidden');
-			this._updateJudgeScores();
-			this._enablePenaltyBtns(false);
-		},
+		
+		/* ==================================================
+		 * IO events
+		 * ================================================== */
 
 		_onStateChanged: function (state) {
 			console.log("State changed: " + state);
@@ -139,119 +117,20 @@ define([
 			this.mpState.textContent = state.split('-').reduce(function (label, part) {
 				return label += part.charAt(0).toUpperCase() + part.slice(1) + " ";
 			}, "").slice(0, -1);
-
-			// Mark start button as major on non-BREAK states
-			this.stateStartBtn.classList.toggle('btn--major', state !== MatchStates.BREAK);
-			this.stateEndBtn.classList.toggle('btn--major', state !== MatchStates.BREAK);
 		},
 
 		_onStateStarted: function (state) {
 			console.log("State started: " + state);
-			this._updateStateBtns(state, true);
 
+			// Start timer
 			this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, false);
-
-			if (state !== MatchStates.BREAK) {
-				IO.enableScoring(true);
-			}
 		},
 
 		_onStateEnded: function (state) {
 			console.log("State ended: " + state);
-			this._updateStateBtns(state, false);
+			
+			// Stop timer
 			this.roundTimer.timer.stop();
-
-			if (state !== MatchStates.BREAK) {
-				IO.enableScoring(false);
-			}
-		},
-
-		_updateStateBtns: function (state, starting) {
-			// State start/end buttons
-			Helpers.enableBtn(this.stateEndBtn, starting);
-			Helpers.enableBtn(this.stateStartBtn, !starting);
-
-			// Enable injury button when a non-BREAK state is starting
-			Helpers.enableBtn(this.injuryBtn, starting && state !== MatchStates.BREAK);
-		},
-
-		_onMatchEnded: function () {
-			console.log("Match ended");
-			this.stateStartBtn.classList.add("hidden");
-			this.stateEndBtn.classList.add("hidden");
-			this.roundTimer.timer.reset(0);
-		},
-		
-		_onPenaltiesReset: function (state) {
-			// If Round 2, keep penalties from Round 1 on screen
-			if (state !== MatchStates.ROUND_2) {
-				// Reset values
-				[].forEach.call(this.penalties.querySelectorAll('.pe-value'), function (elem) {
-					elem.textContent = 0;
-				}, this);
-				
-				// Disable decrement buttons
-				[].forEach.call(this.penalties.querySelectorAll('.pe-dec'), function (btn) {
-					btn.setAttribute('disabled', 'disabled');
-					btn.classList.add('pe-btn_disabled');
-				}, this);
-			}
-		},
-		
-		_enablePenaltyBtns: function (enable) {
-			[].forEach.call(this.penaltyBtns, function (btn) {
-				if (!enable) {
-					btn.setAttribute('disabled', 'disabled');
-				} else if (!btn.classList.contains('pe-btn_disabled')) {
-					btn.removeAttribute('disabled');
-				}
-			});
-		},
-		
-		_onPenaltyItem: function (item, evt) {
-			var elem = evt.target;
-			if (!elem || elem.nodeName !== 'BUTTON') {
-				return;
-			}
-			
-			elem.blur();
-			var type = item.dataset.type;
-			var competitor = item.dataset.competitor;
-			
-			var valueElem = item.querySelector('.pe-value');
-			var value = parseInt(valueElem.textContent);
-			
-			// Increment or decrement time
-			if (elem.classList.contains('pe-inc')) {
-				IO.incrementPenalty(type, competitor);
-				value += 1;
-				
-				if (value === 1) {
-					elem.nextElementSibling.removeAttribute('disabled');
-					elem.nextElementSibling.classList.remove('pe-btn_disabled');
-				}
-			} else if (elem.classList.contains('pe-dec')) {
-				IO.decrementPenalty(type, competitor);
-				value -= 1;
-				
-				if (value === 0) {
-					elem.setAttribute('disabled', 'disabled');
-					elem.classList.add('pe-btn_disabled');
-				}
-			}
-			
-			// Display new value
-			valueElem.textContent = value;
-		},
-		
-		
-		
-		/* ==================================================
-		 * IO events
-		 * ================================================== */
-		
-		_onScoringStateChanged: function (data) {
-			this._enablePenaltyBtns(data.enabled);
 		},
 
 		_onInjuryStarted: function () {
@@ -277,34 +156,69 @@ define([
 			this.roundTimer.timer.start(data.state !== MatchStates.GOLDEN_POINT, true);
 		},
 		
+		_onScoringStateChanged: function (data) {
+			// Enable or disable penalty buttons
+			[].forEach.call(this.penaltyBtns, function (btn) {
+				if (data.enable) {
+					// Enable the button, unless it was previously disabled
+					if (btn.dataset.wasDisabled === 'true') {
+						btn.removeAttribute('disabled');
+					}
+				} else {
+					if (btn.hasAttribute('disabled')) {
+						// If the button is already disabled (decrement button when value is 0), 
+						// save this information in a data attribute
+						btn.dataset.wasDisabled = 'true';
+					} else {
+						// Disable the button
+						btn.setAttribute('disabled', 'disabled');
+					}
+				}
+			});
+		},
+
+		_onMatchEnded: function () {
+			console.log("Match ended");
+			
+			// Reset timer
+			this.roundTimer.timer.reset(0);
+		},
+		
+		
+		/* ==================================================
+		 * Other events
+		 * ================================================== */
+		
+		_onTimerTick: function (name, value) {
+			var timer = this[name + 'Timer'];
+			var sec = value % 60
+			timer.sec.textContent = (sec < 10 ? '0' : '') + sec;
+			timer.min.textContent = Math.floor(value / 60);
+		},
+		
+		_onTimerZero: function () {
+			this.tkBeeps.play();
+		},
+		
 		
 		/* ==================================================
 		 * UI updates
 		 * ================================================== */
 		
-		_updateStateManagement: function (state) {
-			this.smInner.innerHTML = this.smInnerTemplate(state);
+		_updateState: function (state) {
+			this.stateInner.innerHTML = this.stateInnerTemplate(state);
 		},
 		
 		_updateScores: function (scores) {
 			this.scoresInner.innerHTML = this.scoresInnerTemplate(scores);
-			
-			// Prepare template context
-			/*var slots = [];
-			for (var i = 0, len = this.ring.slotCount; i < len; i += 1) {
-				var cj = this.ring.cornerJudges[i];
-				slots.push({
-					index: i + 1,
-					cj: !cj ? null : {
-						name: cj.name,
-						scores: cj.getCurrentScores(this.match.scoreboardColumnId)
-					}
-				});
-			};*/
 		},
 		
-		_updatePenalties: function (penalties) {
-			this.penalties.innerHTML = this.penaltiesTempalte(penalties);
+		_updateWarnings: function (warnings) {
+			this.warningsInner.innerHTML = this.warningsInnerTemplate(warnings);
+		},
+		
+		_updateFouls: function (fouls) {
+			this.foulsInner.innerHTML = this.foulsInnerTemplate(fouls);
 		},
 		
 		
@@ -328,9 +242,27 @@ define([
 			}
 		},
 		
-		_onPenaltiesInnerDelegate: function (evt) {
+		_onWarningsInnerDelegate: function (evt) {
 			var btn = evt.target;
 			if (btn && btn.nodeName == 'BUTTON') {
+				btn.blur();
+				if (btn.classList.contains('pe-inc')) {
+					IO.incrementWarning(btn.dataset.competitor);
+				} else if (btn.classList.contains('pe-dec')) {
+					IO.decrementWarning(btn.dataset.competitor);
+				}
+			}
+		},
+		
+		_onFoulsInnerDelegate: function (evt) {
+			var btn = evt.target;
+			if (btn && btn.nodeName == 'BUTTON') {
+				btn.blur();
+				if (btn.classList.contains('pe-inc')) {
+					IO.incrementFouls(btn.dataset.competitor);
+				} else if (btn.classList.contains('pe-dec')) {
+					IO.decrementFouls(btn.dataset.competitor);
+				}
 			}
 		}
 		

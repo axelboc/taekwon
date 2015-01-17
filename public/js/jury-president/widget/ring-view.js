@@ -24,13 +24,10 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
+				ringOpened: this._showPanel.bind(this, this.configPanel),
+				configureMatch: this._showPanel.bind(this, this.configPanel),
 				matchCreated: this._showPanel.bind(this, this.matchPanel),
-			},
-			match: {
-				resultsComputed: this._onResultsComputed
-			},
-			resultPanel: {
-				configureMatch: this._showPanel.bind(this, this.configPanel)
+				resultsComputed: this._showPanel.bind(this, this.resultPanel)
 			}
 		});
 	}
@@ -50,11 +47,6 @@ define([
 			// Show the new panel
 			newPanel.root.classList.remove('hidden');
 			this.currentPanel = newPanel;
-		},
-		
-		_onResultsComputed: function () {
-			// Show result panel
-			this._showPanel(this.resultPanel);
 		}
 		
 	};
