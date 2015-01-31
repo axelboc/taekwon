@@ -10,6 +10,7 @@ var Ring = require('./ring').Ring;
 var User = require('./user').User;
 var JuryPresident = require('./jury-president').JuryPresident;
 var CornerJudge = require('./corner-judge').CornerJudge;
+var defaults = require('./enum/defaults');
 
 var RING_HANDLER_PREFIX = '_ring';
 var RING_EVENTS = ['stateChanged'];
@@ -228,7 +229,7 @@ Tournament.prototype._initUser = function (spark, connected, doc) {
 Tournament.prototype._initRing = function (doc) {
 	assert.object(doc, 'doc');
 
-	var ring = new Ring(doc._id, doc.index, doc.slotCount);
+	var ring = new Ring(doc._id, doc.index, doc.slotCount, doc.matchConfig);
 	this.rings[doc.index] = ring;
 
 	// Jury President
@@ -272,13 +273,12 @@ Tournament.prototype.initRings = function (count, cb) {
 	assert.integerGt0(count, 'count');
 	assert.function(cb, 'cb');
 
-	// Retrieve the number of corner judge slots per ring
+	// Retrieve the number of corner judge slots per ring and the default match configuration
 	var slotCount = parseInt(process.env.CJS_PER_RING, 10);
-	assert.ok(!isNaN(slotCount) && slotCount > 0 && slotCount % 1 === 0,
-		   "environment configuration `CJS_PER_RING` must be a positive integer");
+	var matchConfig = defaults.matchConfig;
 
 	// Insert new rings in the database one at a time
-	DB.insertRings(this.id, count, slotCount, function (newDocs) {
+	DB.insertRings(this.id, count, slotCount, matchConfig, function (newDocs) {
 		newDocs.forEach(this._initRing, this);
 		logger.debug("Rings initialised");
 		cb();

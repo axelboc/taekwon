@@ -26,8 +26,9 @@ var MATCH_EVENTS = [];
  * @param {String} id
  * @param {Number} index - the ring index, as a positive integer
  * @param {Number} slotCount - the number of Corner Judge slots available
+ * @param {Object} matchConfig - the default match configuration
  */
-function Ring(id, index, slotCount) {
+function Ring(id, index, slotCount, matchConfig) {
 	assert.string(id, 'id');
 	assert.integerGte0(index, 'index');
 	assert.integerGt0(slotCount, 'slotCount');
@@ -35,6 +36,7 @@ function Ring(id, index, slotCount) {
 	this.id = id;
 	this.index = index;
 	this.slotCount = slotCount;
+	this.matchConfig = matchConfig;
 	
 	this.number = index + 1;
 	this.juryPresident = null;

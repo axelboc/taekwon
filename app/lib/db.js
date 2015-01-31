@@ -166,12 +166,14 @@ var DB = {
 	 * @param {String} tournamentId
 	 * @param {Number} count - the number of rings to insert
 	 * @param {Number} slotCount
+	 * @param {Object} matchConfig
 	 * @param {Function} cb
 	 */
-	insertRings: function (tournamentId, count, slotCount, cb) {
+	insertRings: function (tournamentId, count, slotCount, matchConfig, cb) {
 		assert.string(tournamentId, 'tournamentId');
 		assert.integerGte0(count, 'count');
 		assert.integerGt0(slotCount, 'slotCount');
+		assert.object(matchConfig, 'matchConfig');
 		
 		var newDocs = [];
 		for (var i = 0; i < count; i += 1) {
@@ -180,7 +182,8 @@ var DB = {
 				index: i,
 				jpId: null,
 				cjIds: [],
-				slotCount: slotCount
+				slotCount: slotCount,
+				matchConfig: matchConfig
 			});
 		}
 		
@@ -226,6 +229,19 @@ var DB = {
 		assert.integerGt0(slotCount, 'slotCount');
 		
 		ringsDb.update({ _id: ringId }, { $set: { slotCount: slotCount } }, callback(cb));
+	},
+	
+	/**
+	 * Set a ring's default match configuration.
+	 * @param {String} ringId
+	 * @param {Object} matchConfig
+	 * @param {Function} cb
+	 */
+	setRingMatchConfig: function (ringId, matchConfig, cb) {
+		assert.string(ringId, 'ringId');
+		assert.object(matchConfig, 'matchConfig');
+		
+		ringsDb.update({ _id: ringId }, { $set: { matchConfig: matchConfig } }, callback(cb));
 	},
 	
 	/**
