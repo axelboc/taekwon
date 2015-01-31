@@ -55,7 +55,7 @@ define([
 		},
 
 		_onRingOpened: function(data) {
-			console.log("Ring opened (index=" + data.index + ", slotCount=" + data.slotCount + ")");
+			console.log("Ring opened (index=" + data.index + ")");
 			this._updateTitle(data.index);
 			this._showView(this.ringView);
 		},

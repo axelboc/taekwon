@@ -29,7 +29,7 @@ define([
 		'restoreSession',
 		'wsError',
 		'ringListView.ringList',
-		'judgesSidebar.slots',
+		'judgesSidebar.slotList',
 		'matchPanel.scores', 'matchPanel.penalties'
 	];
 	

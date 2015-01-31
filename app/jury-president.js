@@ -190,6 +190,9 @@ JuryPresident.prototype.ringOpened = function (ring, slots) {
 	assert.array(slots, 'slots');
 	
 	this.ring = ring;
+	this._send('ringOpened', {
+		index: ring.index
+	});
 	this._updateWidget('judgesSidebar', 'slotList', { slots: slots });
 };
 
