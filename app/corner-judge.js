@@ -165,6 +165,7 @@ CornerJudge.prototype.rejected = function (message, ringStates) {
 	logger.debug("> " + message);
 
 	this.ring = null;
+	this._send('rejected');
 	this._updateWidget('ringListView', 'instr', { message: message });
 	this._updateWidget('ringListView', 'ringList', { rings: ringStates });
 };
@@ -208,6 +209,7 @@ CornerJudge.prototype.ringLeft = function (message, ringStates) {
 	this.ring = null;
 	this.authorised = false;
 
+	this._send('ringLeft');
 	this._updateWidget('ringListView', 'instr', { message: message });
 	this._updateWidget('ringListView', 'ringList', { rings: ringStates });
 
