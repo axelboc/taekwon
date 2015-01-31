@@ -3,7 +3,6 @@
  * Default settings
  */
 define({
-	timeIncrements: 15,
 	match: {
 		roundTime: 120,
 		breakTime: 60,

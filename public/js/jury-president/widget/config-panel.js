@@ -7,6 +7,9 @@ define([
 
 ], function (PubSub, Helpers, IO, defaults) {
 	
+	// The number of seconds by which to increase or decrease the time configurations
+	var TIME_INCREMENT = 15;
+	
 	function ConfigPanel() {
 		this.config = defaults.match;
 		this.root = document.getElementById('config-panel');
@@ -62,14 +65,14 @@ define([
 			
 			// Increment or decrement time
 			if (elem.classList.contains('ci-dec')) {
-				value -= defaults.timeIncrements;
+				value -= TIME_INCREMENT;
 				
 				// If next decrement would reach 0, disable button
-				if (value <= defaults.timeIncrements) {
+				if (value <= TIME_INCREMENT) {
 					elem.setAttribute('disabled', 'disabled');
 				}
 			} else if (elem.classList.contains('ci-inc')) {
-				value += defaults.timeIncrements;
+				value += TIME_INCREMENT;
 				
 				// If decrement button is disabled, enable it
 				var decBtn = item.querySelector('.ci-dec[disabled]');
