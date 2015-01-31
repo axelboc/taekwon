@@ -69,10 +69,10 @@ define([
 		this.penaltyBtns = this.root.querySelectorAll('.pe-btn');
 		this.warningsInner = this.root.querySelector('.pe-inner--warnings');
 		this.warningsInnerTemplate = Handlebars.compile(document.getElementById('pe-warnings-tmpl').innerHTML);
-		this.warningsInner.addEventListener('click', this._onWarningsDelegate.bind(this));
+		this.warningsInner.addEventListener('click', this._onWarningsInnerDelegate.bind(this));
 		this.foulsInner = this.root.querySelector('.pe-inner--fouls');
 		this.foulsInnerTemplate = Handlebars.compile(document.getElementById('pe-fouls-tmpl').innerHTML);
-		this.foulsInner.addEventListener('click', this._onFoulsDelegate.bind(this));
+		this.foulsInner.addEventListener('click', this._onFoulsInnerDelegate.bind(this));
 	}
 	
 	MatchPanel.prototype = {

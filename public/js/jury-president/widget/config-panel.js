@@ -2,9 +2,10 @@
 define([
 	'minpubsub',
 	'../../common/helpers',
+	'../io',
 	'../defaults'
 
-], function (PubSub, Helpers, defaults) {
+], function (PubSub, Helpers, IO, defaults) {
 	
 	function ConfigPanel() {
 		this.config = defaults.match;

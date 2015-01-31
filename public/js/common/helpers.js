@@ -10,9 +10,9 @@ define(['minpubsub'], function (PubSub) {
 		 * @param {String} path - for recursion
 		 */
 		subscribeToEvents: function (scope, events, path) {
-			path = path || '';
+			path = path ? path + '.' : '';
 			Object.keys(events).forEach(function (topic) {
-				var event = (path ? path + '.' : '') + topic;
+				var event = path + topic;
 				if (typeof events[topic] === 'function') {
 					PubSub.subscribe(event, events[topic].bind(scope));
 				} else {

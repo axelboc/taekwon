@@ -28,6 +28,7 @@ define([
 		'cjExited',
 		'restoreSession',
 		'wsError',
+		'ringListView.ringList',
 		'judgesSidebar.slots',
 		'matchPanel.scores', 'matchPanel.penalties'
 	];
@@ -174,18 +175,6 @@ define([
 	
 	function startEndInjury() {
 		primus.emit('startEndInjury');
-	}
-	
-	function () {
-		primus.emit('');
-	}
-	
-	function () {
-		primus.emit('');
-	}
-	
-	function () {
-		primus.emit('');
 	}
 	
 	function incrementPenalty(type, competitor) {
