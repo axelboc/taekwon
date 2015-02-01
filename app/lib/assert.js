@@ -49,6 +49,15 @@ assert.boolean = function (val, name) {
 };
 
 /**
+ * Assert that a value is an integer.
+ * @param {Mixed} val
+ * @param {String} name
+ */
+assert.integer = function (val, name) {
+	assert.ok(typeof val === 'number' && val % 1 === 0, "`" + name + "` must be an integer");
+};
+
+/**
  * Assert that a value is an integer strictly greater than 0.
  * @param {Mixed} val
  * @param {String} name

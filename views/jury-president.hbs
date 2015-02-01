@@ -62,23 +62,22 @@
 		<div id="config-panel" class="panel">
 			<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
 			<div class="config action">
-				<h2 class="config-heading">Match Configuration</h2>
-				<div class="config-item" data-name="roundTime" data-type="time">
-					<span class="ci-lbl">Round time</span>
-					<span class="ci-controls"><button class="ci-dec ci-btn btn btn--toggle" type="button">&minus;</button><span class="ci-value"></span><button class="ci-inc ci-btn btn btn--toggle" type="button">+</button></span>
-				</div>
-				<div class="config-item" data-name="injuryTime" data-type="time">
-					<span class="ci-lbl">Injury time</span>
-					<span class="ci-controls"><button class="ci-dec ci-btn btn btn--toggle" type="button">&minus;</button><span class="ci-value"></span><button class="ci-inc ci-btn btn btn--toggle" type="button">+</button></span>
-				</div>
-				<div class="config-item" data-name="breakTime" data-type="time">
-					<span class="ci-lbl">Break time</span>
-					<span class="ci-controls"><button class="ci-dec ci-btn btn btn--toggle" type="button">&minus;</button><span class="ci-value"></span><button class="ci-inc ci-btn btn btn--toggle" type="button">+</button></span>
-				</div>
-				<div class="config-item" data-name="twoRounds" data-type="boolean">
-					<span class="ci-lbl">Number of rounds</span>
-					<span class="ci-controls"><button class="ci-false ci-btn btn btn--toggle" type="button">1</button><button class="ci-true ci-btn btn btn--toggle" type="button">2</button></span>
-				</div>
+				<h2 class="cf-heading">Match Configuration</h2>
+				<div class="cf-inner"></div>
+				<script id="cf-inner-tmpl" type="x-handlebars-template">
+					\{{#each configItems}}
+						<div class="cf-item" data-name="\{{name}}" data-type="\{{type}}">
+							<span class="cf-lbl">\{{label}}</span>
+							\{{#if isTime}}
+								<span class="cf-controls"><button class="cf-dec cf-btn btn btn--toggle" type="button"\{{#unless isDecEnabled}} disabled\{{/unless}}>&minus;</button><span class="cf-value">\{{value}}</span><button class="cf-inc cf-btn btn btn--toggle" type="button">+</button></span>
+							\{{else}}
+								\{{#if isBoolean}}
+									<span class="cf-controls"><button class="cf-false cf-btn btn btn--toggle\{{#if isFalse}} btn_pressed\{{/if}}" type="button">1</button><button class="cf-true cf-btn btn btn--toggle\{{#if isTrue}} btn_pressed\{{/if}}" type="button">2</button></span>
+								\{{/if}}
+							\{{/if}}
+						</div>
+					\{{/each}}
+				</script>
 			</div>
 		</div>
 		{{!-- Match panel --}}
@@ -104,9 +103,9 @@
 				<div class="state st-cell">
 					<div class="st-inner"></div>
 					<script id="st-inner-tmpl" type="x-handlebars-template">
-						<button type="button" class="st-btn st-btn--start match-btn btn\{{unless isBreak}} btn--major\{{/unless}}"\{{if started}} disabled\{{/if}}>Start</button>
-						<button type="button" class="st-btn st-btn--end match-btn btn\{{unless isBreak}} btn--major\{{/unless}}"\{{unless started}} disabled\{{/unless}}>End</button>
-						<button type="button" class="st-btn st-btn--injury match-btn btn btn--minor"\{{unless isBreak}}\{{if started}} disabled\{{/if}}\{{unless}}>\{{unless isInjuryStarted}}Start\{{else}}End\{{/unless}} Injury</button>
+						<button type="button" class="st-btn st-btn--start match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#if started}} disabled\{{/if}}>Start</button>
+						<button type="button" class="st-btn st-btn--end match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#unless started}} disabled\{{/unless}}>End</button>
+						<button type="button" class="st-btn st-btn--injury match-btn btn btn--minor"\{{#unless isBreak}}\{{#if started}} disabled\{{/if}}\{{/unless}}>\{{#unless isInjuryStarted}}Start\{{else}}End\{{/unless}} Injury</button>
 					</script>
 				</div>
 			</div>
@@ -143,14 +142,14 @@
 							<span class="pe-value hong-bg">\{{hong}}</span>
 							<div class="pe-btns">
 								<button class="pe-inc pe-btn btn" type="button" data-competitor="hong">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="hong"\{{unless allowDecHong}} disabled\{{unless}}>&minus;</button>
+								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="hong"\{{#unless allowDecHong}} disabled\{{/unless}}>&minus;</button>
 							</div>
 						</div>
 						<div class="pe-item">
 							<span class="pe-value chong-bg">\{{chong}}</span>
 							<div class="pe-btns">
 								<button class="pe-inc pe-btn btn" type="button" data-competitor="chong">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="chong"\{{unless allowDecChong}} disabled\{{unless}}>&minus;</button>
+								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="chong"\{{#unless allowDecChong}} disabled\{{/unless}}>&minus;</button>
 							</div>
 						</div>
 					</script>
@@ -161,14 +160,14 @@
 							<span class="pe-value hong-bg">\{{hong}}</span>
 							<div class="pe-btns">
 								<button class="pe-inc pe-btn btn" type="button" data-competitor="hong">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="hong"\{{unless allowDecHong}} disabled\{{unless}}>&minus;</button>
+								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="hong"\{{#unless allowDecHong}} disabled\{{/unless}}>&minus;</button>
 							</div>
 						</div>
 						<div class="pe-item">
 							<span class="pe-value chong-bg">\{{chong}}</span>
 							<div class="pe-btns">
 								<button class="pe-inc pe-btn btn" type="button" data-competitor="chong">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="chong"\{{unless allowDecChong}} disabled\{{unless}}>&minus;</button>
+								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="chong"\{{#unless allowDecChong}} disabled\{{/unless}}>&minus;</button>
 							</div>
 						</div>
 					</script>

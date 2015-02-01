@@ -2,110 +2,97 @@
 define([
 	'minpubsub',
 	'../../common/helpers',
-	'../io',
-	'../defaults'
+	'../io'
 
-], function (PubSub, Helpers, IO, defaults) {
+], function (PubSub, Helpers, IO) {
 	
 	// The number of seconds by which to increase or decrease the time configurations
 	var TIME_INCREMENT = 15;
 	
 	function ConfigPanel() {
-		this.config = defaults.match;
 		this.root = document.getElementById('config-panel');
+		
+		// Subscribe to events
+		Helpers.subscribeToEvents(this, {
+			io: {
+				configPanel: {
+					config: this._updateConfig,
+				}
+			}
+		});
 		
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
 		this.newMatchBtn.addEventListener('click', IO.createMatch);
 		
-		// Loop through configuration items
-		[].forEach.call(this.root.querySelectorAll('.config-item'), function (item) {
-			// Use event delegation
-			var type = item.dataset.type;
-			var capType = type.charAt(0).toUpperCase() + type.slice(1);
-			item.addEventListener('click', this['_on' + capType + 'ConfigItem'].bind(this, item));
-			
-			// Enable all buttons
-			[].forEach.call(item.querySelectorAll('button'), function (btn) {
-				btn.removeAttribute('disabled');
-			});
-			
-			// Populate default configuration values
-			var val = this.config[item.dataset.name];
-			switch (type) {
-				case 'time':
-					item.querySelector('.ci-value').textContent = this._numToTime(val);
-					break;
-				case 'boolean':
-					item.querySelector('.ci-' + val).classList.add('btn_pressed');
-					break;
-			}
-		}, this);
+		this.configInner = this.root.querySelector('.cf-inner');
+		this.configInnerTemplate = Handlebars.compile(document.getElementById('cf-inner-tmpl').innerHTML);
+		this.configInner.addEventListener('click', this._onConfigInnerDelegate.bind(this));
 	}
 	
-	ConfigPanel.prototype = {
-		
-		_publish: function (subTopic) {
-			PubSub.publish('configPanel.' + subTopic, [].slice.call(arguments, 1));
-		},
-		
-		_numToTime: function (num) {
-			var sec = num % 60;
-			return Math.floor(num / 60) + ":" + (sec < 10 ? '0' : '') + sec;
-		},
-		
-		_onTimeConfigItem: function (item, evt) {
-			var elem = evt.target;
-			if (!elem || elem.nodeName !== 'BUTTON') {
-				return;
+	ConfigPanel.prototype._publish = function (subTopic) {
+		PubSub.publish('configPanel.' + subTopic, [].slice.call(arguments, 1));
+	};
+	
+	ConfigPanel.prototype._numToTime = function (num) {
+		var sec = num % 60;
+		return Math.floor(num / 60) + ":" + (sec < 10 ? '0' : '') + sec;
+	};
+	
+	ConfigPanel.prototype._prepareContext = function (configItems) {
+		return Object.keys(configItems).reduce(function (arr, itemName) {
+			var item = configItems[itemName];
+			
+			item.name = itemName;
+			item.isTime = item.type === 'time';
+			item.isBoolean = item.type === 'boolean';
+			
+			if (item.isTime) {
+				item.isDecEnabled = item.isTime && (item.value - TIME_INCREMENT) > 0;
+				item.value = this._numToTime(item.value);
+			} else if (item.isBoolean) {
+				item.isFalse = item.value === false;
+				item.isTrue = item.value === true;
 			}
 			
-			elem.blur();
-			var configName = item.dataset.name;
-			var value = this.config[configName];
+			arr.push(item);
+			return arr;
+		}.bind(this), []);
+	};
+	
+	
+	/* ==================================================
+	 * IO events
+	 * ================================================== */
+
+	ConfigPanel.prototype._updateConfig = function (data) {
+		// Execute template
+		this.configInner.innerHTML = this.configInnerTemplate({
+			configItems: this._prepareContext(data.config)
+		});
+	};
+	
+	
+	/* ==================================================
+	 * UI events
+	 * ================================================== */
+
+	ConfigPanel.prototype._onConfigInnerDelegate = function (evt) {
+		var btn = evt.target;
+		if (btn && btn.nodeName == 'BUTTON') {
+			var item = btn.parentElement.parentElement;
+			var value;
 			
-			// Increment or decrement time
-			if (elem.classList.contains('ci-dec')) {
-				value -= TIME_INCREMENT;
-				
-				// If next decrement would reach 0, disable button
-				if (value <= TIME_INCREMENT) {
-					elem.setAttribute('disabled', 'disabled');
-				}
-			} else if (elem.classList.contains('ci-inc')) {
-				value += TIME_INCREMENT;
-				
-				// If decrement button is disabled, enable it
-				var decBtn = item.querySelector('.ci-dec[disabled]');
-				if (decBtn) {
-					decBtn.removeAttribute('disabled');
-				}
+			switch (item.dataset.type) {
+				case 'time':
+					value = TIME_INCREMENT * (btn.classList.contains('cf-dec') ? -1 : 1);
+					break;
+				case 'boolean':
+					value = !btn.classList.contains('cf-false');
+					break;
 			}
 			
-			// Update config value and display it
-			this.config[configName] = value;
-			item.querySelector('.ci-value').textContent = this._numToTime(value);
-		},
-		
-		_onBooleanConfigItem: function (item, evt) {
-			var elem = evt.target;
-			if (!elem || elem.nodeName !== 'BUTTON') {
-				return;
-			}
-			
-			elem.blur();
-			var configName = item.dataset.name;
-			var value = elem.classList.contains('ci-true');
-			
-			// Update config value and display it
-			this.config[configName] = value;
-			elem.classList.add('btn_pressed');
-			item.querySelector('.ci-' + !value).classList.remove('btn_pressed');
-		},
-		
-		getConfig: function () {
-			return this.config;
+			IO.setConfigItem(item.dataset.name, value);
 		}
-		
 	};
 	
 	return ConfigPanel;

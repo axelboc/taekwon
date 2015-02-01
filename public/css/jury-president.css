@@ -117,17 +117,17 @@
 	text-align: left;
 }
 
-.config-heading {
+.cf-heading {
 	margin: 0 0 1em;
 	text-align: center;
 }
 
-.config-item { 
+.cf-item { 
 	overflow: hidden;
 }
 
-.ci-lbl,
-.ci-controls {
+.cf-lbl,
+.cf-controls {
 	display: block;
 	float: left;
 	width: 50%;
@@ -135,43 +135,43 @@
 	padding: 0 1.2em;
 }
 
-.ci-lbl {
+.cf-lbl {
 	padding: .2em 0;
 	text-align: right;
 }
 
-.ci-value {
+.cf-value {
 	display: inline-block;
 	border: 1px solid #bbb;
 	padding: .2em .5em;
 	background-color: #eee;
 }
 
-.ci-btn {
+.cf-btn {
 	padding: .2em 0;
 }
 
-.ci-btn:not(.btn_pressed):not(:hover) {
+.cf-btn:not(.btn_pressed):not(:hover) {
 	color: inherit;
 }
 
-.ci-btn:first-child {
+.cf-btn:first-child {
 	border-radius: 10px 0 0 10px;
 	border-right: 0;
 }
 
-.ci-btn:last-child {
+.cf-btn:last-child {
 	border-radius: 0 10px 10px 0;
 	border-left: 0;
 }
 
-.ci-inc,
-.ci-dec {
+.cf-inc,
+.cf-dec {
 	width: 2em;
 }
 
-.ci-true,
-.ci-false {
+.cf-true,
+.cf-false {
 	width: 3.5em;
 }
 

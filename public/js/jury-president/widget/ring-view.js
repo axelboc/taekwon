@@ -3,20 +3,19 @@ define([
 	'minpubsub',
 	'../../common/helpers',
 	'../io',
-	'../defaults',
 	'./judges-sidebar',
 	'./config-panel',
 	'./match-panel',
 	'./result-panel'
 	
-], function (PubSub, Helpers, IO, defaults, JudgesSidebar, ConfigPanel, MathPanel, ResultPanel) {
+], function (PubSub, Helpers, IO, JudgesSidebar, ConfigPanel, MathPanel, ResultPanel) {
 	
 	function RingView() {
 		this.root = document.getElementById('ring');
 		
 		// Initialise panels and sidebar
 		this.currentPanel = null;
-		this.configPanel = new ConfigPanel(defaults.match);
+		this.configPanel = new ConfigPanel();
 		this.matchPanel = new MathPanel();
 		this.resultPanel = new ResultPanel();
 		this.judgesSidebar = new JudgesSidebar();

@@ -11,7 +11,7 @@ var Match = require('./match').Match;
 
 var JP_HANDLER_PREFIX = '_jp';
 var JP_EVENTS = ['addSlot', 'removeSlot', 'authoriseCJ',
-				 'createMatch', 'endMatch', 'enableScoring',
+				 'setConfigItem', 'createMatch', 'endMatch', 'enableScoring',
 				 'connectionStateChanged'];
 
 var CJ_HANDLER_PREFIX = '_cj';
@@ -32,6 +32,7 @@ function Ring(id, index, slotCount, matchConfig) {
 	assert.string(id, 'id');
 	assert.integerGte0(index, 'index');
 	assert.integerGt0(slotCount, 'slotCount');
+	assert.object(matchConfig, 'matchConfig');
 	
 	this.id = id;
 	this.index = index;
@@ -125,7 +126,7 @@ Ring.prototype.open = function (jp) {
 		this.emit('stateChanged');
 		
 		// Acknowledge
-		jp.ringOpened(this, this.getSlots());
+		jp.ringOpened(this, this.matchConfig, this.getSlots());
 		
 		logger.info('opened', {
 			number: this.number,
@@ -331,6 +332,40 @@ Ring.prototype._jpAuthoriseCJ = function (id) {
 		// Acknowledge
 		cj.ringJoined();
 		this.juryPresident.slotsUpdated(this.getSlots());
+	}.bind(this));
+};
+
+/**
+ * Set the value of a configuration item.
+ * @param {String} name - the name of the configuration item
+ * @param {Any} value - the new value (type depends on type of config item)
+ */
+Ring.prototype._jpSetConfigItem = function (name, value) {
+	assert.string(name, 'name');
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	
+	var item = this.matchConfig[name];
+	assert.object(item, "configuration item not found");
+	
+	// Assert `value` according to the type of the configuration item
+	switch (item.type) {
+		case 'time':
+			assert.integer(value, 'value');
+			assert.ok(item.value + value > 0, "value of time configuration item must remain greater than 0");
+			value = item.value + value;
+			break;
+		case 'boolean':
+			assert.boolean(value, 'value');
+			break;
+		default:
+			assert.fail("unknown configuration item type");
+	}
+	
+	// Update database
+	DB.setRingMatchConfigItem(this.id, name, value, function () {
+		// Set and acknowledge
+		item.value = value;
+		this.juryPresident.configItemSet(this.matchConfig);
 	}.bind(this));
 };
 

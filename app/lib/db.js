@@ -234,14 +234,18 @@ var DB = {
 	/**
 	 * Set a ring's default match configuration.
 	 * @param {String} ringId
-	 * @param {Object} matchConfig
+	 * @param {String} itemName
+	 * @param {Any} itemValue
 	 * @param {Function} cb
 	 */
-	setRingMatchConfig: function (ringId, matchConfig, cb) {
+	setRingMatchConfigItem: function (ringId, itemName, itemValue, cb) {
 		assert.string(ringId, 'ringId');
-		assert.object(matchConfig, 'matchConfig');
+		assert.string(itemName, 'itemName');
 		
-		ringsDb.update({ _id: ringId }, { $set: { matchConfig: matchConfig } }, callback(cb));
+		var data = {};
+		data['matchConfig.' + itemName + '.value'] = itemValue;
+
+		ringsDb.update({ _id: ringId }, { $set: data }, callback(cb));
 	},
 	
 	/**

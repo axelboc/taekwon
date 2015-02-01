@@ -7,7 +7,7 @@ var DB = require('./lib/db');
 var User = require('./user').User;
 
 var INBOUND_SPARK_EVENTS = ['openRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
-							'createMatch', 'endMatch', 'enableScoring'];
+							'setConfigItem', 'createMatch', 'endMatch', 'enableScoring'];
 
 
 /**
@@ -150,6 +150,19 @@ JuryPresident.prototype._onRemoveCJ = function (data) {
 };
 
 /**
+ * Set the value of a match configuration item.
+ * @param {Object} data
+ * 		  {String} data.name - the name of the configuration item
+ * 		  {Any} data.value - the new value
+ */
+JuryPresident.prototype._onSetConfigItem = function (data) {
+	assert.object(data, 'data');
+	assert.string(data.name, 'data.name');
+	
+	this.emit('setConfigItem', data.name, data.value);
+};
+
+/**
  * Create a new match.
  */
 JuryPresident.prototype._onCreateMatch = function () {
@@ -183,16 +196,21 @@ JuryPresident.prototype._onEnableScoring = function (data) {
 /**
  * The ring has been opened.
  * @param {Ring} ring
+ * @param {Object} matchConfig
  * @param {Array} slots
  */
-JuryPresident.prototype.ringOpened = function (ring, slots) {
+JuryPresident.prototype.ringOpened = function (ring, matchConfig, slots) {
 	assert.provided(ring, 'ring');
+	assert.object(matchConfig, 'matchConfig');
 	assert.array(slots, 'slots');
 	
 	this.ring = ring;
 	this._send('ringOpened', {
 		index: ring.index
 	});
+	
+	// Update configuration panel and judges sidebar
+	this._updateWidget('configPanel', 'config', { config: matchConfig });
 	this._updateWidget('judgesSidebar', 'slotList', { slots: slots });
 };
 
@@ -217,6 +235,17 @@ JuryPresident.prototype.slotNotRemoved = function (reason) {
 	this._send('slotNotRemoved', {
 		reason: reason
 	});
+};
+
+/**
+ * A configuration item has been set.
+ * @param {Object} matchConfig - the new match configuration for the ring
+ */
+JuryPresident.prototype.configItemSet = function (matchConfig) {
+	assert.object(matchConfig, 'matchConfig');
+	
+	// Update configuration panel
+	this._updateWidget('configPanel', 'config', { config: matchConfig });
 };
 
 /**

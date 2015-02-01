@@ -29,6 +29,7 @@ define([
 		'restoreSession',
 		'wsError',
 		'ringListView.ringList',
+		'configPanel.config',
 		'judgesSidebar.slotList',
 		'matchPanel.scores', 'matchPanel.penalties'
 	];
@@ -150,6 +151,14 @@ define([
 		});
 	}
 	
+	function setConfigItem(name, value) {
+		console.log(name, value);
+		primus.emit('setConfigItem', {
+			name: name,
+			value: value
+		});
+	}
+	
 	function createMatch() {
 		primus.emit('createMatch');
 	}
@@ -205,6 +214,7 @@ define([
 		authoriseCJ: authoriseCJ,
 		rejectCJ: rejectCJ,
 		removeCJ: removeCJ,
+		setConfigItem: setConfigItem,
 		createMatch: createMatch,
 		endMatch: endMatch,
 		enableScoring: enableScoring,
