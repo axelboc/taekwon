@@ -26,7 +26,6 @@ define([
 		'cjUndid',
 		'cjConnectionStateChanged',
 		'cjExited',
-		'restoreSession',
 		'wsError',
 		'ringListView.ringList',
 		'configPanel.config',
@@ -200,10 +199,6 @@ define([
 		});
 	}
 
-	function sessionRestored() {
-		primus.emit('sessionRestored');
-	}
-
 	return {
 		init: init,
 		sendId: sendId,
@@ -222,8 +217,7 @@ define([
 		endMatchState: endMatchState,
 		startEndInjury: startEndInjury,
 		incrementPenalty: incrementPenalty,
-		decrementPenalty: decrementPenalty,
-		sessionRestored: sessionRestored
+		decrementPenalty: decrementPenalty
 	};
 	
 });

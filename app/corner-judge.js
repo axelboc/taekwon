@@ -41,9 +41,9 @@ parent = CornerJudge.super_.prototype;
  * Register event handlers on the spark.
  * @param {Spark} spark
  */
-CornerJudge.prototype._initSpark = function (spark) {
+CornerJudge.prototype.initSpark = function (spark) {
 	// Call parent function
-	parent._initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
+	parent.initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
 };
 
 /**
@@ -57,33 +57,6 @@ CornerJudge.prototype.getState = function () {
 		authorised: this.authorised,
 		connected: this.connected
 	};
-};
-
-/**
- * Restore the Corner Judge's session.
- * @param {Spark} spark - the spark of the new socket connection
- * @param {Array} ringStates
- */
-CornerJudge.prototype.restoreSession = function (spark, ringStates) {
-	assert.provided(spark, 'spark');
-	assert.array(ringStates, 'ringStates');
-	logger.debug("Restoring session...");
-
-	// Initialise the new spark 
-	this._initSpark(spark);
-	
-	// Prepare restoration data
-	var data = {
-		ringStates: ringStates,
-		ringIndex: this.ring ? this.ring.index : -1,
-		authorised: this.authorised,
-		scoringEnabled: this.ring && this.ring.scoringEnabled,
-		undoEnabled: this.undoEnabled,
-		jpConnected: this.ring && this.ring.juryPresident && this.ring.juryPresident.connected
-	};
-	
-	// Send restore session event with all the required data
-	this._send('restoreSession', data);
 };
 
 
@@ -145,7 +118,6 @@ CornerJudge.prototype._onUndo = function () {
  */
 CornerJudge.prototype.waitingForAuthorisation = function (ring) {
 	assert.provided(ring, 'ring');
-	assert.ok(!this.ring, "already in a ring");
 	
 	this.ring = ring;
 	this._send('waitingForAuthorisation');

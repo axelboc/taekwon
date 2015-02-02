@@ -21,7 +21,7 @@ function User(id, spark, connected) {
 	
 	this.id = id;
 	if (spark) {
-		this._initSpark(spark);
+		this.initSpark(spark);
 	}
 	
 	this.connected = connected;
@@ -36,15 +36,12 @@ util.inherits(User, EventEmitter);
  * @param {Spark} spark
  * @param {Array} events
  */
-User.prototype._initSpark = function (spark, events) {
+User.prototype.initSpark = function (spark, events) {
 	assert.provided(spark, 'spark');
 	assert.array(events, 'events');
 
 	// Store the spark
 	this.spark = spark;
-
-	// Add events shared by both user types
-	events.push('sessionRestored');
 
 	// Loop through the events and register their handlers
 	events.forEach(function (evt) {
@@ -82,18 +79,6 @@ User.prototype._updateWidget = function (widget, type, data) {
 	assert.string(type, 'type');
 	
 	this._send(widget + '.' + type, data);
-};
-
-
-/* ==================================================
- * Inbound spark events
- * ================================================== */
-
-/**
- * The user's session has been restored.
- */
-User.prototype._onSessionRestored = function () {
-	logger.debug("> Session restored");
 };
 
 

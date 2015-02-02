@@ -41,7 +41,6 @@ define([
 				ringLeft: this._onRingLeft,
 				jpConnectionStateChanged: this._onJPConnectionStateChanged,
 				scoringStateChanged: this._onScoringStateChanged,
-				restoreSession: this._onRestoreSession,
 				wsError: this._showView.bind(this, this.wsErrorView)
 			}
 		});
@@ -106,28 +105,6 @@ define([
 			console.log("Scoring " + (data.enabled ? "enabled" : "disabled"));
 			this.isScoringEnabled = data.enabled;
 			this._updateBackdrop();
-		},
-		
-		_onRestoreSession: function(data) {
-			console.log("Restoring session");
-
-			// Init ring list view with ring state data
-			this.ringListView.init(data.ringStates);
-
-			// If no ring was joined yet, show ring list view
-			if (data.ringIndex === -1) {
-				this._showView(this.ringListView);
-
-			// If a ring was joined, but JP had not authorised the request yet, show authorisation view
-			} else if (!data.authorised) {
-				this._showView(this.authorisationView);
-
-			// If JP was authorised by CJ to join a ring, show round view
-			} else {
-				this._onRingJoined(data);
-			}
-
-			IO.sessionRestored();
 		}
 
 	};

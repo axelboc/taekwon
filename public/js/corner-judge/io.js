@@ -13,7 +13,7 @@ define([
 		'identify', 'idSuccess', 'idFail', 'confirmIdentity',
 		'waitingForAuthorisation', 'rejected', 'ringJoined', 'ringLeft',
 		'scored', 'undid', 'scoringStateChanged',
-		'jpConnectionStateChanged', 'restoreSession', 'wsError',
+		'jpConnectionStateChanged', 'wsError',
 		'ringListView.instr', 'ringListView.ringList',
 		'roundView.undoBtn'
 	];
@@ -120,10 +120,6 @@ define([
 		console.log("Undoing score");
 		primus.emit('undo');
 	}
-	
-	function sessionRestored() {
-		primus.emit('sessionRestored');
-	}
 
 
 	return {
@@ -132,8 +128,7 @@ define([
 		sendIdentityConfirmation: sendIdentityConfirmation,
 		joinRing: joinRing,
 		score: score,
-		undo: undo,
-		sessionRestored: sessionRestored
+		undo: undo
 	};
 	
 });

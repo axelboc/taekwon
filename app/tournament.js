@@ -179,8 +179,8 @@ Tournament.prototype._confirmUserIdentity = function (sessionId, spark, user) {
 		var isJP = data.identity === 'juryPresident';
 		if (isJP && user instanceof JuryPresident || !isJP && user instanceof CornerJudge) {
 			// Not switching; restore session
-			logger.debug("> Identity confirmed: " + data.identity + ". Restoring session...");
-			user.restoreSession(spark, this._getRingStates());
+			logger.debug("> Identity confirmed: " + data.identity);
+			this.restoreUserSession(user, spark);
 		} else {
 			// Switching; remove user from system and request identification from new user
 			logger.debug("> User has changed identity. Starting new identification process...");
@@ -317,6 +317,30 @@ Tournament.prototype.restoreRings = function (cb) {
 			cb();
 		});
 	}.bind(this));
+};
+
+Tournament.prototype.restoreUserSession = function (user, spark) {
+	assert.instanceOf(user, 'user', User, 'User');
+	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
+	
+	user.initSpark(spark);
+	
+	if (!user.ring) {
+		user.idSuccess(this._getRingStates());
+	} else {
+		var ring = user.ring;
+		if (user instanceof JuryPresident) {
+			user.ringOpened(ring, ring.matchConfig, ring.getSlots());
+		} else {
+			if (!user.authorised) {
+				user.waitingForAuthorisation(ring);
+			} else {
+				user.ringJoined();
+			}
+		}
+	}
+	
+	logger.debug("> Session restored");
 };
 
 /**

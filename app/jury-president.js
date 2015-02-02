@@ -31,52 +31,9 @@ parent = JuryPresident.super_.prototype;
  * Register event handlers on the spark.
  * @param {Spark} spark
  */
-JuryPresident.prototype._initSpark = function (spark) {
+JuryPresident.prototype.initSpark = function (spark) {
 	// Call parent function
-	parent._initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
-};
-
-/**
- * Restore the Jury President's session.
- * @param {Spark} spark - the spark of the new socket connection
- * @param {Array} ringStates
- */
-JuryPresident.prototype.restoreSession = function (spark, ringStates) {
-	assert.provided(spark, 'spark');
-	assert.array(ringStates, 'ringStates');
-	logger.debug("Restoring session...");
-
-	// Initialise the new spark 
-	this._initSpark(spark);
-	
-	// Prepare restoratio data
-	var data = {
-		ringStates: ringStates,
-		ringIndex: this.ring ? this.ring.index : -1,
-		ringSlotCount: this.ring ? this.ring.slotCount : -1,
-		cornerJudges: []
-	};
-	
-	// Add corner judges
-	if (this.ring) {
-		assert.array(this.ring.cornerJudges, 'cornerJudges');
-		this.ring.cornerJudges.forEach(function (judge) {
-			data.cornerJudges.push({
-				id: judge.id,
-				name: judge.name,
-				connected: judge.connected,
-				authorised: judge.authorised
-			});
-		}, this);
-		
-		var match = this.ring.match;
-		if (match) {
-			data.match = {};
-		}
-	}
-	
-	// Send restore session event with all the required data
-	this._send('restoreSession', data);
+	parent.initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
 };
 
 
