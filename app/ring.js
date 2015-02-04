@@ -256,8 +256,7 @@ Ring.prototype.removeCJ = function (cj, message, ringStates) {
  */
 Ring.prototype._initMatch = function (doc) {
 	assert.object(doc, 'doc');
-	
-	this.match = new Match(doc._id);
+	this.match = new Match(doc._id, doc.config);
 	util.addEventListeners(this, this.match, MATCH_EVENTS, MATCH_HANDLER_PREFIX);
 };
 
@@ -375,8 +374,14 @@ Ring.prototype._jpSetConfigItem = function (name, value) {
 Ring.prototype._jpCreateMatch = function () {
 	assert.ok(this.juryPresident, "ring must have Jury President");
 	
+	// Build the match's config by looping through the key/value pairs of the ring's config
+	var config = Object.keys(this.matchConfig).reduce(function (config, key) {
+		config[key] = this.matchConfig[key].value;
+		return config;
+	}.bind(this), {});
+	
 	// Insert a new match in the database
-	DB.insertMatch(this.id, function (newDoc) {
+	DB.insertMatch(this.id, config, function (newDoc) {
 		if (newDoc) {
 			// Initialise the match
 			this._initMatch(newDoc);
