@@ -18,7 +18,7 @@ var CJ_HANDLER_PREFIX = '_cj';
 var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged'];
 
 var MATCH_HANDLER_PREFIX = '_match';
-var MATCH_EVENTS = [];
+var MATCH_EVENTS = ['stateChanged'];
 
 
 /**
@@ -63,15 +63,19 @@ Ring.prototype.getState = function () {
 
 /**
  * Return and array of objects representing the ring's slots.
+ * @param {Function} customFunc - optional function used to retrieve custom data about each Corner Judge
  * @return {Array}
  */
-Ring.prototype.getSlots = function () {
+Ring.prototype.getSlots = function (customFunc) {
+	assert.ok(typeof customFunc === 'undefined' || typeof customFunc === 'function', 
+			  "if provided, `customFunc` must be a function");
+	
 	var slots = [];
 	for (var i = 0, len = this.slotCount; i < len; i += 1) {
 		var cj = this.cornerJudges[i];
 		slots.push({
 			index: i + 1,
-			cj: !cj ? null : cj.getState()
+			cj: !cj ? null : (customFunc ? customFunc(cj) : cj.getState())
 		});
 	}
 	return slots;
@@ -256,6 +260,7 @@ Ring.prototype.removeCJ = function (cj, message, ringStates) {
  */
 Ring.prototype._initMatch = function (doc) {
 	assert.object(doc, 'doc');
+	
 	this.match = new Match(doc._id, doc.config);
 	util.addEventListeners(this, this.match, MATCH_EVENTS, MATCH_HANDLER_PREFIX);
 };
@@ -385,9 +390,13 @@ Ring.prototype._jpCreateMatch = function () {
 		if (newDoc) {
 			// Initialise the match
 			this._initMatch(newDoc);
+			assert.instanceOf(this.match, 'match', Match, 'Match');
 			
 			// Acknowledge
-			this.juryPresident.matchCreated();
+			this.juryPresident.matchCreated(this.getSlots(function (cj) {
+				assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+				this.match.getScores(cj.id);
+			}.bind(this)), this.match.getPenalties());
 		}
 	}.bind(this));
 };
@@ -493,7 +502,15 @@ Ring.prototype._cjConnectionStateChanged = function (cj) {
  * ==================================================
  */
 
+/**
+ * The state of the match has changed.
+ */
+Ring.prototype._matchStateChanged = function () {
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.ok(this.match, "ring must have a match");
 
+	this.juryPresident.matchStateChanged(this.match.getState());
+};
 
 
 exports.Ring = Ring;

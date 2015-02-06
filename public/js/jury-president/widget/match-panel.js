@@ -25,8 +25,7 @@ define([
 				matchPanel: {
 					state: this._updateState,
 					scores: this._updateScores,
-					warnings: this._updateWarnings,
-					fouls: this._updateFouls
+					penalties: this._updatePenalties
 				}
 			},
 			timer: {
@@ -106,15 +105,15 @@ define([
 		 * IO events
 		 * ================================================== */
 
-		_onStateChanged: function (state) {
-			console.log("State changed: " + state);
+		_onStateChanged: function (data) {
+			console.log("State changed: " + data.state);
 			
 			// Reset round timer
-			this.roundTimer.timer.reset((state === MatchStates.BREAK ? this.match.config.breakTime :
-								(state === MatchStates.GOLDEN_POINT ? 0 : this.match.config.roundTime)));
+			/*this.roundTimer.timer.reset((data.state.state === MatchStates.BREAK ? this.match.config.breakTime :
+								(state === MatchStates.GOLDEN_POINT ? 0 : this.match.config.roundTime)));*/
 
 			// Update state text
-			this.mpState.textContent = state.split('-').reduce(function (label, part) {
+			this.mpState.textContent = data.state.state.split('-').reduce(function (label, part) {
 				return label += part.charAt(0).toUpperCase() + part.slice(1) + " ";
 			}, "").slice(0, -1);
 		},
@@ -205,20 +204,30 @@ define([
 		 * UI updates
 		 * ================================================== */
 		
-		_updateState: function (state) {
-			this.stateInner.innerHTML = this.stateInnerTemplate(state);
+		_updateState: function (data) {
+			this.stateInner.innerHTML = this.stateInnerTemplate({ state: data.state });
 		},
 		
-		_updateScores: function (scores) {
-			this.scoresInner.innerHTML = this.scoresInnerTemplate(scores);
+		_updateScores: function (data) {
+			this.scoresInner.innerHTML = this.scoresInnerTemplate({ scores: data.scores });
 		},
 		
-		_updateWarnings: function (warnings) {
-			this.warningsInner.innerHTML = this.warningsInnerTemplate(warnings);
-		},
-		
-		_updateFouls: function (fouls) {
-			this.foulsInner.innerHTML = this.foulsInnerTemplate(fouls);
+		_updatePenalties: function (data) {
+			var warnings = data.penalties.warnings;
+			var fouls = data.penalties.fouls;
+
+			this.warningsInner.innerHTML = this.warningsInnerTemplate({
+				hong: warnings[0],
+				allowDecHong: warnings[0] > 0,
+				chong: warnings[1],
+				allowDecChong: warnings[1] > 0,
+			});
+			this.foulsInner.innerHTML = this.foulsInnerTemplate({
+				hong: fouls[0],
+				allowDecHong: fouls[0] > 0,
+				chong: fouls[1],
+				allowDecChong: fouls[1] > 0,
+			});
 		},
 		
 		

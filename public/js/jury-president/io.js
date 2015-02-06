@@ -18,7 +18,7 @@ define([
 		'ringListView.ringList',
 		'judgesSidebar.slotList',
 		'configPanel.config',
-		'matchPanel.scores', 'matchPanel.penalties'
+		'matchPanel.state', 'matchPanel.scores', 'matchPanel.penalties'
 	];
 	
 	function init() {
@@ -139,7 +139,6 @@ define([
 	}
 	
 	function setConfigItem(name, value) {
-		console.log(name, value);
 		primus.emit('setConfigItem', {
 			name: name,
 			value: value

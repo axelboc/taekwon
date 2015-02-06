@@ -207,9 +207,29 @@ JuryPresident.prototype.configItemSet = function (matchConfig) {
 
 /**
  * A new match has been created.
+ * @param {Object} scores
+ * @param {Object} penalties
  */
-JuryPresident.prototype.matchCreated = function () {
+JuryPresident.prototype.matchCreated = function (scores, penalties) {
+	assert.object(scores, 'scores');
+	assert.object(penalties, 'penalties');
+	
 	this._send('matchCreated');
+	this._updateWidget('matchPanel', 'scores', { scores: scores });
+	this._updateWidget('matchPanel', 'penalties', { penalties: penalties });
+};
+
+/*
+ * The state of the match has changed.
+ * @param {State} state
+ */
+JuryPresident.prototype.matchStateChanged = function (state) {
+	assert.provided(state, 'state');
+	
+	this._send('matchStateChanged', {
+		state: state
+	});
+	this._updateWidget('matchPanel', 'state', { state: state });
 };
 
 /**

@@ -103,9 +103,9 @@
 				<div class="state st-cell">
 					<div class="st-inner"></div>
 					<script id="st-inner-tmpl" type="x-handlebars-template">
-						<button type="button" class="st-btn st-btn--start match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#if started}} disabled\{{/if}}>Start</button>
-						<button type="button" class="st-btn st-btn--end match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#unless started}} disabled\{{/unless}}>End</button>
-						<button type="button" class="st-btn st-btn--injury match-btn btn btn--minor"\{{#unless isBreak}}\{{#if started}} disabled\{{/if}}\{{/unless}}>\{{#unless isInjuryStarted}}Start\{{else}}End\{{/unless}} Injury</button>
+						<button type="button" class="st-btn st-btn--start match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#if isStateStarted}} disabled\{{/if}}>Start</button>
+						<button type="button" class="st-btn st-btn--end match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#unless isStateStarted}} disabled\{{/unless}}>End</button>
+						<button type="button" class="st-btn st-btn--injury match-btn btn btn--minor"\{{#unless isBreak}}\{{#if isStateStarted}} disabled\{{/if}}\{{/unless}}>\{{#unless isInjuryStarted}}Start\{{else}}End\{{/unless}} Injury</button>
 					</script>
 				</div>
 			</div>

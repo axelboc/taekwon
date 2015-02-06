@@ -21,7 +21,7 @@ function Match(id, config) {
 	this.config = config;
 	
 	this.state = null;
-	this.states = [MatchStates.ROUND_1];
+	this.states = [States.ROUND_1];
 	this.stateIndex = -1;
 
 	this.stateStarted = false;
@@ -53,11 +53,45 @@ function Match(id, config) {
 	 * Total maluses are stored against 'total' columns (as negative integers).
 	 */
 	this.penalties = {};
+	
+	// Start the match
+	this.nextState();
 }
 
 // Inherit EventEmitter
 util.inherits(Match, EventEmitter);
 
+
+/**
+ * Get the state of the match.
+ * @return {Object}
+ */
+Match.prototype.getState = function () {
+	return {
+		state: this.state,
+		stateStarted: this.stateStarted,
+		injuryStarted: this.injuryStarted,
+		scoringEnabled: this.scoringEnabled
+	};
+};
+
+/**
+ * Get the current scores of a Corner Judge.
+ * @param {String} cjId
+ * @return {Object}
+ */
+Match.prototype.getScores = function (cjId) {
+	assert.string(cjId, 'cjId');
+	return this.scoreboards[cjId][this.scoreboardColumnId];
+};
+
+/**
+ * Get the current penalties.
+ * @return {Object}
+ */
+Match.prototype.getPenalties = function () {
+	return this.penalties[this.scoreboardColumnId];
+};
 
 /**
  * Compute maluses from one or more scoreboard columns' penalties, knowing that:
@@ -148,22 +182,22 @@ Match.prototype._computeResult = function () {
 Match.prototype.nextState = function () {
 	// If no more states in array, add more if appropriate or end match
 	if (this.stateIndex === this.states.length - 1) {
-		if (this.state === MatchStates.ROUND_1 && this.config.twoRounds) {
+		if (this.state === States.ROUND_1 && this.config.twoRounds) {
 			// Add Break and Round 2 states
-			this.states.push(MatchStates.BREAK, MatchStates.ROUND_2);
+			this.states.push(States.BREAK, States.ROUND_2);
 		} else {
 			// Compute the result for the last round(s)
 			this._computeResult();
 			var isTie = this.winner === null;
 
-			if (this.state !== MatchStates.GOLDEN_POINT && isTie) {
-				var tbOrNull = this.config.tieBreaker ? MatchStates.TIE_BREAKER : null;
-				var gpOrNull = this.config.goldenPoint ? MatchStates.GOLDEN_POINT : null;
+			if (this.state !== States.GOLDEN_POINT && isTie) {
+				var tbOrNull = this.config.tieBreaker ? States.TIE_BREAKER : null;
+				var gpOrNull = this.config.goldenPoint ? States.GOLDEN_POINT : null;
 				var eitherOrNull = tbOrNull ? tbOrNull : gpOrNull;
 
-				var extraRound = this.state === MatchStates.TIE_BREAKER ? gpOrNull : eitherOrNull;
+				var extraRound = this.state === States.TIE_BREAKER ? gpOrNull : eitherOrNull;
 				if (extraRound) {
-					this.states.push(MatchStates.BREAK, extraRound);
+					this.states.push(States.BREAK, extraRound);
 				} else {
 					this.end();
 					return;
@@ -178,9 +212,9 @@ Match.prototype.nextState = function () {
 	this.stateIndex += 1;
 	this.state = this.states[this.stateIndex];
 
-	if (this.state !== MatchStates.BREAK && this.state !== MatchStates.ROUND_2) {
+	if (this.state !== States.BREAK && this.state !== States.ROUND_2) {
 		// Add a new column to the judges' scoreboards
-		this.scoreboardColumnId = this.state === MatchStates.ROUND_1 ? 'main' : this.state;
+		this.scoreboardColumnId = this.state === States.ROUND_1 ? 'main' : this.state;
 		this.scoreboardColumns.push(this.scoreboardColumnId);
 		this.emit('scoresReset', this.scoreboardColumnId);
 
