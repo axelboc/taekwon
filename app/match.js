@@ -53,9 +53,6 @@ function Match(id, config) {
 	 * Total maluses are stored against 'total' columns (as negative integers).
 	 */
 	this.penalties = {};
-	
-	// Start the match
-	this.nextState();
 }
 
 // Inherit EventEmitter
@@ -69,6 +66,7 @@ util.inherits(Match, EventEmitter);
 Match.prototype.getState = function () {
 	return {
 		state: this.state,
+		isBreak: this.state === States.BREAK,
 		stateStarted: this.stateStarted,
 		injuryStarted: this.injuryStarted,
 		scoringEnabled: this.scoringEnabled
@@ -226,7 +224,7 @@ Match.prototype.nextState = function () {
 		this.emit('penaltiesReset', this.state);
 	}
 
-	this.emit('stateChanged', this.state);
+	this.emit('stateChanged', this.getState());
 };
 
 /**

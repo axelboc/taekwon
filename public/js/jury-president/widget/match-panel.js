@@ -4,10 +4,9 @@ define([
 	'handlebars',
 	'../../common/helpers',
 	'../io',
-	'../model/match-states',
 	'../model/timer'
 
-], function (PubSub, Handlebars, Helpers, IO, MatchStates, Timer) {
+], function (PubSub, Handlebars, Helpers, IO, Timer) {
 	
 	function MatchPanel() {
 		this.root = document.getElementById('match-panel');
@@ -15,7 +14,7 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
-				stateChanged: this._onStateChanged,
+				matchStateChanged: this._onMatchStateChanged,
 				stateStarted: this._onStateStarted,
 				stateEnded: this._onStateEnded,
 				injuryStarted: this._onInjuryStarted,
@@ -24,7 +23,7 @@ define([
 				matchEnded: this._onMatchEnded,
 				matchPanel: {
 					state: this._updateState,
-					scores: this._updateScores,
+					scoreSlots: this._updateScoreSlots,
 					penalties: this._updatePenalties
 				}
 			},
@@ -105,8 +104,8 @@ define([
 		 * IO events
 		 * ================================================== */
 
-		_onStateChanged: function (data) {
-			console.log("State changed: " + data.state);
+		_onMatchStateChanged: function (data) {
+			console.log("Match state changed", data.state);
 			
 			// Reset round timer
 			/*this.roundTimer.timer.reset((data.state.state === MatchStates.BREAK ? this.match.config.breakTime :
@@ -122,7 +121,7 @@ define([
 			console.log("State started: " + state);
 
 			// Start timer
-			this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, false);
+			//this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, false);
 		},
 
 		_onStateEnded: function (state) {
@@ -152,7 +151,7 @@ define([
 			this.timeKeeping.classList.remove('tk_injury');
 
 			this.injuryTimer.timer.stop();
-			this.roundTimer.timer.start(data.state !== MatchStates.GOLDEN_POINT, true);
+			//this.roundTimer.timer.start(data.state !== MatchStates.GOLDEN_POINT, true);
 		},
 		
 		_onScoringStateChanged: function (data) {
@@ -208,8 +207,8 @@ define([
 			this.stateInner.innerHTML = this.stateInnerTemplate({ state: data.state });
 		},
 		
-		_updateScores: function (data) {
-			this.scoresInner.innerHTML = this.scoresInnerTemplate({ scores: data.scores });
+		_updateScoreSlots: function (data) {
+			this.scoresInner.innerHTML = this.scoresInnerTemplate({ scoreSlots: data.scoreSlots });
 		},
 		
 		_updatePenalties: function (data) {
@@ -256,9 +255,9 @@ define([
 			if (btn && btn.nodeName == 'BUTTON') {
 				btn.blur();
 				if (btn.classList.contains('pe-inc')) {
-					IO.incrementWarning(btn.dataset.competitor);
+					IO.incrementPenalty('warning', btn.dataset.competitor);
 				} else if (btn.classList.contains('pe-dec')) {
-					IO.decrementWarning(btn.dataset.competitor);
+					IO.decrementPenalty('warning', btn.dataset.competitor);
 				}
 			}
 		},
@@ -268,9 +267,9 @@ define([
 			if (btn && btn.nodeName == 'BUTTON') {
 				btn.blur();
 				if (btn.classList.contains('pe-inc')) {
-					IO.incrementFouls(btn.dataset.competitor);
+					IO.incrementPenalty('foul', btn.dataset.competitor);
 				} else if (btn.classList.contains('pe-dec')) {
-					IO.decrementFouls(btn.dataset.competitor);
+					IO.decrementPenalty('foul', btn.dataset.competitor);
 				}
 			}
 		}

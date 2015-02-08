@@ -81,6 +81,13 @@ Ring.prototype.getSlots = function (customFunc) {
 	return slots;
 };
 
+Ring.prototype.getScoreSlots = function () {
+	return this.getSlots(function (cj) {
+		assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+		this.match.getScores(cj.id);
+	}.bind(this));
+};
+
 /**
  * Return the ring's Corner Judge with the given ID.
  * The function throws if the ID is not associated with exactly one Corner Judge.
@@ -263,6 +270,8 @@ Ring.prototype._initMatch = function (doc) {
 	
 	this.match = new Match(doc._id, doc.config);
 	util.addEventListeners(this, this.match, MATCH_EVENTS, MATCH_HANDLER_PREFIX);
+	
+	this.match.nextState();
 };
 
 /**
@@ -393,10 +402,7 @@ Ring.prototype._jpCreateMatch = function () {
 			assert.instanceOf(this.match, 'match', Match, 'Match');
 			
 			// Acknowledge
-			this.juryPresident.matchCreated(this.getSlots(function (cj) {
-				assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
-				this.match.getScores(cj.id);
-			}.bind(this)), this.match.getPenalties());
+			this.juryPresident.matchCreated(this.getScoreSlots(), this.match.getPenalties());
 		}
 	}.bind(this));
 };
@@ -505,11 +511,11 @@ Ring.prototype._cjConnectionStateChanged = function (cj) {
 /**
  * The state of the match has changed.
  */
-Ring.prototype._matchStateChanged = function () {
+Ring.prototype._matchStateChanged = function (state) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
-	assert.ok(this.match, "ring must have a match");
-
-	this.juryPresident.matchStateChanged(this.match.getState());
+	assert.object(state, 'state');
+	
+	this.juryPresident.matchStateChanged(state);
 };
 
 

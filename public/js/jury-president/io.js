@@ -11,14 +11,13 @@ define([
 	var primus;
 	var events = [
 		'identify', 'idSuccess', 'idFail', 'confirmIdentity',
-		'ringOpened',
-		'slotNotRemoved',
-		'matchCreated', 'matchEnded',
+		'ringOpened', 'slotNotRemoved',
+		'matchCreated', 'matchStateChanged', 'matchEnded',
 		'wsError',
 		'ringListView.ringList',
 		'judgesSidebar.slotList',
 		'configPanel.config',
-		'matchPanel.state', 'matchPanel.scores', 'matchPanel.penalties'
+		'matchPanel.state', 'matchPanel.scoreSlots', 'matchPanel.penalties'
 	];
 	
 	function init() {

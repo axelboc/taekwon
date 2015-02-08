@@ -4,10 +4,9 @@ define([
 	'handlebars',
 	'../../common/helpers',
 	'../../common/competitors',
-	'../io',
-	'../model/match-states'
+	'../io'
 	
-], function (PubSub, Handlebars, Helpers, Competitor, IO, MatchStates) {
+], function (PubSub, Handlebars, Helpers, Competitor, IO) {
 	
 	function ResultPanel() {
 		this.root = document.getElementById('result-panel');
