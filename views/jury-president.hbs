@@ -105,7 +105,7 @@
 					<script id="st-inner-tmpl" type="x-handlebars-template">
 						<button type="button" class="st-btn st-btn--start match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#if stateStarted}} disabled\{{/if}}>Start</button>
 						<button type="button" class="st-btn st-btn--end match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#unless stateStarted}} disabled\{{/unless}}>End</button>
-						<button type="button" class="st-btn st-btn--injury match-btn btn btn--minor"\{{#if isBreak}} disabled\{{else}}\{{#unless stateStarted}} disabled\{{/unless}}\{{/if}}>\{{#unless injuryStarted}}Start\{{else}}End\{{/unless}} Injury</button>
+						<button type="button" class="st-btn st-btn--injury match-btn btn btn--minor"\{{#unless scoringEnabled}} disabled\{{/unless}}>\{{#unless injuryStarted}}Start\{{else}}End\{{/unless}} Injury</button>
 					</script>
 				</div>
 			</div>
@@ -137,37 +137,21 @@
 				<div class="penalties mp-cell">
 					<h2 class="pe-heading">Warnings</h2>
 					<div class="pe-inner pe-inner--warnings"></div>
-					<script id="pe-warnings-tmpl" type="x-handlebars-template">
-						<div class="pe-item">
-							<span class="pe-value hong-bg">\{{hong}}</span>
-							<div class="pe-btns">
-								<button class="pe-inc pe-btn btn" type="button" data-competitor="hong">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="hong"\{{#unless allowDecHong}} disabled\{{/unless}}>&minus;</button>
-							</div>
-						</div>
-						<div class="pe-item">
-							<span class="pe-value chong-bg">\{{chong}}</span>
-							<div class="pe-btns">
-								<button class="pe-inc pe-btn btn" type="button" data-competitor="chong">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="chong"\{{#unless allowDecChong}} disabled\{{/unless}}>&minus;</button>
-							</div>
-						</div>
-					</script>
 					<h2 class="pe-heading">Fouls</h2>
 					<div class="pe-inner pe-inner--fouls"></div>
-					<script id="pe-fouls-tmpl" type="x-handlebars-template">
+					<script id="pe-penalties-tmpl" type="x-handlebars-template">
 						<div class="pe-item">
 							<span class="pe-value hong-bg">\{{hong}}</span>
 							<div class="pe-btns">
-								<button class="pe-inc pe-btn btn" type="button" data-competitor="hong">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="hong"\{{#unless allowDecHong}} disabled\{{/unless}}>&minus;</button>
+								<button class="pe-inc pe-btn btn" type="button" data-competitor="hong"\{{#unless scoringEnabled}} disabled\{{/unless}}>+</button>
+								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="hong"\{{#unless scoringEnabled}}\{{#unless allowDecHong}} disabled\{{/unless}}\{{/unless}}>&minus;</button>
 							</div>
 						</div>
 						<div class="pe-item">
 							<span class="pe-value chong-bg">\{{chong}}</span>
 							<div class="pe-btns">
-								<button class="pe-inc pe-btn btn" type="button" data-competitor="chong">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="chong"\{{#unless allowDecChong}} disabled\{{/unless}}>&minus;</button>
+								<button class="pe-inc pe-btn btn" type="button" data-competitor="chong"\{{#unless scoringEnabled}} disabled\{{/unless}}>+</button>
+								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="chong"\{{#unless scoringEnabled}}\{{#unless allowDecHong}} disabled\{{/unless}}\{{/unless}}>&minus;</button>
 							</div>
 						</div>
 					</script>

@@ -65,11 +65,10 @@ define([
 		
 		// Penalties
 		this.penaltyBtns = this.root.querySelectorAll('.pe-btn');
+		this.penaltiesTemplate = Handlebars.compile(document.getElementById('pe-penalties-tmpl').innerHTML);
 		this.warningsInner = this.root.querySelector('.pe-inner--warnings');
-		this.warningsInnerTemplate = Handlebars.compile(document.getElementById('pe-warnings-tmpl').innerHTML);
 		this.warningsInner.addEventListener('click', this._onWarningsInnerDelegate.bind(this));
 		this.foulsInner = this.root.querySelector('.pe-inner--fouls');
-		this.foulsInnerTemplate = Handlebars.compile(document.getElementById('pe-fouls-tmpl').innerHTML);
 		this.foulsInner.addEventListener('click', this._onFoulsInnerDelegate.bind(this));
 	}
 	
@@ -212,21 +211,16 @@ define([
 		},
 		
 		_updatePenalties: function (data) {
-			var warnings = data.penalties.warnings;
-			var fouls = data.penalties.fouls;
-
-			this.warningsInner.innerHTML = this.warningsInnerTemplate({
-				hong: warnings[0],
-				allowDecHong: warnings[0] > 0,
-				chong: warnings[1],
-				allowDecChong: warnings[1] > 0,
-			});
-			this.foulsInner.innerHTML = this.foulsInnerTemplate({
-				hong: fouls[0],
-				allowDecHong: fouls[0] > 0,
-				chong: fouls[1],
-				allowDecChong: fouls[1] > 0,
-			});
+			Object.keys(data.penalties).forEach(function (key) {
+				var penalties = data.penalties[key]
+				this[key + 'Inner'].innerHTML = this.penaltiesTemplate({
+					hong: penalties[0],
+					chong: penalties[1],
+					allowDecHong: penalties[0] > 0,
+					allowDecChong: penalties[1] > 0,
+					scoringEnabled: data.scoringEnabled
+				});
+			}, this);
 		},
 		
 		
