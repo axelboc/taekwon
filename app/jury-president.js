@@ -174,12 +174,17 @@ JuryPresident.prototype.ringOpened = function (ring, matchConfig, slots) {
 /**
  * A Corner Judge slot has been added or removed from the ring.
  * @param {Array} slots
+ * @param {Array} scoreSlots
  */
-JuryPresident.prototype.slotsUpdated = function (slots) {
+JuryPresident.prototype.slotsUpdated = function (slots, scoreSlots) {
 	assert.array(slots, 'slots');
+	assert.ok(scoreSlots === null || Array.isArray(scoreSlots), "`scoreSlots` must be either null or an array");
 	
-	// Update slots in judges sidebar
+	// Update slots in judges sidebar and score slots in match panel
 	this._updateWidget('judgesSidebar', 'slotList', { slots: slots });
+	if (scoreSlots !== null) {
+		this._updateWidget('matchPanel', 'scoreSlots', { scoreSlots: scoreSlots });
+	}
 };
 
 /**
@@ -208,15 +213,20 @@ JuryPresident.prototype.configItemSet = function (matchConfig) {
 /**
  * A new match has been created.
  * @param {Object} scoreSlots
+ * @param {Boolean} scoringEnabled
  * @param {Object} penalties
  */
-JuryPresident.prototype.matchCreated = function (scoreSlots, penalties) {
+JuryPresident.prototype.matchCreated = function (scoreSlots, scoringEnabled, penalties) {
 	assert.object(scoreSlots, 'scoreSlots');
+	assert.boolean(scoringEnabled, 'scoringEnabled');
 	assert.object(penalties, 'penalties');
 	
 	this._send('matchCreated');
 	this._updateWidget('matchPanel', 'scoreSlots', { scoreSlots: scoreSlots });
-	this._updateWidget('matchPanel', 'penalties', { penalties: penalties });
+	this._updateWidget('matchPanel', 'penalties', {
+		scoringEnabled: scoringEnabled,
+		penalties: penalties
+	});
 };
 
 /*

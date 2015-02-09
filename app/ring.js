@@ -82,9 +82,14 @@ Ring.prototype.getSlots = function (customFunc) {
 };
 
 Ring.prototype.getScoreSlots = function () {
+	assert.ok(this.match, "ring must have a match");
+	
 	return this.getSlots(function (cj) {
 		assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
-		this.match.getScores(cj.id);
+		
+		var obj = cj.getState();
+		obj.scores = this.match.getScores(cj.id);
+		return obj;
 	}.bind(this));
 };
 
@@ -209,7 +214,7 @@ Ring.prototype.addCJ = function (cj) {
 		this.emit('cjAdded');
 
 		// Request authorisation from Jury President
-		this.juryPresident.slotsUpdated(this.getSlots());
+		this.juryPresident.slotsUpdated(this.getSlots(), this.match ? this.getScoreSlots() : null);
 		// Acknowledge
 		cj.waitingForAuthorisation(this);
 
@@ -244,7 +249,7 @@ Ring.prototype.removeCJ = function (cj, message, ringStates) {
 			this.emit('cjRemoved');
 
 			// Acknowledge
-			this.juryPresident.slotsUpdated(this.getSlots());
+			this.juryPresident.slotsUpdated(this.getSlots(), this.match ? this.getScoreSlots() : null);
 			if (!cj.authorised) {
 				cj.rejected(message, ringStates);
 			} else {
@@ -306,7 +311,7 @@ Ring.prototype._jpAddSlot = function () {
 	// Update the database
 	DB.setRingSlotCount(this.id, this.slotCount + 1, function () {
 		this.slotCount += 1;
-		this.juryPresident.slotsUpdated(this.getSlots());
+		this.juryPresident.slotsUpdated(this.getSlots(), this.match ? this.getScoreSlots() : null);
 	}.bind(this));
 };
 
@@ -326,7 +331,7 @@ Ring.prototype._jpRemoveSlot = function () {
 		// Update the database
 		DB.setRingSlotCount(this.id, this.slotCount - 1, function () {
 			this.slotCount -= 1;
-			this.juryPresident.slotsUpdated(this.getSlots());
+			this.juryPresident.slotsUpdated(this.getSlots(), this.match ? this.getScoreSlots() : null);
 		}.bind(this));
 	}
 };
@@ -344,7 +349,7 @@ Ring.prototype._jpAuthoriseCJ = function (id) {
 	DB.setCJAuthorised(id, true, function () {
 		// Acknowledge
 		cj.ringJoined();
-		this.juryPresident.slotsUpdated(this.getSlots());
+		this.juryPresident.slotsUpdated(this.getSlots(), this.match ? this.getScoreSlots() : null);
 	}.bind(this));
 };
 
@@ -402,7 +407,7 @@ Ring.prototype._jpCreateMatch = function () {
 			assert.instanceOf(this.match, 'match', Match, 'Match');
 			
 			// Acknowledge
-			this.juryPresident.matchCreated(this.getScoreSlots(), this.match.getPenalties());
+			this.juryPresident.matchCreated(this.getScoreSlots(), this.match.scoringEnabled, this.match.getPenalties());
 		}
 	}.bind(this));
 };
@@ -498,7 +503,7 @@ Ring.prototype._cjConnectionStateChanged = function (cj) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
 
 	// Notify Jury President
-	this.juryPresident.slotsUpdated(this.getSlots());
+	this.juryPresident.slotsUpdated(this.getSlots(), null);
 };
 
 

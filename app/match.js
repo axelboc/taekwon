@@ -76,11 +76,13 @@ Match.prototype.getState = function () {
 /**
  * Get the current scores of a Corner Judge.
  * @param {String} cjId
- * @return {Object}
+ * @return {Array}
  */
 Match.prototype.getScores = function (cjId) {
 	assert.string(cjId, 'cjId');
-	return this.scoreboards[cjId][this.scoreboardColumnId];
+	
+	var scoreboard = this.scoreboards[cjId];
+	return scoreboard ? scoreboard[this.scoreboardColumnId] : [0, 0];
 };
 
 /**
