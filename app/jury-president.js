@@ -7,7 +7,8 @@ var DB = require('./lib/db');
 var User = require('./user').User;
 
 var INBOUND_SPARK_EVENTS = ['openRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
-							'setConfigItem', 'createMatch', 'endMatch', 'enableScoring'];
+							'setConfigItem', 'createMatch', 'endMatch', 'enableScoring',
+						    'startMatchState', 'endMatchState', 'startEndInjury'];
 
 
 /**
@@ -143,6 +144,27 @@ JuryPresident.prototype._onEnableScoring = function (data) {
 	assert.boolean(data.enable, 'data.enable');
 	
 	this.emit('enableScoring', data.enable);
+};
+
+/**
+ * Start the current match state.
+ */
+JuryPresident.prototype._onStartMatchState = function () {
+	this.emit('startMatchState');
+};
+
+/**
+ * End the current match state.
+ */
+JuryPresident.prototype._onEndMatchState = function () {
+	this.emit('endMatchState');
+};
+
+/**
+ * Start or end an injury.
+ */
+JuryPresident.prototype._onStartEndInjury = function () {
+	this.emit('startEndInjury');
 };
 
 

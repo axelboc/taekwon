@@ -264,14 +264,28 @@ var DB = {
 	},
 	
 	/**
-	 * Set the `ended` flag of a match to `true`.
+	 * Set the current state of a match.
 	 * @param {String} matchId
 	 * @param {Function} cb
 	 */
-	setMatchEnded: function (matchId, cb) {
+	setMatchState: function (matchId, state, cb) {
 		assert.string(matchId, 'matchId');
+		assert.object(state, 'state');
 		
-		matchesDb.update({ _id: matchId }, { $set: { ended: true } }, callback(cb));
+		matchesDb.update({ _id: matchId }, { $set: { state: state } }, callback(cb));
+	},
+	
+	/**
+	 * Set the `ended` flag of a match.
+	 * @param {String} matchId
+	 * @param {ended}
+	 * @param {Function} cb
+	 */
+	setMatchEnded: function (matchId, ended, cb) {
+		assert.string(matchId, 'matchId');
+		assert.boolean(ended, 'ended');
+		
+		matchesDb.update({ _id: matchId }, { $set: { ended: ended } }, callback(cb));
 	},
 	
 	/**

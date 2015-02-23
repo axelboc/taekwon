@@ -26,7 +26,6 @@ function Match(id, config) {
 
 	this.stateStarted = false;
 	this.injuryStarted = false;
-	this.scoringEnabled = false;
 	
 	this.winner = null;
 	
@@ -68,8 +67,7 @@ Match.prototype.getState = function () {
 		state: this.state,
 		isBreak: this.state === States.BREAK,
 		stateStarted: this.stateStarted,
-		injuryStarted: this.injuryStarted,
-		scoringEnabled: this.scoringEnabled
+		injuryStarted: this.injuryStarted
 	};
 };
 
@@ -226,24 +224,25 @@ Match.prototype.nextState = function () {
 		this.emit('penaltiesReset', this.state);
 	}
 
-	this.emit('stateChanged', this.getState());
+	// Update database
+	var state = this.getState();
+	DB.setMatchState(this.id, state, function () {
+		this.emit('stateChanged', state);
+	}.bind(this));
 };
 
 /**
  * End the match.
- * @param {Function} cb
  */
-Match.prototype.end = function (cb) {
+Match.prototype.end = function () {
 	// Update the database
-	DB.setMatchEnded(this.id, function () {
-		
+	DB.setMatchEnded(this.id, true, function () {
 		this.state = null;
 		this.emit('ended');
 		
 		logger.info('ended', {
 			id: this.id
 		});
-		cb();
 	}.bind(this));
 };
 
@@ -252,37 +251,25 @@ Match.prototype.isInProgress = function () {
 };
 
 Match.prototype.startState = function () {
-	if (this.state === null) {
-		this.emit('error', "Cannot start state: match ended.");
-	} else if (this.stateStarted) {
-		this.emit('error', "Cannot start state: already started.");
-	} else {
-		this.stateStarted = true;
-		this.emit('stateStarted', this.state);
-	}
+	assert.ok(this.state, "invalid match state")
+	assert.ok(!this.stateStarted, "state already started");
+
+	this.stateStarted = true;
+	this.emit('stateChanged', this.getState());
 };
 
 Match.prototype.endState = function () {
-	if (this.state === null) {
-		this.emit('error', "Cannot end state: match ended.");
-	} else if (!this.stateStarted) {
-		this.emit('error', "Cannot end state: not yet started.");
-	} else {
-		this.stateStarted = false;
-		this.emit('stateEnded', this.state);
-
-		// Move to next state
-		this.nextState();
-	}
+	assert.ok(this.state, "invalid match state")
+	assert.ok(this.stateStarted, "state already ended");
+	
+	this.stateStarted = false;
+	// Move to next state (this will trigger a `stateChanged` event)
+	this.nextState();
 };
 
 Match.prototype.startEndInjury = function () {
 	this.injuryStarted = !this.injuryStarted;
-	if (this.injuryStarted) {
-		this.emit('injuryStarted', this.state);
-	} else {
-		this.emit('injuryEnded', this.state);
-	}
+	this.emit('stateChanged', this.getState());
 };
 
 Match.prototype.incrementPenalty = function (type, competitor) {

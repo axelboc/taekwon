@@ -12,13 +12,14 @@ var Match = require('./match').Match;
 var JP_HANDLER_PREFIX = '_jp';
 var JP_EVENTS = ['addSlot', 'removeSlot', 'authoriseCJ',
 				 'setConfigItem', 'createMatch', 'endMatch', 'enableScoring',
+				 'startMatchState', 'endMatchState', 'startEndInjury',
 				 'connectionStateChanged'];
 
 var CJ_HANDLER_PREFIX = '_cj';
 var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged'];
 
 var MATCH_HANDLER_PREFIX = '_match';
-var MATCH_EVENTS = ['stateChanged'];
+var MATCH_EVENTS = ['stateChanged', 'ended'];
 
 
 /**
@@ -269,8 +270,9 @@ Ring.prototype.removeCJ = function (cj, message, ringStates) {
 /**
  * Instanciate and initialise a new match object based on a database document.
  * @param {Object} doc
+ * @param {Function} cb
  */
-Ring.prototype._initMatch = function (doc) {
+Ring.prototype._initMatch = function (doc, cb) {
 	assert.object(doc, 'doc');
 	
 	this.match = new Match(doc._id, doc.config);
@@ -407,7 +409,8 @@ Ring.prototype._jpCreateMatch = function () {
 			assert.instanceOf(this.match, 'match', Match, 'Match');
 			
 			// Acknowledge
-			this.juryPresident.matchCreated(this.getScoreSlots(), this.match.scoringEnabled, this.match.getPenalties());
+			// TODO: fix restoration of scoringEnabled state
+			this.juryPresident.matchCreated(this.getScoreSlots(), false, this.match.getPenalties());
 		}
 	}.bind(this));
 };
@@ -419,14 +422,7 @@ Ring.prototype._jpEndMatch = function () {
 	assert.ok(this.match, "ring must have a match");
 	assert.ok(this.juryPresident, "ring must have Jury President");
 	
-	// End match
-	this.match.end(function () {
-		// Remove match
-		this.match = null;
-		
-		// Acknowledge
-		this.juryPresident.matchEnded();
-	}.bind(this));
+	this.match.end();
 };
 
 /**
@@ -443,6 +439,33 @@ Ring.prototype._jpEnableScoring = function (enable) {
 	this.cornerJudges.forEach(function (cj) {
 		cj.scoringStateChanged(enable);
 	}, this);
+};
+
+/**
+ * Start the current match state.
+ */
+Ring.prototype._jpStartMatchState = function () {
+	assert.ok(this.match, "ring must have a match");
+	
+	this.match.startState();
+};
+
+/**
+ * End the current match state.
+ */
+Ring.prototype._jpEndMatchState = function () {
+	assert.ok(this.match, "ring must have a match");
+	
+	this.match.endState();
+};
+
+/**
+ * Start or end an injury.
+ */
+Ring.prototype._jpStartEndInjury = function () {
+	assert.ok(this.match, "ring must have a match");
+	
+	this.match.startEndInjury();
 };
 
 /**
@@ -520,7 +543,22 @@ Ring.prototype._matchStateChanged = function (state) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
 	assert.object(state, 'state');
 	
+	// Notify Jury President and Corner Judges
 	this.juryPresident.matchStateChanged(state);
+	this.cornerJudges.forEach(function (cj) {
+		cj.scoringStateChanged(state.stateStarted && !state.isBreak && !state.injuryStarted);
+	}, this);
+};
+
+/**
+ * The match has ended.
+ */
+Ring.prototype._matchEnded = function () {
+	// Remove match
+	this.match = null;
+
+	// Notify Jury President
+	this.juryPresident.matchEnded();
 };
 
 

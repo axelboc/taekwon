@@ -203,11 +203,12 @@ define([
 		 * ================================================== */
 		
 		_updateState: function (data) {
-			this.stateInner.innerHTML = this.stateInnerTemplate({ state: data.state });
+			data.state.enableInjuryBtn = data.state.stateStarted & !data.state.isBreak;
+			this.stateInner.innerHTML = this.stateInnerTemplate(data.state);
 		},
 		
 		_updateScoreSlots: function (data) {
-			this.scoresInner.innerHTML = this.scoresInnerTemplate({ scoreSlots: data.scoreSlots });
+			this.scoresInner.innerHTML = this.scoresInnerTemplate(data.scoreSlots);
 		},
 		
 		_updatePenalties: function (data) {
