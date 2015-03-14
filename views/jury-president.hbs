@@ -104,7 +104,7 @@
 					<div class="st-inner"></div>
 					<script id="st-inner-tmpl" type="x-handlebars-template">
 						<button type="button" class="st-btn st-btn--start match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#if stateStarted}} disabled\{{/if}}>Start</button>
-						<button type="button" class="st-btn st-btn--end match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#unless stateStarted}} disabled\{{/unless}}>End</button>
+						<button type="button" class="st-btn st-btn--end match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#unless stateStarted}} disabled\{{/unless}}\{{#if stateStarted}}\{{#if injuryStarted}} disabled\{{/if}}\{{/if}}>End</button>
 						<button type="button" class="st-btn st-btn--injury match-btn btn btn--minor"\{{#unless enableInjuryBtn}} disabled\{{/unless}}>\{{#unless injuryStarted}}Start\{{else}}End\{{/unless}} Injury</button>
 					</script>
 				</div>
