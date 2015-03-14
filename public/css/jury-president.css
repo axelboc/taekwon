@@ -80,10 +80,16 @@
 	cursor: pointer;
 }
 
+.js-judge-remove:focus {
+	outline: 1px dashed #666;
+}
+
+.js-judge-remove:focus,
 .js-judge:hover > .js-judge-remove {
 	opacity: 1;
 }
 
+.js-judge-remove:focus,
 .js-judge-remove:hover {
     background-color: #ddd;
 	border: 1px solid #bbb;
