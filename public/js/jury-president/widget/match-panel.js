@@ -3,22 +3,21 @@ define([
 	'minpubsub',
 	'handlebars',
 	'../../common/helpers',
+	'../../common/states',
 	'../io',
 	'../model/timer'
 
-], function (PubSub, Handlebars, Helpers, IO, Timer) {
+], function (PubSub, Handlebars, Helpers, MatchStates, IO, Timer) {
 	
 	function MatchPanel() {
 		this.root = document.getElementById('match-panel');
+		this.config = null;
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
+				matchCreated: this._onMatchCreated,
 				matchStateChanged: this._onMatchStateChanged,
-				stateStarted: this._onStateStarted,
-				stateEnded: this._onStateEnded,
-				injuryStarted: this._onInjuryStarted,
-				injuryEnded: this._onInjuryEnded,
 				scoringStateChanged: this._onScoringStateChanged,
 				matchEnded: this._onMatchEnded,
 				matchPanel: {
@@ -102,55 +101,57 @@ define([
 		/* ==================================================
 		 * IO events
 		 * ================================================== */
+		
+		_onMatchCreated: function (data) {
+			this.config = data.config;
+		},
 
 		_onMatchStateChanged: function (data) {
 			console.log("Match state changed", data.state);
+			var state = data.state.state;
 			
-			// Reset round timer
-			/*this.roundTimer.timer.reset((data.state.state === MatchStates.BREAK ? this.match.config.breakTime :
-								(state === MatchStates.GOLDEN_POINT ? 0 : this.match.config.roundTime)));*/
+			switch (data.state.latestEvent) {
+				case MatchStates.events.NEXT:
+					// Reset round timer
+					this.roundTimer.timer.reset(
+						(state === MatchStates.BREAK ? this.config.breakTime :
+						(state === MatchStates.GOLDEN_POINT ? 0 : this.config.roundTime)));
 
-			// Update state text
-			this.mpState.textContent = data.state.state.split('-').reduce(function (label, part) {
-				return label += part.charAt(0).toUpperCase() + part.slice(1) + " ";
-			}, "").slice(0, -1);
-		},
+					// Update state text
+					this.mpState.textContent = state.split('-').reduce(function (label, part) {
+						return label += part.charAt(0).toUpperCase() + part.slice(1) + " ";
+					}, "").slice(0, -1);
+					break;
+					
+				case MatchStates.events.STARTED:
+					// Start timer
+					this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, false);
+					break;
+					
+				case MatchStates.events.ENDED:
+					// Stop timer
+					this.roundTimer.timer.stop();
+					break;
+					
+				case MatchStates.events.INJURY_STARTED:
+					this._slideInjuryTimer();
+					this.timeKeeping.classList.add('tk_injury');
 
-		_onStateStarted: function (state) {
-			console.log("State started: " + state);
+					this.injuryTimer.timer.reset(this.config.injuryTime);
+					this.injuryTimer.timer.start(true, true);
+					this.roundTimer.timer.stop();
+					break;
+					
+				case MatchStates.events.INJURY_ENDED:
+					this._slideInjuryTimer();
+					this.timeKeeping.classList.remove('tk_injury');
 
-			// Start timer
-			//this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, false);
-		},
-
-		_onStateEnded: function (state) {
-			console.log("State ended: " + state);
-			
-			// Stop timer
-			this.roundTimer.timer.stop();
-		},
-
-		_onInjuryStarted: function () {
-			Helpers.enableBtn(this.stateEndBtn, false);
-			this.injuryBtn.textContent = "End Injury";
-			
-			this._slideInjuryTimer();
-			this.timeKeeping.classList.add('tk_injury');
-
-			this.injuryTimer.timer.reset(this.match.config.injuryTime);
-			this.injuryTimer.timer.start(true, true);
-			this.roundTimer.timer.stop();
-		},
-
-		_onInjuryEnded: function (data) {
-			Helpers.enableBtn(this.stateEndBtn, true);
-			this.injuryBtn.textContent = "Start Injury";
-			
-			this._slideInjuryTimer();
-			this.timeKeeping.classList.remove('tk_injury');
-
-			this.injuryTimer.timer.stop();
-			//this.roundTimer.timer.start(data.state !== MatchStates.GOLDEN_POINT, true);
+					this.injuryTimer.timer.stop();
+					this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, true);
+					break;
+					
+				default:
+			}
 		},
 		
 		_onScoringStateChanged: function (data) {
@@ -208,7 +209,7 @@ define([
 		},
 		
 		_updateScoreSlots: function (data) {
-			this.scoresInner.innerHTML = this.scoresInnerTemplate(data.scoreSlots);
+			this.scoresInner.innerHTML = this.scoresInnerTemplate(data);
 		},
 		
 		_updatePenalties: function (data) {

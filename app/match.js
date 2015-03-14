@@ -26,6 +26,7 @@ function Match(id, config) {
 
 	this.stateStarted = false;
 	this.injuryStarted = false;
+	this.latestEvent = null;
 	
 	this.winner = null;
 	
@@ -67,7 +68,8 @@ Match.prototype.getState = function () {
 		state: this.state,
 		isBreak: this.state === States.BREAK,
 		stateStarted: this.stateStarted,
-		injuryStarted: this.injuryStarted
+		injuryStarted: this.injuryStarted,
+		latestEvent: this.latestEvent
 	};
 };
 
@@ -209,6 +211,7 @@ Match.prototype.nextState = function () {
 
 	this.stateIndex += 1;
 	this.state = this.states[this.stateIndex];
+	this.latestEvent = States.events.NEXT;
 
 	if (this.state !== States.BREAK && this.state !== States.ROUND_2) {
 		// Add a new column to the judges' scoreboards
@@ -255,6 +258,7 @@ Match.prototype.startState = function () {
 	assert.ok(!this.stateStarted, "state already started");
 
 	this.stateStarted = true;
+	this.latestEvent = States.events.STARTED;
 	this.emit('stateChanged', this.getState());
 };
 
@@ -263,12 +267,15 @@ Match.prototype.endState = function () {
 	assert.ok(this.stateStarted, "state already ended");
 	
 	this.stateStarted = false;
-	// Move to next state (this will trigger a `stateChanged` event)
+	this.latestEvent = States.events.ENDED;
+	this.emit('stateChanged', this.getState());
+	
 	this.nextState();
 };
 
 Match.prototype.startEndInjury = function () {
 	this.injuryStarted = !this.injuryStarted;
+	this.latestEvent = this.injuryStarted ? States.events.INJURY_STARTED : States.events.INJURY_ENDED;
 	this.emit('stateChanged', this.getState());
 };
 

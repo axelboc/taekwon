@@ -234,16 +234,20 @@ JuryPresident.prototype.configItemSet = function (matchConfig) {
 
 /**
  * A new match has been created.
+ * @param {Object} config
  * @param {Object} scoreSlots
  * @param {Boolean} scoringEnabled
  * @param {Object} penalties
  */
-JuryPresident.prototype.matchCreated = function (scoreSlots, scoringEnabled, penalties) {
+JuryPresident.prototype.matchCreated = function (config, scoreSlots, scoringEnabled, penalties) {
+	assert.object(config, 'config');
 	assert.object(scoreSlots, 'scoreSlots');
 	assert.boolean(scoringEnabled, 'scoringEnabled');
 	assert.object(penalties, 'penalties');
 	
-	this._send('matchCreated');
+	this._send('matchCreated', {
+		config: config
+	});
 	this._updateWidget('matchPanel', 'scoreSlots', { scoreSlots: scoreSlots });
 	this._updateWidget('matchPanel', 'penalties', {
 		scoringEnabled: scoringEnabled,
