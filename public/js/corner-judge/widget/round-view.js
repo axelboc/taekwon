@@ -111,7 +111,7 @@ define([
 		var btn = evt.target;
 		if (btn && btn.nodeName == 'BUTTON') {
 			btn.blur();
-			IO.score(competitor, btn.dataset.points);
+			IO.score(competitor, parseInt(btn.textContent, 10));
 		}
 	};
 

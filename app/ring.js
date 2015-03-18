@@ -19,7 +19,7 @@ var CJ_HANDLER_PREFIX = '_cj';
 var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged'];
 
 var MATCH_HANDLER_PREFIX = '_match';
-var MATCH_EVENTS = ['stateChanged', 'ended'];
+var MATCH_EVENTS = ['stateChanged', 'resultsComputed', 'ended'];
 
 
 /**
@@ -548,6 +548,13 @@ Ring.prototype._matchStateChanged = function (state) {
 	this.cornerJudges.forEach(function (cj) {
 		cj.scoringStateChanged(state.stateStarted && !state.isBreak && !state.injuryStarted);
 	}, this);
+};
+
+/**
+ * The results of a round have been computed.
+ */
+Ring.prototype._matchResultsComputed = function () {
+	this.juryPresident.matchResultsComputed();
 };
 
 /**

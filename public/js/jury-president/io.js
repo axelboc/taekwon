@@ -10,10 +10,9 @@ define([
 	
 	var primus;
 	var events = [
-		'identify', 'idSuccess', 'idFail', 'confirmIdentity',
+		'identify', 'idSuccess', 'idFail', 'confirmIdentity', 'wsError',
 		'ringOpened', 'slotNotRemoved',
-		'matchCreated', 'matchStateChanged', 'matchEnded',
-		'wsError',
+		'matchCreated', 'matchStateChanged', 'matchResultsComputed', 'matchEnded',
 		'ringListView.ringList',
 		'judgesSidebar.slotList',
 		'configPanel.config',

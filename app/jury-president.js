@@ -269,6 +269,13 @@ JuryPresident.prototype.matchStateChanged = function (state) {
 };
 
 /**
+ * The results of a round have been computed.
+ */
+JuryPresident.prototype.matchResultsComputed = function () {
+	this._send('matchResultsComputed');
+};
+
+/**
  * The match has been ended.
  */
 JuryPresident.prototype.matchEnded = function () {

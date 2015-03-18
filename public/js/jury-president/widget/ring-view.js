@@ -26,7 +26,7 @@ define([
 				ringOpened: this._showPanel.bind(this, this.configPanel),
 				configureMatch: this._showPanel.bind(this, this.configPanel),
 				matchCreated: this._showPanel.bind(this, this.matchPanel),
-				resultsComputed: this._showPanel.bind(this, this.resultPanel)
+				matchResultsComputed: this._showPanel.bind(this, this.resultPanel)
 			}
 		});
 	}
