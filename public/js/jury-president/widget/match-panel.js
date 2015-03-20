@@ -214,14 +214,11 @@ define([
 		
 		_updatePenalties: function (data) {
 			Object.keys(data.penalties).forEach(function (key) {
-				var penalties = data.penalties[key]
-				this[key + 'Inner'].innerHTML = this.penaltiesTemplate({
-					hong: penalties[0],
-					chong: penalties[1],
-					allowDecHong: penalties[0] > 0,
-					allowDecChong: penalties[1] > 0,
-					scoringEnabled: data.scoringEnabled
-				});
+				var penalties = data.penalties[key];
+				penalties[allowDecHong] = penalties.hong > 0;
+				penalties[allowDecCHong] = penalties.chong > 0;
+				
+				this[key + 'Inner'].innerHTML = this.penaltiesTemplate(penalties);
 			}, this);
 		},
 		

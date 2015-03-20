@@ -255,6 +255,16 @@ JuryPresident.prototype.matchCreated = function (config, scoreSlots, scoringEnab
 	});
 };
 
+/**
+ * The match's scores have been updated.
+ * @param {Object} scoreSlots
+ */
+JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
+	assert.object(scoreSlots, 'scoreSlots');
+	
+	this._updateWidget('matchPanel', 'scoreSlots', { scoreSlots: scoreSlots });
+};
+
 /*
  * The state of the match has changed.
  * @param {State} state

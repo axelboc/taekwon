@@ -19,7 +19,7 @@ var CJ_HANDLER_PREFIX = '_cj';
 var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged'];
 
 var MATCH_HANDLER_PREFIX = '_match';
-var MATCH_EVENTS = ['stateChanged', 'resultsComputed', 'ended'];
+var MATCH_EVENTS = ['scoresUpdated', 'stateChanged', 'resultsComputed', 'ended'];
 
 
 /**
@@ -496,9 +496,11 @@ Ring.prototype._jpConnectionStateChanged = function () {
  */
 Ring.prototype._cjScore = function (cj, score) {
 	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
-	assert.provided(score, 'score');
+	assert.object(score, 'score');
 	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.ok(this.match, "ring must have a match");
 
+	this.match.score(cj.id, score);
 	this.juryPresident.cjScored(cj, score);
 	cj.scored(score);
 };
@@ -513,6 +515,8 @@ Ring.prototype._cjUndo = function (cj, score) {
 	assert.provided(score, 'score');
 	assert.ok(this.juryPresident, "ring must have Jury President");
 
+	score.points *= -1;
+	this.match.score(cj.id, score);
 	this.juryPresident.cjUndid(cj, score);
 	cj.undid(score);
 };
@@ -537,7 +541,16 @@ Ring.prototype._cjConnectionStateChanged = function (cj) {
  */
 
 /**
+ * The match's scores have been updated.
+ */
+Ring.prototype._matchScoresUpdated = function () {
+	// Notify Jury President
+	this.juryPresident.matchScoresUpdated(this.getScoreSlots());
+};
+
+/**
  * The state of the match has changed.
+ * @param {Object} state
  */
 Ring.prototype._matchStateChanged = function (state) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
