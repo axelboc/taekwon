@@ -16,7 +16,8 @@ define([
 		'ringListView.ringList',
 		'judgesSidebar.slotList',
 		'configPanel.config',
-		'matchPanel.state', 'matchPanel.scoreSlots', 'matchPanel.penalties'
+		'matchPanel.state', 'matchPanel.scoreSlots', 'matchPanel.penalties',
+		'resultPanel.scoreboard'
 	];
 	
 	function init() {

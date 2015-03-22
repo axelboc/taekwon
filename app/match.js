@@ -44,9 +44,10 @@ function Match(id, config) {
 	this.scoreboardColumnId;
 	
 	/**
-	 * Scoreboards of each Corner Judge.
+	 * Scoreboard and name of each Corner Judge.
 	 */
 	this.scoreboards = {};
+	this.cjNames = {};
 
 	/**
 	 * Penalties ('warnings' and 'fouls') for each scoreboard column (except break states).
@@ -123,22 +124,24 @@ Match.prototype.isInProgress = function () {
 
 Match.prototype.startState = function () {
 	assert.ok(this.state, "invalid match state")
-	assert.ok(!this.stateStarted, "state already started");
 
-	this.stateStarted = true;
-	this.latestEvent = States.events.STARTED;
-	this.emit('stateChanged', this.getState());
+	if (!this.stateStarted) {
+		this.stateStarted = true;
+		this.latestEvent = States.events.STARTED;
+		this.emit('stateChanged', this.getState());
+	}
 };
 
 Match.prototype.endState = function () {
 	assert.ok(this.state, "invalid match state")
-	assert.ok(this.stateStarted, "state already ended");
 	
-	this.stateStarted = false;
-	this.latestEvent = States.events.ENDED;
-	this.emit('stateChanged', this.getState());
-	
-	this.nextState();
+	if (this.stateStarted) {
+		this.stateStarted = false;
+		this.latestEvent = States.events.ENDED;
+		this.emit('stateChanged', this.getState());
+		
+		this.nextState();
+	}
 };
 
 Match.prototype.startEndInjury = function () {
@@ -155,10 +158,15 @@ Match.prototype.decrementPenalty = function (type, competitor) {
 	this.penalties[this.scoreboardColumnId][type][competitor === Competitors.HONG ? 0 : 1] -= 1;
 };
 
-Match.prototype.score = function (cjId, score) {
+Match.prototype.score = function (cjId, cjName, score) {
 	assert.string(cjId, 'cjId');
 	assert.string(score.competitor, 'score.competitor');
 	assert.integer(score.points, 'score.points');
+	
+	// Store the name of the Corner Judge for future reference
+	if (!this.cjNames[cjId]) {
+		this.cjNames[cjId] = cjName;
+	}
 	
 	// Record the new score
 	this.getScores(cjId)[score.competitor] += score.points;
@@ -232,7 +240,7 @@ Match.prototype.nextState = function () {
  */
 Match.prototype._computeResult = function () {
 	this.winner = this._computeWinner(this._computeTotals());
-	this.emit('resultsComputed');
+	this.emit('resultsComputed', this.winner);
 };
 
 /**
@@ -254,7 +262,10 @@ Match.prototype._computeTotals = function () {
 		var scores = this.getScores(cjId);
 		
 		// Sum scores and maluses (negative integers)
-		this.scoreboards[cjId][totalColumnId] = [scores.hong + maluses.hong, scores.hong + maluses.chong];
+		this.scoreboards[cjId][totalColumnId] = {
+			hong: scores.hong + maluses.hong,
+			chong: scores.chong + maluses.chong
+		};
 	}, this);
 
 	return totalColumnId;

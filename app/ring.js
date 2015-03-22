@@ -378,7 +378,7 @@ Ring.prototype._jpSetConfigItem = function (name, value) {
 			assert.boolean(value, 'value');
 			break;
 		default:
-			assert.fail("unknown configuration item type");
+			assert.ok(false, "unknown configuration item type");
 	}
 	
 	// Update database
@@ -500,7 +500,7 @@ Ring.prototype._cjScore = function (cj, score) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
 	assert.ok(this.match, "ring must have a match");
 
-	this.match.score(cj.id, score);
+	this.match.score(cj.id, cj.name, score);
 	this.juryPresident.cjScored(cj, score);
 	cj.scored(score);
 };
@@ -516,7 +516,7 @@ Ring.prototype._cjUndo = function (cj, score) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
 
 	score.points *= -1;
-	this.match.score(cj.id, score);
+	this.match.score(cj.id, cj.name, score);
 	this.juryPresident.cjUndid(cj, score);
 	cj.undid(score);
 };
@@ -565,9 +565,14 @@ Ring.prototype._matchStateChanged = function (state) {
 
 /**
  * The results of a round have been computed.
+ * @param {String} winner
  */
-Ring.prototype._matchResultsComputed = function () {
-	this.juryPresident.matchResultsComputed();
+Ring.prototype._matchResultsComputed = function (winner) {
+	assert.ok(winner === null || typeof winner === 'string' && winner.length > 0,
+			  '`winner` must be null or a non-empty string');
+	
+	this.juryPresident.matchResultsComputed(winner, this.match.config, this.match.scoreboardColumns, 
+											this.match.scoreboards, this.match.penalties, this.match.cjNames);
 };
 
 /**
@@ -576,7 +581,7 @@ Ring.prototype._matchResultsComputed = function () {
 Ring.prototype._matchEnded = function () {
 	// Remove match
 	this.match = null;
-
+	
 	// Notify Jury President
 	this.juryPresident.matchEnded();
 };

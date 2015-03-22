@@ -280,9 +280,33 @@ JuryPresident.prototype.matchStateChanged = function (state) {
 
 /**
  * The results of a round have been computed.
+ * @param {String} winner
+ * @param {Object} config
+ * @param {Array} scoreboardColumns
+ * @param {Object} scoreboards
+ * @param {Object} penalties
+ * @param {Object} cjNames
  */
-JuryPresident.prototype.matchResultsComputed = function () {
-	this._send('matchResultsComputed');
+JuryPresident.prototype.matchResultsComputed = function (winner, config, scoreboardColumns, scoreboards,
+														 penalties, cjNames) {
+	assert.ok(winner === null || typeof winner === 'string' && winner.length > 0,
+			  '`winner` must be null or a non-empty string');
+	assert.object(config, 'config');
+	assert.array(scoreboardColumns, 'scoreboardColumns');
+	assert.object(scoreboards, 'scoreboards');
+	assert.object(penalties, 'penalties');
+	assert.object(cjNames, 'cjNames');
+	
+	this._send('matchResultsComputed', {
+		winner: winner
+	});
+	this._updateWidget('resultPanel', 'scoreboard', {
+		config: config,
+		scoreboardColumns: scoreboardColumns,
+		scoreboards: scoreboards,
+		penalties: penalties,
+		cjNames: cjNames
+	});
 };
 
 /**

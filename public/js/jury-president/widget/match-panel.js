@@ -5,7 +5,7 @@ define([
 	'../../common/helpers',
 	'../../common/states',
 	'../io',
-	'../model/timer'
+	'../widget/timer'
 
 ], function (PubSub, Handlebars, Helpers, MatchStates, IO, Timer) {
 	
@@ -215,8 +215,8 @@ define([
 		_updatePenalties: function (data) {
 			Object.keys(data.penalties).forEach(function (key) {
 				var penalties = data.penalties[key];
-				penalties[allowDecHong] = penalties.hong > 0;
-				penalties[allowDecCHong] = penalties.chong > 0;
+				penalties.allowDecHong = penalties.hong > 0;
+				penalties.allowDecChong = penalties.chong > 0;
 				
 				this[key + 'Inner'].innerHTML = this.penaltiesTemplate(penalties);
 			}, this);

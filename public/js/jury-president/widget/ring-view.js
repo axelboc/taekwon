@@ -27,6 +27,9 @@ define([
 				configureMatch: this._showPanel.bind(this, this.configPanel),
 				matchCreated: this._showPanel.bind(this, this.matchPanel),
 				matchResultsComputed: this._showPanel.bind(this, this.resultPanel)
+			},
+			resultPanel: {
+				configureMatch: this._showPanel.bind(this, this.configPanel)
 			}
 		});
 	}
