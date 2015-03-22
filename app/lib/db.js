@@ -89,6 +89,7 @@ var DB = {
 	 */
 	findUsers: function (tournamentId, cb) {
 		assert.string(tournamentId, 'tournamentId');
+		
 		usersDb.find({ tournamentId: tournamentId }, callback(cb));
 	},
 	
@@ -99,7 +100,24 @@ var DB = {
 	 */
 	findRings: function (tournamentId, cb) {
 		assert.string(tournamentId, 'tournamentId');
+		
 		ringsDb.find({ tournamentId: tournamentId }, callback(cb));
+	},
+	
+	/**
+	 * Find a match in progress (i.e. which hasn't ended yet).
+	 * This function should retrieve at most one match, as a ring cannot have more than one match in progress.
+	 * @param {String} ringId
+	 * @param {Function} cb
+	 */
+	findMatchInProgress: function (ringId, cb) {
+		assert.string(ringId, 'ringId');
+		
+		matchesDb.find({ ringId: ringId, ended: false }, function (err, docs) {
+			assert.ok(docs.length === 0 || docs.length === 1, "`docs` should contain zero or one document");
+			// If the array is empty, `undefined` is passed to the callback
+			callback(cb)(null, docs[0]);
+		});
 	},
 	
 	/**
@@ -148,12 +166,14 @@ var DB = {
 	 * @param {String} tournamentId
 	 * @param {Number} count - the number of rings to insert
 	 * @param {Number} slotCount
+	 * @param {Object} matchConfig
 	 * @param {Function} cb
 	 */
-	insertRings: function (tournamentId, count, slotCount, cb) {
+	insertRings: function (tournamentId, count, slotCount, matchConfig, cb) {
 		assert.string(tournamentId, 'tournamentId');
 		assert.integerGte0(count, 'count');
 		assert.integerGt0(slotCount, 'slotCount');
+		assert.object(matchConfig, 'matchConfig');
 		
 		var newDocs = [];
 		for (var i = 0; i < count; i += 1) {
@@ -162,11 +182,29 @@ var DB = {
 				index: i,
 				jpId: null,
 				cjIds: [],
-				slotCount: slotCount
+				slotCount: slotCount,
+				matchConfig: matchConfig
 			});
 		}
 		
 		ringsDb.insert(newDocs, callback(cb));
+	},
+	
+	/**
+	 * Insert a new match.
+	 * @param {String} ringId
+	 * @param {Object} config
+	 * @param {Function} cb
+	 */
+	insertMatch: function (ringId, config, cb) {
+		assert.string(ringId, 'ringId');
+		assert.object(config, 'config');
+		
+		matchesDb.insert({
+			ringId: ringId,
+			config: config,
+			ended: false
+		}, callback(cb));
 	},
 	
 	/**
@@ -179,6 +217,7 @@ var DB = {
 		assert.string(ringId, 'ringId');
 		assert.ok(jpId === null || typeof jpId === 'string' && jpId.length > 0, 
 				  "`jpId` must be either `null` or a non-empty string");
+		
 		ringsDb.update({ _id: ringId }, { $set: { jpId: jpId } }, callback(cb));
 	},
 	
@@ -191,7 +230,25 @@ var DB = {
 	setRingSlotCount: function (ringId, slotCount, cb) {
 		assert.string(ringId, 'ringId');
 		assert.integerGt0(slotCount, 'slotCount');
+		
 		ringsDb.update({ _id: ringId }, { $set: { slotCount: slotCount } }, callback(cb));
+	},
+	
+	/**
+	 * Set a ring's default match configuration.
+	 * @param {String} ringId
+	 * @param {String} itemName
+	 * @param {Any} itemValue
+	 * @param {Function} cb
+	 */
+	setRingMatchConfigItem: function (ringId, itemName, itemValue, cb) {
+		assert.string(ringId, 'ringId');
+		assert.string(itemName, 'itemName');
+		
+		var data = {};
+		data['matchConfig.' + itemName + '.value'] = itemValue;
+
+		ringsDb.update({ _id: ringId }, { $set: data }, callback(cb));
 	},
 	
 	/**
@@ -202,7 +259,33 @@ var DB = {
 	 */
 	setCJAuthorised: function (cjId, authorised, cb) {
 		assert.string(cjId, 'cjId');
+		
 		usersDb.update({ _id: cjId }, { $set: { authorised: authorised } }, callback(cb));
+	},
+	
+	/**
+	 * Set the current state of a match.
+	 * @param {String} matchId
+	 * @param {Function} cb
+	 */
+	setMatchState: function (matchId, state, cb) {
+		assert.string(matchId, 'matchId');
+		assert.object(state, 'state');
+		
+		matchesDb.update({ _id: matchId }, { $set: { state: state } }, callback(cb));
+	},
+	
+	/**
+	 * Set the `ended` flag of a match.
+	 * @param {String} matchId
+	 * @param {ended}
+	 * @param {Function} cb
+	 */
+	setMatchEnded: function (matchId, ended, cb) {
+		assert.string(matchId, 'matchId');
+		assert.boolean(ended, 'ended');
+		
+		matchesDb.update({ _id: matchId }, { $set: { ended: ended } }, callback(cb));
 	},
 	
 	/**
@@ -214,6 +297,7 @@ var DB = {
 	addCJIdToRing: function (ringId, cjId, cb) {
 		assert.string(ringId, 'ringId');
 		assert.string(cjId, 'cjId');
+		
 		ringsDb.update({ _id: ringId }, { $addToSet: { cjIds: cjId } }, callback(cb));
 	},
 	
@@ -226,6 +310,7 @@ var DB = {
 	pullCJIdFromRing: function (ringId, cjId, cb) {
 		assert.string(ringId, 'ringId');
 		assert.string(cjId, 'cjId');
+		
 		ringsDb.update({ _id: ringId }, { $pull: { cjIds: cjId } }, callback(cb));
 	},
 	
@@ -236,6 +321,7 @@ var DB = {
 	 */
 	removeUser: function (user, cb) {
 		assert.provided(user, 'user');
+		
 		usersDb.remove({ _id: user.id }, callback(cb));
 	}
 	

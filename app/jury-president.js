@@ -6,7 +6,9 @@ var util = require('util');
 var DB = require('./lib/db');
 var User = require('./user').User;
 
-var INBOUND_SPARK_EVENTS = ['openRing', 'enableScoring', 'authoriseCJ', 'rejectCJ', 'removeCJ', 'addSlot', 'removeSlot'];
+var INBOUND_SPARK_EVENTS = ['openRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
+							'setConfigItem', 'createMatch', 'endMatch', 'enableScoring',
+						    'startMatchState', 'endMatchState', 'startEndInjury'];
 
 
 /**
@@ -30,57 +32,17 @@ parent = JuryPresident.super_.prototype;
  * Register event handlers on the spark.
  * @param {Spark} spark
  */
-JuryPresident.prototype._initSpark = function (spark) {
+JuryPresident.prototype.initSpark = function (spark) {
 	// Call parent function
-	parent._initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
-};
-
-/**
- * Restore the Jury President's session.
- * @param {Spark} spark - the spark of the new socket connection
- * @param {Array} ringStates
- */
-JuryPresident.prototype.restoreSession = function (spark, ringStates) {
-	assert.provided(spark, 'spark');
-	assert.array(ringStates, 'ringStates');
-	logger.debug("Restoring session...");
-
-	// Initialise the new spark 
-	this._initSpark(spark);
-	
-	// Prepare restoratio data
-	var data = {
-		ringStates: ringStates,
-		ringIndex: this.ring ? this.ring.index : -1,
-		ringSlotCount: this.ring ? this.ring.slotCount : -1,
-		cornerJudges: []
-	};
-	
-	// Add corner judges
-	if (this.ring) {
-		assert.array(this.ring.cornerJudges, 'cornerJudges');
-		this.ring.cornerJudges.forEach(function (judge) {
-			data.cornerJudges.push({
-				id: judge.id,
-				name: judge.name,
-				connected: judge.connected,
-				authorised: judge.authorised
-			});
-		}, this);
-	}
-	
-	// Send restore session event with all the required data
-	this.spark.emit('restoreSession', data);
+	parent.initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
 };
 
 
-/*
- * ==================================================
+/* ==================================================
  * Inbound spark events:
  * - assert spark event data
  * - propagate to Tournament and Ring via events
- * ==================================================
- */
+ * ================================================== */
 
 /**
  * Open a ring.
@@ -91,19 +53,21 @@ JuryPresident.prototype._onOpenRing = function (data) {
 	assert.object(data, 'data');
 	assert.integerGte0(data.index, 'data.index');
 	
-	this.emit('openRing', data.index);
+	this.emit('openRing', this, data.index);
 };
 
 /**
- * Enable or disable scoring on the ring.
- * @param {Object}  data
- * 		  {Boolean} data.enable - `true` to enable; `false` to disable
+ * Add a Corner Judge slot.
  */
-JuryPresident.prototype._onEnableScoring = function (data) {
-	assert.object(data, 'data');
-	assert.boolean(data.enable, 'data.enable');
-	
-	this.emit('enableScoring', data.enable);
+JuryPresident.prototype._onAddSlot = function () {
+	this.emit('addSlot');
+};
+
+/**
+ * Remove a Corner Judge slot.
+ */
+JuryPresident.prototype._onRemoveSlot = function () {
+	this.emit('removeSlot');
 };
 
 /**
@@ -144,90 +108,221 @@ JuryPresident.prototype._onRemoveCJ = function (data) {
 };
 
 /**
- * Add a Corner Judge slot.
+ * Set the value of a match configuration item.
+ * @param {Object} data
+ * 		  {String} data.name - the name of the configuration item
+ * 		  {Any} data.value - the new value
  */
-JuryPresident.prototype._onAddSlot = function () {
-	this.emit('addSlot');
+JuryPresident.prototype._onSetConfigItem = function (data) {
+	assert.object(data, 'data');
+	assert.string(data.name, 'data.name');
+	
+	this.emit('setConfigItem', data.name, data.value);
 };
 
 /**
- * Remove a Corner Judge slot.
+ * Create a new match.
  */
-JuryPresident.prototype._onRemoveSlot = function () {
-	this.emit('removeSlot');
+JuryPresident.prototype._onCreateMatch = function () {
+	this.emit('createMatch');
+};
+
+/**
+ * End the match.
+ */
+JuryPresident.prototype._onEndMatch = function () {
+	this.emit('endMatch');
+};
+
+/**
+ * Enable or disable scoring on the ring.
+ * @param {Object}  data
+ * 		  {Boolean} data.enable - `true` to enable; `false` to disable
+ */
+JuryPresident.prototype._onEnableScoring = function (data) {
+	assert.object(data, 'data');
+	assert.boolean(data.enable, 'data.enable');
+	
+	this.emit('enableScoring', data.enable);
+};
+
+/**
+ * Start the current match state.
+ */
+JuryPresident.prototype._onStartMatchState = function () {
+	this.emit('startMatchState');
+};
+
+/**
+ * End the current match state.
+ */
+JuryPresident.prototype._onEndMatchState = function () {
+	this.emit('endMatchState');
+};
+
+/**
+ * Start or end an injury.
+ */
+JuryPresident.prototype._onStartEndInjury = function () {
+	this.emit('startEndInjury');
 };
 
 
-/*
- * ==================================================
- * Outbound spark events:
- * - functions called from Ring module
- * ==================================================
- */
+/* ==================================================
+ * Outbound spark events
+ * ================================================== */
 
 /**
  * The ring has been opened.
  * @param {Ring} ring
+ * @param {Object} matchConfig
+ * @param {Array} slots
  */
-JuryPresident.prototype.ringOpened = function (ring) {
+JuryPresident.prototype.ringOpened = function (ring, matchConfig, slots) {
 	assert.provided(ring, 'ring');
+	assert.object(matchConfig, 'matchConfig');
+	assert.array(slots, 'slots');
 	
 	this.ring = ring;
+	this._send('ringOpened', {
+		index: ring.index
+	});
 	
-	if (this.connected) {
-		this.spark.emit('ringOpened', {
-			index: ring.index,
-			slotCount: ring.slotCount
-		});
+	// Update configuration panel and judges sidebar
+	this._updateWidget('configPanel', 'config', { config: matchConfig });
+	this._updateWidget('judgesSidebar', 'slotList', { slots: slots });
+};
+
+/**
+ * A Corner Judge slot has been added or removed from the ring.
+ * @param {Array} slots
+ * @param {Array} scoreSlots
+ */
+JuryPresident.prototype.slotsUpdated = function (slots, scoreSlots) {
+	assert.array(slots, 'slots');
+	assert.ok(scoreSlots === null || Array.isArray(scoreSlots), "`scoreSlots` must be either null or an array");
+	
+	// Update slots in judges sidebar and score slots in match panel
+	this._updateWidget('judgesSidebar', 'slotList', { slots: slots });
+	if (scoreSlots !== null) {
+		this._updateWidget('matchPanel', 'scoreSlots', { scoreSlots: scoreSlots });
 	}
 };
 
 /**
- * A Corner Judge has been added to the ring.
- * Before it can officially join the ring, the Jury President must give its authorisation.
- * @param {CornerJudge} cj
+ * A Corner Judge slot could not be removed from the ring.
+ * @param {String} reason - the reason for the error
  */
-JuryPresident.prototype.cjAdded = function (cj) {
-	assert.provided(cj, 'cj');
-	logger.debug("Authorising Corner Judge to join ring...");
+JuryPresident.prototype.slotNotRemoved = function (reason) {
+	assert.string(reason, 'reason');
 	
-	if (this.connected) {
-		this.spark.emit('cjAdded', {
-			id: cj.id,
-			name: cj.name,
-			connected: cj.connected
-		});
-	}
+	this._send('slotNotRemoved', {
+		reason: reason
+	});
 };
 
 /**
- * A Corner Judge has been removed from the ring.
- * @param {CornerJudge} cj
+ * A configuration item has been set.
+ * @param {Object} matchConfig - the new match configuration for the ring
  */
-JuryPresident.prototype.cjRemoved = function (cj) {
-	assert.provided(cj, 'cj');
-	logger.debug("Corner Judge removed from ring");
+JuryPresident.prototype.configItemSet = function (matchConfig) {
+	assert.object(matchConfig, 'matchConfig');
 	
-	if (this.connected) {
-		this.spark.emit('cjRemoved', {
-			id: cj.id
-		});
-	}
+	// Update configuration panel
+	this._updateWidget('configPanel', 'config', { config: matchConfig });
 };
 
 /**
- * A Corner Judge has been authorised to join the ring.
- * @param {CornerJudge} cj
+ * A new match has been created.
+ * @param {Object} config
+ * @param {Object} scoreSlots
+ * @param {Boolean} scoringEnabled
+ * @param {Object} penalties
  */
-JuryPresident.prototype.cjAuthorised = function (cj) {
-	assert.provided(cj, 'cj');
-	logger.debug("> Corner Judge authorised");
+JuryPresident.prototype.matchCreated = function (config, scoreSlots, scoringEnabled, penalties) {
+	assert.object(config, 'config');
+	assert.object(scoreSlots, 'scoreSlots');
+	assert.boolean(scoringEnabled, 'scoringEnabled');
+	assert.object(penalties, 'penalties');
 	
-	if (this.connected) {
-		this.spark.emit('cjAuthorised', {
-			id: cj.id
-		});
-	}
+	this._send('matchCreated', {
+		config: config
+	});
+	this._updateWidget('matchPanel', 'scoreSlots', { scoreSlots: scoreSlots });
+	this._updateWidget('matchPanel', 'penalties', {
+		scoringEnabled: scoringEnabled,
+		penalties: penalties
+	});
+};
+
+/**
+ * The match's scores have been updated.
+ * @param {Object} scoreSlots
+ */
+JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
+	assert.object(scoreSlots, 'scoreSlots');
+	
+	this._updateWidget('matchPanel', 'scoreSlots', { scoreSlots: scoreSlots });
+};
+
+/*
+ * The state of the match has changed.
+ * @param {State} state
+ */
+JuryPresident.prototype.matchStateChanged = function (state) {
+	assert.provided(state, 'state');
+	
+	this._send('matchStateChanged', {
+		state: state
+	});
+	this._updateWidget('matchPanel', 'state', { state: state });
+};
+
+/**
+ * The results of a round have been computed.
+ * @param {String} winner
+ * @param {Object} config
+ * @param {Array} scoreboardColumns
+ * @param {Object} scoreboards
+ * @param {Object} penalties
+ * @param {Object} cjNames
+ */
+JuryPresident.prototype.matchResultsComputed = function (winner, config, scoreboardColumns, scoreboards,
+														 penalties, cjNames) {
+	assert.ok(winner === null || typeof winner === 'string' && winner.length > 0,
+			  '`winner` must be null or a non-empty string');
+	assert.object(config, 'config');
+	assert.array(scoreboardColumns, 'scoreboardColumns');
+	assert.object(scoreboards, 'scoreboards');
+	assert.object(penalties, 'penalties');
+	assert.object(cjNames, 'cjNames');
+	
+	this._send('matchResultsComputed', {
+		winner: winner
+	});
+	this._updateWidget('resultPanel', 'scoreboard', {
+		config: config,
+		scoreboardColumns: scoreboardColumns,
+		scoreboards: scoreboards,
+		penalties: penalties,
+		cjNames: cjNames
+	});
+};
+
+/**
+ * The match has been ended.
+ */
+JuryPresident.prototype.matchEnded = function () {
+	this._send('matchEnded');
+};
+
+/**
+ * The scoring state has changed.
+ */
+JuryPresident.prototype.scoringStateChanged = function (enabled) {
+	this._send('scoringStateChanged', {
+		enabled: enabled
+	});
 };
 
 /**
@@ -239,12 +334,10 @@ JuryPresident.prototype.cjScored = function (cj, score) {
 	assert.provided(cj, 'cj');
 	assert.provided(score, 'score');
 	
-	if (this.connected) {
-		this.spark.emit('cjScored', {
-			id: cj.id,
-			score: score
-		});
-	}
+	this._send('cjScored', {
+		id: cj.id,
+		score: score
+	});
 };
 
 /**
@@ -256,29 +349,10 @@ JuryPresident.prototype.cjUndid = function (cj, score) {
 	assert.provided(cj, 'cj');
 	assert.provided(score, 'score');
 	
-	if (this.connected) {
-		this.spark.emit('cjUndid', {
-			id: cj.id,
-			score: score
-		});
-	}
-};
-
-/**
- * The connection state of a Corner Judge has changed.
- * @param {String} cjId
- * @param {Boolean} connected
- */
-JuryPresident.prototype.cjConnectionStateChanged = function (cjId, connected) {
-	assert.string(cjId, 'cjId');
-	assert.boolean(connected, 'connected');
-	
-	if (this.connected) {
-		this.spark.emit('cjConnectionStateChanged', {
-			id: cjId,
-			connected: connected
-		});
-	}
+	this._send('cjUndid', {
+		id: cj.id,
+		score: score
+	});
 };
 
 /**
@@ -288,43 +362,9 @@ JuryPresident.prototype.cjConnectionStateChanged = function (cjId, connected) {
 JuryPresident.prototype.cjExited = function (cj) {
 	assert.provided(cj, 'cj');
 	
-	if (this.connected) {
-		this.spark.emit('cjExited', {
-			id: cj.id
-		});
-	}
-};
-
-/**
- * A Corner Judge slot has been added to the ring.
- */
-JuryPresident.prototype.slotAdded = function () {
-	if (this.connected) {
-		this.spark.emit('slotAdded');
-	}
-};
-
-/**
- * A Corner Judge slot has been removed to the ring.
- */
-JuryPresident.prototype.slotRemoved = function () {
-	if (this.connected) {
-		this.spark.emit('slotRemoved');
-	}
-};
-
-/**
- * A Corner Judge slot could not be removed from the ring.
- * @param {String} message - the reason for the error
- */
-JuryPresident.prototype.slotError = function (message) {
-	assert.string(message, 'message');
-	
-	if (this.connected) {
-		this.spark.emit('slotError', {
-			message: message
-		});
-	}
+	this._send('cjExited', {
+		id: cj.id
+	});
 };
 
 

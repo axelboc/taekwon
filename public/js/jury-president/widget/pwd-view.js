@@ -1,69 +1,79 @@
 
 define([
 	'minpubsub',
-	'handlebars'
+	'../../common/helpers',
+	'../io'
 
-], function (PubSub, Handlebars) {
+], function (PubSub, Helpers, IO) {
 	
 	function PwdView() {
 		this.root = document.getElementById('pwd');
+		
 		this.instr = this.root.querySelector('.pwd-instr');
 		this.field = this.root.querySelector('.pwd-field');
+		this.field.addEventListener('keypress', this._onPwdField.bind(this));
 		
 		// Cancel form submission
 		this.root.querySelector('.pwd-form').addEventListener('submit', function (evt) {
 			evt.preventDefault();
 		});
 		
-		this.field.addEventListener('keypress', this._onPwdField.bind(this));
+		// Subscribe to events from server and views
+		Helpers.subscribeToEvents(this, {
+			io: {
+				identify: this._onIdentify,
+				idSuccess: this._onIdSuccess,
+				idFail: this._onIdFail
+			}
+		});
 	}
 	
-	PwdView.prototype = {
+	PwdView.prototype._publish = function (subTopic) {
+		PubSub.publish('pwdView.' + subTopic, [].slice.call(arguments, 1));
+	};
+	
+	
+	/* ==================================================
+	 * IO events
+	 * ================================================== */
+	
+	PwdView.prototype._onIdentify = function () {
+		console.log("Server waiting for identification");
 		
-		_publish: function (subTopic) {
-			PubSub.publish('pwdView.' + subTopic, [].slice.call(arguments, 1));
-		},
-		
-		init: function () {
-			setTimeout(function () {
-				this.field.focus();
-			}.bind(this), 100);
-		},
-		
-		invalidPwd: function () {
-			// Reset field
-			this.field.value = "";
-			// Update instructions
-			this.instr.textContent = this.instr.textContent.replace("required", "incorrect");
-			// Shake field
-			this._shake(this.field);
-		},
-		
-		_onPwdField: function (evt) {
-			// If Enter key was pressed...
-			if (evt.which === 13 || evt.keyCode === 13) {
-				if (this.field.value.length > 0) {
-					this._publish('pwdSubmitted', this.field.value);
-				} else {
-					this.invalidPwd();
-				}
-			}
-		},
-		
-		_onShakeEnd: function (evt) {
-			// Remove shake class in case another shake animation needs to be performed
-			evt.target.classList.remove('shake');
-			// Remove listener
-			evt.target.removeEventListener('animationend', this._onShakeEnd);
-		},
+		// HACK: set focus on field
+		setTimeout(function () {
+			this.field.focus();
+		}.bind(this), 100);
+	};
 
-		_shake: function (field) {
-			// Listen to end of shake animation
-			field.addEventListener('animationend', this._onShakeEnd);
-			// Start shake animation
-			field.classList.add('shake');
-		}
+	PwdView.prototype._onIdSuccess = function() {
+		console.log("Identification succeeded");
+		this.field.blur();
+	};
+
+	PwdView.prototype._onIdFail = function () {
+		console.log("Identification failed");
 		
+		// Update instructions
+		this.instr.textContent = this.instr.textContent.replace("required", "incorrect");
+
+		// Reset and shake field
+		this.field.value = "";
+		Helpers.shake(this.field);
+	};
+	
+	
+	/* ==================================================
+	 * UI events
+	 * ================================================== */
+
+	PwdView.prototype._onPwdField = function (evt) {
+		// If Enter key was pressed...
+		if (evt.which === 13 || evt.keyCode === 13) {
+			var pwd = this.field.value;
+			IO.sendId(pwd);
+			console.log("> Identification sent (pwd=\"" + pwd + "\")");
+		}
 	};
 	
 	return PwdView;

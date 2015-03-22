@@ -21,7 +21,7 @@ function User(id, spark, connected) {
 	
 	this.id = id;
 	if (spark) {
-		this._initSpark(spark);
+		this.initSpark(spark);
 	}
 	
 	this.connected = connected;
@@ -36,15 +36,12 @@ util.inherits(User, EventEmitter);
  * @param {Spark} spark
  * @param {Array} events
  */
-User.prototype._initSpark = function (spark, events) {
+User.prototype.initSpark = function (spark, events) {
 	assert.provided(spark, 'spark');
 	assert.array(events, 'events');
 
 	// Store the spark
 	this.spark = spark;
-
-	// Add events shared by both user types
-	events.push('sessionRestored');
 
 	// Loop through the events and register their handlers
 	events.forEach(function (evt) {
@@ -57,10 +54,60 @@ User.prototype._initSpark = function (spark, events) {
 };
 
 /**
- * The user's session has been restored.
+ * Send a spark event to the client.
+ * @param {String} event
+ * @param {Object} data - optional data to send
  */
-User.prototype._onSessionRestored = function () {
-	logger.debug("> Session restored");
+User.prototype._send = function (event, data) {
+	assert.string(event, 'event');
+	assert.ok(typeof data === 'undefined' || typeof data === 'object' && data,
+			  "if provided, `data` must be an object");
+	
+	if (this.connected) {
+		this.spark.emit(event, data);
+	}
+};
+
+/**
+ * Send data to a front-end widget that needs to be updated.
+ * @param {String} widget
+ * @param {String} type - the type of the update
+ * @param {Mixed} data
+ */
+User.prototype._updateWidget = function (widget, type, data) {
+	assert.string(widget, 'widget');
+	assert.string(type, 'type');
+	
+	this._send(widget + '.' + type, data);
+};
+
+
+/* ==================================================
+ * Outbound spark events
+ * ================================================== */
+
+/**
+ * The user has been successfully identified.
+ * @param {Array} ringStates
+ */
+User.prototype.idSuccess = function (ringStates) {
+	assert.array(ringStates, 'ringStates');
+	
+	this._send('idSuccess');
+	this._updateWidget('ringListView', 'ringList', { rings: ringStates });
+};
+
+/**
+ * The state of a ring has changed.
+ * @param {Array} ringStates
+ */
+User.prototype.ringStateChanged = function (ringStates) {
+	assert.array(ringStates, 'ringStates');
+	
+	// Only send the updated ring states if the Jury President hasn't opened a ring yet
+	if (!this.ring) {
+		this._updateWidget('ringListView', 'ringList', { rings: ringStates });
+	}
 };
 
 /**
@@ -83,5 +130,6 @@ User.prototype.exit = function () {
 		name: this.name
 	});
 };
+
 
 exports.User = User;

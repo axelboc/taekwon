@@ -10,25 +10,14 @@ define([
 	
 	var primus;
 	var events = [
-		'wsError',
-		'identify',
-		'idSuccess',
-		'idFail',
-		'confirmIdentity',
-		'ringStates',
-		'ringStateChanged',
-		'ringOpened',
-		'slotAdded',
-		'slotRemoved',
-		'slotError',
-		'cjAdded',
-		'cjRemoved',
-		'cjAuthorised',
-		'cjScored',
-		'cjUndid',
-		'cjConnectionStateChanged',
-		'cjExited',
-		'restoreSession'
+		'identify', 'idSuccess', 'idFail', 'confirmIdentity', 'wsError',
+		'ringOpened', 'slotNotRemoved',
+		'matchCreated', 'matchStateChanged', 'matchResultsComputed', 'matchEnded',
+		'ringListView.ringList',
+		'judgesSidebar.slotList',
+		'configPanel.config',
+		'matchPanel.state', 'matchPanel.scoreSlots', 'matchPanel.penalties',
+		'resultPanel.scoreboard'
 	];
 	
 	function init() {
@@ -44,6 +33,7 @@ define([
 		
 		// Listen for incoming data
 		primus.on('data', function data(data) {
+			console.log(data);
 			PubSub.publish('io.' + data.event, data.value);
 		});
 		
@@ -102,6 +92,7 @@ define([
 	}
 
 	function sendId(pwd) {
+		console.log("Sending identification (pwd=\"" + pwd + "\")");
 		primus.emit('identification', {
 			identity: 'juryPresident',
 			password: pwd
@@ -118,6 +109,14 @@ define([
 		primus.emit('openRing', {
 			index: index
 		});
+	}
+	
+	function addSlot() {
+		primus.emit('addSlot');
+	}
+	
+	function removeSlot() {
+		primus.emit('removeSlot');
 	}
 
 	function authoriseCJ(id) {
@@ -137,9 +136,20 @@ define([
 			id: id
 		});
 	}
-
-	function sessionRestored() {
-		primus.emit('sessionRestored');
+	
+	function setConfigItem(name, value) {
+		primus.emit('setConfigItem', {
+			name: name,
+			value: value
+		});
+	}
+	
+	function createMatch() {
+		primus.emit('createMatch');
+	}
+	
+	function endMatch() {
+		primus.emit('endMatch');
 	}
 	
 	function enableScoring(enable) {
@@ -149,12 +159,30 @@ define([
 		});
 	}
 	
-	function addSlot() {
-		primus.emit('addSlot');
+	function startMatchState() {
+		primus.emit('startMatchState');
 	}
 	
-	function removeSlot() {
-		primus.emit('removeSlot');
+	function endMatchState() {
+		primus.emit('endMatchState');
+	}
+	
+	function startEndInjury() {
+		primus.emit('startEndInjury');
+	}
+	
+	function incrementPenalty(type, competitor) {
+		primus.emit('incrementPenalty', {
+			type: type,
+			competitor: competitor
+		});
+	}
+	
+	function decrementPenalty(type, competitor) {
+		primus.emit('decrementPenalty', {
+			type: type,
+			competitor: competitor
+		});
 	}
 
 	return {
@@ -162,13 +190,20 @@ define([
 		sendId: sendId,
 		sendIdentityConfirmation: sendIdentityConfirmation,
 		openRing: openRing,
+		addSlot: addSlot,
+		removeSlot: removeSlot,
 		authoriseCJ: authoriseCJ,
 		rejectCJ: rejectCJ,
 		removeCJ: removeCJ,
-		sessionRestored: sessionRestored,
+		setConfigItem: setConfigItem,
+		createMatch: createMatch,
+		endMatch: endMatch,
 		enableScoring: enableScoring,
-		addSlot: addSlot,
-		removeSlot: removeSlot
+		startMatchState: startMatchState,
+		endMatchState: endMatchState,
+		startEndInjury: startEndInjury,
+		incrementPenalty: incrementPenalty,
+		decrementPenalty: decrementPenalty
 	};
 	
 });

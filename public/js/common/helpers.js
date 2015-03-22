@@ -1,38 +1,48 @@
 
 define(['minpubsub'], function (PubSub) {
 	
-	return {
+	var Helpers = {
 		
 		/**
-		 * Subscribe to events by topic.
-		 * this.events = {
-		 *     topic: {
-		 *         subTopic: handlerFn
-		 *     }
-		 * } 
+		 * Subscribe to events, organised by topic.
+		 * @param {Object} scope
+		 * @param {Object} events
+		 * @param {String} path - for recursion
 		 */
-		subscribeToEvents: function (scope, events) {
+		subscribeToEvents: function (scope, events, path) {
+			path = path ? path + '.' : '';
 			Object.keys(events).forEach(function (topic) {
-				var topicEvents = events[topic];
-				Object.keys(topicEvents).forEach(function (subTopic) {
-					PubSub.subscribe(topic + '.' + subTopic, topicEvents[subTopic].bind(scope));
-				});
+				var event = path + topic;
+				if (typeof events[topic] === 'function') {
+					PubSub.subscribe(event, events[topic].bind(scope));
+				} else {
+					Helpers.subscribeToEvents(scope, events[topic], event);
+				}
 			}, this);
 		},
 		
 		/**
-		 * Return a shallow copy of an object.
+		 * Shake a DOM element (e.g. a text field).
+		 * @param {HTMLElement} elem
 		 */
-		shallowCopy: function (obj) {
-			var copy = {};
-			Object.keys(obj).forEach(function (key) {
-				copy[key] = obj[key];
-			});
-			return copy;
+		shake: function (elem) {
+			var onShakeEnd = function (evt) {
+				// Remove shake class in case another shake animation needs to be performed
+				elem.classList.remove('shake');
+				// Remove listener
+				elem.removeEventListener('animationend', onShakeEnd);
+			};
+
+			// Listen to end of shake animation
+			elem.addEventListener('animationend', onShakeEnd);
+			// Start shake animation
+			elem.classList.add('shake');
 		},
 		
 		/**
-		 * Enable/disable button
+		 * Enable/disable button.
+		 * @param {HTMLButtonElement} btn
+		 * @param {Boolean} enable
 		 */
 		enableBtn: function (btn, enable) {
 			if (enable) {
@@ -40,23 +50,10 @@ define(['minpubsub'], function (PubSub) {
 			} else {
 				btn.setAttribute('disabled', 'disabled');
 			}
-		},
-		
-		/**
-		 *  Cross-browser function to launch full-screen (http://davidwalsh.name/fullscreen)
-		 */
-		fullScreen: function (elem) {
-			if(elem.requestFullscreen) {
-				elem.requestFullscreen();
-			} else if(elem.mozRequestFullScreen) {
-				elem.mozRequestFullScreen();
-			} else if(elem.webkitRequestFullscreen) {
-				elem.webkitRequestFullscreen();
-			} else if(elem.msRequestFullscreen) {
-				elem.msRequestFullscreen();
-			}
 		}
 		
 	};
+	
+	return Helpers;
 	
 });

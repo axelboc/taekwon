@@ -10,23 +10,12 @@ define([
 		
 	var primus;
 	var events = [
-		'wsError',
-		'identify',
-		'idSuccess',
-		'idFail',
-		'confirmIdentity',
-		'ringStates',
-		'ringStateChanged',
-		'waitingForAuthorisation',
-		'rejected',
-		'ringJoined',
-		'ringLeft',
-		'jpConnectionStateChanged',
-		'scored',
-		'undid',
-		'scoringStateChanged',
-		'undoStateChanged',
-		'restoreSession'
+		'identify', 'idSuccess', 'idFail', 'confirmIdentity',
+		'waitingForAuthorisation', 'rejected', 'ringJoined', 'ringLeft',
+		'scored', 'undid', 'scoringStateChanged',
+		'jpConnectionStateChanged', 'wsError',
+		'ringListView.instr', 'ringListView.ringList',
+		'roundView.undoBtn'
 	];
 	
 	function init() {
@@ -113,12 +102,14 @@ define([
 	}
 
 	function joinRing(index) {
+		console.log("Joining ring (index=" + index + ")");
 		primus.emit('joinRing', {
 			index: index
 		});
 	}
 
 	function score(competitor, points) {
+		console.log("Scoring " + points + " points for " + competitor);
 		primus.emit('score', {
 			competitor: competitor,
 			points: points
@@ -126,11 +117,8 @@ define([
 	}
 
 	function undo() {
+		console.log("Undoing score");
 		primus.emit('undo');
-	}
-	
-	function sessionRestored() {
-		primus.emit('sessionRestored');
 	}
 
 
@@ -140,8 +128,7 @@ define([
 		sendIdentityConfirmation: sendIdentityConfirmation,
 		joinRing: joinRing,
 		score: score,
-		undo: undo,
-		sessionRestored: sessionRestored
+		undo: undo
 	};
 	
 });

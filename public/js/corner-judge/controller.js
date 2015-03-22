@@ -3,43 +3,20 @@ define([
 	'minpubsub',
 	'../common/helpers',
 	'./io',
-	'../common/ws-error-view',
 	'./widget/name-view',
-	'../common/ring-list-view',
+	'./widget/ring-list-view',
+	'./widget/authorisation-view',
 	'./widget/round-view',
+	'../common/ws-error-view',
 	'../common/backdrop'
 
-], function (PubSub, Helpers, IO, WsErrorView, NameView, RingListView, RoundView, Backdrop) {
+], function (PubSub, Helpers, IO, NameView, RingListView, AuthorisationView, RoundView, WsErrorView, Backdrop) {
 	
 	function Controller() {
 		// Initialise socket connection with server
 		IO.init();
 		
-		// Subscribe to events
-		Helpers.subscribeToEvents(this, {
-			io: {
-				wsError: this._onWsError,
-				identify: this._onIdentify,
-				idSuccess: this._onIdSuccess,
-				idFail: this._onIdFail,
-				confirmIdentity: this._onConfirmIdentity,
-				ringStates: this._onRingStates,
-				ringStateChanged: this._onRingStateChanged,
-				waitingForAuthorisation: this._onWaitingForAuthorisation,
-				rejected: this._onRejected,
-				ringJoined: this._onRingJoined,
-				ringLeft: this._onRingLeft,
-				jpConnectionStateChanged: this._onJPConnectionStateChanged,
-				scoringStateChanged: this._onScoringStateChanged,
-				restoreSession: this._onRestoreSession
-			},
-			ringListView: {
-				ringSelected: this._onRingSelected
-			}
-		});
-		
 		// Flags
-		this.isAuthorised = false;
 		this.isJPConnected = false;
 		this.isScoringEnabled = false;
 		
@@ -48,14 +25,25 @@ define([
 		this.wsErrorView = new WsErrorView();
 		this.nameView = new NameView();
 		this.ringListView = new RingListView();
-		// Authorisation view doesn't need to be defined as a separate module
-		this.authorisationView = {
-			root: document.getElementById('authorisation')
-		};
+		this.authorisationView = new AuthorisationView();
 		this.roundView = new RoundView();
-		
-		// Initialise backdrop
 		this.backdrop = new Backdrop();
+		
+		// Subscribe to events
+		Helpers.subscribeToEvents(this, {
+			io: {
+				identify: this._showView.bind(this, this.nameView),
+				idSuccess: this._showView.bind(this, this.ringListView),
+				confirmIdentity: IO.sendIdentityConfirmation,
+				waitingForAuthorisation: this._showView.bind(this, this.authorisationView),
+				rejected: this._showView.bind(this, this.ringListView),
+				ringJoined: this._onRingJoined,
+				ringLeft: this._onRingLeft,
+				jpConnectionStateChanged: this._onJPConnectionStateChanged,
+				scoringStateChanged: this._onScoringStateChanged,
+				wsError: this._showView.bind(this, this.wsErrorView)
+			}
+		});
 	}
 	
 	Controller.prototype = {
@@ -80,65 +68,14 @@ define([
 				this.backdrop.hide();
 			}
 		},
-		
-		_onWsError: function (data) {
-			console.log("Error:", data.reason);
-			this.wsErrorView.updateInstr(data.reason);
-			this._showView(this.wsErrorView);
-		},
-		
-		_onIdentify: function() {
-			console.log("Server waiting for identification");
-			this._showView(this.nameView);
-			this.nameView.init();
-		},
-
-		_onIdSuccess: function() {
-			console.log("Identification succeeded");
-		},
-
-		_onIdFail: function() {
-			console.log("Identification failed");
-			this.nameView.invalidName();
-		},
-
-		_onConfirmIdentity: function () {
-			console.log("Server waiting for identity confirmation");
-			IO.sendIdentityConfirmation();
-		},
-
-		_onRingStates: function(states) {
-			console.log("Ring states received (count=\"" + states.length + "\")");
-			this.ringListView.init(states);
-			this._showView(this.ringListView);
-		},
-
-		_onRingStateChanged: function(state) {
-			console.log("Ring state changed (index=\"" + state.index + "\")");
-			this.ringListView.updateRingBtn(state.index, state.open);
-		},
-
-		_onRingSelected: function(index) {
-			console.log("Joining ring (index=" + index + ")");
-			IO.joinRing(index);
-		},
-		
-		_onWaitingForAuthorisation: function () {
-			console.log("Waiting for authorisation to join ring");
-			this._showView(this.authorisationView);
-		},
 
 		_onRingJoined: function(data) {
 			console.log("Joined ring (index=" + data.ringIndex + ")");
-
-			// Enable/disable undo button
-			Helpers.enableBtn(this.roundView.undoBtn, data.undoEnabled);
 			
 			// Show round view
 			this._showView(this.roundView);
 
 			// Update flags and backdrop
-			this.isAuthorised = true;
 			this.isScoringEnabled = data.scoringEnabled;
 			this.isJPConnected = data.jpConnected;
 			this._updateBackdrop();
@@ -146,34 +83,13 @@ define([
 			// Update page title to show ring number
 			document.title = "Corner Judge | Ring " + (data.ringIndex + 1);
 		},
-		
-		/**
-		 * The Corner Judge's request to join a ring has been rejected.
-		 * Potential causes:
-		 * - rejected by Jury President,
-		 * - ring full.
-		 */
-		_onRejected: function(data) {
-			console.log(data.message);
-			
-			// Show ring list view. 
-			this.ringListView.updateInstr(data.message);
-			this._showView(this.ringListView);
-		},
 
 		/**
 		 * Corner Judge has left the ring, willingly or not.
 		 */
 		_onRingLeft: function(data) {
-			console.log(data.message);
-			
-			// Show ring list view with custom message. 
-			this.ringListView.updateInstr(data.message);
+			// Show ring list view
 			this._showView(this.ringListView);
-			
-			// Update flag and backdrop
-			this.isAuthorised = false;
-			this._updateBackdrop();
 			
 			// Reset page title
 			document.title = "Corner Judge";
@@ -189,28 +105,6 @@ define([
 			console.log("Scoring " + (data.enabled ? "enabled" : "disabled"));
 			this.isScoringEnabled = data.enabled;
 			this._updateBackdrop();
-		},
-		
-		_onRestoreSession: function(data) {
-			console.log("Restoring session");
-
-			// Init ring list view with ring state data
-			this.ringListView.init(data.ringStates);
-
-			// If no ring was joined yet, show ring list view
-			if (data.ringIndex === -1) {
-				this._showView(this.ringListView);
-
-			// If a ring was joined, but JP had not authorised the request yet, show authorisation view
-			} else if (!data.authorised) {
-				this._showView(this.authorisationView);
-
-			// If JP was authorised by CJ to join a ring, show round view
-			} else {
-				this._onRingJoined(data);
-			}
-
-			IO.sessionRestored();
 		}
 
 	};

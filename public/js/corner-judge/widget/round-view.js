@@ -1,42 +1,42 @@
 
 define([
 	'minpubsub',
-	'handlebars',
 	'../../common/helpers',
 	'../io',
 	'../../common/competitors'
 
-], function (PubSub, Handlebars, Helpers, IO, Competitors) {
+], function (PubSub, Helpers, IO, Competitors) {
 	
 	function RoundView() {
 		this.root = document.getElementById('round');
+		
+		// Undo button
+		this.undoBtn = this.root.querySelector('.undo-btn');
+		this.undoBtn.addEventListener('click', this._onUndoBtn.bind(this));
+		
+		// Score buttons (use 'touchstart' event if supported)
+		var event = 'ontouchstart' in document.documentElement ? 'touchstart' : 'click';
+		var hongBtns = this.root.querySelector('.score-btns--hong');
+		var chongBtns = this.root.querySelector('.score-btns--chong');
+		hongBtns.addEventListener(event, this._onScoreBtsDeletage.bind(this, Competitors.HONG));
+		chongBtns.addEventListener(event, this._onScoreBtsDeletage.bind(this, Competitors.CHONG));
+		
+		// Feedback elements
+		document.addEventListener('transitionend', this._onTransitionEnd.bind(this));
+		this.feedback = this.root.querySelector('.feedback');
+		this.fdb = document.createElement('div');
+		this.fdb.className = 'fdb';
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
 			io: {
 				scored: this._onScored,
 				undid: this._onUndid,
-				undoStateChanged: this._onUndoStateChanged
+				roundView: {
+					undoBtn: this._updateUndoBtn
+				}
 			}
 		});
-		
-		// Undo and scoring buttons
-		this.undoBtn = this.root.querySelector('.undo-btn');
-		this.hongScoreBtns = this.root.querySelectorAll('.score-btns--hong > .score-btn');
-		this.chongScoreBtns = this.root.querySelectorAll('.score-btns--chong > .score-btn');
-		
-		// 'touchstart' if supported; otherwise, 'click'
-		var eventName = 'ontouchstart' in document.documentElement ? 'touchstart' : 'click';
-		
-		this.undoBtn.addEventListener('click', this._onUndoBtn.bind(this));
-		[].forEach.call(this.hongScoreBtns, this._bindScoreBtn.bind(this, eventName, Competitors.HONG)); 
-		[].forEach.call(this.chongScoreBtns, this._bindScoreBtn.bind(this, eventName, Competitors.CHONG));
-		document.addEventListener('transitionend', this._onTransitionEnd.bind(this));
-		
-		// Feedback elements
-		this.feedback = this.root.querySelector('.feedback');
-		this.fdb = document.createElement('div');
-		this.fdb.className = 'fdb';
 		
 		// Detect translate3d support
 		this.feedback.appendChild(this.fdb);
@@ -48,83 +48,84 @@ define([
 		}
 	}
 	
-	RoundView.prototype = {
-		
-		_publish: function (subTopic) {
-			PubSub.publish('roundView.' + subTopic, [].slice.call(arguments, 1));
-		},
-		
-		_bindScoreBtn: function (eventName, competitor, btn, index) {
-			btn.addEventListener(eventName, this._onScoreBtn.bind(this, btn, competitor, index * -1 + 5));
-		},
-		
-		_onScoreBtn: function(btn, competitor, points) {
-			console.log("Scoring " + points + " points for " + competitor);
-			
-			if (window.navigator.vibrate) {
-				window.navigator.vibrate(100);
-			}
-			
-			IO.score(competitor, points);
-		},
-		
-		_onScored: function (data) {
-			console.log("> Score confirmed");
-			this._newFdb([
-				'fdb--' + data.score.competitor,
-				data.score.competitor + '-bg'
-			], data.score.points);
-		},
-		
-		_onUndid: function (data) {
-			console.log("> Undo confirmed");
-			this._newFdb([
-				'fdb--' + data.score.competitor,
-				'fdb--undo'
-			], data.score.points);
-		},
-		
-		_onUndoStateChanged: function (data) {
-			console.log("Undo " + (data.enabled ? "enabled" : "disabled"));
-			Helpers.enableBtn(this.undoBtn, data.enabled);
-		},
-		
-		_onUndoBtn: function () {
-			console.log("Undoing previous score");
-			this.undoBtn.blur();
-			IO.undo();
-		},
-		
-		_newFdb: function (classArr, value) {
-			// Clone and customise the default fdb element
-			var fdb = this.fdb.cloneNode();
-			fdb.classList.add.apply(fdb.classList, classArr);
-			fdb.textContent = value;
-			
-			// Add fdb element to the DOM
-			this.feedback.appendChild(fdb);
-			
-			// Translate the element
-			setTimeout(this._transitionFdb.bind(this, fdb), 0);
-		},
-		
-		_transitionFdb: function (fdb) {
+	RoundView.prototype._publish = function (subTopic) {
+		PubSub.publish('roundView.' + subTopic, [].slice.call(arguments, 1));
+	};
+
+	RoundView.prototype._newFdb = function (classes, value) {
+		// Clone and customise the default fdb element
+		var fdb = this.fdb.cloneNode();
+		fdb.classList.add.apply(fdb.classList, classes);
+		fdb.textContent = value;
+
+		// Add fdb element to the DOM
+		this.feedback.appendChild(fdb);
+
+		// Translate the element
+		setTimeout(function () {
 			var value = window.innerHeight + fdb.offsetHeight;
 			if (this.has3d) {
 				fdb.style.transform = 'translate3d(0, ' + value + 'px, 0)';
 			} else {
 				fdb.style.top = value + 'px';
 			}
-		},
-		
-		_onTransitionEnd: function (evt) {
-			var elem = evt.target;
-			if (elem.classList.contains('fdb')) {
-				this.feedback.removeChild(elem);
-			}
+		}.bind(this), 0);
+	};
+
+	
+	/* ==================================================
+	 * IO events
+	 * ================================================== */
+
+	RoundView.prototype._updateUndoBtn = function (data) {
+		console.log("Undo " + (data.enabled ? "enabled" : "disabled"));
+		Helpers.enableBtn(this.undoBtn, data.enabled);
+	};
+	
+	RoundView.prototype._onScored = function (data) {
+		console.log("> Score confirmed");
+		this._newFdb([
+			'fdb--' + data.score.competitor,
+			data.score.competitor + '-bg'
+		], data.score.points);
+
+		if (window.navigator.vibrate) {
+			window.navigator.vibrate(100);
 		}
-		
-	}
+	};
+
+	RoundView.prototype._onUndid = function (data) {
+		console.log("> Undo confirmed");
+		this._newFdb([
+			'fdb--' + data.score.competitor,
+			'fdb--undo'
+		], data.score.points);
+	};
+	
+	
+	/* ==================================================
+	 * UI events
+	 * ================================================== */
+	
+	RoundView.prototype._onScoreBtsDeletage = function (competitor, evt) {
+		var btn = evt.target;
+		if (btn && btn.nodeName == 'BUTTON') {
+			btn.blur();
+			IO.score(competitor, parseInt(btn.textContent, 10));
+		}
+	};
+
+	RoundView.prototype._onUndoBtn = function () {
+		this.undoBtn.blur();
+		IO.undo();
+	};
+
+	RoundView.prototype._onTransitionEnd = function (evt) {
+		var fdb = evt.target;
+		if (fdb.classList.contains('fdb')) {
+			this.feedback.removeChild(fdb);
+		}
+	};
 	
 	return RoundView;
 	

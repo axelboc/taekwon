@@ -17,9 +17,9 @@
 		<p class="rl-instr instr">Select ring number</p>
 		<ul class="rl-list list-reset list-grid"></ul>
 	</div>
-	<script id="rl-ring-tmpl" type="x-handlebars-template">
+	<script id="rl-list-tmpl" type="x-handlebars-template">
 		\{{#each rings}}
-			<li><button type="button" class="btn rl-btn"\{{#if open}} disabled\{{/if}}>\{{number}}</button></li>
+			<li><button type="button" class="btn rl-btn" data-index="\{{index}}"\{{#if open}} disabled\{{/if}}>\{{number}}</button></li>
 		\{{/each}}
 	</script>
 </div>
@@ -62,31 +62,22 @@
 		<div id="config-panel" class="panel">
 			<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
 			<div class="config action">
-				<h2 class="config-heading">Match Configuration</h2>
-				<div class="config-item" data-name="roundTime" data-type="time">
-					<span class="ci-lbl">Round time</span>
-					<span class="ci-controls"><button class="ci-dec ci-btn btn btn--toggle" type="button">&minus;</button><span class="ci-value"></span><button class="ci-inc ci-btn btn btn--toggle" type="button">+</button></span>
-				</div>
-				<div class="config-item" data-name="injuryTime" data-type="time">
-					<span class="ci-lbl">Injury time</span>
-					<span class="ci-controls"><button class="ci-dec ci-btn btn btn--toggle" type="button">&minus;</button><span class="ci-value"></span><button class="ci-inc ci-btn btn btn--toggle" type="button">+</button></span>
-				</div>
-				<div class="config-item" data-name="breakTime" data-type="time">
-					<span class="ci-lbl">Break time</span>
-					<span class="ci-controls"><button class="ci-dec ci-btn btn btn--toggle" type="button">&minus;</button><span class="ci-value"></span><button class="ci-inc ci-btn btn btn--toggle" type="button">+</button></span>
-				</div>
-				<div class="config-item" data-name="twoRounds" data-type="boolean">
-					<span class="ci-lbl">Number of rounds</span>
-					<span class="ci-controls"><button class="ci-false ci-btn btn btn--toggle" type="button">1</button><button class="ci-true ci-btn btn btn--toggle" type="button">2</button></span>
-				</div>
-				<div class="config-item" data-name="tieBreaker" data-type="boolean">
-					<span class="ci-lbl">Tie breaker</span>
-					<span class="ci-controls"><button class="ci-false ci-btn btn btn--toggle" type="button">Off</button><button class="ci-true ci-btn btn btn--toggle" type="button">On</button></span>
-				</div>
-				<div class="config-item" data-name="goldenPoint" data-type="boolean">
-					<span class="ci-lbl">Golden point</span>
-					<span class="ci-controls"><button class="ci-false ci-btn btn btn--toggle" type="button">Off</button><button class="ci-true ci-btn btn btn--toggle" type="button">On</button></span>
-				</div>
+				<h2 class="cf-heading">Match Configuration</h2>
+				<div class="cf-inner"></div>
+				<script id="cf-inner-tmpl" type="x-handlebars-template">
+					\{{#each configItems}}
+						<div class="cf-item" data-name="\{{name}}" data-type="\{{type}}">
+							<span class="cf-lbl">\{{label}}</span>
+							\{{#if isTime}}
+								<span class="cf-controls"><button class="cf-dec cf-btn btn btn--toggle" type="button"\{{#unless isDecEnabled}} disabled\{{/unless}}>&minus;</button><span class="cf-value">\{{value}}</span><button class="cf-inc cf-btn btn btn--toggle" type="button">+</button></span>
+							\{{else}}
+								\{{#if isBoolean}}
+									<span class="cf-controls"><button class="cf-false cf-btn btn btn--toggle\{{#if isFalse}} btn_pressed\{{/if}}" type="button">1</button><button class="cf-true cf-btn btn btn--toggle\{{#if isTrue}} btn_pressed\{{/if}}" type="button">2</button></span>
+								\{{/if}}
+							\{{/if}}
+						</div>
+					\{{/each}}
+				</script>
 			</div>
 		</div>
 		{{!-- Match panel --}}
@@ -94,7 +85,7 @@
 			<h2 class="mp-state"></h2>
 			<div class="mp-row mp-row--top">
 				{{!-- Time keeping --}}
-				<div class="mp-cell time-keeping tk_off">
+				<div class="time-keeping tk_off mp-cell">
 					<audio id="tk-beeps">
 						<source src="audio/beeps.ogg" type="audio/ogg">
 						<source src="audio/beeps.mp3" type="audio/mp3">
@@ -109,26 +100,27 @@
 					</div>
 				</div>
 				{{!-- Match state management --}}
-				<div class="mp-cell state-management">
-					<div class="sm-inner">
-						<button class="sm-btn sm-btn--start match-btn btn" type="button">Start</button>
-						<button class="sm-btn sm-btn--end match-btn btn" type="button">End</button>
-						<button class="sm-btn sm-btn--injury match-btn btn btn--minor" type="button">Start Injury</button>
-					</div>
+				<div class="state mp-cell">
+					<div class="st-inner"></div>
+					<script id="st-inner-tmpl" type="x-handlebars-template">
+						<button type="button" class="st-btn st-btn--start match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#if stateStarted}} disabled\{{/if}}>Start</button>
+						<button type="button" class="st-btn st-btn--end match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#unless stateStarted}} disabled\{{/unless}}\{{#if stateStarted}}\{{#if injuryStarted}} disabled\{{/if}}\{{/if}}>End</button>
+						<button type="button" class="st-btn st-btn--injury match-btn btn btn--minor"\{{#unless enableInjuryBtn}} disabled\{{/unless}}>\{{#unless injuryStarted}}Start\{{else}}End\{{/unless}} Injury</button>
+					</script>
 				</div>
 			</div>
 			<div class="mp-row mp-row--bottom">
 				{{!-- Scores --}}
-				<div class="scoring mp-cell">
+				<div class="scores mp-cell">
 					<div class="sc-inner"></div>
 					<script id="sc-inner-tmpl" type="x-handlebars-template">
-						\{{#each slots}}
+						\{{#each scoreSlots}}
 							<div class="sc-judge">
 							\{{#if cj}}
 								<h3 class="sc-judge-name">\{{cj.name}}</h3>
 								<div class="sc-judge-score">
-									<span class="sc-hong hong-bg">\{{cj.scores.[0]}}</span>
-									<span class="sc-chong chong-bg">\{{cj.scores.[1]}}</span>
+									<span class="sc-hong hong-bg">\{{cj.scores.hong}}</span>
+									<span class="sc-chong chong-bg">\{{cj.scores.chong}}</span>
 								</div>
 							\{{else}}
 								<h3 class="sc-judge-name">Judge #\{{index}}</h3>
@@ -144,39 +136,25 @@
 				{{!-- Penalties --}}
 				<div class="penalties mp-cell">
 					<h2 class="pe-heading">Warnings</h2>
-					<div class="pe-inner pe-inner--warnings">
-						<div class="pe-item" data-type="warnings" data-competitor="hong">
-							<span class="pe-value hong-bg">0</span>
-							<div class="pe-btns">
-								<button class="pe-inc pe-btn btn" type="button">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button">&minus;</button>
-							</div>
-						</div>
-						<div class="pe-item" data-type="warnings" data-competitor="chong">
-							<span class="pe-value chong-bg">0</span>
-							<div class="pe-btns">
-								<button class="pe-inc pe-btn btn" type="button">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button">&minus;</button>
-							</div>
-						</div>
-					</div>
+					<div class="pe-inner pe-inner--warnings"></div>
 					<h2 class="pe-heading">Fouls</h2>
-					<div class="pe-inner pe-inner--fouls">
-						<div class="pe-item" data-type="fouls" data-competitor="hong">
-							<span class="pe-value hong-bg">0</span>
+					<div class="pe-inner pe-inner--fouls"></div>
+					<script id="pe-penalties-tmpl" type="x-handlebars-template">
+						<div class="pe-item">
+							<span class="pe-value hong-bg">\{{hong}}</span>
 							<div class="pe-btns">
-								<button class="pe-inc pe-btn btn" type="button">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button">&minus;</button>
+								<button class="pe-inc pe-btn btn" type="button" data-competitor="hong"\{{#unless scoringEnabled}} disabled\{{/unless}}>+</button>
+								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="hong"\{{#unless scoringEnabled}}\{{#unless allowDecHong}} disabled\{{/unless}}\{{/unless}}>&minus;</button>
 							</div>
 						</div>
-						<div class="pe-item" data-type="fouls" data-competitor="chong">
-							<span class="pe-value chong-bg">0</span>
+						<div class="pe-item">
+							<span class="pe-value chong-bg">\{{chong}}</span>
 							<div class="pe-btns">
-								<button class="pe-inc pe-btn btn" type="button">+</button>
-								<button class="pe-dec pe-btn btn btn--minor" type="button">&minus;</button>
+								<button class="pe-inc pe-btn btn" type="button" data-competitor="chong"\{{#unless scoringEnabled}} disabled\{{/unless}}>+</button>
+								<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="chong"\{{#unless scoringEnabled}}\{{#unless allowDecHong}} disabled\{{/unless}}\{{/unless}}>&minus;</button>
 							</div>
 						</div>
-					</div>
+					</script>
 				</div>
 			</div>
 		</div>
@@ -184,7 +162,7 @@
 		<div id="result-panel" class="panel hidden">
 			<p class="rp-winner"></p>
 			<div id="rp-buttons--continue">
-				<button type="button" class="match-btn match-btn--config btn btn--minor">End Match</button>
+				<button type="button" class="match-btn match-btn--end btn btn--minor">End Match</button>
 				<button type="button" class="match-btn match-btn--continue btn btn--major">Continue Match</button>
 			</div>
 			<div id="rp-buttons--end">

@@ -4,34 +4,36 @@ define([
 	'handlebars',
 	'../../common/helpers',
 	'../../common/competitors',
-	'../model/match-states'
+	'../io'
 	
-], function (PubSub, Handlebars, Helpers, Competitor, MatchStates) {
+], function (PubSub, Handlebars, Helpers, Competitor, IO) {
 	
 	function ResultPanel() {
-		this.ring = null;
 		this.root = document.getElementById('result-panel');
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(this, {
-			match: {
-				resultsComputed: this._onResultsComputed,
-				ended: this._onMatchEnded
+			io: {
+				matchResultsComputed: this._onMatchResultsComputed,
+				matchEnded: this._onMatchEnded,
+				resultPanel: {
+					scoreboard: this._updateScoreboard
+				}
 			}
 		});
 		
 		this.winner = this.root.querySelector('.rp-winner');
 		this.continueBtnsWrap = document.getElementById('rp-buttons--continue');
-		this.endBtnsWrap = document.getElementById('rp-buttons--end');
-		this.matchConfigBtns = this.root.querySelectorAll('.match-btn--config');
+		this.endMatchBtn = this.root.querySelector('.match-btn--end');
 		this.continueMatchBtn = this.root.querySelector('.match-btn--continue');
+		this.endBtnsWrap = document.getElementById('rp-buttons--end');
+		this.matchConfigBtn = this.root.querySelector('.match-btn--config');
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
 		
-		[].forEach.call(this.matchConfigBtns, function (btn) {
-			btn.addEventListener('click', this._publish.bind(this, 'matchConfigBtn'));
-		}, this);
-		this.continueMatchBtn.addEventListener('click', this._publish.bind(this, 'continueMatchBtn'));
-		this.newMatchBtn.addEventListener('click', this._publish.bind(this, 'newMatchBtn', this.newMatchBtn));
+		this.endMatchBtn.addEventListener('click', IO.endMatch);
+		this.continueMatchBtn.addEventListener('click', IO.continueMatch);
+		this.matchConfigBtn.addEventListener('click', this._publish.bind(this, 'configureMatch'));
+		this.newMatchBtn.addEventListener('click', IO.createMatch);
 		
 		// Scoreboard
 		this.scoreboard = this.root.querySelector('.scoreboard');
@@ -43,21 +45,6 @@ define([
 		
 		_publish: function (subTopic) {
 			PubSub.publish('resultPanel.' + subTopic, [].slice.call(arguments, 1));
-		},
-		
-		setRing: function (ring) {
-			this.ring = ring;
-		},
-		
-		_showWinner: function () {
-			var winner = this.ring.match.winner;
-			if (winner) {
-				this.winner.className = 'rp-winner ' + winner + '-col';
-				this.winner.textContent = winner.charAt(0).toUpperCase() + winner.slice(1) + " wins";
-			} else {
-				this.winner.className = 'rp-winner';
-				this.winner.textContent = "Draw";
-			}
 		},
 		
 		_appendHeaderCell: function (parent, scope, colspan, className, label) {
@@ -108,11 +95,11 @@ define([
 			
 			columns.forEach(function (columnId) {
 				if (penalties[columnId][type]) {
-					this._appendBodyCell(row, 'hong-sbg', penalties[columnId][type][0]);
-					this._appendBodyCell(row, 'chong-sbg', penalties[columnId][type][1]);
+					this._appendBodyCell(row, 'hong-sbg', penalties[columnId][type].hong);
+					this._appendBodyCell(row, 'chong-sbg', penalties[columnId][type].chong);
 				} else if (type === 'warnings') {
-					this._appendBodyCell(row, 'hong-sbg', penalties[columnId][0]).setAttribute('rowspan', '2');
-					this._appendBodyCell(row, 'chong-sbg', penalties[columnId][1]).setAttribute('rowspan', '2');
+					this._appendBodyCell(row, 'hong-sbg', penalties[columnId].hong).setAttribute('rowspan', '2');
+					this._appendBodyCell(row, 'chong-sbg', penalties[columnId].chong).setAttribute('rowspan', '2');
 				}
 			}, this);
 		},
@@ -124,46 +111,71 @@ define([
 			
 			columns.forEach(function (columnId) {
 				var isTotalCol = /^total/.test(columnId);
-				var scores = scoreboard[columnId] || [0, 0];
-				var diff = scores[0] - scores[1];
+				var scores = scoreboard[columnId] || { hong: 0, chong: 0 };
+				var diff = scores.hong - scores.chong;
 				
-				this._appendBodyCell(row, isTotalCol && diff >= 0 ? 'hong-bg' : 'hong-sbg', scores[0]);
-				this._appendBodyCell(row, isTotalCol && diff <= 0 ? 'chong-bg' : 'chong-sbg', scores[1]);
+				this._appendBodyCell(row, isTotalCol && diff >= 0 ? 'hong-bg' : 'hong-sbg', scores.hong);
+				this._appendBodyCell(row, isTotalCol && diff <= 0 ? 'chong-bg' : 'chong-sbg', scores.chong);
 			}, this);
 		},
 		
-		_populateScoreboard: function () {
-			var match = this.ring.match;
-			var columns = match.scoreboardColumns;
+		
+		/* ==================================================
+		 * IO events
+		 * ================================================== */
+		
+		_onMatchResultsComputed: function (data) {
+			// Show winner
+			if (data.winner) {
+				this.winner.className = 'rp-winner ' + data.winner + '-col';
+				this.winner.textContent = data.winner.charAt(0).toUpperCase() + data.winner.slice(1) + " wins";
+			} else {
+				this.winner.className = 'rp-winner';
+				this.winner.textContent = "Draw";
+			}
+			
+			// Show buttons to continue or end the match
+			this.continueBtnsWrap.classList.remove('hidden');
+			this.endBtnsWrap.classList.add('hidden');
+		},
+		
+		_onMatchEnded: function () {
+			// Show buttons to start a new match or change the match configuration
+			this.continueBtnsWrap.classList.add('hidden');
+			this.endBtnsWrap.classList.remove('hidden');
+		},
+		
+		
+		/* ==================================================
+		 * UI updates
+		 * ================================================== */
+		
+		_updateScoreboard: function (data) {
+			var columns = data.scoreboardColumns;
 			
 			// Clear scoreboard table first
 			this.sbHeaderRow.innerHTML = '';
 			this.sbBody.innerHTML = '';
 		
 			// Build header row
-			this._buildHeaderRow(columns, match.config.twoRounds);
+			this._buildHeaderRow(columns, data.config.twoRounds);
 			
 			// Build penalties row
-			this._buildPenaltiesRow(columns, match.penalties, 'warnings');
-			this._buildPenaltiesRow(columns, match.penalties, 'fouls');
+			this._buildPenaltiesRow(columns, data.penalties, 'warnings');
+			this._buildPenaltiesRow(columns, data.penalties, 'fouls');
 
 			// Build judge rows
-			this.ring.cornerJudges.forEach(function (cj) { 
-				this._buildJudgeRow(columns, cj.name, cj.scoreboard);
+			Object.keys(data.cjNames).forEach(function (cjId) { 
+				this._buildJudgeRow(columns, data.cjNames[cjId], data.scoreboards[cjId]);
 			}, this);
-		},
-		
-		_onResultsComputed: function () {
-			this._showWinner();
-			this.continueBtnsWrap.classList.remove('hidden');
-			this.endBtnsWrap.classList.add('hidden');
-			this._populateScoreboard();
-		},
-		
-		_onMatchEnded: function () {
-			this.continueBtnsWrap.classList.add('hidden');
-			this.endBtnsWrap.classList.remove('hidden');
 		}
+		
+		
+		/* ==================================================
+		 * UI events
+		 * ================================================== */
+		
+		
 		
 	};
 	
