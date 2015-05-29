@@ -1,11 +1,10 @@
 
 define([
-	'../../common/helpers',
-	'../io'
+	'../../common/helpers'
 
-], function (Helpers, IO) {
+], function (Helpers) {
 	
-	function AuthorisationView() {
+	function AuthorisationView(io) {
 		this.root = document.getElementById('authorisation');
 	}
 	

@@ -3,24 +3,21 @@ define([
 	'minpubsub',
 	'handlebars',
 	'../../common/helpers',
-	'../../common/competitors',
-	'../io'
+	'../../common/competitors'
 	
-], function (PubSub, Handlebars, Helpers, Competitor, IO) {
+], function (PubSub, Handlebars, Helpers, Competitor) {
 	
-	function ResultPanel() {
+	function ResultPanel(io) {
 		this.root = document.getElementById('result-panel');
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(this, {
-			io: {
-				matchResultsComputed: this._onMatchResultsComputed,
-				matchEnded: this._onMatchEnded,
-				resultPanel: {
-					scoreboard: this._updateScoreboard
-				}
+		Helpers.subscribeToEvents(io, 'resultPanel', {
+			matchResultsComputed: this._onMatchResultsComputed,
+			matchEnded: this._onMatchEnded,
+			resultPanel: {
+				scoreboard: this._updateScoreboard
 			}
-		});
+		}, this);
 		
 		this.winner = this.root.querySelector('.rp-winner');
 		this.continueBtnsWrap = document.getElementById('rp-buttons--continue');

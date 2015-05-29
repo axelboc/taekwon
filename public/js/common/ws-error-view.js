@@ -3,39 +3,23 @@ define([
 	'minpubsub',
 	'./helpers'
 
-], function (PubSub, Helpers) {
+], function (Helpers) {
 	
-	function WsErrorView() {
+	function WsErrorView(io) {
 		this.root = document.getElementById('ws-error');
 		
 		this.instr = this.root.querySelector('.wse-instr');
 		this.retryBtn = this.root.querySelector('.wse-btn--retry');
 		
-		this.retryBtn.addEventListener('click', this._onRetryBtn.bind(this));
-		
-		// Subscribe to events
-		Helpers.subscribeToEvents(this, {
-			io: {
-				wsError: this._onWsError
-			}
-		});
+		this.retryBtn.addEventListener('click', this.onRetryBtn.bind(this));
 	}
 	
-	WsErrorView.prototype = {
+	WsErrorView.prototype.setInstr = function setInstr(message) {
+		this.instr.textContent = message;
+	};
 		
-		_publish: function (subTopic) {
-			PubSub.publish('wsErrorView.' + subTopic, [].slice.call(arguments, 1));
-		},
-		
-		_onWsError: function (data) {
-			console.log("Error:", data.reason);
-			this.instr.textContent = data.reason;
-		},
-		
-		_onRetryBtn: function () {
-			window.location.reload();
-		}
-		
+	WsErrorView.prototype.onRetryBtn = function onRetryBtn() {
+		window.location.reload();
 	};
 	
 	return WsErrorView;

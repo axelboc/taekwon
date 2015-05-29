@@ -1,9 +1,8 @@
 
 define([
-	'minpubsub',
 	'handlebars'
 
-], function (PubSub, Handlebars) {
+], function (Handlebars) {
 	
 	function Backdrop() {
 		this.root = document.getElementById('backdrop');
@@ -12,10 +11,6 @@ define([
 	}
 	
 	Backdrop.prototype = {
-		
-		_publish: function (subTopic) {
-			PubSub.publish('backdrop.' + subTopic, [].slice.call(arguments, 1));
-		},
 		
 		show: function (text, subtext) {
 			this.text.textContent = text;

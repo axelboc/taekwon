@@ -1,12 +1,10 @@
 
 define([
-	'minpubsub',
-	'../../common/helpers',
-	'../io'
+	'../../common/helpers'
 
-], function (PubSub, Helpers, IO) {
+], function (Helpers) {
 	
-	function NameView() {
+	function NameView(io) {
 		this.root = document.getElementById('name');
 		
 		this.field = this.root.querySelector('.name-field');
@@ -18,18 +16,14 @@ define([
 		});
 		
 		// Subscribe to events from server and views
-		Helpers.subscribeToEvents(this, {
+		Helpers.subscribeToEvents(io, 'nameView', {
 			io: {
 				identify: this._onIdentify,
 				idSuccess: this._onIdSuccess,
 				idFail: this._onIdFail
 			}
-		});
+		}, this);
 	}
-	
-	NameView.prototype._publish = function (subTopic) {
-		PubSub.publish('nameView.' + subTopic, [].slice.call(arguments, 1));
-	};
 	
 	
 	/* ==================================================

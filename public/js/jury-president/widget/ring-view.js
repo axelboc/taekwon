@@ -1,16 +1,14 @@
 
 define([
-	'minpubsub',
 	'../../common/helpers',
-	'../io',
 	'./judges-sidebar',
 	'./config-panel',
 	'./match-panel',
 	'./result-panel'
 	
-], function (PubSub, Helpers, IO, JudgesSidebar, ConfigPanel, MathPanel, ResultPanel) {
+], function (Helpers, JudgesSidebar, ConfigPanel, MathPanel, ResultPanel) {
 	
-	function RingView() {
+	function RingView(io) {
 		this.root = document.getElementById('ring');
 		
 		// Initialise panels and sidebar
@@ -21,7 +19,7 @@ define([
 		this.judgesSidebar = new JudgesSidebar();
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(this, {
+		Helpers.subscribeToEvents(io, 'ringView', {
 			io: {
 				ringOpened: this._showPanel.bind(this, this.configPanel),
 				configureMatch: this._showPanel.bind(this, this.configPanel),
@@ -31,14 +29,10 @@ define([
 			resultPanel: {
 				configureMatch: this._showPanel.bind(this, this.configPanel)
 			}
-		});
+		}, this);
 	}
 	
 	RingView.prototype = {
-		
-		_publish: function (subTopic) {
-			PubSub.publish('ringView.' + subTopic, [].slice.call(arguments, 1));
-		},
 		
 		_showPanel: function (newPanel) {
 			// Hide the previously visible panel

@@ -214,14 +214,15 @@ CornerJudge.prototype.scored = function (score) {
 	
 	// Store the score so it can be undone
 	this.scores.push(score);
-	this._send('scored', {
-		score: score
+	this._updateWidget('roundView', 'showFdb', {
+		score: score,
+		isUndo: false
 	});
 
 	if (this.scores.length === 1){
 		// Enable the undo feature
 		this.undoEnabled = true;
-		this._updateWidget('roundView', 'undoBtn', { enabled: true });
+		this._updateWidget('roundView', 'enableUndoBtn', { enable: true });
 	}
 };
 
@@ -233,14 +234,15 @@ CornerJudge.prototype.undid = function (score) {
 	assert.provided(score, 'score');
 	logger.debug("Undid score of " + score.points + " for " + score.competitor);
 	
-	this._send('undid', {
-		score: score
+	this._updateWidget('roundView', 'showFdb', {
+		score: score,
+		isUndo: true
 	});
 
 	if (this.scores.length === 0) {
 		// Disable the undo feature
 		this.undoEnabled = false;
-		this._updateWidget('roundView', 'undoBtn', { enabled: false });
+		this._updateWidget('roundView', 'enableUndoBtn', { enable: false });
 	}
 };
 

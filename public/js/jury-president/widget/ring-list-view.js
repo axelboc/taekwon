@@ -1,13 +1,11 @@
 
 define([
-	'minpubsub',
 	'handlebars',
-	'../../common/helpers',
-	'../io'
+	'../../common/helpers'
 
-], function (PubSub, Handlebars, Helpers, IO) {
+], function (Handlebars, Helpers) {
 	
-	function RingListView() {
+	function RingListView(io) {
 		this.root = document.getElementById('ring-list');
 		
 		this.list = this.root.querySelector('.rl-list');
@@ -15,18 +13,10 @@ define([
 		this.listTemplate = Handlebars.compile(document.getElementById('rl-list-tmpl').innerHTML);
 		
 		// Subscribe to events from server and views
-		Helpers.subscribeToEvents(this, {
-			io: {
-				ringListView: {
-					ringList: this._updateRingList
-				}
-			}
-		});
+		Helpers.subscribeToEvents(io, 'ringListView', {
+			ringList: this._updateRingList
+		}, this);
 	}
-	
-	RingListView.prototype._publish = function (subTopic) {
-		PubSub.publish('ringListView.' + subTopic, [].slice.call(arguments, 1));
-	};
 	
 	
 	/* ==================================================

@@ -1,25 +1,19 @@
 
 define([
-	'minpubsub',
-	'../../common/helpers',
-	'../io'
+	'../../common/helpers'
 
-], function (PubSub, Helpers, IO) {
+], function (Helpers) {
 	
 	// The number of seconds by which to increase or decrease the time configurations
 	var TIME_INCREMENT = 15;
 	
-	function ConfigPanel() {
+	function ConfigPanel(io) {
 		this.root = document.getElementById('config-panel');
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(this, {
-			io: {
-				configPanel: {
-					config: this._updateConfig,
-				}
-			}
-		});
+		Helpers.subscribeToEvents(io, 'configPanel', {
+			config: this._updateConfig
+		}, this);
 		
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
 		this.newMatchBtn.addEventListener('click', IO.createMatch);
@@ -28,10 +22,6 @@ define([
 		this.configInnerTemplate = Handlebars.compile(document.getElementById('cf-inner-tmpl').innerHTML);
 		this.configInner.addEventListener('click', this._onConfigInnerDelegate.bind(this));
 	}
-	
-	ConfigPanel.prototype._publish = function (subTopic) {
-		PubSub.publish('configPanel.' + subTopic, [].slice.call(arguments, 1));
-	};
 	
 	ConfigPanel.prototype._numToTime = function (num) {
 		var sec = num % 60;

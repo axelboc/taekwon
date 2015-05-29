@@ -1,13 +1,11 @@
 
 define([
-	'minpubsub',
 	'../../common/helpers',
-	'../io',
 	'../../common/competitors'
 
-], function (PubSub, Helpers, IO, Competitors) {
+], function (Helpers, Competitors) {
 	
-	function RoundView() {
+	function RoundView(io) {
 		this.root = document.getElementById('round');
 		
 		// Undo button
@@ -27,16 +25,11 @@ define([
 		this.fdb = document.createElement('div');
 		this.fdb.className = 'fdb';
 		
-		// Subscribe to events
-		Helpers.subscribeToEvents(this, {
-			io: {
-				scored: this._onScored,
-				undid: this._onUndid,
-				roundView: {
-					undoBtn: this._updateUndoBtn
-				}
-			}
-		});
+		// Subscribe to inbound IO events
+		Helpers.subscribeToEvents(io, 'roundView', [
+			'enableUndoBtn',
+			'showFdb'
+		], this);
 		
 		// Detect translate3d support
 		this.feedback.appendChild(this.fdb);
@@ -48,58 +41,41 @@ define([
 		}
 	}
 	
-	RoundView.prototype._publish = function (subTopic) {
-		PubSub.publish('roundView.' + subTopic, [].slice.call(arguments, 1));
+	
+	/* ==================================================
+	 * Inbound IO events
+	 * ================================================== */
+	
+	RoundView.prototype.enableUndoBtn = function (data) {
+		Helpers.enableBtn(this.undoBtn, data.enable);
 	};
 
-	RoundView.prototype._newFdb = function (classes, value) {
+	RoundView.prototype.showFdb = function (data) {
 		// Clone and customise the default fdb element
 		var fdb = this.fdb.cloneNode();
-		fdb.classList.add.apply(fdb.classList, classes);
-		fdb.textContent = value;
+		fdb.classList.add.apply(fdb.classList, [
+			'fdb--' + data.score.competitor,
+			(data.isUndo ? 'fdb--undo' : data.score.competitor + '-bg')
+		]);
+		fdb.textContent = data.score.points;
 
 		// Add fdb element to the DOM
 		this.feedback.appendChild(fdb);
-
-		// Translate the element
-		setTimeout(function () {
-			var value = window.innerHeight + fdb.offsetHeight;
-			if (this.has3d) {
-				fdb.style.transform = 'translate3d(0, ' + value + 'px, 0)';
-			} else {
-				fdb.style.top = value + 'px';
-			}
-		}.bind(this), 0);
-	};
-
-	
-	/* ==================================================
-	 * IO events
-	 * ================================================== */
-
-	RoundView.prototype._updateUndoBtn = function (data) {
-		console.log("Undo " + (data.enabled ? "enabled" : "disabled"));
-		Helpers.enableBtn(this.undoBtn, data.enabled);
-	};
-	
-	RoundView.prototype._onScored = function (data) {
-		console.log("> Score confirmed");
-		this._newFdb([
-			'fdb--' + data.score.competitor,
-			data.score.competitor + '-bg'
-		], data.score.points);
-
+		
+		// Vibrate
 		if (window.navigator.vibrate) {
 			window.navigator.vibrate(100);
 		}
-	};
 
-	RoundView.prototype._onUndid = function (data) {
-		console.log("> Undo confirmed");
-		this._newFdb([
-			'fdb--' + data.score.competitor,
-			'fdb--undo'
-		], data.score.points);
+		// Translate the element
+		setTimeout(function () {
+			var top = window.innerHeight + fdb.offsetHeight;
+			if (this.has3d) {
+				fdb.style.transform = 'translate3d(0, ' + top + 'px, 0)';
+			} else {
+				fdb.style.top = top + 'px';
+			}
+		}.bind(this), 0);
 	};
 	
 	

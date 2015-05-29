@@ -1,20 +1,18 @@
 
 define([
-	'minpubsub',
 	'handlebars',
 	'../../common/helpers',
 	'../../common/states',
-	'../io',
 	'../widget/timer'
 
-], function (PubSub, Handlebars, Helpers, MatchStates, IO, Timer) {
+], function (Handlebars, Helpers, MatchStates, Timer) {
 	
-	function MatchPanel() {
+	function MatchPanel(io) {
 		this.root = document.getElementById('match-panel');
 		this.config = null;
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(this, {
+		Helpers.subscribeToEvents(io, 'matchPanel', {
 			io: {
 				matchCreated: this._onMatchCreated,
 				matchStateChanged: this._onMatchStateChanged,
@@ -30,7 +28,7 @@ define([
 				tick: this._onTimerTick,
 				zero: this._onTimerZero
 			}
-		});
+		}, this);
 		
 		// Match state
 		this.mpState = this.root.querySelector('.mp-state');
@@ -73,10 +71,6 @@ define([
 	
 	MatchPanel.prototype = {
 		
-		_publish: function (subTopic) {
-			PubSub.publish('matchPanel.' + subTopic, [].slice.call(arguments, 1));
-		},
-
 		_slideInjuryTimer: function () {
 			// Transition end event listener
 			var slidingEnd = function () {

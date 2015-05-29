@@ -1,13 +1,11 @@
 
 define([
-	'minpubsub',
 	'handlebars',
-	'../../common/helpers',
-	'../io'
+	'../../common/helpers'
 
-], function (PubSub, Handlebars, Helpers, IO) {
+], function (Handlebars, Helpers) {
 	
-	function RingListView() {
+	function RingListView(io) {
 		this.root = document.getElementById('ring-list');
 		
 		this.instr = this.root.querySelector('.rl-instr');
@@ -16,37 +14,27 @@ define([
 		this.listTemplate = Handlebars.compile(document.getElementById('rl-list-tmpl').innerHTML);
 		
 		// Subscribe to events from server and views
-		Helpers.subscribeToEvents(this, {
-			io: {
-				ringListView: {
-					instr: this._updateInstr,
-					ringList: this._updateRingList
-				}
-			}
-		});
+		Helpers.subscribeToEvents(io, 'ringListView', [
+			'updateInstr',
+			'updateList'
+		], this);
 	}
-	
-	RingListView.prototype._publish = function (subTopic) {
-		PubSub.publish('ringListView.' + subTopic, [].slice.call(arguments, 1));
-	};
 	
 	
 	/* ==================================================
 	 * IO events
 	 * ================================================== */
 	
-	RingListView.prototype._updateInstr = function (data) {
+	RingListView.prototype.updateInstr = function (data) {
 		// Update instructions
 		this.instr.textContent = data.message;
-		console.log(data.message);
 	};
 	
-	RingListView.prototype._updateRingList = function (data) {
+	RingListView.prototype.updateList = function (data) {
 		// Populate ring list from template
 		this.list.innerHTML = this.listTemplate({
 			rings: data.rings
 		});
-		console.log("Ring list updated");
 	};
 	
 	

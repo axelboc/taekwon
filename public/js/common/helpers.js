@@ -1,23 +1,19 @@
 
-define(['minpubsub'], function (PubSub) {
+define(function () {
 	
 	var Helpers = {
 		
 		/**
-		 * Subscribe to events, organised by topic.
+		 * Subscribe to inbound IO events for a given namespace.
+		 * Each event is mapped to a function with the same name in the scope.
+		 * @param {IO} io
+		 * @param {String} namespace
+		 * @param {Array} events
 		 * @param {Object} scope
-		 * @param {Object} events
-		 * @param {String} path - for recursion
 		 */
-		subscribeToEvents: function (scope, events, path) {
-			path = path ? path + '.' : '';
-			Object.keys(events).forEach(function (topic) {
-				var event = path + topic;
-				if (typeof events[topic] === 'function') {
-					PubSub.subscribe(event, events[topic].bind(scope));
-				} else {
-					Helpers.subscribeToEvents(scope, events[topic], event);
-				}
+		subscribeToEvents: function (io, namespace, events, scope) {
+			Object.keys(events).forEach(function (evt) {
+				io.on(namespace + '.' + event, scope[evt].bind(scope));
 			}, this);
 		},
 		

@@ -1,24 +1,20 @@
 
 define([
-	'minpubsub',
 	'handlebars',
-	'../../common/helpers',
-	'../io'
+	'../../common/helpers'
 
-], function (PubSub, Handlebars, Helpers, IO) {
+], function (Handlebars, Helpers) {
 	
-	function JudgesSidebar() {
+	function JudgesSidebar(io) {
 		this.root = document.getElementById('judges-sidebar');
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(this, {
-			io: {
-				slotNotRemoved: this._onSlotNotRemoved,
-				judgesSidebar: {
-					slotList: this._updateSlotList,
-				}
+		Helpers.subscribeToEvents(io, 'judgesSidebar', {
+			slotNotRemoved: this._onSlotNotRemoved,
+			judgesSidebar: {
+				slotList: this._updateSlotList,
 			}
-		});
+		}, this);
 
 		this.list = this.root.querySelector('.js-list');
 		this.listTemplate = Handlebars.compile(document.getElementById('js-list-tmpl').innerHTML);
@@ -31,10 +27,6 @@ define([
 		this.removeSlotBtn.addEventListener('click', this._onRemoveSlotBtn.bind(this));
 	}
 		
-	JudgesSidebar.prototype._publish = function (subTopic) {
-		PubSub.publish('judgesSidebar.' + subTopic, [].slice.call(arguments, 1));
-	};
-	
 	
 	/* ==================================================
 	 * IO events

@@ -1,12 +1,10 @@
 
 define([
-	'minpubsub',
-	'../../common/helpers',
-	'../io'
+	'../../common/helpers'
 
-], function (PubSub, Helpers, IO) {
+], function (Helpers) {
 	
-	function PwdView() {
+	function PwdView(io) {
 		this.root = document.getElementById('pwd');
 		
 		this.instr = this.root.querySelector('.pwd-instr');
@@ -19,18 +17,14 @@ define([
 		});
 		
 		// Subscribe to events from server and views
-		Helpers.subscribeToEvents(this, {
+		Helpers.subscribeToEvents(io, 'pwdView', {
 			io: {
 				identify: this._onIdentify,
 				idSuccess: this._onIdSuccess,
 				idFail: this._onIdFail
 			}
-		});
+		}, this);
 	}
-	
-	PwdView.prototype._publish = function (subTopic) {
-		PubSub.publish('pwdView.' + subTopic, [].slice.call(arguments, 1));
-	};
 	
 	
 	/* ==================================================
