@@ -5,6 +5,7 @@ define([
 ], function (Helpers) {
 	
 	function AuthorisationView(io) {
+		this.io = io;
 		this.root = document.getElementById('authorisation');
 	}
 	

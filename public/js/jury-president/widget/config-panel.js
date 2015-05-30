@@ -8,13 +8,14 @@ define([
 	var TIME_INCREMENT = 15;
 	
 	function ConfigPanel(io) {
+		this.io = io;
 		this.root = document.getElementById('config-panel');
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io, 'configPanel', ['updateConfig'], this);
+		Helpers.subscribeToEvents(io.primus, 'configPanel', ['updateConfig'], this);
 		
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
-		this.newMatchBtn.addEventListener('click', IO.createMatch);
+		this.newMatchBtn.addEventListener('click', this.io.sendFunc('createMatch'));
 		
 		this.configInner = this.root.querySelector('.cf-inner');
 		this.configInnerTemplate = Handlebars.compile(document.getElementById('cf-inner-tmpl').innerHTML);
@@ -79,7 +80,10 @@ define([
 					break;
 			}
 			
-			IO.setConfigItem(item.dataset.name, value);
+			this.io.send('setConfigItem', {
+				name: item.dataset.name,
+				value: value
+			});
 		}
 	};
 	

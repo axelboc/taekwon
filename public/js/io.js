@@ -4,8 +4,8 @@
  * shared by both client types (e.g. `confirmIdentity`, `setPageTitle`, etc.
  */
 define([
-	'./config',
-	'./helpers'
+	'./common/config',
+	'./common/helpers'
 
 ], function (config, Helpers) {
 	
@@ -72,7 +72,7 @@ define([
 	}
 	
 	IO.prototype.onConfirmIdentity = function onConfirmIdentity() {
-		this.primus.emit('identityConfirmation', {
+		this.send('identityConfirmation', {
 			identity: this.identity
 		});
 	};
@@ -112,6 +112,14 @@ define([
 	
 	IO.prototype.onWsError = function onWsError(data) {
 		this.onError(data);
+	};
+	
+	IO.prototype.send = function send(event, data) {
+		this.primus.emit(event, data);
+	};
+	
+	IO.prototype.sendFunc = function sendFunc(event) {
+		return this.send.bind(this, event);
 	};
 	
 	return IO;

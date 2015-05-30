@@ -9,6 +9,7 @@ define([
 ], function (Helpers, JudgesSidebar, ConfigPanel, MathPanel, ResultPanel) {
 	
 	function RingView(io) {
+		this.io = io;
 		this.root = document.getElementById('ring');
 		
 		// Initialise panels and sidebar
@@ -19,7 +20,7 @@ define([
 		this.judgesSidebar = new JudgesSidebar();
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io, 'ringView', ['showPanel'], this);
+		Helpers.subscribeToEvents(io.primus, 'ringView', ['showPanel'], this);
 	}
 	
 	RingView.prototype.showPanel = function showPanel(data) {

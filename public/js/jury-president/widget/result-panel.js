@@ -8,10 +8,11 @@ define([
 ], function (PubSub, Handlebars, Helpers, Competitor) {
 	
 	function ResultPanel(io) {
+		this.io = io;
 		this.root = document.getElementById('result-panel');
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io, 'resultPanel', [
+		Helpers.subscribeToEvents(io.primus, 'resultPanel', [
 			'matchResultsComputed',
 			'showEndBtns',
 			'updateScoreboard'
@@ -25,10 +26,10 @@ define([
 		this.matchConfigBtn = this.root.querySelector('.match-btn--config');
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
 		
-		this.endMatchBtn.addEventListener('click', IO.endMatch);
-		this.continueMatchBtn.addEventListener('click', IO.continueMatch);
-		this.matchConfigBtn.addEventListener('click', this._publish.bind(this, 'configureMatch'));
-		this.newMatchBtn.addEventListener('click', IO.createMatch);
+		this.endMatchBtn.addEventListener('click', this.io.sendFunc('endMatch'));
+		this.continueMatchBtn.addEventListener('click', this.io.sendFunc('continueMatch'));
+		this.matchConfigBtn.addEventListener('click', this.io.sendFunc('configureMatch'));
+		this.newMatchBtn.addEventListener('click', this.io.sendFunc('createMatch'));
 		
 		// Scoreboard
 		this.scoreboard = this.root.querySelector('.scoreboard');

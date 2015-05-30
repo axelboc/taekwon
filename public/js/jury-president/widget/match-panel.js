@@ -9,11 +9,12 @@ define([
 ], function (PubSub, Handlebars, Helpers, MatchStates, Timer) {
 	
 	function MatchPanel(io) {
+		this.io = io;
 		this.root = document.getElementById('match-panel');
 		this.config = null;
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io, 'matchPanel', [
+		Helpers.subscribeToEvents(io.primus, 'matchPanel', [
 			'resetRoundTimer',
 			'matchStateChanged',
 			'updateState',
@@ -208,13 +209,13 @@ define([
 		if (btn && btn.nodeName == 'BUTTON') {
 			btn.blur();
 			if (btn.classList.contains('st-btn--start')) {
-				IO.startMatchState();
+				this.io.send('startMatchState');
 			} else if (btn.classList.contains('st-btn--end')) {
 				if (!this.timersSliding) {
-					IO.endMatchState();
+					this.io.send('endMatchState');
 				}
 			} else if (btn.classList.contains('st-btn--injury')) {
-				IO.startEndInjury();
+				this.io.send('startEndInjury');
 			}
 		}
 	};
@@ -224,9 +225,15 @@ define([
 		if (btn && btn.nodeName == 'BUTTON') {
 			btn.blur();
 			if (btn.classList.contains('pe-inc')) {
-				IO.incrementPenalty('warning', btn.dataset.competitor);
+				this.io.send('incrementPenalty', {
+					type: 'warning',
+					competitor: btn.dataset.competitor
+				});
 			} else if (btn.classList.contains('pe-dec')) {
-				IO.decrementPenalty('warning', btn.dataset.competitor);
+				this.io.send('decrementPenalty', {
+					type: 'warning',
+					competitor: btn.dataset.competitor
+				});
 			}
 		}
 	};
@@ -236,9 +243,15 @@ define([
 		if (btn && btn.nodeName == 'BUTTON') {
 			btn.blur();
 			if (btn.classList.contains('pe-inc')) {
-				IO.incrementPenalty('foul', btn.dataset.competitor);
+				this.io.send('incrementPenalty', {
+					type: 'foul',
+					competitor: btn.dataset.competitor
+				});
 			} else if (btn.classList.contains('pe-dec')) {
-				IO.decrementPenalty('foul', btn.dataset.competitor);
+				this.io.send('decrementPenalty', {
+					type: 'foul',
+					competitor: btn.dataset.competitor
+				});
 			}
 		}
 	};

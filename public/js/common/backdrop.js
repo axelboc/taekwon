@@ -6,7 +6,7 @@ define(function () {
 		this.text = this.root.querySelector('.bdp-text');
 		this.subtext = this.root.querySelector('.bdp-subtext');
 		
-		Helpers.subscribeToEvents(io, 'backdrop', ['update'], this);
+		Helpers.subscribeToEvents(io.primus, 'backdrop', ['update'], this);
 	}
 	
 	Backdrop.prototype.update = function update(data) {

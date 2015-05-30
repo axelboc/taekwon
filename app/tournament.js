@@ -139,8 +139,8 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 			   "`data.identity` must be 'juryPresident' or 'cornerJudge'");
 
 		// Check identification
-		if (data.identity === 'juryPresident' && data.password !== process.env.MASTER_PWD ||
-			data.identity === 'cornerJudge' && (typeof data.name !== 'string' || data.name.length === 0)) {
+		if (data.identity === 'juryPresident' && data.value !== process.env.MASTER_PWD ||
+			data.identity === 'cornerJudge' && (typeof data.value !== 'string' || data.value.length === 0)) {
 			// Identification failed
 			logger.debug("> Failed identification (identity=" + data.identity + ")");
 			
@@ -158,7 +158,7 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 		}
 
 		// Insert the new user in the database
-		DB.insertUser(this.id, sessionId, data.identity, data.name, function (newDoc) {
+		DB.insertUser(this.id, sessionId, data.identity, data.value, function (newDoc) {
 			if (newDoc) {
 				var user = this._initUser(spark, true, newDoc);
 				logger.info('newUser', newDoc);

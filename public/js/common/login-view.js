@@ -5,6 +5,7 @@ define([
 ], function (Helpers) {
 	
 	function LoginView(io) {
+		this.io = io;
 		this.root = document.getElementById('login');
 		
 		this.instr = this.root.querySelector('.login-instr');
@@ -17,7 +18,7 @@ define([
 		});
 		
 		// Subscribe to events from server and views
-		Helpers.subscribeToEvents(io, 'login', [
+		Helpers.subscribeToEvents(io.primus, 'login', [
 			'setInstr',
 			'focusField',
 			'blurField',
@@ -60,7 +61,10 @@ define([
 	LoginView.prototype.onField = function onField(evt) {
 		// If Enter key was pressed...
 		if (evt.which === 13 || evt.keyCode === 13) {
-			IO.sendId(this.field.value);
+			this.io.send('identification', {
+				identity: io.identity,
+				value: this.field.value
+			});
 		}
 	};
 	

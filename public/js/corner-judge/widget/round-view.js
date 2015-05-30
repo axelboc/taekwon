@@ -6,6 +6,7 @@ define([
 ], function (Helpers, Competitors) {
 	
 	function RoundView(io) {
+		this.io = io;
 		this.root = document.getElementById('round');
 		
 		// Undo button
@@ -26,7 +27,7 @@ define([
 		this.fdb.className = 'fdb';
 		
 		// Subscribe to inbound IO events
-		Helpers.subscribeToEvents(io, 'roundView', [
+		Helpers.subscribeToEvents(io.primus, 'roundView', [
 			'enableUndoBtn',
 			'showFdb'
 		], this);
@@ -87,13 +88,16 @@ define([
 		var btn = evt.target;
 		if (btn && btn.nodeName == 'BUTTON') {
 			btn.blur();
-			IO.score(competitor, parseInt(btn.textContent, 10));
+			this.io.send('score', {
+				competitor: competitor,
+				points: parseInt(btn.textContent, 10)
+			});
 		}
 	};
 
 	RoundView.prototype.onUndoBtn = function onUndoBtn() {
 		this.undoBtn.blur();
-		IO.undo();
+		this.io.send('undo');
 	};
 
 	RoundView.prototype.onTransitionEnd = function onTransitionEnd(evt) {

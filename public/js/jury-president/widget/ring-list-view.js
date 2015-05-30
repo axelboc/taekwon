@@ -6,6 +6,7 @@ define([
 ], function (Handlebars, Helpers) {
 	
 	function RingListView(io) {
+		this.io = io;
 		this.root = document.getElementById('ring-list');
 		
 		this.list = this.root.querySelector('.rl-list');
@@ -13,7 +14,7 @@ define([
 		this.listTemplate = Handlebars.compile(document.getElementById('rl-list-tmpl').innerHTML);
 		
 		// Subscribe to events from server and views
-		Helpers.subscribeToEvents(io, 'ringListView', ['updateList'], this);
+		Helpers.subscribeToEvents(io.primus, 'ringListView', ['updateList'], this);
 	}
 	
 	
@@ -39,7 +40,9 @@ define([
 			btn.blur();
 			
 			var index = parseInt(btn.dataset.index, 10);
-			IO.openRing(index);
+			this.io.send('openRing', {
+				index: index
+			});
 			
 			console.log("Open ring #" + (index + 1));
 		}

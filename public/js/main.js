@@ -3,6 +3,7 @@
 require.config({
 	baseUrl: '/js/' + (document.documentElement.getAttribute('data-type')),
 	paths: {
+		domReady: '../lib/domReady',
 		fastclick: '../lib/fast-click.min',
 		handlebars: '../lib/handlebars.min',
 		minpubsub: '../lib/minpubsub'
@@ -15,15 +16,15 @@ require.config({
 
 // Main entry point
 require([
-	'../lib/domReady!',
+	'domReady!',
 	'fastclick',
-	'../common/io'
+	'./io'
 
 ], function (document, FastClick, IO) {
 	
 	// Initialise IO and root modules
 	var io = new IO();
-	var root = new Root(io.primus);
+	var root = new Root(io);
 
 	// Initialise FastClick to remove 300ms delay on mobile devices
 	FastClick.attach(document.body);

@@ -13,7 +13,7 @@ define(function () {
 		 * @param {Array} events
 		 * @param {Object} scope
 		 */
-		subscribeToEvents: function (io, namespace, events, scope) {
+		subscribeToEvents: function (io.primus, namespace, events, scope) {
 			namespace = namespace ? namespace + '.' : '';
 			Object.keys(events).forEach(function (evt) {
 				var funcName = namespace ? evt : 'on' + evt.charAt(0).toUpperCase() + evt.slice(1);

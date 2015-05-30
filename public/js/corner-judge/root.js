@@ -19,7 +19,7 @@ define([
 		this.backdrop = new Backdrop(io);
 		
 		// Subscribe to inbound IO events
-		Helpers.subscribeToEvents(io, 'root', ['showView'], this);
+		Helpers.subscribeToEvents(io.primus, 'root', ['showView'], this);
 	}
 	
 	Root.prototype.showView = function showView(data) {
