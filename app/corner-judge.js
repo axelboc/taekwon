@@ -145,7 +145,7 @@ CornerJudge.prototype.waitingForAuthorisation = function (ring) {
 	assert.provided(ring, 'ring');
 	
 	this.ring = ring;
-	this._updateWidget('root', 'showView', { view: 'authorisationView' });
+	this._send('root.showView', { view: 'authorisationView' });
 };
 
 /**
@@ -162,9 +162,9 @@ CornerJudge.prototype.rejected = function (message, ringStates) {
 	logger.debug("> " + message);
 
 	this.ring = null;
-	this._updateWidget('root', 'showView', { view: 'ringListView' });
-	this._updateWidget('ringListView', 'setInstr', { text: message });
-	this._updateWidget('ringListView', 'updateList', { rings: ringStates });
+	this._send('root.showView', { view: 'ringListView' });
+	this._send('ringListView.setInstr', { text: message });
+	this._send('ringListView.updateList', { rings: ringStates });
 };
 
 /**
@@ -176,13 +176,13 @@ CornerJudge.prototype.ringJoined = function () {
 	// Mark the Corner Judge as authorised
 	this.authorised = true;
 
-	this._updateWidget('root', 'showView', { view: 'roundView' });
+	this._send('root.showView', { view: 'roundView' });
 	this._send('io.setPageTitle', {
 		title: "Corner Judge | Ring " + (this.ring.index + 1)
 	};
 	
 	var backdropState = this._getBackdropState(this.ring.scoringEnabled, this.ring.juryPresident.connected);
-	this._updateWidget('backdrop', 'update', backdropState);
+	this._send('backdrop.update', backdropState);
 
 	logger.info('ringJoined', {
 		id: this.id,
@@ -209,9 +209,9 @@ CornerJudge.prototype.ringLeft = function (message, ringStates) {
 	this.authorised = false;
 
 	this._send('io.setPageTitle', { title: "Corner Judge" });
-	this._updateWidget('root', 'showView', { view: 'ringListView' });
-	this._updateWidget('ringListView', 'setInstr', { text: message });
-	this._updateWidget('ringListView', 'updateList', { rings: ringStates });
+	this._send('root.showView', { view: 'ringListView' });
+	this._send('ringListView.setInstr', { text: message });
+	this._send('ringListView.updateList', { rings: ringStates });
 
 	logger.info('ringLeft', {
 		id: this.id,
@@ -228,7 +228,7 @@ CornerJudge.prototype.scoringStateChanged = function (enabled) {
 	assert.boolean(enabled, 'enabled');
 	
 	var backdropState = this._getBackdropState(enabled, this.ring.juryPresident.connected);
-	this._updateWidget('backdrop', 'update', backdropState);
+	this._send('backdrop.update', backdropState);
 };
 
 /**
@@ -241,7 +241,7 @@ CornerJudge.prototype.scored = function (score) {
 	
 	// Store the score so it can be undone
 	this.scores.push(score);
-	this._updateWidget('roundView', 'showFdb', {
+	this._send('roundView.showFdb', {
 		score: score,
 		isUndo: false
 	});
@@ -249,7 +249,7 @@ CornerJudge.prototype.scored = function (score) {
 	if (this.scores.length === 1){
 		// Enable the undo feature
 		this.undoEnabled = true;
-		this._updateWidget('roundView', 'enableUndoBtn', { enable: true });
+		this._send('roundView.enableUndoBtn', { enable: true });
 	}
 };
 
@@ -261,7 +261,7 @@ CornerJudge.prototype.undid = function (score) {
 	assert.provided(score, 'score');
 	logger.debug("Undid score of " + score.points + " for " + score.competitor);
 	
-	this._updateWidget('roundView', 'showFdb', {
+	this._send('roundView.showFdb', {
 		score: score,
 		isUndo: true
 	});
@@ -269,7 +269,7 @@ CornerJudge.prototype.undid = function (score) {
 	if (this.scores.length === 0) {
 		// Disable the undo feature
 		this.undoEnabled = false;
-		this._updateWidget('roundView', 'enableUndoBtn', { enable: false });
+		this._send('roundView.enableUndoBtn', { enable: false });
 	}
 };
 
@@ -281,7 +281,7 @@ CornerJudge.prototype.jpConnectionStateChanged = function (connected) {
 	assert.boolean(connected, 'connected');
 	
 	var backdropState = this._getBackdropState(this.ring.scoringEnabled, connected);
-	this._updateWidget('backdrop', 'update', backdropState);
+	this._send('backdrop.update', backdropState);
 };
 
 

@@ -68,19 +68,6 @@ User.prototype._send = function (event, data) {
 	}
 };
 
-/**
- * Send data to a front-end widget that needs to be updated.
- * @param {String} widget
- * @param {String} type - the type of the update
- * @param {Mixed} data
- */
-User.prototype._updateWidget = function (widget, type, data) {
-	assert.string(widget, 'widget');
-	assert.string(type, 'type');
-	
-	this._send(widget + '.' + type, data);
-};
-
 
 /* ==================================================
  * Outbound spark events
@@ -93,9 +80,9 @@ User.prototype._updateWidget = function (widget, type, data) {
 User.prototype.idSuccess = function (ringStates) {
 	assert.array(ringStates, 'ringStates');
 	
-	this._updateWidget('root', 'showView', { view: 'ringListView' });
-	this._updateWidget('login', 'blurField');
-	this._updateWidget('ringListView', 'updateList', { rings: ringStates });
+	this._send('root.showView', { view: 'ringListView' });
+	this._send('login.blurField');
+	this._send('ringListView.updateList', { rings: ringStates });
 };
 
 /**
@@ -107,7 +94,7 @@ User.prototype.ringStateChanged = function (ringStates) {
 	
 	// Only send the updated ring states if the Jury President hasn't opened a ring yet
 	if (!this.ring) {
-		this._updateWidget('ringListView', 'updateList', { rings: ringStates });
+		this._send('ringListView.updateList', { rings: ringStates });
 	}
 };
 

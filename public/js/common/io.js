@@ -1,7 +1,7 @@
 
 /**
- * 'IO' module for setting up a socket connection.
- * HACK
+ * 'IO' module for intialising a socket connection and listening to inbound events
+ * shared by both client types (e.g. `confirmIdentity`, `setPageTitle`, etc.
  */
 define([
 	'./config',

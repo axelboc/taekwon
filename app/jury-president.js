@@ -189,12 +189,12 @@ JuryPresident.prototype.ringOpened = function (ring, matchConfig, slots) {
 		title: "Jury President | Ring " + (ring.index + 1)
 	});
 	
-	this._updateWidget('root', 'showView', { view: 'ringView' });
-	this._updateWidget('ringView', 'showPanel', { panel: 'configPanel' });
+	this._send('root.showView', { view: 'ringView' });
+	this._send('ringView.showPanel', { panel: 'configPanel' });
 	
 	// Update configuration panel and judges sidebar
-	this._updateWidget('configPanel', 'updateConfig', { config: matchConfig });
-	this._updateWidget('judgesSidebar', 'updateSlotList', { slots: slots });
+	this._send('configPanel.updateConfig', { config: matchConfig });
+	this._send('judgesSidebar.updateSlotList', { slots: slots });
 };
 
 /**
@@ -207,9 +207,9 @@ JuryPresident.prototype.slotsUpdated = function (slots, scoreSlots) {
 	assert.ok(scoreSlots === null || Array.isArray(scoreSlots), "`scoreSlots` must be either null or an array");
 	
 	// Update slots in judges sidebar and score slots in match panel
-	this._updateWidget('judgesSidebar', 'updateSlotList', { slots: slots });
+	this._send('judgesSidebar.updateSlotList', { slots: slots });
 	if (scoreSlots !== null) {
-		this._updateWidget('matchPanel', 'updateScoreSlots', { scoreSlots: scoreSlots });
+		this._send('matchPanel.updateScoreSlots', { scoreSlots: scoreSlots });
 	}
 };
 
@@ -233,7 +233,7 @@ JuryPresident.prototype.configItemSet = function (matchConfig) {
 	assert.object(matchConfig, 'matchConfig');
 	
 	// Update configuration panel
-	this._updateWidget('configPanel', 'updateConfig', { config: matchConfig });
+	this._send('configPanel.updateConfig', { config: matchConfig });
 };
 
 /**
@@ -249,10 +249,10 @@ JuryPresident.prototype.matchCreated = function (config, scoreSlots, scoringEnab
 	assert.boolean(scoringEnabled, 'scoringEnabled');
 	assert.object(penalties, 'penalties');
 	
-	this._updateWidget('ringView', 'showPanel', { panel: 'matchPanel' });
+	this._send('ringView.showPanel', { panel: 'matchPanel' });
 	
-	this._updateWidget('matchPanel', 'updateScoreSlots', { scoreSlots: scoreSlots });
-	this._updateWidget('matchPanel', 'updatePenalties', {
+	this._send('matchPanel.updateScoreSlots', { scoreSlots: scoreSlots });
+	this._send('matchPanel.updatePenalties', {
 		scoringEnabled: scoringEnabled,
 		penalties: penalties
 	});
@@ -265,7 +265,7 @@ JuryPresident.prototype.matchCreated = function (config, scoreSlots, scoringEnab
 JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
 	assert.object(scoreSlots, 'scoreSlots');
 	
-	this._updateWidget('matchPanel', 'updateScoreSlots', { scoreSlots: scoreSlots });
+	this._send('matchPanel.updateScoreSlots', { scoreSlots: scoreSlots });
 };
 
 /*
@@ -274,11 +274,11 @@ JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
  */
 JuryPresident.prototype.matchStateChanged = function (state) {
 	assert.provided(state, 'state');
-	
+	//TODO
 	this._send('matchStateChanged', {
 		state: state
 	});
-	this._updateWidget('matchPanel', 'state', { state: state });
+	this._send('matchPanel.state', { state: state });
 };
 
 /**
@@ -299,11 +299,11 @@ JuryPresident.prototype.matchResultsComputed = function (winner, config, scorebo
 	assert.object(scoreboards, 'scoreboards');
 	assert.object(penalties, 'penalties');
 	assert.object(cjNames, 'cjNames');
-	
+	//TODO
 	this._send('matchResultsComputed', {
 		winner: winner
 	});
-	this._updateWidget('resultPanel', 'scoreboard', {
+	this._send('resultPanel.scoreboard', {
 		config: config,
 		scoreboardColumns: scoreboardColumns,
 		scoreboards: scoreboards,
@@ -316,6 +316,7 @@ JuryPresident.prototype.matchResultsComputed = function (winner, config, scorebo
  * The match has been ended.
  */
 JuryPresident.prototype.matchEnded = function () {
+	//TODO
 	this._send('matchEnded');
 };
 
@@ -323,37 +324,7 @@ JuryPresident.prototype.matchEnded = function () {
  * The scoring state has changed.
  */
 JuryPresident.prototype.scoringStateChanged = function (enabled) {
-	this._updateWidget('matchPanel', 'enablePenaltyBtns', { enable: enabled });
-};
-
-/**
- * A Corner Judge has scored.
- * @param {CornerJudge} cj
- * @param {Object} score
- */
-JuryPresident.prototype.cjScored = function (cj, score) {
-	assert.provided(cj, 'cj');
-	assert.provided(score, 'score');
-	
-	this._send('cjScored', {
-		id: cj.id,
-		score: score
-	});
-};
-
-/**
- * A Corner Judge has undone a previous score.
- * @param {CornerJudge} cj
- * @param {Object} score
- */
-JuryPresident.prototype.cjUndid = function (cj, score) {
-	assert.provided(cj, 'cj');
-	assert.provided(score, 'score');
-	
-	this._send('cjUndid', {
-		id: cj.id,
-		score: score
-	});
+	this._send('matchPanel.enablePenaltyBtns', { enable: enabled });
 };
 
 /**
@@ -362,10 +333,6 @@ JuryPresident.prototype.cjUndid = function (cj, score) {
  */
 JuryPresident.prototype.cjExited = function (cj) {
 	assert.provided(cj, 'cj');
-	
-	this._send('cjExited', {
-		id: cj.id
-	});
 };
 
 
