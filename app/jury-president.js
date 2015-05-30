@@ -184,13 +184,13 @@ JuryPresident.prototype.ringOpened = function (ring, matchConfig, slots) {
 	assert.array(slots, 'slots');
 	
 	this.ring = ring;
-	this._send('ringOpened', {
-		index: ring.index
-	});
 	
-	this._send('setTitle', {
+	this._send('io.setPageTitle', {
 		title: "Jury President | Ring " + (ring.index + 1)
 	});
+	
+	this._updateWidget('root', 'showView', { view: 'ringView' });
+	this._updateWidget('ringView', 'showPanel', { panel: 'configPanel' });
 	
 	// Update configuration panel and judges sidebar
 	this._updateWidget('configPanel', 'updateConfig', { config: matchConfig });
@@ -209,7 +209,7 @@ JuryPresident.prototype.slotsUpdated = function (slots, scoreSlots) {
 	// Update slots in judges sidebar and score slots in match panel
 	this._updateWidget('judgesSidebar', 'updateSlotList', { slots: slots });
 	if (scoreSlots !== null) {
-		this._updateWidget('matchPanel', 'scoreSlots', { scoreSlots: scoreSlots });
+		this._updateWidget('matchPanel', 'updateScoreSlots', { scoreSlots: scoreSlots });
 	}
 };
 
@@ -220,7 +220,7 @@ JuryPresident.prototype.slotsUpdated = function (slots, scoreSlots) {
 JuryPresident.prototype.slotNotRemoved = function (reason) {
 	assert.string(reason, 'reason');
 	
-	this._send('alert', {
+	this._send('io.alert', {
 		reason: reason
 	});
 };
@@ -249,11 +249,10 @@ JuryPresident.prototype.matchCreated = function (config, scoreSlots, scoringEnab
 	assert.boolean(scoringEnabled, 'scoringEnabled');
 	assert.object(penalties, 'penalties');
 	
-	this._send('matchCreated', {
-		config: config
-	});
-	this._updateWidget('matchPanel', 'scoreSlots', { scoreSlots: scoreSlots });
-	this._updateWidget('matchPanel', 'penalties', {
+	this._updateWidget('ringView', 'showPanel', { panel: 'matchPanel' });
+	
+	this._updateWidget('matchPanel', 'updateScoreSlots', { scoreSlots: scoreSlots });
+	this._updateWidget('matchPanel', 'updatePenalties', {
 		scoringEnabled: scoringEnabled,
 		penalties: penalties
 	});
@@ -266,7 +265,7 @@ JuryPresident.prototype.matchCreated = function (config, scoreSlots, scoringEnab
 JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
 	assert.object(scoreSlots, 'scoreSlots');
 	
-	this._updateWidget('matchPanel', 'scoreSlots', { scoreSlots: scoreSlots });
+	this._updateWidget('matchPanel', 'updateScoreSlots', { scoreSlots: scoreSlots });
 };
 
 /*
@@ -324,9 +323,7 @@ JuryPresident.prototype.matchEnded = function () {
  * The scoring state has changed.
  */
 JuryPresident.prototype.scoringStateChanged = function (enabled) {
-	this._send('scoringStateChanged', {
-		enabled: enabled
-	});
+	this._updateWidget('matchPanel', 'enablePenaltyBtns', { enable: enabled });
 };
 
 /**

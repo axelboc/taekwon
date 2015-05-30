@@ -12,21 +12,21 @@ define([
 		this.config = null;
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io, 'matchPanel', {
+		Helpers.subscribeToEvents(io, 'matchPanel', [
+			'enablePenaltyBtns',
+			'updateScoreSlots',
+			'updatePenalties'
+		],{
 			io: {
-				matchCreated: this._onMatchCreated,
-				matchStateChanged: this._onMatchStateChanged,
-				scoringStateChanged: this._onScoringStateChanged,
-				matchEnded: this._onMatchEnded,
+				matchStateChanged: this.onMatchStateChanged,
+				matchEnded: this.onMatchEnded,
 				matchPanel: {
-					state: this._updateState,
-					scoreSlots: this._updateScoreSlots,
-					penalties: this._updatePenalties
+					state: this.updateState,
 				}
 			},
 			timer: {
-				tick: this._onTimerTick,
-				zero: this._onTimerZero
+				tick: this.onTimerTick,
+				zero: this.onTimerZero
 			}
 		}, this);
 		
@@ -69,198 +69,190 @@ define([
 		this.foulsInner.addEventListener('click', this._onFoulsInnerDelegate.bind(this));
 	}
 	
-	MatchPanel.prototype = {
-		
-		_slideInjuryTimer: function () {
-			// Transition end event listener
-			var slidingEnd = function () {
-				// Remove listener
-				this.tkInner.removeEventListener('transitionend', slidingEnd);
+	MatchPanel.prototype.slideInjuryTimer = function slideInjuryTimer() {
+		// Transition end event listener
+		var slidingEnd = function () {
+			// Remove listener
+			this.tkInner.removeEventListener('transitionend', slidingEnd);
 
-				// Timer intervals start after a delay of 600ms =
-				// 300ms to account for the sliding transition + 300ms for usability purposes
-				window.setTimeout(function () {
-					this.timersSliding = false;
-				}.bind(this), 300);
-			};
-			
-			if (!this.timersSliding) {
-				// Prevent action on buttons while timers are sliding
-				this.timersSliding = true;
-				this.tkInner.addEventListener('transitionend', slidingEnd.bind(this));
-			}
-		},
-		
-		
-		/* ==================================================
-		 * IO events
-		 * ================================================== */
-		
-		_onMatchCreated: function (data) {
-			this.config = data.config;
-		},
+			// Timer intervals start after a delay of 600ms =
+			// 300ms to account for the sliding transition + 300ms for usability purposes
+			window.setTimeout(function () {
+				this.timersSliding = false;
+			}.bind(this), 300);
+		};
 
-		_onMatchStateChanged: function (data) {
-			console.log("Match state changed", data.state);
-			var state = data.state.state;
-			
-			switch (data.state.latestEvent) {
-				case MatchStates.events.NEXT:
-					// Reset round timer
-					this.roundTimer.timer.reset(
-						(state === MatchStates.BREAK ? this.config.breakTime :
-						(state === MatchStates.GOLDEN_POINT ? 0 : this.config.roundTime)));
+		if (!this.timersSliding) {
+			// Prevent action on buttons while timers are sliding
+			this.timersSliding = true;
+			this.tkInner.addEventListener('transitionend', slidingEnd.bind(this));
+		}
+	};
 
-					// Update state text
-					this.mpState.textContent = state.split('-').reduce(function (label, part) {
-						return label += part.charAt(0).toUpperCase() + part.slice(1) + " ";
-					}, "").slice(0, -1);
-					break;
-					
-				case MatchStates.events.STARTED:
-					// Start timer
-					this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, false);
-					break;
-					
-				case MatchStates.events.ENDED:
-					// Stop timer
-					this.roundTimer.timer.stop();
-					break;
-					
-				case MatchStates.events.INJURY_STARTED:
-					this._slideInjuryTimer();
-					this.timeKeeping.classList.add('tk_injury');
 
-					this.injuryTimer.timer.reset(this.config.injuryTime);
-					this.injuryTimer.timer.start(true, true);
-					this.roundTimer.timer.stop();
-					break;
-					
-				case MatchStates.events.INJURY_ENDED:
-					this._slideInjuryTimer();
-					this.timeKeeping.classList.remove('tk_injury');
+	/* ==================================================
+	 * IO events
+	 * ================================================== */
 
-					this.injuryTimer.timer.stop();
-					this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, true);
-					break;
-					
-				default:
-			}
-		},
-		
-		_onScoringStateChanged: function (data) {
-			// Enable or disable penalty buttons
-			[].forEach.call(this.penaltyBtns, function (btn) {
-				if (data.enable) {
-					// Enable the button, unless it was previously disabled
-					if (btn.dataset.wasDisabled === 'true') {
-						btn.removeAttribute('disabled');
-					}
+	MatchPanel.prototype.onMatchStateChanged = function onMatchStateChanged(data) {
+		console.log("Match state changed", data.state);
+		var state = data.state.state;
+
+		switch (data.state.latestEvent) {
+			case MatchStates.events.NEXT:
+				// Reset round timer
+				this.roundTimer.timer.reset(
+					(state === MatchStates.BREAK ? data.config.breakTime :
+					(state === MatchStates.GOLDEN_POINT ? 0 : data.config.roundTime)));
+
+				// Update state text
+				this.mpState.textContent = state.split('-').reduce(function (label, part) {
+					return label += part.charAt(0).toUpperCase() + part.slice(1) + " ";
+				}, "").slice(0, -1);
+				break;
+
+			case MatchStates.events.STARTED:
+				// Start timer
+				this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, false);
+				break;
+
+			case MatchStates.events.ENDED:
+				// Stop timer
+				this.roundTimer.timer.stop();
+				break;
+
+			case MatchStates.events.INJURY_STARTED:
+				this._slideInjuryTimer();
+				this.timeKeeping.classList.add('tk_injury');
+
+				this.injuryTimer.timer.reset(data.config.injuryTime);
+				this.injuryTimer.timer.start(true, true);
+				this.roundTimer.timer.stop();
+				break;
+
+			case MatchStates.events.INJURY_ENDED:
+				this._slideInjuryTimer();
+				this.timeKeeping.classList.remove('tk_injury');
+
+				this.injuryTimer.timer.stop();
+				this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, true);
+				break;
+
+			default:
+		}
+	};
+
+	MatchPanel.prototype.enablePenaltyBtns = function enablePenaltyBtns(data) {
+		// Enable or disable penalty buttons
+		[].forEach.call(this.penaltyBtns, function (btn) {
+			if (data.enable) {
+				// Enable the button, unless it was previously disabled
+				if (btn.dataset.wasDisabled === 'true') {
+					btn.removeAttribute('disabled');
+				}
+			} else {
+				if (btn.hasAttribute('disabled')) {
+					// If the button is already disabled (decrement button when value is 0), 
+					// save this information in a data attribute
+					btn.dataset.wasDisabled = 'true';
 				} else {
-					if (btn.hasAttribute('disabled')) {
-						// If the button is already disabled (decrement button when value is 0), 
-						// save this information in a data attribute
-						btn.dataset.wasDisabled = 'true';
-					} else {
-						// Disable the button
-						btn.setAttribute('disabled', 'disabled');
-					}
+					// Disable the button
+					btn.setAttribute('disabled', 'disabled');
 				}
-			});
-		},
+			}
+		});
+	};
 
-		_onMatchEnded: function () {
-			console.log("Match ended");
-			
-			// Reset timer
-			this.roundTimer.timer.reset(0);
-		},
-		
-		
-		/* ==================================================
-		 * Other events
-		 * ================================================== */
-		
-		_onTimerTick: function (name, value) {
-			var timer = this[name + 'Timer'];
-			var sec = value % 60
-			timer.sec.textContent = (sec < 10 ? '0' : '') + sec;
-			timer.min.textContent = Math.floor(value / 60);
-		},
-		
-		_onTimerZero: function () {
-			this.tkBeeps.play();
-		},
-		
-		
-		/* ==================================================
-		 * UI updates
-		 * ================================================== */
-		
-		_updateState: function (data) {
-			data.state.enableInjuryBtn = data.state.stateStarted & !data.state.isBreak;
-			this.stateInner.innerHTML = this.stateInnerTemplate(data.state);
-		},
-		
-		_updateScoreSlots: function (data) {
-			this.scoresInner.innerHTML = this.scoresInnerTemplate(data);
-		},
-		
-		_updatePenalties: function (data) {
-			Object.keys(data.penalties).forEach(function (key) {
-				var penalties = data.penalties[key];
-				penalties.allowDecHong = penalties.hong > 0;
-				penalties.allowDecChong = penalties.chong > 0;
-				
-				this[key + 'Inner'].innerHTML = this.penaltiesTemplate(penalties);
-			}, this);
-		},
-		
-		
-		/* ==================================================
-		 * UI events
-		 * ================================================== */
-		
-		_onStateInnerDelegate: function (evt) {
-			var btn = evt.target;
-			if (btn && btn.nodeName == 'BUTTON') {
-				btn.blur();
-				if (btn.classList.contains('st-btn--start')) {
-					IO.startMatchState();
-				} else if (btn.classList.contains('st-btn--end')) {
-					if (!this.timersSliding) {
-						IO.endMatchState();
-					}
-				} else if (btn.classList.contains('st-btn--injury')) {
-					IO.startEndInjury();
+	MatchPanel.prototype.onMatchEnded = function onMatchEnded() {
+		console.log("Match ended");
+
+		// Reset timer
+		this.roundTimer.timer.reset(0);
+	};
+
+
+	/* ==================================================
+	 * Other events
+	 * ================================================== */
+
+	MatchPanel.prototype.onTimerTick = function onTimerTick(name, value) {
+		var timer = this[name + 'Timer'];
+		var sec = value % 60
+		timer.sec.textContent = (sec < 10 ? '0' : '') + sec;
+		timer.min.textContent = Math.floor(value / 60);
+	};
+
+	MatchPanel.prototype.onTimerZero = function () {
+		this.tkBeeps.play();
+	};
+
+
+	/* ==================================================
+	 * UI updates
+	 * ================================================== */
+
+	MatchPanel.prototype.updateState = function updateState(data) {
+		data.state.enableInjuryBtn = data.state.stateStarted & !data.state.isBreak;
+		this.stateInner.innerHTML = this.stateInnerTemplate(data.state);
+	};
+
+	MatchPanel.prototype.updateScoreSlots = function updateScoreSlots(data) {
+		this.scoresInner.innerHTML = this.scoresInnerTemplate(data);
+	};
+
+	MatchPanel.prototype.updatePenalties = function updatePenalties(data) {
+		Object.keys(data.penalties).forEach(function (key) {
+			var penalties = data.penalties[key];
+			penalties.allowDecHong = penalties.hong > 0;
+			penalties.allowDecChong = penalties.chong > 0;
+
+			this[key + 'Inner'].innerHTML = this.penaltiesTemplate(penalties);
+		}, this);
+	};
+
+
+	/* ==================================================
+	 * UI events
+	 * ================================================== */
+
+	MatchPanel.prototype.onStateInnerDelegate = function onStateInnerDelegate(evt) {
+		var btn = evt.target;
+		if (btn && btn.nodeName == 'BUTTON') {
+			btn.blur();
+			if (btn.classList.contains('st-btn--start')) {
+				IO.startMatchState();
+			} else if (btn.classList.contains('st-btn--end')) {
+				if (!this.timersSliding) {
+					IO.endMatchState();
 				}
-			}
-		},
-		
-		_onWarningsInnerDelegate: function (evt) {
-			var btn = evt.target;
-			if (btn && btn.nodeName == 'BUTTON') {
-				btn.blur();
-				if (btn.classList.contains('pe-inc')) {
-					IO.incrementPenalty('warning', btn.dataset.competitor);
-				} else if (btn.classList.contains('pe-dec')) {
-					IO.decrementPenalty('warning', btn.dataset.competitor);
-				}
-			}
-		},
-		
-		_onFoulsInnerDelegate: function (evt) {
-			var btn = evt.target;
-			if (btn && btn.nodeName == 'BUTTON') {
-				btn.blur();
-				if (btn.classList.contains('pe-inc')) {
-					IO.incrementPenalty('foul', btn.dataset.competitor);
-				} else if (btn.classList.contains('pe-dec')) {
-					IO.decrementPenalty('foul', btn.dataset.competitor);
-				}
+			} else if (btn.classList.contains('st-btn--injury')) {
+				IO.startEndInjury();
 			}
 		}
-		
+	};
+
+	MatchPanel.prototype.onWarningsInnerDelegate = function onWarningsInnerDelegate(evt) {
+		var btn = evt.target;
+		if (btn && btn.nodeName == 'BUTTON') {
+			btn.blur();
+			if (btn.classList.contains('pe-inc')) {
+				IO.incrementPenalty('warning', btn.dataset.competitor);
+			} else if (btn.classList.contains('pe-dec')) {
+				IO.decrementPenalty('warning', btn.dataset.competitor);
+			}
+		}
+	};
+
+	MatchPanel.prototype.onFoulsInnerDelegate = function onFoulsInnerDelegate(evt) {
+		var btn = evt.target;
+		if (btn && btn.nodeName == 'BUTTON') {
+			btn.blur();
+			if (btn.classList.contains('pe-inc')) {
+				IO.incrementPenalty('foul', btn.dataset.competitor);
+			} else if (btn.classList.contains('pe-dec')) {
+				IO.decrementPenalty('foul', btn.dataset.competitor);
+			}
+		}
 	};
 	
 	return MatchPanel;

@@ -145,7 +145,7 @@ CornerJudge.prototype.waitingForAuthorisation = function (ring) {
 	assert.provided(ring, 'ring');
 	
 	this.ring = ring;
-	this._send('waitingForAuthorisation');
+	this._updateWidget('root', 'showView', { view: 'authorisationView' });
 };
 
 /**
@@ -162,7 +162,7 @@ CornerJudge.prototype.rejected = function (message, ringStates) {
 	logger.debug("> " + message);
 
 	this.ring = null;
-	this._send('rejected');
+	this._updateWidget('root', 'showView', { view: 'ringListView' });
 	this._updateWidget('ringListView', 'setInstr', { text: message });
 	this._updateWidget('ringListView', 'updateList', { rings: ringStates });
 };
@@ -176,13 +176,8 @@ CornerJudge.prototype.ringJoined = function () {
 	// Mark the Corner Judge as authorised
 	this.authorised = true;
 
-	this._send('ringJoined', {
-		ringIndex: this.ring.index,
-		scoringEnabled: this.ring.scoringEnabled,
-		jpConnected: this.ring.juryPresident.connected
-	});
-	
-	this._send('setTitle', {
+	this._updateWidget('root', 'showView', { view: 'roundView' });
+	this._send('io.setPageTitle', {
 		title: "Corner Judge | Ring " + (this.ring.index + 1)
 	};
 	
@@ -213,8 +208,8 @@ CornerJudge.prototype.ringLeft = function (message, ringStates) {
 	this.ring = null;
 	this.authorised = false;
 
-	this._send('ringLeft');
-	this._send('setTitle', { title: "Corner Judge" });
+	this._send('io.setPageTitle', { title: "Corner Judge" });
+	this._updateWidget('root', 'showView', { view: 'ringListView' });
 	this._updateWidget('ringListView', 'setInstr', { text: message });
 	this._updateWidget('ringListView', 'updateList', { rings: ringStates });
 

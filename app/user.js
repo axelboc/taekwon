@@ -93,7 +93,8 @@ User.prototype._updateWidget = function (widget, type, data) {
 User.prototype.idSuccess = function (ringStates) {
 	assert.array(ringStates, 'ringStates');
 	
-	this._send('idSuccess');
+	this._updateWidget('root', 'showView', { view: 'ringListView' });
+	this._updateWidget('login', 'blurField');
 	this._updateWidget('ringListView', 'updateList', { rings: ringStates });
 };
 

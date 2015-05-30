@@ -23,7 +23,7 @@ require([
 	
 	// Initialise IO and root modules
 	var io = new IO();
-	var root = new Root(io);
+	var root = new Root(io.primus);
 
 	// Initialise FastClick to remove 300ms delay on mobile devices
 	FastClick.attach(document.body);

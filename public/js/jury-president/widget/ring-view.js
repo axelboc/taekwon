@@ -19,11 +19,9 @@ define([
 		this.judgesSidebar = new JudgesSidebar();
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io, 'ringView', {
+		Helpers.subscribeToEvents(io, 'ringView', ['showPanel'], {
 			io: {
-				ringOpened: this._showPanel.bind(this, this.configPanel),
 				configureMatch: this._showPanel.bind(this, this.configPanel),
-				matchCreated: this._showPanel.bind(this, this.matchPanel),
 				matchResultsComputed: this._showPanel.bind(this, this.resultPanel)
 			},
 			resultPanel: {
@@ -32,19 +30,15 @@ define([
 		}, this);
 	}
 	
-	RingView.prototype = {
-		
-		_showPanel: function (newPanel) {
-			// Hide the previously visible panel
-			if (this.currentPanel) {
-				this.currentPanel.root.classList.add('hidden');
-			}
-			
-			// Show the new panel
-			newPanel.root.classList.remove('hidden');
-			this.currentPanel = newPanel;
+	RingView.prototype.showPanel = function showPanel(data) {
+		// Hide the previously visible panel
+		if (this.currentPanel) {
+			this.currentPanel.root.classList.add('hidden');
 		}
-		
+
+		// Show the new panel
+		this.currentPanel = this[data.panel];
+		this.currentPanel.root.classList.remove('hidden');
 	};
 	
 	return RingView;

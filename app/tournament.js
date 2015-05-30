@@ -87,7 +87,7 @@ Tournament.prototype._onConnection = function (spark) {
 		if (user.spark && user.spark.readyState === Spark.OPEN) {
 			// Inform client that a session conflict has been detected
 			logger.debug("> Session conflict detected");
-			spark.emit('wsError', {
+			spark.emit('io.wsError', {
 				reason: "Session already open"
 			});
 			spark.end();
@@ -143,7 +143,14 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 			data.identity === 'cornerJudge' && (typeof data.name !== 'string' || data.name.length === 0)) {
 			// Identification failed
 			logger.debug("> Failed identification (identity=" + data.identity + ")");
-			spark.emit('idFail');
+			
+			// Shake field
+			spark.emit('login.shakeResetField');
+			
+			// Update instruction text if appropriate
+			if (data.identity === 'juryPresident') {
+				spark.emit('login.setInstr', { text: "Master password incorrect" });
+			}
 			
 			// Listen for identification again
 			spark.once('identification', onIdentification);
@@ -161,7 +168,7 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 				user.idSuccess(this._getRingStates());
 			} else {
 				// If database insertion failed, notify client that identification failed
-				spark.emit('idFail');
+				spark.emit('login.setInstr', { text: "Unexpected error" });
 				spark.once('identification', onIdentification);
 			}
 		}.bind(this));
@@ -172,7 +179,8 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 
 	// Inform user that we're waiting for an identification
 	logger.debug("> Waiting for identification...");
-	spark.emit('identify');
+	spark.emit('root.showView', { view: 'loginView' });
+	spark.emit('login.focusField');
 };
 
 /**
@@ -211,7 +219,7 @@ Tournament.prototype._confirmUserIdentity = function (sessionId, spark, user) {
 	}.bind(this));
 
 	// Send identity confirmation request
-	spark.emit('confirmIdentity');
+	spark.emit('io.confirmIdentity');
 };
 
 
