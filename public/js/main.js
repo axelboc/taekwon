@@ -1,7 +1,7 @@
 
 // RequireJS configuration
 require.config({
-	baseUrl: '/js/' + (document.documentElement.getAttribute('data-type')),
+	baseUrl: '/js/' + document.documentElement.getAttribute('data-type'),
 	paths: {
 		domReady: '../lib/domReady',
 		fastclick: '../lib/fast-click.min',
@@ -18,12 +18,13 @@ require.config({
 require([
 	'domReady!',
 	'fastclick',
-	'./io'
+	'../io',
+	'./root'
 
-], function (document, FastClick, IO) {
+], function (document, FastClick, IO, Root) {
 	
 	// Initialise IO and root modules
-	var io = new IO();
+	var io = new IO(document.documentElement.getAttribute('data-identity'));
 	var root = new Root(io);
 
 	// Initialise FastClick to remove 300ms delay on mobile devices

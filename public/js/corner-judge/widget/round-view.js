@@ -27,7 +27,7 @@ define([
 		this.fdb.className = 'fdb';
 		
 		// Subscribe to inbound IO events
-		Helpers.subscribeToEvents(io.primus, 'roundView', [
+		Helpers.subscribeToEvents(io, 'roundView', [
 			'enableUndoBtn',
 			'showFdb'
 		], this);

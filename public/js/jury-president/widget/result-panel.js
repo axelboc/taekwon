@@ -12,7 +12,7 @@ define([
 		this.root = document.getElementById('result-panel');
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io.primus, 'resultPanel', [
+		Helpers.subscribeToEvents(io, 'resultPanel', [
 			'matchResultsComputed',
 			'showEndBtns',
 			'updateScoreboard'

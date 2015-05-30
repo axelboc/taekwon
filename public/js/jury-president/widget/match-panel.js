@@ -14,7 +14,7 @@ define([
 		this.config = null;
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io.primus, 'matchPanel', [
+		Helpers.subscribeToEvents(io, 'matchPanel', [
 			'resetRoundTimer',
 			'matchStateChanged',
 			'updateState',
@@ -51,7 +51,7 @@ define([
 		// Match state
 		this.stateInner = this.root.querySelector('.st-inner');
 		this.stateInnerTemplate = Handlebars.compile(document.getElementById('st-inner-tmpl').innerHTML);
-		this.stateInner.addEventListener('click', this._onStateInnerDelegate.bind(this));
+		this.stateInner.addEventListener('click', this.onStateInnerDelegate.bind(this));
 		
 		// Scores
 		this.scoresInner = this.root.querySelector('.sc-inner');
@@ -61,9 +61,9 @@ define([
 		this.penaltyBtns = this.root.querySelectorAll('.pe-btn');
 		this.penaltiesTemplate = Handlebars.compile(document.getElementById('pe-penalties-tmpl').innerHTML);
 		this.warningsInner = this.root.querySelector('.pe-inner--warnings');
-		this.warningsInner.addEventListener('click', this._onWarningsInnerDelegate.bind(this));
+		this.warningsInner.addEventListener('click', this.onWarningsInnerDelegate.bind(this));
 		this.foulsInner = this.root.querySelector('.pe-inner--fouls');
-		this.foulsInner.addEventListener('click', this._onFoulsInnerDelegate.bind(this));
+		this.foulsInner.addEventListener('click', this.onFoulsInnerDelegate.bind(this));
 	}
 	
 	MatchPanel.prototype.slideInjuryTimer = function slideInjuryTimer() {
@@ -91,7 +91,7 @@ define([
 	 * IO events
 	 * ================================================== */
 
-	MatchPanel.prototype.onMatchStateChanged = function onMatchStateChanged(data) {
+	MatchPanel.prototype.matchStateChanged = function matchStateChanged(data) {
 		console.log("Match state changed", data.state);
 		var state = data.state.state;
 

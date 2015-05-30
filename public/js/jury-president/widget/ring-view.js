@@ -14,13 +14,13 @@ define([
 		
 		// Initialise panels and sidebar
 		this.currentPanel = null;
-		this.configPanel = new ConfigPanel();
-		this.matchPanel = new MathPanel();
-		this.resultPanel = new ResultPanel();
-		this.judgesSidebar = new JudgesSidebar();
+		this.configPanel = new ConfigPanel(io);
+		this.matchPanel = new MathPanel(io);
+		this.resultPanel = new ResultPanel(io);
+		this.judgesSidebar = new JudgesSidebar(io);
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io.primus, 'ringView', ['showPanel'], this);
+		Helpers.subscribeToEvents(io, 'ringView', ['showPanel'], this);
 	}
 	
 	RingView.prototype.showPanel = function showPanel(data) {

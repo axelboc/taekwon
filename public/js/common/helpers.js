@@ -5,19 +5,14 @@ define(function () {
 		
 		/**
 		 * Subscribe to inbound IO events.
-		 * If a namespace is provided, each event is mapped to a function in the scope with the same name.
-		 * Otherwise, each event is mapped to a function with the same name, prefixed with 'on'
-		 * (e.g. 'identify' => `onIdentify`)
 		 * @param {IO} io
-		 * @param {String} namespace - `null` to listen for global events
+		 * @param {String} namespace
 		 * @param {Array} events
 		 * @param {Object} scope
 		 */
-		subscribeToEvents: function (io.primus, namespace, events, scope) {
-			namespace = namespace ? namespace + '.' : '';
-			Object.keys(events).forEach(function (evt) {
-				var funcName = namespace ? evt : 'on' + evt.charAt(0).toUpperCase() + evt.slice(1);
-				io.on(namespace + evt, scope[funcName].bind(scope));
+		subscribeToEvents: function (io, namespace, events, scope) {
+			events.forEach(function (evt) {
+				io.primus.on(namespace + '.' + evt, scope[evt].bind(scope));
 			}, this);
 		},
 		

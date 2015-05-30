@@ -12,7 +12,7 @@ define([
 		this.root = document.getElementById('config-panel');
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io.primus, 'configPanel', ['updateConfig'], this);
+		Helpers.subscribeToEvents(io, 'configPanel', ['updateConfig'], this);
 		
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
 		this.newMatchBtn.addEventListener('click', this.io.sendFunc('createMatch'));

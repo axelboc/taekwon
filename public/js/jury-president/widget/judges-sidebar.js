@@ -10,7 +10,7 @@ define([
 		this.root = document.getElementById('judges-sidebar');
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io.primus, 'judgesSidebar', ['updateSlotList'], this);
+		Helpers.subscribeToEvents(io, 'judgesSidebar', ['updateSlotList'], this);
 
 		this.list = this.root.querySelector('.js-list');
 		this.listTemplate = Handlebars.compile(document.getElementById('js-list-tmpl').innerHTML);

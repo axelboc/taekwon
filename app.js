@@ -100,6 +100,7 @@ dotenv({
 		var type = 'jury-president';
 		res.render(type, {
 			type: type,
+			identity: 'juryPresident',
 			title: "Jury President",
 			metaViewport: 'width=device-width, initial-scale=1'
 		});
@@ -110,6 +111,7 @@ dotenv({
 		var type = 'corner-judge';
 		res.render(type, {
 			type: type,
+			identity: 'cornerJudge',
 			title: "Corner Judge",
 			metaViewport: 'width=device-width, initial-scale=1, user-scalable=no'
 		});

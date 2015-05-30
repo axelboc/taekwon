@@ -179,7 +179,7 @@ CornerJudge.prototype.ringJoined = function () {
 	this._send('root.showView', { view: 'roundView' });
 	this._send('io.setPageTitle', {
 		title: "Corner Judge | Ring " + (this.ring.index + 1)
-	};
+	});
 	
 	var backdropState = this._getBackdropState(this.ring.scoringEnabled, this.ring.juryPresident.connected);
 	this._send('backdrop.update', backdropState);

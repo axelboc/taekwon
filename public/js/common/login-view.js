@@ -1,6 +1,6 @@
 
 define([
-	'../../common/helpers'
+	'./helpers'
 
 ], function (Helpers) {
 	
@@ -18,7 +18,7 @@ define([
 		});
 		
 		// Subscribe to events from server and views
-		Helpers.subscribeToEvents(io.primus, 'login', [
+		Helpers.subscribeToEvents(io, 'login', [
 			'setInstr',
 			'focusField',
 			'blurField',
@@ -62,7 +62,7 @@ define([
 		// If Enter key was pressed...
 		if (evt.which === 13 || evt.keyCode === 13) {
 			this.io.send('identification', {
-				identity: io.identity,
+				identity: this.io.identity,
 				value: this.field.value
 			});
 		}

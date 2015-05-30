@@ -12,13 +12,14 @@ define([
 	function IO(identity) {
 		this.identity = identity;
 		this.url = config.isProd ? config.prodUrl : config.devUrl;
+		console.log(this.url);
 		
 		// Initialise Primus
 		console.log("Connecting to server");
 		this.primus = new Primus(this.url, config.primusConfig)
 		
 		// Subscribe to inbound IO events
-		Helpers.subscribeToEvents(this.primus, 'io', [
+		Helpers.subscribeToEvents(this, 'io', [
 			'confirmIdentity',
 			'alert',
 			'setPageTitle',
@@ -71,21 +72,25 @@ define([
 		}
 	}
 	
-	IO.prototype.onConfirmIdentity = function onConfirmIdentity() {
+	IO.prototype.confirmIdentity = function confirmIdentity() {
 		this.send('identityConfirmation', {
 			identity: this.identity
 		});
 	};
 	
-	IO.prototype.onAlert = function onAlert(data) {
+	IO.prototype.alert = function alert(data) {
 		alert(data.reason);
 	};
 	
-	IO.prototype.onSetTitle = function onSetTitle(data) {
+	IO.prototype.setPageTitle = function setPageTitle(data) {
 		document.title = data.title;
 	};
 	
-	IO.prototype.onError = function onError(err) {
+	IO.prototype.wsError = function wsError(data) {
+		this.onError(data);
+	};
+	
+	IO.prototype.error = function error(err) {
 		console.error('Error:', err.reason);
 		
 		// Retrieve message to display in error view
@@ -108,10 +113,6 @@ define([
 				window.location.reload();
 			});
 		}
-	};
-	
-	IO.prototype.onWsError = function onWsError(data) {
-		this.onError(data);
 	};
 	
 	IO.prototype.send = function send(event, data) {

@@ -14,7 +14,7 @@ define([
 		this.listTemplate = Handlebars.compile(document.getElementById('rl-list-tmpl').innerHTML);
 		
 		// Subscribe to events from server and views
-		Helpers.subscribeToEvents(io.primus, 'ringListView', ['updateList'], this);
+		Helpers.subscribeToEvents(io, 'ringListView', ['updateList'], this);
 	}
 	
 	
