@@ -1,29 +1,20 @@
 
-define([
-	'handlebars'
-
-], function (Handlebars) {
+define(function () {
 	
-	function Backdrop() {
+	function Backdrop(io) {
 		this.root = document.getElementById('backdrop');
 		this.text = this.root.querySelector('.bdp-text');
 		this.subtext = this.root.querySelector('.bdp-subtext');
+		
+		Helpers.subscribeToEvents(io, 'backdrop', ['update'], this);
 	}
 	
-	Backdrop.prototype = {
-		
-		show: function (text, subtext) {
-			this.text.textContent = text;
-			this.subtext.textContent = subtext;
-			this.root.classList.remove('hidden');
-		},
-		
-		hide: function () {
-			this.root.classList.add('hidden');
-		}
-		
+	Backdrop.prototype.update = function update(data) {
+		this.text.textContent = data.text;
+		this.subtext.textContent = data.subtext;
+		this.root.classList.toggle('hidden', data.visible);
 	};
-	
+		
 	return Backdrop;
 	
 });

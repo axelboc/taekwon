@@ -188,6 +188,10 @@ JuryPresident.prototype.ringOpened = function (ring, matchConfig, slots) {
 		index: ring.index
 	});
 	
+	this._send('setTitle', {
+		title: "Jury President | Ring " + (ring.index + 1)
+	});
+	
 	// Update configuration panel and judges sidebar
 	this._updateWidget('configPanel', 'updateConfig', { config: matchConfig });
 	this._updateWidget('judgesSidebar', 'updateSlotList', { slots: slots });
@@ -216,7 +220,7 @@ JuryPresident.prototype.slotsUpdated = function (slots, scoreSlots) {
 JuryPresident.prototype.slotNotRemoved = function (reason) {
 	assert.string(reason, 'reason');
 	
-	this._updateWidget('root', 'alert', {
+	this._send('alert', {
 		reason: reason
 	});
 };

@@ -17,15 +17,12 @@ require.config({
 require([
 	'../lib/domReady!',
 	'fastclick',
-	'./root',
 	'../common/io'
 
-], function (document, FastClick, Root, IO) {
+], function (document, FastClick, IO) {
 	
-	// Initialise Web Socket connection
-	var io = IO.init();
-	
-	// Initialise root component
+	// Initialise IO and root modules
+	var io = new IO();
 	var root = new Root(io);
 
 	// Initialise FastClick to remove 300ms delay on mobile devices

@@ -15,7 +15,7 @@ define([
 		
 		// Subscribe to events from server and views
 		Helpers.subscribeToEvents(io, 'ringListView', [
-			'showMessage',
+			'setInstr',
 			'updateList'
 		], this);
 	}
@@ -25,9 +25,9 @@ define([
 	 * IO events
 	 * ================================================== */
 	
-	RingListView.prototype.showMessage = function showMessage(data) {
+	RingListView.prototype.setInstr = function setInstr(data) {
 		// Update instructions
-		this.instr.textContent = data.message;
+		this.instr.textContent = data.text;
 	};
 	
 	RingListView.prototype.updateList = function updateList(data) {

@@ -59,6 +59,31 @@ CornerJudge.prototype.getState = function () {
 	};
 };
 
+/**
+ * Get backdrop state and content based on Jury President connection state and Ring scoring state.
+ * @param {Boolean} scoringEnabled
+ * @param {Boolean} jpConnected
+ * @return {Object}
+ */
+CornerJudge.prototype._getBackdropState = function (scoringEnabled, jpConnected) {
+	var text = '';
+	var subtext = '';
+	
+	if (!this.isJPConnected) {
+		text = "Jury President disconnected";
+		subtext = "Waiting for reconnection...";
+	} else if (!this.isScoringEnabled) {
+		text = "Please wait for round to begin";
+		subtext = "... or timeout to end";
+	}
+	
+	return {
+		visible: !this.isJPConnected || !this.isScoringEnabled,
+		text: text,
+		subtext: subtext
+	};
+};
+
 
 /* ==================================================
  * Inbound spark events:
@@ -138,7 +163,7 @@ CornerJudge.prototype.rejected = function (message, ringStates) {
 
 	this.ring = null;
 	this._send('rejected');
-	this._updateWidget('ringListView', 'showMessage', { message: message });
+	this._updateWidget('ringListView', 'setInstr', { text: message });
 	this._updateWidget('ringListView', 'updateList', { rings: ringStates });
 };
 
@@ -156,6 +181,13 @@ CornerJudge.prototype.ringJoined = function () {
 		scoringEnabled: this.ring.scoringEnabled,
 		jpConnected: this.ring.juryPresident.connected
 	});
+	
+	this._send('setTitle', {
+		title: "Corner Judge | Ring " + (this.ring.index + 1)
+	};
+	
+	var backdropState = this._getBackdropState(this.ring.scoringEnabled, this.ring.juryPresident.connected);
+	this._updateWidget('backdrop', 'update', backdropState);
 
 	logger.info('ringJoined', {
 		id: this.id,
@@ -182,7 +214,8 @@ CornerJudge.prototype.ringLeft = function (message, ringStates) {
 	this.authorised = false;
 
 	this._send('ringLeft');
-	this._updateWidget('ringListView', 'showMessage', { message: message });
+	this._send('setTitle', { title: "Corner Judge" });
+	this._updateWidget('ringListView', 'setInstr', { text: message });
 	this._updateWidget('ringListView', 'updateList', { rings: ringStates });
 
 	logger.info('ringLeft', {
@@ -199,9 +232,8 @@ CornerJudge.prototype.ringLeft = function (message, ringStates) {
 CornerJudge.prototype.scoringStateChanged = function (enabled) {
 	assert.boolean(enabled, 'enabled');
 	
-	this._send('scoringStateChanged', {
-		enabled: enabled
-	});
+	var backdropState = this._getBackdropState(enabled, this.ring.juryPresident.connected);
+	this._updateWidget('backdrop', 'update', backdropState);
 };
 
 /**
@@ -253,9 +285,8 @@ CornerJudge.prototype.undid = function (score) {
 CornerJudge.prototype.jpConnectionStateChanged = function (connected) {
 	assert.boolean(connected, 'connected');
 	
-	this._send('jpConnectionStateChanged', {
-		connected: connected
-	});
+	var backdropState = this._getBackdropState(this.ring.scoringEnabled, connected);
+	this._updateWidget('backdrop', 'update', backdropState);
 };
 
 
