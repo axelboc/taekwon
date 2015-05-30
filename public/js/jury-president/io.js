@@ -5,11 +5,6 @@
 define(function () {
 	
 	var primus;
-	var events = [
-		'matchStateChanged', 'matchResultsComputed', 'matchEnded',
-		'matchPanel.state',
-		'resultPanel.scoreboard'
-	];
 
 	function sendId(pwd) {
 		console.log("Sending identification (pwd=\"" + pwd + "\")");

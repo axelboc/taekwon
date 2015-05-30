@@ -275,7 +275,7 @@ JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
 JuryPresident.prototype.matchStateChanged = function (state) {
 	assert.provided(state, 'state');
 	//TODO
-	this._send('matchStateChanged', {
+	this._send('matchPanel.matchStateChanged', {
 		state: state
 	});
 	this._send('matchPanel.state', { state: state });
@@ -299,11 +299,10 @@ JuryPresident.prototype.matchResultsComputed = function (winner, config, scorebo
 	assert.object(scoreboards, 'scoreboards');
 	assert.object(penalties, 'penalties');
 	assert.object(cjNames, 'cjNames');
-	//TODO
-	this._send('matchResultsComputed', {
-		winner: winner
-	});
-	this._send('resultPanel.scoreboard', {
+	
+	this._send('ringView.showPanel', { panel: 'resultPanel' });
+	this._send('resultPanel.matchResultsComputed', { winner: winner });
+	this._send('resultPanel.updateScoreboard', {
 		config: config,
 		scoreboardColumns: scoreboardColumns,
 		scoreboards: scoreboards,
@@ -316,8 +315,8 @@ JuryPresident.prototype.matchResultsComputed = function (winner, config, scorebo
  * The match has been ended.
  */
 JuryPresident.prototype.matchEnded = function () {
-	//TODO
-	this._send('matchEnded');
+	this._send('matchPanel.resetRoundTimer');
+	this._send('resultPanel.showEndBtns');
 };
 
 /**

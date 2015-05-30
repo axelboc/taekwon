@@ -19,15 +19,7 @@ define([
 		this.judgesSidebar = new JudgesSidebar();
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io, 'ringView', ['showPanel'], {
-			io: {
-				configureMatch: this._showPanel.bind(this, this.configPanel),
-				matchResultsComputed: this._showPanel.bind(this, this.resultPanel)
-			},
-			resultPanel: {
-				configureMatch: this._showPanel.bind(this, this.configPanel)
-			}
-		}, this);
+		Helpers.subscribeToEvents(io, 'ringView', ['showPanel'], this);
 	}
 	
 	RingView.prototype.showPanel = function showPanel(data) {

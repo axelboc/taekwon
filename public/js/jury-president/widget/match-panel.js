@@ -1,11 +1,12 @@
 
 define([
+	'minpubsub',
 	'handlebars',
 	'../../common/helpers',
 	'../../common/states',
 	'../widget/timer'
 
-], function (Handlebars, Helpers, MatchStates, Timer) {
+], function (PubSub, Handlebars, Helpers, MatchStates, Timer) {
 	
 	function MatchPanel(io) {
 		this.root = document.getElementById('match-panel');
@@ -13,22 +14,17 @@ define([
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(io, 'matchPanel', [
+			'resetRoundTimer',
+			'matchStateChanged',
+			'updateState',
 			'enablePenaltyBtns',
 			'updateScoreSlots',
 			'updatePenalties'
-		],{
-			io: {
-				matchStateChanged: this.onMatchStateChanged,
-				matchEnded: this.onMatchEnded,
-				matchPanel: {
-					state: this.updateState,
-				}
-			},
-			timer: {
-				tick: this.onTimerTick,
-				zero: this.onTimerZero
-			}
-		}, this);
+		], this);
+		
+		// Subscribe to internal timer events
+		PubSub.subscribe('timer.tick', this.onTimerTick.bind(this));
+		PubSub.subscribe('timer.zero', this.onTimerZero.bind(this));
 		
 		// Match state
 		this.mpState = this.root.querySelector('.mp-state');
@@ -163,33 +159,9 @@ define([
 		});
 	};
 
-	MatchPanel.prototype.onMatchEnded = function onMatchEnded() {
-		console.log("Match ended");
-
-		// Reset timer
+	MatchPanel.prototype.resetRoundTimer = function resetRoundTimer() {
 		this.roundTimer.timer.reset(0);
 	};
-
-
-	/* ==================================================
-	 * Other events
-	 * ================================================== */
-
-	MatchPanel.prototype.onTimerTick = function onTimerTick(name, value) {
-		var timer = this[name + 'Timer'];
-		var sec = value % 60
-		timer.sec.textContent = (sec < 10 ? '0' : '') + sec;
-		timer.min.textContent = Math.floor(value / 60);
-	};
-
-	MatchPanel.prototype.onTimerZero = function () {
-		this.tkBeeps.play();
-	};
-
-
-	/* ==================================================
-	 * UI updates
-	 * ================================================== */
 
 	MatchPanel.prototype.updateState = function updateState(data) {
 		data.state.enableInjuryBtn = data.state.stateStarted & !data.state.isBreak;
@@ -208,6 +180,22 @@ define([
 
 			this[key + 'Inner'].innerHTML = this.penaltiesTemplate(penalties);
 		}, this);
+	};
+
+
+	/* ==================================================
+	 * Internal events
+	 * ================================================== */
+
+	MatchPanel.prototype.onTimerTick = function onTimerTick(name, value) {
+		var timer = this[name + 'Timer'];
+		var sec = value % 60
+		timer.sec.textContent = (sec < 10 ? '0' : '') + sec;
+		timer.min.textContent = Math.floor(value / 60);
+	};
+
+	MatchPanel.prototype.onTimerZero = function () {
+		this.tkBeeps.play();
 	};
 
 

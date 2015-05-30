@@ -410,7 +410,8 @@ Ring.prototype._jpCreateMatch = function () {
 			
 			// Acknowledge
 			// TODO: fix restoration of scoringEnabled state
-			this.juryPresident.matchCreated(this.match.config, this.getScoreSlots(), false, this.match.getPenalties());
+			this.juryPresident.matchCreated(this.match.config, this.getScoreSlots(), false,
+											this.match.getPenalties());
 		}
 	}.bind(this));
 };
