@@ -10,17 +10,17 @@ define([
 		
 		// Undo button
 		this.undoBtn = this.root.querySelector('.undo-btn');
-		this.undoBtn.addEventListener('click', this._onUndoBtn.bind(this));
+		this.undoBtn.addEventListener('click', this.onUndoBtn.bind(this));
 		
 		// Score buttons (use 'touchstart' event if supported)
 		var event = 'ontouchstart' in document.documentElement ? 'touchstart' : 'click';
 		var hongBtns = this.root.querySelector('.score-btns--hong');
 		var chongBtns = this.root.querySelector('.score-btns--chong');
-		hongBtns.addEventListener(event, this._onScoreBtsDeletage.bind(this, Competitors.HONG));
-		chongBtns.addEventListener(event, this._onScoreBtsDeletage.bind(this, Competitors.CHONG));
+		hongBtns.addEventListener(event, this.onScoreBtsDeletage.bind(this, Competitors.HONG));
+		chongBtns.addEventListener(event, this.onScoreBtsDeletage.bind(this, Competitors.CHONG));
 		
 		// Feedback elements
-		document.addEventListener('transitionend', this._onTransitionEnd.bind(this));
+		document.addEventListener('transitionend', this.onTransitionEnd.bind(this));
 		this.feedback = this.root.querySelector('.feedback');
 		this.fdb = document.createElement('div');
 		this.fdb.className = 'fdb';
@@ -46,11 +46,11 @@ define([
 	 * Inbound IO events
 	 * ================================================== */
 	
-	RoundView.prototype.enableUndoBtn = function (data) {
+	RoundView.prototype.enableUndoBtn = function enableUndoBtn(data) {
 		Helpers.enableBtn(this.undoBtn, data.enable);
 	};
 
-	RoundView.prototype.showFdb = function (data) {
+	RoundView.prototype.showFdb = function showFdb(data) {
 		// Clone and customise the default fdb element
 		var fdb = this.fdb.cloneNode();
 		fdb.classList.add.apply(fdb.classList, [
@@ -83,7 +83,7 @@ define([
 	 * UI events
 	 * ================================================== */
 	
-	RoundView.prototype._onScoreBtsDeletage = function (competitor, evt) {
+	RoundView.prototype.onScoreBtsDeletage = function onScoreBtsDeletage(competitor, evt) {
 		var btn = evt.target;
 		if (btn && btn.nodeName == 'BUTTON') {
 			btn.blur();
@@ -91,12 +91,12 @@ define([
 		}
 	};
 
-	RoundView.prototype._onUndoBtn = function () {
+	RoundView.prototype.onUndoBtn = function onUndoBtn() {
 		this.undoBtn.blur();
 		IO.undo();
 	};
 
-	RoundView.prototype._onTransitionEnd = function (evt) {
+	RoundView.prototype.onTransitionEnd = function onTransitionEnd(evt) {
 		var fdb = evt.target;
 		if (fdb.classList.contains('fdb')) {
 			this.feedback.removeChild(fdb);

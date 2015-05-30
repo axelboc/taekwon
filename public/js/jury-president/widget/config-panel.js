@@ -11,24 +11,22 @@ define([
 		this.root = document.getElementById('config-panel');
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io, 'configPanel', {
-			config: this._updateConfig
-		}, this);
+		Helpers.subscribeToEvents(io, 'configPanel', ['updateConfig'], this);
 		
 		this.newMatchBtn = this.root.querySelector('.match-btn--new');
 		this.newMatchBtn.addEventListener('click', IO.createMatch);
 		
 		this.configInner = this.root.querySelector('.cf-inner');
 		this.configInnerTemplate = Handlebars.compile(document.getElementById('cf-inner-tmpl').innerHTML);
-		this.configInner.addEventListener('click', this._onConfigInnerDelegate.bind(this));
+		this.configInner.addEventListener('click', this.onConfigInnerDelegate.bind(this));
 	}
 	
-	ConfigPanel.prototype._numToTime = function (num) {
+	ConfigPanel.prototype.numToTime = function numToTime(num) {
 		var sec = num % 60;
 		return Math.floor(num / 60) + ":" + (sec < 10 ? '0' : '') + sec;
 	};
 	
-	ConfigPanel.prototype._prepareContext = function (configItems) {
+	ConfigPanel.prototype.prepareContext = function prepareContext(configItems) {
 		return Object.keys(configItems).reduce(function (arr, itemName) {
 			var item = configItems[itemName];
 			
@@ -38,7 +36,7 @@ define([
 			
 			if (item.isTime) {
 				item.isDecEnabled = item.isTime && (item.value - TIME_INCREMENT) > 0;
-				item.value = this._numToTime(item.value);
+				item.value = this.numToTime(item.value);
 			} else if (item.isBoolean) {
 				item.isFalse = item.value === false;
 				item.isTrue = item.value === true;
@@ -54,10 +52,10 @@ define([
 	 * IO events
 	 * ================================================== */
 
-	ConfigPanel.prototype._updateConfig = function (data) {
+	ConfigPanel.prototype.updateConfig = function updateConfig(data) {
 		// Execute template
 		this.configInner.innerHTML = this.configInnerTemplate({
-			configItems: this._prepareContext(data.config)
+			configItems: this.prepareContext(data.config)
 		});
 	};
 	
@@ -66,7 +64,7 @@ define([
 	 * UI events
 	 * ================================================== */
 
-	ConfigPanel.prototype._onConfigInnerDelegate = function (evt) {
+	ConfigPanel.prototype.onConfigInnerDelegate = function onConfigInnerDelegate(evt) {
 		var btn = evt.target;
 		if (btn && btn.nodeName == 'BUTTON') {
 			var item = btn.parentElement.parentElement;

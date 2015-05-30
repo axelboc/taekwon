@@ -9,13 +9,11 @@ define([
 		this.root = document.getElementById('ring-list');
 		
 		this.list = this.root.querySelector('.rl-list');
-		this.list.addEventListener('click', this._onListDelegate.bind(this));
+		this.list.addEventListener('click', this.onListDelegate.bind(this));
 		this.listTemplate = Handlebars.compile(document.getElementById('rl-list-tmpl').innerHTML);
 		
 		// Subscribe to events from server and views
-		Helpers.subscribeToEvents(io, 'ringListView', {
-			ringList: this._updateRingList
-		}, this);
+		Helpers.subscribeToEvents(io, 'ringListView', ['updateList'], this);
 	}
 	
 	
@@ -23,12 +21,11 @@ define([
 	 * IO events
 	 * ================================================== */
 	
-	RingListView.prototype._updateRingList = function (data) {
+	RingListView.prototype.updateList = function updateList(data) {
 		// Populate ring list from template
 		this.list.innerHTML = this.listTemplate({
 			rings: data.rings
 		});
-		console.log("Ring list updated");
 	};
 	
 	
@@ -36,7 +33,7 @@ define([
 	 * UI events
 	 * ================================================== */
 	
-	RingListView.prototype._onListDelegate = function (evt) {
+	RingListView.prototype.onListDelegate = function onListDelegate(evt) {
 		var btn = evt.target;
 		if (btn && btn.nodeName == 'BUTTON') {
 			btn.blur();

@@ -26,7 +26,7 @@ define([
 		this.backdrop = new Backdrop(io);
 		
 		// Subscribe to inbound IO events
-		Helpers.subscribeToEvents(io, 'root', {
+		Helpers.subscribeToEvents(io, 'root', ['alert'], {
 			io: {
 				identify: this._showView.bind(this, this.nameView),
 				idSuccess: this._showView.bind(this, this.ringListView),
@@ -43,6 +43,10 @@ define([
 		// Listen for errors
 		io.on('error', this.onError.bind(this));
 	}
+	
+	Root.prototype.alert = function alert(data) {
+		alert(data.reason);
+	};
 	
 	Root.prototype.onError = function onError(err) {
 		console.error('Error:', err.reason);

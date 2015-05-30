@@ -10,12 +10,12 @@ define([
 		
 		this.instr = this.root.querySelector('.rl-instr');
 		this.list = this.root.querySelector('.rl-list');
-		this.list.addEventListener('click', this._onListDelegate.bind(this));
+		this.list.addEventListener('click', this.onListDelegate.bind(this));
 		this.listTemplate = Handlebars.compile(document.getElementById('rl-list-tmpl').innerHTML);
 		
 		// Subscribe to events from server and views
 		Helpers.subscribeToEvents(io, 'ringListView', [
-			'updateInstr',
+			'showMessage',
 			'updateList'
 		], this);
 	}
@@ -25,12 +25,12 @@ define([
 	 * IO events
 	 * ================================================== */
 	
-	RingListView.prototype.updateInstr = function (data) {
+	RingListView.prototype.showMessage = function showMessage(data) {
 		// Update instructions
 		this.instr.textContent = data.message;
 	};
 	
-	RingListView.prototype.updateList = function (data) {
+	RingListView.prototype.updateList = function updateList(data) {
 		// Populate ring list from template
 		this.list.innerHTML = this.listTemplate({
 			rings: data.rings
@@ -42,15 +42,13 @@ define([
 	 * UI events
 	 * ================================================== */
 	
-	RingListView.prototype._onListDelegate = function (evt) {
+	RingListView.prototype.onListDelegate = function onListDelegate(evt) {
 		var btn = evt.target;
 		if (btn && btn.nodeName == 'BUTTON') {
 			btn.blur();
 			
 			var index = parseInt(btn.dataset.index, 10);
 			IO.joinRing(index);
-			
-			console.log("Join ring #" + (index + 1));
 		}
 	};
 

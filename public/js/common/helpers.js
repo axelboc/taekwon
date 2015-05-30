@@ -4,16 +4,20 @@ define(function () {
 	var Helpers = {
 		
 		/**
-		 * Subscribe to inbound IO events for a given namespace.
-		 * Each event is mapped to a function with the same name in the scope.
+		 * Subscribe to inbound IO events.
+		 * If a namespace is provided, each event is mapped to a function in the scope with the same name.
+		 * Otherwise, each event is mapped to a function with the same name, prefixed with 'on'
+		 * (e.g. 'identify' => `onIdentify`)
 		 * @param {IO} io
-		 * @param {String} namespace
+		 * @param {String} namespace - `null` to listen for global events
 		 * @param {Array} events
 		 * @param {Object} scope
 		 */
 		subscribeToEvents: function (io, namespace, events, scope) {
+			namespace = namespace ? namespace + '.' : '';
 			Object.keys(events).forEach(function (evt) {
-				io.on(namespace + '.' + event, scope[evt].bind(scope));
+				var funcName = namespace ? evt : 'on' + evt.charAt(0).toUpperCase() + evt.slice(1);
+				io.on(namespace + evt, scope[funcName].bind(scope));
 			}, this);
 		},
 		

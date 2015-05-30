@@ -9,12 +9,7 @@ define([
 		this.root = document.getElementById('judges-sidebar');
 		
 		// Subscribe to events
-		Helpers.subscribeToEvents(io, 'judgesSidebar', {
-			slotNotRemoved: this._onSlotNotRemoved,
-			judgesSidebar: {
-				slotList: this._updateSlotList,
-			}
-		}, this);
+		Helpers.subscribeToEvents(io, 'judgesSidebar', ['updateSlotList'], this);
 
 		this.list = this.root.querySelector('.js-list');
 		this.listTemplate = Handlebars.compile(document.getElementById('js-list-tmpl').innerHTML);
@@ -22,9 +17,9 @@ define([
 		this.addSlotBtn = this.root.querySelector('.js-add');
 		this.removeSlotBtn = this.root.querySelector('.js-remove');
 		
-		this.list.addEventListener('click', this._onListDelegate.bind(this));
-		this.addSlotBtn.addEventListener('click', this._onAddSlotBtn.bind(this));
-		this.removeSlotBtn.addEventListener('click', this._onRemoveSlotBtn.bind(this));
+		this.list.addEventListener('click', this.onListDelegate.bind(this));
+		this.addSlotBtn.addEventListener('click', this.onAddSlotBtn.bind(this));
+		this.removeSlotBtn.addEventListener('click', this.onRemoveSlotBtn.bind(this));
 	}
 		
 	
@@ -32,12 +27,7 @@ define([
 	 * IO events
 	 * ================================================== */
 
-	JudgesSidebar.prototype._onSlotNotRemoved = function (data) {
-		// Alert the user on the reason for which a slot could not be removed
-		alert(data.reason);
-	};
-
-	JudgesSidebar.prototype._updateSlotList = function (data) {
+	JudgesSidebar.prototype.updateSlotList = function updateSlotList(data) {
 		// Execute template
 		this.list.innerHTML = this.listTemplate({
 			slots: data.slots
@@ -49,7 +39,7 @@ define([
 	 * UI events
 	 * ================================================== */
 
-	JudgesSidebar.prototype._onListDelegate = function (evt) {
+	JudgesSidebar.prototype.onListDelegate = function onListDelegate(evt) {
 		var btn = evt.target;
 		if (btn && btn.nodeName == 'BUTTON') {
 			var id = btn.dataset.id;
@@ -70,12 +60,12 @@ define([
 		}
 	};
 
-	JudgesSidebar.prototype._onAddSlotBtn = function () {
+	JudgesSidebar.prototype.onAddSlotBtn = function onAddSlotBtn() {
 		this.addSlotBtn.blur();
 		IO.addSlot();
 	};
 
-	JudgesSidebar.prototype._onRemoveSlotBtn = function () {
+	JudgesSidebar.prototype.onRemoveSlotBtn = function onRemoveSlotBtn() {
 		this.removeSlotBtn.blur();
 		IO.removeSlot();
 	};

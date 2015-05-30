@@ -189,8 +189,8 @@ JuryPresident.prototype.ringOpened = function (ring, matchConfig, slots) {
 	});
 	
 	// Update configuration panel and judges sidebar
-	this._updateWidget('configPanel', 'config', { config: matchConfig });
-	this._updateWidget('judgesSidebar', 'slotList', { slots: slots });
+	this._updateWidget('configPanel', 'updateConfig', { config: matchConfig });
+	this._updateWidget('judgesSidebar', 'updateSlotList', { slots: slots });
 };
 
 /**
@@ -203,7 +203,7 @@ JuryPresident.prototype.slotsUpdated = function (slots, scoreSlots) {
 	assert.ok(scoreSlots === null || Array.isArray(scoreSlots), "`scoreSlots` must be either null or an array");
 	
 	// Update slots in judges sidebar and score slots in match panel
-	this._updateWidget('judgesSidebar', 'slotList', { slots: slots });
+	this._updateWidget('judgesSidebar', 'updateSlotList', { slots: slots });
 	if (scoreSlots !== null) {
 		this._updateWidget('matchPanel', 'scoreSlots', { scoreSlots: scoreSlots });
 	}
@@ -216,7 +216,7 @@ JuryPresident.prototype.slotsUpdated = function (slots, scoreSlots) {
 JuryPresident.prototype.slotNotRemoved = function (reason) {
 	assert.string(reason, 'reason');
 	
-	this._send('slotNotRemoved', {
+	this._updateWidget('root', 'alert', {
 		reason: reason
 	});
 };
@@ -229,7 +229,7 @@ JuryPresident.prototype.configItemSet = function (matchConfig) {
 	assert.object(matchConfig, 'matchConfig');
 	
 	// Update configuration panel
-	this._updateWidget('configPanel', 'config', { config: matchConfig });
+	this._updateWidget('configPanel', 'updateConfig', { config: matchConfig });
 };
 
 /**

@@ -94,7 +94,7 @@ User.prototype.idSuccess = function (ringStates) {
 	assert.array(ringStates, 'ringStates');
 	
 	this._send('idSuccess');
-	this._updateWidget('ringListView', 'ringList', { rings: ringStates });
+	this._updateWidget('ringListView', 'updateList', { rings: ringStates });
 };
 
 /**
@@ -106,7 +106,7 @@ User.prototype.ringStateChanged = function (ringStates) {
 	
 	// Only send the updated ring states if the Jury President hasn't opened a ring yet
 	if (!this.ring) {
-		this._updateWidget('ringListView', 'ringList', { rings: ringStates });
+		this._updateWidget('ringListView', 'updateList', { rings: ringStates });
 	}
 };
 

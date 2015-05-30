@@ -9,7 +9,7 @@ define([
 		
 		this.instr = this.root.querySelector('.pwd-instr');
 		this.field = this.root.querySelector('.pwd-field');
-		this.field.addEventListener('keypress', this._onPwdField.bind(this));
+		this.field.addEventListener('keypress', this.onPwdField.bind(this));
 		
 		// Cancel form submission
 		this.root.querySelector('.pwd-form').addEventListener('submit', function (evt) {
@@ -17,13 +17,11 @@ define([
 		});
 		
 		// Subscribe to events from server and views
-		Helpers.subscribeToEvents(io, 'pwdView', {
-			io: {
-				identify: this._onIdentify,
-				idSuccess: this._onIdSuccess,
-				idFail: this._onIdFail
-			}
-		}, this);
+		Helpers.subscribeToEvents(io, null, [
+			'identify',
+			'idSuccess',
+			'idFail'
+		], this);
 	}
 	
 	
@@ -31,7 +29,7 @@ define([
 	 * IO events
 	 * ================================================== */
 	
-	PwdView.prototype._onIdentify = function () {
+	PwdView.prototype.onIdentify = function onIdentify() {
 		console.log("Server waiting for identification");
 		
 		// HACK: set focus on field
@@ -40,12 +38,12 @@ define([
 		}.bind(this), 100);
 	};
 
-	PwdView.prototype._onIdSuccess = function() {
+	PwdView.prototype.onIdSuccess = function onIdSuccess() {
 		console.log("Identification succeeded");
 		this.field.blur();
 	};
 
-	PwdView.prototype._onIdFail = function () {
+	PwdView.prototype.onIdFail = function onIdFail() {
 		console.log("Identification failed");
 		
 		// Update instructions
@@ -61,7 +59,7 @@ define([
 	 * UI events
 	 * ================================================== */
 
-	PwdView.prototype._onPwdField = function (evt) {
+	PwdView.prototype.onPwdField = function onPwdField(evt) {
 		// If Enter key was pressed...
 		if (evt.which === 13 || evt.keyCode === 13) {
 			var pwd = this.field.value;
