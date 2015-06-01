@@ -6,7 +6,7 @@ var util = require('./lib/util');
 var DB = require('./lib/db');
 var User = require('./user').User;
 
-var INBOUND_SPARK_EVENTS = ['joinRing', 'score', 'undo'];
+var INBOUND_SPARK_EVENTS = ['selectRing', 'score', 'undo'];
 
 
 /**
@@ -92,11 +92,11 @@ CornerJudge.prototype._getBackdropState = function (scoringEnabled, jpConnected)
  * ================================================== */
 
 /**
- * Join a ring.
+ * Select a ring (i.e. join).
  * @param {Object} data
  * 		  {Number} data.index - the index of the ring, as a positive integer
  */
-CornerJudge.prototype._onJoinRing = function (data) {
+CornerJudge.prototype._onSelectRing = function (data) {
 	assert.object(data, 'data');
 	assert.integerGte0(data.index, 'data.index');
 	

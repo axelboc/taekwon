@@ -1,7 +1,7 @@
 
 /**
  * 'IO' module for intialising a socket connection and listening to inbound events
- * shared by both client types (e.g. `confirmIdentity`, `setPageTitle`, etc.
+ * shared by both client types (e.g. `confirmIdentity`, `setPageTitle`, etc.)
  */
 define([
 	'./common/config',
@@ -12,7 +12,6 @@ define([
 	function IO(identity) {
 		this.identity = identity;
 		this.url = config.isProd ? config.prodUrl : config.devUrl;
-		console.log(this.url);
 		
 		// Initialise Primus
 		console.log("Connecting to server");

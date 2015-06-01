@@ -10,7 +10,7 @@ define(function () {
 		 * @param {Array} events
 		 * @param {Object} scope
 		 */
-		subscribeToEvents: function (io, namespace, events, scope) {
+		subscribeToEvents: function subscribeToEvents(io, namespace, events, scope) {
 			events.forEach(function (evt) {
 				io.primus.on(namespace + '.' + evt, scope[evt].bind(scope));
 			}, this);
@@ -20,8 +20,8 @@ define(function () {
 		 * Shake a DOM element (e.g. a text field).
 		 * @param {HTMLElement} elem
 		 */
-		shake: function (elem) {
-			var onShakeEnd = function (evt) {
+		shake: function shake(elem) {
+			var onShakeEnd = function onShakeEnd(evt) {
 				// Remove shake class in case another shake animation needs to be performed
 				elem.classList.remove('shake');
 				// Remove listener
@@ -39,7 +39,7 @@ define(function () {
 		 * @param {HTMLButtonElement} btn
 		 * @param {Boolean} enable
 		 */
-		enableBtn: function (btn, enable) {
+		enableBtn: function enableBtn(btn, enable) {
 			if (enable) {
 				btn.removeAttribute('disabled');
 			} else {

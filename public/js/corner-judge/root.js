@@ -1,22 +1,24 @@
 
 define([
 	'../common/helpers',
+	'../common/backdrop',
 	'../common/login-view',
-	'./widget/ring-list-view',
+	'../common/ring-list-view',
 	'./widget/authorisation-view',
-	'./widget/round-view',
-	'../common/backdrop'
+	'./widget/round-view'
 
-], function (Helpers, LoginView, RingListView, AuthorisationView, RoundView, Backdrop) {
+], function (Helpers, Backdrop, LoginView, RingListView, AuthorisationView, RoundView) {
 	
 	function Root(io) {
+		// Initialise backdrop
+		this.backdrop = new Backdrop(io);
+		
 		// Initialise views
 		this.curentView = null;
 		this.loginView = new LoginView(io);
 		this.ringListView = new RingListView(io);
 		this.authorisationView = new AuthorisationView(io);
 		this.roundView = new RoundView(io);
-		this.backdrop = new Backdrop(io);
 		
 		// Subscribe to inbound IO events
 		Helpers.subscribeToEvents(io, 'root', ['showView'], this);

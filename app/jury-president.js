@@ -6,7 +6,7 @@ var util = require('util');
 var DB = require('./lib/db');
 var User = require('./user').User;
 
-var INBOUND_SPARK_EVENTS = ['openRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
+var INBOUND_SPARK_EVENTS = ['selectRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
 							'setConfigItem', 'createMatch', 'endMatch', 'enableScoring',
 						    'startMatchState', 'endMatchState', 'startEndInjury'];
 
@@ -45,11 +45,11 @@ JuryPresident.prototype.initSpark = function (spark) {
  * ================================================== */
 
 /**
- * Open a ring.
+ * Select a ring (i.e. open).
  * @param {Object} data
  * 		  {Number} data.index - the index of the ring, as a positive integer
  */
-JuryPresident.prototype._onOpenRing = function (data) {
+JuryPresident.prototype._onSelectRing = function (data) {
 	assert.object(data, 'data');
 	assert.integerGte0(data.index, 'data.index');
 	

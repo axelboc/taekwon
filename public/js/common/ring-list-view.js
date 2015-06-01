@@ -49,7 +49,7 @@ define([
 			btn.blur();
 			
 			var index = parseInt(btn.dataset.index, 10);
-			this.io.send('joinRing', {
+			this.io.send('selectRing', {
 				index: index
 			});
 		}
