@@ -1,11 +1,10 @@
 
 define([
-	'minpubsub',
 	'handlebars',
 	'../../common/helpers',
 	'../../common/competitors'
 	
-], function (PubSub, Handlebars, Helpers, Competitor) {
+], function (Handlebars, Helpers, Competitor) {
 	
 	function ResultPanel(io) {
 		this.io = io;

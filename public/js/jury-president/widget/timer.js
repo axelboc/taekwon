@@ -36,7 +36,7 @@ define(['minpubsub'], function (PubSub) {
 			this._valueChanged();
 
 			if (this.value === 0) {
-				PubSub.publish('timer.zero', this.name);
+				PubSub.publish('timer.zero', [this.name]);
 				this.stop();
 			}
 		}
@@ -48,7 +48,7 @@ define(['minpubsub'], function (PubSub) {
 	};
 		
 	Timer.prototype._valueChanged = function () {
-		PubSub.publish('timer.tick', this.name, this.value);
+		PubSub.publish('timer.tick', [this.name, this.value]);
 	};
 	
 	return Timer;

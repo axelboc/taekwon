@@ -7,8 +7,8 @@ var DB = require('./lib/db');
 var User = require('./user').User;
 
 var INBOUND_SPARK_EVENTS = ['selectRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
-							'configureMatch', 'setConfigItem', 'createMatch', 'endMatch'
-						    'startMatchState', 'endMatchState', 'startEndInjury', 'enableScoring',];
+							'configureMatch', 'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
+						    'startMatchState', 'endMatchState', 'startEndInjury', 'enableScoring'];
 
 
 /**
@@ -136,22 +136,17 @@ JuryPresident.prototype._onCreateMatch = function () {
 };
 
 /**
+ * Continue to the next round of the match.
+ */
+JuryPresident.prototype._onContinueMatch = function () {
+	this.emit('continueMatch');
+};
+
+/**
  * End the match.
  */
 JuryPresident.prototype._onEndMatch = function () {
 	this.emit('endMatch');
-};
-
-/**
- * Enable or disable scoring on the ring.
- * @param {Object}  data
- * 		  {Boolean} data.enable - `true` to enable; `false` to disable
- */
-JuryPresident.prototype._onEnableScoring = function (data) {
-	assert.object(data, 'data');
-	assert.boolean(data.enable, 'data.enable');
-	
-	this.emit('enableScoring', data.enable);
 };
 
 /**
@@ -173,6 +168,18 @@ JuryPresident.prototype._onEndMatchState = function () {
  */
 JuryPresident.prototype._onStartEndInjury = function () {
 	this.emit('startEndInjury');
+};
+
+/**
+ * Enable or disable scoring on the ring.
+ * @param {Object}  data
+ * 		  {Boolean} data.enable - `true` to enable; `false` to disable
+ */
+JuryPresident.prototype._onEnableScoring = function (data) {
+	assert.object(data, 'data');
+	assert.boolean(data.enable, 'data.enable');
+	
+	this.emit('enableScoring', data.enable);
 };
 
 
@@ -278,12 +285,15 @@ JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
 
 /*
  * The state of the match has changed.
+ * @param {Object} config
  * @param {State} state
  */
-JuryPresident.prototype.matchStateChanged = function (state) {
+JuryPresident.prototype.matchStateChanged = function (config, state) {
+	assert.object(config, 'config');
 	assert.provided(state, 'state');
 	//TODO
 	this._send('matchPanel.matchStateChanged', {
+		config: config,
 		state: state
 	});
 	this._send('matchPanel.state', { state: state });

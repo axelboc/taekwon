@@ -11,8 +11,8 @@ var Match = require('./match').Match;
 
 var JP_HANDLER_PREFIX = '_jp';
 var JP_EVENTS = ['addSlot', 'removeSlot', 'authoriseCJ',
-				 'setConfigItem', 'createMatch', 'endMatch', 'enableScoring',
-				 'startMatchState', 'endMatchState', 'startEndInjury',
+				 'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
+				 'startMatchState', 'endMatchState', 'startEndInjury', 'enableScoring',
 				 'connectionStateChanged'];
 
 var CJ_HANDLER_PREFIX = '_cj';
@@ -419,11 +419,41 @@ Ring.prototype._jpCreateMatch = function () {
 /**
  * End the match.
  */
+Ring.prototype._jpContinueMatch = function () {
+	assert.ok(this.match, "ring must have a match");
+	this.match.nextState();
+};
+
+/**
+ * End the match.
+ */
 Ring.prototype._jpEndMatch = function () {
 	assert.ok(this.match, "ring must have a match");
-	assert.ok(this.juryPresident, "ring must have Jury President");
-	
 	this.match.end();
+};
+
+/**
+ * Start the current match state.
+ */
+Ring.prototype._jpStartMatchState = function () {
+	assert.ok(this.match, "ring must have a match");
+	this.match.startState();
+};
+
+/**
+ * End the current match state.
+ */
+Ring.prototype._jpEndMatchState = function () {
+	assert.ok(this.match, "ring must have a match");
+	this.match.endState();
+};
+
+/**
+ * Start or end an injury.
+ */
+Ring.prototype._jpStartEndInjury = function () {
+	assert.ok(this.match, "ring must have a match");
+	this.match.startEndInjury();
 };
 
 /**
@@ -440,33 +470,6 @@ Ring.prototype._jpEnableScoring = function (enable) {
 	this.cornerJudges.forEach(function (cj) {
 		cj.scoringStateChanged(enable);
 	}, this);
-};
-
-/**
- * Start the current match state.
- */
-Ring.prototype._jpStartMatchState = function () {
-	assert.ok(this.match, "ring must have a match");
-	
-	this.match.startState();
-};
-
-/**
- * End the current match state.
- */
-Ring.prototype._jpEndMatchState = function () {
-	assert.ok(this.match, "ring must have a match");
-	
-	this.match.endState();
-};
-
-/**
- * Start or end an injury.
- */
-Ring.prototype._jpStartEndInjury = function () {
-	assert.ok(this.match, "ring must have a match");
-	
-	this.match.startEndInjury();
 };
 
 /**
@@ -553,10 +556,11 @@ Ring.prototype._matchScoresUpdated = function () {
  */
 Ring.prototype._matchStateChanged = function (state) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.ok(this.match, "ring must have a match");
 	assert.object(state, 'state');
 	
 	// Notify Jury President and Corner Judges
-	this.juryPresident.matchStateChanged(state);
+	this.juryPresident.matchStateChanged(this.match.config, state);
 	this.cornerJudges.forEach(function (cj) {
 		cj.scoringStateChanged(state.stateStarted && !state.isBreak && !state.injuryStarted);
 	}, this);
