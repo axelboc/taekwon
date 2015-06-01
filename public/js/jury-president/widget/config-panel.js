@@ -1,11 +1,9 @@
 
 define([
+	'./common/config',
 	'../../common/helpers'
 
-], function (Helpers) {
-	
-	// The number of seconds by which to increase or decrease the time configurations
-	var TIME_INCREMENT = 15;
+], function (config, Helpers) {
 	
 	function ConfigPanel(io) {
 		this.io = io;
@@ -36,7 +34,7 @@ define([
 			item.isBoolean = item.type === 'boolean';
 			
 			if (item.isTime) {
-				item.isDecEnabled = item.isTime && (item.value - TIME_INCREMENT) > 0;
+				item.isDecEnabled = item.isTime && (item.value - config.timeConfigStep) > 0;
 				item.value = this.numToTime(item.value);
 			} else if (item.isBoolean) {
 				item.isFalse = item.value === false;
@@ -73,7 +71,7 @@ define([
 			
 			switch (item.dataset.type) {
 				case 'time':
-					value = TIME_INCREMENT * (btn.classList.contains('cf-dec') ? -1 : 1);
+					value = config.timeConfigStep * (btn.classList.contains('cf-dec') ? -1 : 1);
 					break;
 				case 'boolean':
 					value = !btn.classList.contains('cf-false');
