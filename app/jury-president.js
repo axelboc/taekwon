@@ -7,8 +7,8 @@ var DB = require('./lib/db');
 var User = require('./user').User;
 
 var INBOUND_SPARK_EVENTS = ['selectRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
-							'setConfigItem', 'createMatch', 'endMatch', 'enableScoring',
-						    'startMatchState', 'endMatchState', 'startEndInjury'];
+							'configureMatch', 'setConfigItem', 'createMatch', 'endMatch'
+						    'startMatchState', 'endMatchState', 'startEndInjury', 'enableScoring',];
 
 
 /**
@@ -105,6 +105,14 @@ JuryPresident.prototype._onRemoveCJ = function (data) {
 	assert.string(data.id, 'data.id');
 	
 	this.emit('removeCJ', data.id);
+};
+
+/**
+ * Configure the next match.
+ */
+JuryPresident.prototype._onConfigureMatch = function () {
+	// Simply show the configuration panel
+	this._send('ringView.showPanel', { panel: 'configPanel' });
 };
 
 /**
