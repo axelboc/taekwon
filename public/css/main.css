@@ -210,6 +210,17 @@ h1,
 }
 
 
+/* ===== Login view ===== */
+
+.login-btn {
+	width: 2em;
+	margin-left: .2em;
+	padding: .16em;
+	font-size: 150%;
+	border-radius: 4px;
+}
+
+
 /* ===== Ring List view ===== */
 
 .rl-list {
