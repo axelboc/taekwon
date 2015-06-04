@@ -2,9 +2,9 @@
 define([
 	'minpubsub',
 	'handlebars',
-	'../../common/helpers',
-	'../../common/states',
-	'../widget/timer'
+	'../common/helpers',
+	'../common/states',
+	'./timer'
 
 ], function (PubSub, Handlebars, Helpers, MatchStates, Timer) {
 	

@@ -1,7 +1,7 @@
 
 define([
-	'../../common/helpers',
-	'../../common/competitors'
+	'../common/helpers',
+	'../common/competitors'
 
 ], function (Helpers, Competitors) {
 	

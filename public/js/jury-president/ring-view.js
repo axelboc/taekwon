@@ -1,6 +1,6 @@
 
 define([
-	'../../common/helpers',
+	'../common/helpers',
 	'./judges-sidebar',
 	'./config-panel',
 	'./match-panel',

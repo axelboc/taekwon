@@ -1,7 +1,7 @@
 
 define([
 	'handlebars',
-	'../../common/helpers'
+	'../common/helpers'
 
 ], function (Handlebars, Helpers) {
 	

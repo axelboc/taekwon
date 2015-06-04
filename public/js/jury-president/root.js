@@ -4,7 +4,7 @@ define([
 	'../common/backdrop',
 	'../common/login-view',
 	'../common/ring-list-view',
-	'./widget/ring-view'
+	'./ring-view'
 
 ], function (Helpers, Backdrop, LoginView, RingListView, RingView) {
 	

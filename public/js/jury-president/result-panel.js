@@ -1,8 +1,8 @@
 
 define([
 	'handlebars',
-	'../../common/helpers',
-	'../../common/competitors'
+	'../common/helpers',
+	'../common/competitors'
 	
 ], function (Handlebars, Helpers, Competitor) {
 	

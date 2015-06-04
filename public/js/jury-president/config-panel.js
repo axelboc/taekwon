@@ -1,7 +1,7 @@
 
 define([
-	'../../common/config',
-	'../../common/helpers'
+	'../common/config',
+	'../common/helpers'
 
 ], function (config, Helpers) {
 	

@@ -4,10 +4,9 @@ define([
 	'../common/backdrop',
 	'../common/login-view',
 	'../common/ring-list-view',
-	'./widget/authorisation-view',
-	'./widget/round-view'
+	'./round-view'
 
-], function (Helpers, Backdrop, LoginView, RingListView, AuthorisationView, RoundView) {
+], function (Helpers, Backdrop, LoginView, RingListView, RoundView) {
 	
 	function Root(io) {
 		// Initialise backdrop
@@ -17,7 +16,9 @@ define([
 		this.curentView = null;
 		this.loginView = new LoginView(io);
 		this.ringListView = new RingListView(io);
-		this.authorisationView = new AuthorisationView(io);
+		this.authorisationView = {
+			root: document.getElementById('authorisation')
+		};
 		this.roundView = new RoundView(io);
 		
 		// Subscribe to inbound IO events
