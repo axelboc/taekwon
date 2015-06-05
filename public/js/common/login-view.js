@@ -10,7 +10,9 @@ define([
 		
 		this.instr = this.root.querySelector('.login-instr');
 		this.field = this.root.querySelector('.login-field');
+		this.btn = this.root.querySelector('.login-btn');
 		this.field.addEventListener('keypress', this.onField.bind(this));
+		this.btn.addEventListener('click', this.sendIdentification.bind(this));
 		
 		// Cancel form submission
 		this.root.querySelector('.login-form').addEventListener('submit', function (evt) {
@@ -25,6 +27,13 @@ define([
 			'shakeResetField'
 		], this);
 	}
+	
+	LoginView.prototype.sendIdentification = function sendIdentification() {
+		this.io.send('identification', {
+			identity: this.io.identity,
+			value: this.field.value
+		});
+	};
 	
 	
 	/* ==================================================
@@ -48,8 +57,9 @@ define([
 	};
 
 	LoginView.prototype.shakeResetField = function shakeResetField() {
-		// Reset and shake field
+		// Reset, focus and shake field
 		this.field.value = "";
+		this.field.focus();
 		Helpers.shake(this.field);
 	};
 	
@@ -57,14 +67,11 @@ define([
 	/* ==================================================
 	 * UI events
 	 * ================================================== */
-
+	
 	LoginView.prototype.onField = function onField(evt) {
-		// If Enter key was pressed...
+		// If Enter key was pressed, send identification
 		if (evt.which === 13 || evt.keyCode === 13) {
-			this.io.send('identification', {
-				identity: this.io.identity,
-				value: this.field.value
-			});
+			this.sendIdentification();
 		}
 	};
 	
