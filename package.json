@@ -26,7 +26,8 @@
     "assert-dotenv": "~2.0.0",
     "connect-nedb-session": "0.0.3",
     "nedb-logger": "~0.1.0",
-    "async": "~0.9.0"
+    "async": "~0.9.0",
+    "javascript-state-machine": "~2.3.5"
   },
   "devDependencies": {
     "chai": "~1.9.2",

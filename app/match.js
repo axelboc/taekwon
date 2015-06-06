@@ -1,11 +1,15 @@
 
-// Modules
+// Dependencies
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('match');
 var util = require('./lib/util');
 var DB = require('./lib/db');
+
 var EventEmitter = require('events').EventEmitter;
-var States = require('./enum/states');
+var StateMachine = require('javascript-state-machine');
+
+var States = require('./enum/match-states');
+var Rounds = require('./enum/match-rounds');
 var Competitors = require('./enum/competitors');
 
 
@@ -20,13 +24,47 @@ function Match(id, config) {
 	this.id = id;
 	this.config = config;
 	
-	this.state = null;
-	this.states = [States.ROUND_1];
-	this.stateIndex = -1;
-
-	this.stateStarted = false;
-	this.injuryStarted = false;
-	this.latestEvent = null;
+	this.state = StateMachine.create({
+		initial: States.MATCH_IDLE,
+		events: [
+			{ name: 'begin', from: States.MATCH_IDLE, to: States.ROUND_IDLE },
+			{ name: 'startRound', from: States.ROUND_IDLE, to: States.ROUND_STARTED },
+			{ name: 'startInjury', from: States.ROUND_STARTED, to: States.INJURY },
+			{ name: 'endInjury', from: States.INJURY, to: States.ROUND_STARTED },
+			{ name: 'endRound', from: States.ROUND_STARTED, to: States.ROUND_ENDED },
+			{ name: 'break', from: States.ROUND_ENDED, to: States.BREAK_IDLE },
+			{ name: 'startBreak', from: States.BREAK_IDLE, to: States.BREAK_STARTED },
+			{ name: 'endBreak', from: States.BREAK_STARTED, to: States.BREAK_ENDED },
+			{ name: 'nextRound', from: States.BREAK_ENDED, to: States.ROUND_IDLE },
+			{ name: 'assess', from: States.ROUND_ENDED, to: States.RESULTS },
+			{ name: 'continue', from: States.RESULTS, to: States.BREAK_IDLE },
+			{ name: 'end', from: States.RESULTS, to: States.MATCH_ENDED }
+		]
+	});
+	
+	// Build round state machine based on number of rounds
+	var roundTransitions = [
+		{ name: 'next', from: Rounds.NONE, to: Rounds.ROUND_1 },
+		{ name: 'next', from: Rounds.ROUND_1, to: config.twoRounds ? Rounds.ROUND_2 : Rounds.TIE_BREAKER },
+		{ name: 'next', from: Rounds.ROUND_2, to: Rounds.TIE_BREAKER },
+		{ name: 'next', from: Rounds.TIE_BREAKER, to: Rounds.GOLDEN_POINT }
+	];
+	
+	if (!config.twoRounds) {
+		roundTransitions.splice(2, 1);
+	}
+	
+	this.round = StateMachine.create({
+		initial: Rounds.NONE,
+		events: roundTransitions
+	});
+	
+//	this.state = null;
+//	this.states = [States.ROUND_1];
+//	this.stateIndex = -1;
+//	this.stateStarted = false;
+//	this.injuryStarted = false;
+//	this.latestEvent = null;
 	
 	this.winner = null;
 	
@@ -65,12 +103,13 @@ util.inherits(Match, EventEmitter);
  * @return {Object}
  */
 Match.prototype.getState = function () {
+	var currentState = this.state.current;
 	return {
-		state: this.state,
-		isBreak: this.state === States.BREAK,
-		stateStarted: this.stateStarted,
-		injuryStarted: this.injuryStarted,
-		latestEvent: this.latestEvent
+		state: currentState,
+		round: this.round.current,
+		isBreak: States.BREAK_REGEX.test(currentState),
+		stateStarted: States.STARTED_REGEX.test(currentState),
+		injuryStarted: currentState === States.INJURY
 	};
 };
 
