@@ -1,4 +1,7 @@
 
+// Logger
+var logger = require('./log')('assert');
+
 // Import Node's core `assert` module, then extend it.
 var assert = require('assert');
 
@@ -7,15 +10,20 @@ var assert = require('assert');
 var _ok = assert.ok;
 
 /**
- * Monkey patch.
- * In development only, assert that a value is truthy.
+ * Monkey patch `assert.ok` method.
  * @param {Mixed} val
  * @param {String} message
  */
 assert.ok = function (val, message) {
-	if (process.env.NODE_ENV === 'development') {
-		_ok(val, message);
-	}
+	if (!val) {
+		// Log error
+		logger.error(message);
+		
+		// Forward to original `assert.ok` method in development
+		if (process.env.NODE_ENV === 'development') {
+			_ok(val, message);
+		}
+	}	
 };
 
 /**

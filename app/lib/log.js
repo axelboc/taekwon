@@ -1,6 +1,6 @@
 
 // Modules
-var assert = require('./assert');
+var assert = require('assert');
 var Logger = require('nedb-logger');
 
 
@@ -41,8 +41,8 @@ consoleFuncs[LOG_LEVELS.DEBUG] = console.log;
  * @param {Object} data - optional data to store with the log entry
  */
 function log(topic, level, message, data) {
-	assert.string(message, 'message');
-	assert.ok(typeof data === 'undefined' || typeof data === 'object', 
+	assert(typeof message === 'string', 'message');
+	assert(typeof data === 'undefined' || typeof data === 'object', 
 		   "if `data` is provided, it must be an object");
 	
 	// When in development, print debug and error messages to the console 
