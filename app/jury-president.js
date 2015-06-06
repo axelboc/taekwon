@@ -6,9 +6,11 @@ var util = require('util');
 var DB = require('./lib/db');
 var User = require('./user').User;
 
-var INBOUND_SPARK_EVENTS = ['selectRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
-							'configureMatch', 'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
-						    'startMatchState', 'endMatchState', 'startEndInjury', 'enableScoring'];
+var INBOUND_SPARK_EVENTS = [
+	'selectRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
+	'configureMatch', 'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
+	'startRound', 'endRound', 'startBreak', 'endBreak', 'startEndInjury', 'enableScoring'
+];
 
 
 /**
@@ -39,9 +41,8 @@ JuryPresident.prototype.initSpark = function (spark) {
 
 
 /* ==================================================
- * Inbound spark events:
- * - assert spark event data
- * - propagate to Tournament and Ring via events
+ * Custom handlers for inbound spark events.
+ * (By default, such events are forwarded with EventEmitter.)
  * ================================================== */
 
 /**
@@ -57,129 +58,11 @@ JuryPresident.prototype._onSelectRing = function (data) {
 };
 
 /**
- * Add a Corner Judge slot.
- */
-JuryPresident.prototype._onAddSlot = function () {
-	this.emit('addSlot');
-};
-
-/**
- * Remove a Corner Judge slot.
- */
-JuryPresident.prototype._onRemoveSlot = function () {
-	this.emit('removeSlot');
-};
-
-/**
- * Authorise a Corner Judge's request to join the ring.
- * @param {Object} data
- * 		  {String} data.id - the ID of the Corner Judge to authorise
- */
-JuryPresident.prototype._onAuthoriseCJ = function (data) {
-	assert.object(data, 'data');
-	assert.string(data.id, 'data.id');
-	
-	this.emit('authoriseCJ', data.id);
-	logger.debug("> Corner Judge authorised");
-};
-
-/**
- * Reject a Corner Judge's request to join the ring.
- * @param {Object} data
- * 		  {String} data.id - the ID of the Corner Judge to reject
- */
-JuryPresident.prototype._onRejectCJ = function (data) {
-	assert.object(data, 'data');
-	assert.string(data.id, 'data.id');
-	
-	this.emit('rejectCJ', data.id);
-};
-
-/**
- * Remove a Corner Judge from the ring.
- * @param {Object} data
- * 		  {String} data.id - the ID of the Corner Judge to remove
- */
-JuryPresident.prototype._onRemoveCJ = function (data) {
-	assert.object(data, 'data');
-	assert.string(data.id, 'data.id');
-	
-	this.emit('removeCJ', data.id);
-};
-
-/**
  * Configure the next match.
  */
 JuryPresident.prototype._onConfigureMatch = function () {
 	// Simply show the configuration panel
 	this._send('ringView.showPanel', { panel: 'configPanel' });
-};
-
-/**
- * Set the value of a match configuration item.
- * @param {Object} data
- * 		  {String} data.name - the name of the configuration item
- * 		  {Any} data.value - the new value
- */
-JuryPresident.prototype._onSetConfigItem = function (data) {
-	assert.object(data, 'data');
-	assert.string(data.name, 'data.name');
-	
-	this.emit('setConfigItem', data.name, data.value);
-};
-
-/**
- * Create a new match.
- */
-JuryPresident.prototype._onCreateMatch = function () {
-	this.emit('createMatch');
-};
-
-/**
- * Continue to the next round of the match.
- */
-JuryPresident.prototype._onContinueMatch = function () {
-	this.emit('continueMatch');
-};
-
-/**
- * End the match.
- */
-JuryPresident.prototype._onEndMatch = function () {
-	this.emit('endMatch');
-};
-
-/**
- * Start the current match state.
- */
-JuryPresident.prototype._onStartMatchState = function () {
-	this.emit('startMatchState');
-};
-
-/**
- * End the current match state.
- */
-JuryPresident.prototype._onEndMatchState = function () {
-	this.emit('endMatchState');
-};
-
-/**
- * Start or end an injury.
- */
-JuryPresident.prototype._onStartEndInjury = function () {
-	this.emit('startEndInjury');
-};
-
-/**
- * Enable or disable scoring on the ring.
- * @param {Object}  data
- * 		  {Boolean} data.enable - `true` to enable; `false` to disable
- */
-JuryPresident.prototype._onEnableScoring = function (data) {
-	assert.object(data, 'data');
-	assert.boolean(data.enable, 'data.enable');
-	
-	this.emit('enableScoring', data.enable);
 };
 
 

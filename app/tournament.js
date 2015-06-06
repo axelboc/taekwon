@@ -421,12 +421,14 @@ Tournament.prototype._jpOpenRing = function (jp, ringIndex) {
 
 /**
  * A Corner Judge's request to join the ring has been rejected by the Jury President.
- * @param {String} id - the ID of the Corner Judge who has been rejected
+ * @param {Object} data
+ * 		  {String} data.id - the ID of the Corner Judge to reject
  */
-Tournament.prototype._jpRejectCJ = function (id) {
-	assert.string(id, 'id');
+Tournament.prototype._jpRejectCJ = function (data) {
+	assert.object(data, 'data');
+	assert.string(data.id, 'data.id');
 	
-	var cj = this.users[id];
+	var cj = this.users[data.id];
 	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 	assert.ok(cj.ring, "Corner Judge not in a ring");
 	
@@ -436,12 +438,14 @@ Tournament.prototype._jpRejectCJ = function (id) {
 
 /**
  * A Corner Judge has been removed from the ring by the Jury President.
- * @param {String} id - the ID of the Corner Judge who has been removed
+ * @param {Object} data
+ * 		  {String} data.id - the ID of the Corner Judge to remove
  */
-Tournament.prototype._jpRemoveCJ = function (id) {
-	assert.string(id, 'id');
+Tournament.prototype._jpRemoveCJ = function (data) {
+	assert.object(data, 'data');
+	assert.string(data.id, 'data.id');
 	
-	var cj = this.users[id];
+	var cj = this.users[data.id];
 	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 	assert.ok(cj.ring, "Corner Judge not in a ring");
 	

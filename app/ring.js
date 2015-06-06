@@ -12,7 +12,7 @@ var Match = require('./match').Match;
 var JP_HANDLER_PREFIX = '_jp';
 var JP_EVENTS = ['addSlot', 'removeSlot', 'authoriseCJ',
 				 'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
-				 'startMatchState', 'endMatchState', 'startEndInjury', 'enableScoring',
+				 'startRound', 'endRound', 'startBreak', 'endBreak', 'startEndInjury', 'enableScoring',
 				 'connectionStateChanged'];
 
 var CJ_HANDLER_PREFIX = '_cj';
@@ -278,7 +278,8 @@ Ring.prototype._initMatch = function (doc, cb) {
 	this.match = new Match(doc._id, doc.config);
 	util.addEventListeners(this, this.match, MATCH_EVENTS, MATCH_HANDLER_PREFIX);
 	
-	this.match.nextState();
+	// Begin the match
+	this.match.state.begin();
 };
 
 /**
@@ -340,15 +341,19 @@ Ring.prototype._jpRemoveSlot = function () {
 
 /**
  * A Corner Judge's request to join the ring has been authorised by the Jury President.
- * @param {String} id - the ID of the Corner Judge who has been authorised
+ * @param {Object} data
+ * 		  {String} data.id - the ID of the Corner Judge to authorise
  */
-Ring.prototype._jpAuthoriseCJ = function (id) {
-	assert.string(id, 'id');
+Ring.prototype._jpAuthoriseCJ = function (data) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
-	var cj = this._getCornerJudgeById(id);
+	assert.object(data, 'data');
+	assert.string(data.id, 'data.id');
+	
+	// Retrieve Corner Judge with ID
+	var cj = this._getCornerJudgeById(data.id);
 	
 	// Update the database
-	DB.setCJAuthorised(id, true, function () {
+	DB.setCJAuthorised(data.id, true, function () {
 		// Acknowledge
 		cj.ringJoined();
 		this.juryPresident.slotsUpdated(this.getSlots(), this.match ? this.getScoreSlots() : null);
@@ -357,12 +362,17 @@ Ring.prototype._jpAuthoriseCJ = function (id) {
 
 /**
  * Set the value of a configuration item.
- * @param {String} name - the name of the configuration item
- * @param {Any} value - the new value (type depends on type of config item)
+ * @param {Object} data
+ * 		  {String} data.name - the name of the configuration item
+ * 		  {Any} data.value - the new value
  */
-Ring.prototype._jpSetConfigItem = function (name, value) {
-	assert.string(name, 'name');
+Ring.prototype._jpSetConfigItem = function (data) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.object(data, 'data');
+	
+	var name = data.name;
+	var value = data.value;
+	assert.string(name, 'data.name');
 	
 	var item = this.matchConfig[name];
 	assert.object(item, "configuration item not found");
@@ -417,11 +427,11 @@ Ring.prototype._jpCreateMatch = function () {
 };
 
 /**
- * End the match.
+ * Continue the match.
  */
 Ring.prototype._jpContinueMatch = function () {
 	assert.ok(this.match, "ring must have a match");
-	this.match.nextState();
+	this.match.state.continue();
 };
 
 /**
@@ -429,7 +439,7 @@ Ring.prototype._jpContinueMatch = function () {
  */
 Ring.prototype._jpEndMatch = function () {
 	assert.ok(this.match, "ring must have a match");
-	this.match.end();
+	this.match.state.end();
 };
 
 /**
@@ -437,7 +447,7 @@ Ring.prototype._jpEndMatch = function () {
  */
 Ring.prototype._jpStartMatchState = function () {
 	assert.ok(this.match, "ring must have a match");
-	this.match.startState();
+	this.match.state.startState();
 };
 
 /**
@@ -458,11 +468,15 @@ Ring.prototype._jpStartEndInjury = function () {
 
 /**
  * Enable/disable scoring.
- * @param {Boolean} enable - `true` to enable; `false` to disable
+ * @param {Object}  data
+ * 		  {Boolean} data.enable - `true` to enable; `false` to disable
  */
-Ring.prototype._jpEnableScoring = function (enable) {
-	assert.boolean(enable, 'enable');
+Ring.prototype._jpEnableScoring = function (data) {
 	assert.array(this.cornerJudges, 'cornerJudges');
+	assert.object(data, 'data');
+	
+	var enable = data.enable;
+	assert.boolean(enable, 'data.enable');
 
 	this.scoringEnabled = enable;
 

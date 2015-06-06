@@ -33,6 +33,7 @@ util.inherits(User, EventEmitter);
 
 /**
  * Register event handlers on the spark.
+ * If a handler is not provided, simply forward the spark event with EvenEmitter.
  * @param {Spark} spark
  * @param {Array} events
  */
@@ -45,7 +46,11 @@ User.prototype.initSpark = function (spark, events) {
 
 	// Loop through the events and register their handlers
 	events.forEach(function (evt) {
-		this.spark.on(evt, this[SPARK_HANDLER_PREFIX + evt.charAt(0).toUpperCase() + evt.slice(1)].bind(this));
+		// Look for a handler
+		var handler = this[SPARK_HANDLER_PREFIX + evt.charAt(0).toUpperCase() + evt.slice(1)];
+		
+		// Use the handler if found or register EventEmitter's emit method
+		this.spark.on(evt, handler ? handler.bind(this) : this.emit.bind(this, evt));
 	}, this);
 	
 	// Mark user as connected
