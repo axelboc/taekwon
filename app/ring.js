@@ -82,8 +82,14 @@ Ring.prototype.getSlots = function (customFunc) {
 	return slots;
 };
 
+/**
+ * Return and array of objects representing the ring's score slots.
+ * @return {Array}
+ */
 Ring.prototype.getScoreSlots = function () {
-	assert.ok(this.match, "ring must have a match");
+	if (!this.match) {
+		return null;
+	}
 	
 	return this.getSlots(function (cj) {
 		assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
@@ -215,7 +221,7 @@ Ring.prototype.addCJ = function (cj) {
 		this.emit('cjAdded');
 
 		// Request authorisation from Jury President
-		this.juryPresident.slotsUpdated(this.getSlots(), this.match ? this.getScoreSlots() : null);
+		this.juryPresident.slotsUpdated(this.getSlots(), this.getScoreSlots());
 		// Acknowledge
 		cj.waitingForAuthorisation(this);
 
@@ -250,7 +256,7 @@ Ring.prototype.removeCJ = function (cj, message, ringStates) {
 			this.emit('cjRemoved');
 
 			// Acknowledge
-			this.juryPresident.slotsUpdated(this.getSlots(), this.match ? this.getScoreSlots() : null);
+			this.juryPresident.slotsUpdated(this.getSlots(), this.getScoreSlots());
 			if (!cj.authorised) {
 				cj.rejected(message, ringStates);
 			} else {
@@ -314,7 +320,7 @@ Ring.prototype._jpAddSlot = function () {
 	// Update the database
 	DB.setRingSlotCount(this.id, this.slotCount + 1, function () {
 		this.slotCount += 1;
-		this.juryPresident.slotsUpdated(this.getSlots(), this.match ? this.getScoreSlots() : null);
+		this.juryPresident.slotsUpdated(this.getSlots(), this.getScoreSlots());
 	}.bind(this));
 };
 
@@ -334,7 +340,7 @@ Ring.prototype._jpRemoveSlot = function () {
 		// Update the database
 		DB.setRingSlotCount(this.id, this.slotCount - 1, function () {
 			this.slotCount -= 1;
-			this.juryPresident.slotsUpdated(this.getSlots(), this.match ? this.getScoreSlots() : null);
+			this.juryPresident.slotsUpdated(this.getSlots(), this.getScoreSlots());
 		}.bind(this));
 	}
 };
@@ -356,7 +362,7 @@ Ring.prototype._jpAuthoriseCJ = function (data) {
 	DB.setCJAuthorised(data.id, true, function () {
 		// Acknowledge
 		cj.ringJoined();
-		this.juryPresident.slotsUpdated(this.getSlots(), this.match ? this.getScoreSlots() : null);
+		this.juryPresident.slotsUpdated(this.getSlots(), this.getScoreSlots());
 	}.bind(this));
 };
 
