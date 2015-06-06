@@ -12,7 +12,7 @@ define(['./helpers'], function (Helpers) {
 	Backdrop.prototype.update = function update(data) {
 		this.text.textContent = data.text;
 		this.subtext.textContent = data.subtext;
-		this.root.classList.toggle('hidden', data.visible);
+		this.root.classList.toggle('hidden', !data.visible);
 	};
 		
 	return Backdrop;

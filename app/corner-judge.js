@@ -69,16 +69,16 @@ CornerJudge.prototype._getBackdropState = function (scoringEnabled, jpConnected)
 	var text = '';
 	var subtext = '';
 	
-	if (!this.isJPConnected) {
+	if (!jpConnected) {
 		text = "Jury President disconnected";
 		subtext = "Waiting for reconnection...";
-	} else if (!this.isScoringEnabled) {
+	} else if (!scoringEnabled) {
 		text = "Please wait for round to begin";
 		subtext = "... or timeout to end";
 	}
 	
 	return {
-		visible: !this.isJPConnected || !this.isScoringEnabled,
+		visible: !jpConnected || !scoringEnabled,
 		text: text,
 		subtext: subtext
 	};
