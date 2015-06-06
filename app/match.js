@@ -24,25 +24,33 @@ function Match(id, config) {
 	this.id = id;
 	this.config = config;
 	
+	// Create match state machine
 	this.state = StateMachine.create({
 		initial: States.MATCH_IDLE,
 		events: [
 			{ name: 'begin', from: States.MATCH_IDLE, to: States.ROUND_IDLE },
-			{ name: 'startRound', from: States.ROUND_IDLE, to: States.ROUND_STARTED },
-			{ name: 'startInjury', from: States.ROUND_STARTED, to: States.INJURY },
-			{ name: 'endInjury', from: States.INJURY, to: States.ROUND_STARTED },
-			{ name: 'endRound', from: States.ROUND_STARTED, to: States.ROUND_ENDED },
-			{ name: 'break', from: States.ROUND_ENDED, to: States.BREAK_IDLE },
-			{ name: 'startBreak', from: States.BREAK_IDLE, to: States.BREAK_STARTED },
-			{ name: 'endBreak', from: States.BREAK_STARTED, to: States.BREAK_ENDED },
+			{ name: 'startState', from: States.ROUND_IDLE, to: States.ROUND_STARTED },
+			{ name: 'startState', from: States.BREAK_IDLE, to: States.BREAK_STARTED },
+			{ name: 'endState', from: States.ROUND_STARTED, to: States.ROUND_ENDED },
+			{ name: 'endState', from: States.BREAK_STARTED, to: States.BREAK_ENDED },
+			{ name: 'startEndInjury', from: States.ROUND_STARTED, to: States.INJURY },
+			{ name: 'startEndInjury', from: States.INJURY, to: States.ROUND_STARTED },
 			{ name: 'nextRound', from: States.BREAK_ENDED, to: States.ROUND_IDLE },
-			{ name: 'assess', from: States.ROUND_ENDED, to: States.RESULTS },
-			{ name: 'continue', from: States.RESULTS, to: States.BREAK_IDLE },
+			{ name: 'break', from: [States.ROUND_ENDED, States.RESULTS], to: States.BREAK_IDLE },
+			{ name: 'results', from: States.ROUND_ENDED, to: States.RESULTS },
 			{ name: 'end', from: States.RESULTS, to: States.MATCH_ENDED }
 		]
 	});
 	
-	// Build round state machine based on number of rounds
+	// Add callbacks
+	this.state.onleavestate = this._onLeaveState.bind(this);
+	this.state.onbegin = this._onBegin.bind(this);
+	this.state['on' + States.ROUND_IDLE] = this._onRoundIdle.bind(this);
+	this.state['on' + States.ROUND_ENDED] = this._onRoundEnded.bind(this);
+	this.state['on' + States.BREAK_ENDED] = this._onBreakEnded.bind(this);
+	this.state['on' + States.MATCH_ENDED] = this._onMatchEnded.bind(this);
+	
+	// Prepare round state machine transitions based on number of rounds
 	var roundTransitions = [
 		{ name: 'next', from: Rounds.NONE, to: Rounds.ROUND_1 },
 		{ name: 'next', from: Rounds.ROUND_1, to: config.twoRounds ? Rounds.ROUND_2 : Rounds.TIE_BREAKER },
@@ -54,19 +62,11 @@ function Match(id, config) {
 		roundTransitions.splice(2, 1);
 	}
 	
+	// Create round state machine
 	this.round = StateMachine.create({
 		initial: Rounds.NONE,
 		events: roundTransitions
 	});
-	
-//	this.state = null;
-//	this.states = [States.ROUND_1];
-//	this.stateIndex = -1;
-//	this.stateStarted = false;
-//	this.injuryStarted = false;
-//	this.latestEvent = null;
-	
-	this.winner = null;
 	
 	/**
 	 * Columns in the scoreboards and penalties array.
@@ -92,6 +92,11 @@ function Match(id, config) {
 	 * Total maluses are stored against 'total' columns (as negative integers).
 	 */
 	this.penalties = {};
+	
+	/**
+	 * The winner of the match.
+	 */
+	this.winner = null;
 }
 
 // Inherit EventEmitter
@@ -100,10 +105,11 @@ util.inherits(Match, EventEmitter);
 
 /**
  * Get the state of the match.
+ * @param {String} state (optional) - use instead of current state
  * @return {Object}
  */
-Match.prototype.getState = function () {
-	var currentState = this.state.current;
+Match.prototype.getState = function (state) {
+	var currentState = state || this.state.current;
 	return {
 		state: currentState,
 		round: this.round.current,
@@ -111,6 +117,87 @@ Match.prototype.getState = function () {
 		stateStarted: States.STARTED_REGEX.test(currentState),
 		injuryStarted: currentState === States.INJURY
 	};
+};
+
+Match.prototype._onLeaveState = function (event, from, to) {
+	logger.debug('event: ' + event + ', from: ' + from + ', to: ' + to);
+	
+	// Update database
+	var state = this.getState(to);
+	DB.setMatchState(this.id, state, function () {
+		// Transition state machine
+		this.state.transition();
+		
+		// Emit event
+		this.emit('stateChanged', state);
+	}.bind(this));
+	
+	// Pause state machine until database call has completed
+	return StateMachine.ASYNC;
+};
+
+Match.prototype._onBegin = function () {
+	this.emit('began');
+};
+
+/**
+ * A round is about to start.
+ */
+Match.prototype._onRoundIdle = function () {
+	if (!this.round.is(Rounds.ROUND_2)) {
+		// Unless round 2, prepare the next column of the judges' scoreboards
+		this.scoreboardColumnId = this.round.is(Rounds.ROUND_1) ? 'main' : this.state.current;
+		this.scoreboardColumns.push(this.scoreboardColumnId);
+
+		// Initialise penalty objects for new state
+		this.penalties[this.scoreboardColumnId] = {
+			warnings: {
+				hong: 0,
+				chong: 0
+			},
+			fouls: {
+				hong: 0,
+				chong: 0
+			}
+		};
+
+		this.emit('scoresUpdated');
+		this.emit('penaltiesReset');
+	}
+};
+
+/**
+ * A round has ended.
+ */
+Match.prototype._onRoundEnded = function () {
+	if (this.round.is(Rounds.ROUND_1) && this.config.twoRounds) {
+		// If round 1 and match is to have two rounds, trigger a break
+		this.state.break();
+	} else {
+		// Otherwise, compute results
+		this._computeResults();
+		this.state.results();
+	}
+};
+
+/**
+ * A break has ended.
+ */
+Match.prototype._onBreakEnded = function () {
+	// Always continue to the next round after a break
+	this.state.nextRound();
+	this.round.next();
+};
+
+/**
+ * The match has ended.
+ */
+Match.prototype._onMatchEnded = function () {
+	this.emit('ended');
+
+	logger.info('ended', {
+		id: this.id
+	});
 };
 
 /**
@@ -157,38 +244,6 @@ Match.prototype.getPenalties = function () {
 	return this.penalties[this.scoreboardColumnId];
 };
 
-Match.prototype.isInProgress = function () {
-	return this.state !== null && (this.stateStarted || this.stateIndex > 0);
-};
-
-Match.prototype.startState = function () {
-	assert.ok(this.state, "invalid match state")
-
-	if (!this.stateStarted) {
-		this.stateStarted = true;
-		this.latestEvent = States.events.STARTED;
-		this.emit('stateChanged', this.getState());
-	}
-};
-
-Match.prototype.endState = function () {
-	assert.ok(this.state, "invalid match state")
-	
-	if (this.stateStarted) {
-		this.stateStarted = false;
-		this.latestEvent = States.events.ENDED;
-		this.emit('stateChanged', this.getState());
-		
-		this.nextState();
-	}
-};
-
-Match.prototype.startEndInjury = function () {
-	this.injuryStarted = !this.injuryStarted;
-	this.latestEvent = this.injuryStarted ? States.events.INJURY_STARTED : States.events.INJURY_ENDED;
-	this.emit('stateChanged', this.getState());
-};
-
 Match.prototype.incrementPenalty = function (type, competitor) {
 	this.penalties[this.scoreboardColumnId][type][competitor === Competitors.HONG ? 0 : 1] += 1;
 };
@@ -212,72 +267,10 @@ Match.prototype.score = function (cjId, cjName, score) {
 	this.emit('scoresUpdated');
 };
 
-Match.prototype.nextState = function () {
-	// If no more states in array, add more if appropriate or end match
-	if (this.stateIndex === this.states.length - 1) {
-		if (this.state === States.ROUND_1 && this.config.twoRounds) {
-			// Add Break and Round 2 states
-			this.states.push(States.BREAK, States.ROUND_2);
-		} else {
-			// Compute the result for the last round(s)
-			this._computeResult();
-			var isTie = this.winner === null;
-
-			if (this.state !== States.GOLDEN_POINT && isTie) {
-				var tbOrNull = this.config.tieBreaker ? States.TIE_BREAKER : null;
-				var gpOrNull = this.config.goldenPoint ? States.GOLDEN_POINT : null;
-				var eitherOrNull = tbOrNull ? tbOrNull : gpOrNull;
-
-				var extraRound = this.state === States.TIE_BREAKER ? gpOrNull : eitherOrNull;
-				if (extraRound) {
-					this.states.push(States.BREAK, extraRound);
-				} else {
-					this.end();
-					return;
-				}
-			} else {
-				this.end();
-				return;
-			}
-		}
-	}
-
-	this.stateIndex += 1;
-	this.state = this.states[this.stateIndex];
-	this.latestEvent = States.events.NEXT;
-
-	if (this.state !== States.BREAK && this.state !== States.ROUND_2) {
-		// Prepare the next column for the judges' scoreboards
-		this.scoreboardColumnId = this.state === States.ROUND_1 ? 'main' : this.state;
-		this.scoreboardColumns.push(this.scoreboardColumnId);
-
-		// Initialise penalty objects for new state
-		this.penalties[this.scoreboardColumnId] = {
-			warnings: {
-				hong: 0,
-				chong: 0
-			},
-			fouls: {
-				hong: 0,
-				chong: 0
-			}
-		};
-		
-		this.emit('scoresUpdated');
-		this.emit('penaltiesReset', this.state);
-	}
-
-	// Update database
-	var state = this.getState();
-	DB.setMatchState(this.id, state, function () {
-		this.emit('stateChanged', state);
-	}.bind(this));
-};
-
 /**
  * Compute the winner, maluses and total scores for the last round(s).
  */
-Match.prototype._computeResult = function () {
+Match.prototype._computeResults = function () {
 	this.winner = this._computeWinner(this._computeTotals());
 	this.emit('resultsComputed', this.winner);
 };
@@ -353,21 +346,5 @@ Match.prototype._computeWinner = function (totalColumnId) {
 		return (diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null));
 	}
 };
-
-/**
- * End the match.
- */
-Match.prototype.end = function () {
-	// Update the database
-	DB.setMatchEnded(this.id, true, function () {
-		this.state = null;
-		this.emit('ended');
-		
-		logger.info('ended', {
-			id: this.id
-		});
-	}.bind(this));
-};
-
 
 exports.Match = Match;

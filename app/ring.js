@@ -12,14 +12,14 @@ var Match = require('./match').Match;
 var JP_HANDLER_PREFIX = '_jp';
 var JP_EVENTS = ['addSlot', 'removeSlot', 'authoriseCJ',
 				 'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
-				 'startRound', 'endRound', 'startBreak', 'endBreak', 'startEndInjury', 'enableScoring',
+				 'startMatchState', 'endMatchState', 'startEndInjury', 'enableScoring',
 				 'connectionStateChanged'];
 
 var CJ_HANDLER_PREFIX = '_cj';
 var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged'];
 
 var MATCH_HANDLER_PREFIX = '_match';
-var MATCH_EVENTS = ['scoresUpdated', 'stateChanged', 'resultsComputed', 'ended'];
+var MATCH_EVENTS = ['began', 'scoresUpdated', 'stateChanged', 'resultsComputed', 'ended'];
 
 
 /**
@@ -423,11 +423,6 @@ Ring.prototype._jpCreateMatch = function () {
 			// Initialise the match
 			this._initMatch(newDoc);
 			assert.instanceOf(this.match, 'match', Match, 'Match');
-			
-			// Acknowledge
-			// TODO: fix restoration of scoringEnabled state
-			this.juryPresident.matchCreated(this.match.config, this.getScoreSlots(), false,
-											this.match.getPenalties());
 		}
 	}.bind(this));
 };
@@ -437,7 +432,7 @@ Ring.prototype._jpCreateMatch = function () {
  */
 Ring.prototype._jpContinueMatch = function () {
 	assert.ok(this.match, "ring must have a match");
-	this.match.state.continue();
+	this.match.state.break();
 };
 
 /**
@@ -461,7 +456,7 @@ Ring.prototype._jpStartMatchState = function () {
  */
 Ring.prototype._jpEndMatchState = function () {
 	assert.ok(this.match, "ring must have a match");
-	this.match.endState();
+	this.match.state.endState();
 };
 
 /**
@@ -469,7 +464,7 @@ Ring.prototype._jpEndMatchState = function () {
  */
 Ring.prototype._jpStartEndInjury = function () {
 	assert.ok(this.match, "ring must have a match");
-	this.match.startEndInjury();
+	this.match.state.startEndInjury();
 };
 
 /**
@@ -561,6 +556,15 @@ Ring.prototype._cjConnectionStateChanged = function (cj) {
  * Match events
  * ==================================================
  */
+
+/**
+ * The match has begun.
+ */
+Ring.prototype._matchBegan = function () {
+	// Notify Jury President
+	this.juryPresident.matchBegan(this.match.config, this.getScoreSlots(), false,
+								  this.match.getPenalties());
+};
 
 /**
  * The match's scores have been updated.

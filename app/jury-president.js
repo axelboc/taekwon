@@ -9,7 +9,7 @@ var User = require('./user').User;
 var INBOUND_SPARK_EVENTS = [
 	'selectRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
 	'configureMatch', 'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
-	'startRound', 'endRound', 'startBreak', 'endBreak', 'startEndInjury', 'enableScoring'
+	'startMatchState', 'endMatchState', 'startEndInjury', 'enableScoring'
 ];
 
 
@@ -117,10 +117,7 @@ JuryPresident.prototype.slotsUpdated = function (slots, scoreSlots) {
  */
 JuryPresident.prototype.slotNotRemoved = function (reason) {
 	assert.string(reason, 'reason');
-	
-	this._send('io.alert', {
-		reason: reason
-	});
+	this._send('io.alert', { reason: reason });
 };
 
 /**
@@ -135,13 +132,13 @@ JuryPresident.prototype.configItemSet = function (matchConfig) {
 };
 
 /**
- * A new match has been created.
+ * A new match has begun.
  * @param {Object} config
  * @param {Object} scoreSlots
  * @param {Boolean} scoringEnabled
  * @param {Object} penalties
  */
-JuryPresident.prototype.matchCreated = function (config, scoreSlots, scoringEnabled, penalties) {
+JuryPresident.prototype.matchBegan = function (config, scoreSlots, scoringEnabled, penalties) {
 	assert.object(config, 'config');
 	assert.object(scoreSlots, 'scoreSlots');
 	assert.boolean(scoringEnabled, 'scoringEnabled');

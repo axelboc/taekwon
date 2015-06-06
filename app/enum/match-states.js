@@ -5,17 +5,17 @@
  * @type {Object}
  */
 module.exports = {
-	MATCH_IDLE: 'match-idle',
-	MATCH_ENDED: 'match-ended',
-	ROUND_IDLE: 'round-idle',
-	ROUND_STARTED: 'round-started',
-	ROUND_ENDED: 'round-ended',
-	BREAK_IDLE: 'break-idle',
-	BREAK_STARTED: 'break-started',
-	BREAK_ENDED: 'break-ended',
+	MATCH_IDLE: 'matchidle',
+	MATCH_ENDED: 'matchended',
+	ROUND_IDLE: 'roundidle',
+	ROUND_STARTED: 'roundstarted',
+	ROUND_ENDED: 'roundended',
+	BREAK_IDLE: 'breakidle',
+	BREAK_STARTED: 'breakstarted',
+	BREAK_ENDED: 'breakended',
 	INJURY: 'injury',
 	RESULTS: 'results',
 	
-	BREAK_REGEX: /^break-.*$/,
-	STARTED_REGEX: /^.*-started$/
+	BREAK_REGEX: /^break.*$/,
+	STARTED_REGEX: /^.*started$/
 };

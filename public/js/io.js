@@ -78,7 +78,7 @@ define([
 	};
 	
 	IO.prototype.alert = function alert(data) {
-		alert(data.reason);
+		window.alert(data.reason);
 	};
 	
 	IO.prototype.setPageTitle = function setPageTitle(data) {
