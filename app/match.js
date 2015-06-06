@@ -253,6 +253,9 @@ Match.prototype.decrementPenalty = function (type, competitor) {
 };
 
 Match.prototype.score = function (cjId, cjName, score) {
+	// Ensure that the match is in the correct state to allow scoring
+	assert(this.state.is(States.ROUND_STARTED));
+	
 	assert.string(cjId, 'cjId');
 	assert.string(score.competitor, 'score.competitor');
 	assert.integer(score.points, 'score.points');
