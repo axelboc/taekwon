@@ -1,10 +1,9 @@
 
 define([
 	'handlebars',
-	'../common/helpers',
-	'../common/competitors'
+	'../common/helpers'
 	
-], function (Handlebars, Helpers, Competitor) {
+], function (Handlebars, Helpers) {
 	
 	function ResultPanel(io) {
 		this.io = io;

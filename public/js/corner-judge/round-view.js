@@ -1,9 +1,8 @@
 
 define([
-	'../common/helpers',
-	'../common/competitors'
+	'../common/helpers'
 
-], function (Helpers, Competitors) {
+], function (Helpers) {
 	
 	function RoundView(io) {
 		this.io = io;
@@ -17,8 +16,8 @@ define([
 		var event = 'ontouchstart' in document.documentElement ? 'touchstart' : 'click';
 		var hongBtns = this.root.querySelector('.score-btns--hong');
 		var chongBtns = this.root.querySelector('.score-btns--chong');
-		hongBtns.addEventListener(event, this.onScoreBtsDeletage.bind(this, Competitors.HONG));
-		chongBtns.addEventListener(event, this.onScoreBtsDeletage.bind(this, Competitors.CHONG));
+		hongBtns.addEventListener(event, this.onScoreBtsDeletage.bind(this, 'hong'));
+		chongBtns.addEventListener(event, this.onScoreBtsDeletage.bind(this, 'chong'));
 		
 		// Feedback elements
 		document.addEventListener('transitionend', this.onTransitionEnd.bind(this));
