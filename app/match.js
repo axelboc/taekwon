@@ -37,34 +37,37 @@ function Match(id, config) {
 			{ name: 'nextRound', from: States.BREAK_ENDED, to: States.ROUND_IDLE },
 			{ name: 'break', from: [States.ROUND_ENDED, States.RESULTS], to: States.BREAK_IDLE },
 			{ name: 'results', from: States.ROUND_ENDED, to: States.RESULTS },
-			{ name: 'end', from: States.RESULTS, to: States.MATCH_ENDED }
+			{ name: 'end', from: [States.ROUND_ENDED, States.RESULTS], to: States.MATCH_ENDED }
 		],
 		callbacks: {
+			// Generic callbacks
 			onleavestate: this._onLeaveState.bind(this),
-			onbegin: this._onBegin.bind(this)
+			// Transition-based callbacks
+			onbegin: this._onBegin.bind(this),
+			onend: this._onEnd.bind(this)
 		}
 	});
 	
-	// Add more callbacks dynamically
+	// State-based callbacks
 	this.state['on' + States.ROUND_IDLE] = this._onRoundIdle.bind(this);
 	this.state['on' + States.ROUND_ENDED] = this._onRoundEnded.bind(this);
+	this.state['on' + States.BREAK_IDLE] = this._onBreakIdle.bind(this);
 	this.state['on' + States.BREAK_ENDED] = this._onBreakEnded.bind(this);
-	this.state['on' + States.MATCH_ENDED] = this._onMatchEnded.bind(this);
 	
 	// Prepare round state machine transitions based on number of rounds
 	var roundTransitions = [
-		{ name: 'next', from: 'none', to: Rounds.ROUND_1 },
 		{ name: 'next', from: Rounds.ROUND_1, to: config.twoRounds ? Rounds.ROUND_2 : Rounds.TIE_BREAKER },
 		{ name: 'next', from: Rounds.ROUND_2, to: Rounds.TIE_BREAKER },
 		{ name: 'next', from: Rounds.TIE_BREAKER, to: Rounds.GOLDEN_POINT }
 	];
 	
 	if (!config.twoRounds) {
-		roundTransitions.splice(2, 1);
+		roundTransitions.splice(1, 1);
 	}
 	
 	// Create round state machine
 	this.round = StateMachine.create({
+		initial: Rounds.ROUND_1,
 		events: roundTransitions,
 		callbacks: {
 			onleavestate: this._onLeaveRound.bind(this)
@@ -76,9 +79,9 @@ function Match(id, config) {
 	 * A column is added for each non-break state during the match, as well as when 
 	 * computing the total scores of previous rounds.
 	 * Examples of column ID sequences for various matches:
-	 * - 1-round match: 		round-1, total-1
-	 * - 2-round match: 		round-1, round-2, total-2
-	 * - up to golden point: 	round-1, round-2, total-2, tie-breaker, total-4, golden point, total-6
+	 * - 1-round match: 		main, total-1
+	 * - 2-round match: 		main, total-2
+	 * - up to golden point: 	main, total-2, tie-breaker, total-4, golden point, total-6
 	 */
 	this.scoreboardColumns = [];
 	// The latest scoreboard column created
@@ -154,8 +157,20 @@ Match.prototype._onLeaveRound = function (transition, from, to) {
  * The match has begun.
  */
 Match.prototype._onBegin = function () {
-	this.round.next();
 	this.emit('began');
+	logger.info('began', {
+		id: this.id
+	});
+};
+
+/**
+ * The match has ended.
+ */
+Match.prototype._onEnd = function () {
+	this.emit('ended');
+	logger.info('ended', {
+		id: this.id
+	});
 };
 
 /**
@@ -164,7 +179,7 @@ Match.prototype._onBegin = function () {
 Match.prototype._onRoundIdle = function () {
 	if (!this.round.is(Rounds.ROUND_2)) {
 		// Unless round 2, prepare the next column of the judges' scoreboards
-		this.scoreboardColumnId = this.round.is(Rounds.ROUND_1) ? 'main' : this.state.current;
+		this.scoreboardColumnId = this.round.is(Rounds.ROUND_1) ? 'main' : this.round.current;
 		this.scoreboardColumns.push(this.scoreboardColumnId);
 
 		// Initialise penalty objects for new state
@@ -194,8 +209,22 @@ Match.prototype._onRoundEnded = function () {
 	} else {
 		// Otherwise, compute results
 		this._computeResults();
-		this.state.results();
+		
+		// If winner, end match
+		if (this.winner || this.round.is(Rounds.GOLDEN_POINT)) {
+			this.state.end();
+		} else {
+			this.state.results();
+		}
 	}
+};
+
+/**
+ * A break is about to start
+ */
+Match.prototype._onBreakIdle = function () {
+	this.emit('roundChanged', 'Break');
+	this.emit('continued');
 };
 
 /**
@@ -203,19 +232,8 @@ Match.prototype._onRoundEnded = function () {
  */
 Match.prototype._onBreakEnded = function () {
 	// Always continue to the next round after a break
-	this.state.nextRound();
 	this.round.next();
-};
-
-/**
- * The match has ended.
- */
-Match.prototype._onMatchEnded = function () {
-	this.emit('ended');
-
-	logger.info('ended', {
-		id: this.id
-	});
+	this.state.nextRound();
 };
 
 /**

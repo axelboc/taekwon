@@ -10,16 +10,21 @@ var JuryPresident = require('./jury-president').JuryPresident;
 var Match = require('./match').Match;
 
 var JP_HANDLER_PREFIX = '_jp';
-var JP_EVENTS = ['addSlot', 'removeSlot', 'authoriseCJ',
-				 'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
-				 'startMatchState', 'endMatchState', 'startEndInjury',
-				 'connectionStateChanged'];
+var JP_EVENTS = [
+	'addSlot', 'removeSlot', 'authoriseCJ',
+	'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
+	'startMatchState', 'endMatchState', 'startEndInjury',
+	'connectionStateChanged'
+];
 
 var CJ_HANDLER_PREFIX = '_cj';
 var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged'];
 
 var MATCH_HANDLER_PREFIX = '_match';
-var MATCH_EVENTS = ['began', 'scoresUpdated', 'stateChanged', 'roundChanged', 'resultsComputed', 'ended'];
+var MATCH_EVENTS = [
+	'began', 'continued', 'ended', 'stateChanged', 'roundChanged',
+	'scoresUpdated', 'resultsComputed'
+];
 
 
 /**
@@ -547,11 +552,22 @@ Ring.prototype._matchBegan = function () {
 };
 
 /**
- * The match's scores have been updated.
+ * The match has been continued.
  */
-Ring.prototype._matchScoresUpdated = function () {
+Ring.prototype._matchContinued = function () {
 	// Notify Jury President
-	this.juryPresident.matchScoresUpdated(this.getScoreSlots());
+	this.juryPresident.matchContinued();
+};
+
+/**
+ * The match has ended.
+ */
+Ring.prototype._matchEnded = function () {
+	// Remove match
+	this.match = null;
+	
+	// Notify Jury President
+	this.juryPresident.matchEnded();
 };
 
 /**
@@ -583,6 +599,14 @@ Ring.prototype._matchRoundChanged = function (round) {
 };
 
 /**
+ * The match's scores have been updated.
+ */
+Ring.prototype._matchScoresUpdated = function () {
+	// Notify Jury President
+	this.juryPresident.matchScoresUpdated(this.getScoreSlots());
+};
+
+/**
  * The results of a round have been computed.
  * @param {String} winner
  */
@@ -592,17 +616,6 @@ Ring.prototype._matchResultsComputed = function (winner) {
 	
 	this.juryPresident.matchResultsComputed(winner, this.match.config, this.match.scoreboardColumns, 
 											this.match.scoreboards, this.match.penalties, this.match.cjNames);
-};
-
-/**
- * The match has ended.
- */
-Ring.prototype._matchEnded = function () {
-	// Remove match
-	this.match = null;
-	
-	// Notify Jury President
-	this.juryPresident.matchEnded();
 };
 
 

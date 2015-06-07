@@ -14,16 +14,15 @@ define([
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(io, 'matchPanel', [
-			'matchStateChanged',
-			'setStateLabel',
+			'setRoundLabel',
 			'updateState',
-			'enablePenaltyBtns',
 			'updateScoreSlots',
-			'updatePenalties'
+			'updatePenalties',
+			'enablePenaltyBtns'
 		], this);
 		
 		// Match state
-		this.mpStateLabel = this.root.querySelector('.mp-state-label');
+		this.mpStateLabel = this.root.querySelector('.mp-round-label');
 		
 		// Time keeping
 		this.timeKeeping = this.root.querySelector('.time-keeping');
@@ -54,7 +53,7 @@ define([
 	 * IO events
 	 * ================================================== */
 
-	MatchPanel.prototype.setStateLabel = function (data) {
+	MatchPanel.prototype.setRoundLabel = function (data) {
 		this.mpStateLabel.textContent = data.label;
 	};
 	
@@ -88,6 +87,25 @@ define([
 		}
 	};
 
+	MatchPanel.prototype.updateState = function (data) {
+		console.log("State changed", data.state);
+		this.stateInner.innerHTML = this.stateInnerTemplate(data.state);
+	};
+
+	MatchPanel.prototype.updateScoreSlots = function (data) {
+		this.scoresInner.innerHTML = this.scoresInnerTemplate(data);
+	};
+
+	MatchPanel.prototype.updatePenalties = function (data) {
+		Object.keys(data.penalties).forEach(function (key) {
+			var penalties = data.penalties[key];
+			penalties.allowDecHong = penalties.hong > 0;
+			penalties.allowDecChong = penalties.chong > 0;
+
+			this[key + 'Inner'].innerHTML = this.penaltiesTemplate(penalties);
+		}, this);
+	};
+
 	MatchPanel.prototype.enablePenaltyBtns = function (data) {
 		// Enable or disable penalty buttons
 		[].forEach.call(this.penaltyBtns, function (btn) {
@@ -107,25 +125,6 @@ define([
 				}
 			}
 		});
-	};
-
-	MatchPanel.prototype.updateState = function (data) {
-		console.log("State changed", data.state);
-		this.stateInner.innerHTML = this.stateInnerTemplate(data.state);
-	};
-
-	MatchPanel.prototype.updateScoreSlots = function (data) {
-		this.scoresInner.innerHTML = this.scoresInnerTemplate(data);
-	};
-
-	MatchPanel.prototype.updatePenalties = function (data) {
-		Object.keys(data.penalties).forEach(function (key) {
-			var penalties = data.penalties[key];
-			penalties.allowDecHong = penalties.hong > 0;
-			penalties.allowDecChong = penalties.chong > 0;
-
-			this[key + 'Inner'].innerHTML = this.penaltiesTemplate(penalties);
-		}, this);
 	};
 
 
