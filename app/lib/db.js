@@ -202,8 +202,7 @@ var DB = {
 		
 		matchesDb.insert({
 			ringId: ringId,
-			config: config,
-			ended: false
+			config: config
 		}, callback(cb));
 	},
 	
@@ -266,26 +265,27 @@ var DB = {
 	/**
 	 * Set the current state of a match.
 	 * @param {String} matchId
+	 * @param {String} state
 	 * @param {Function} cb
 	 */
 	setMatchState: function (matchId, state, cb) {
 		assert.string(matchId, 'matchId');
-		assert.object(state, 'state');
+		assert.string(state, 'state');
 		
 		matchesDb.update({ _id: matchId }, { $set: { state: state } }, callback(cb));
 	},
 	
 	/**
-	 * Set the `ended` flag of a match.
+	 * Set the current round of a match.
 	 * @param {String} matchId
-	 * @param {ended}
+	 * @param {String} round
 	 * @param {Function} cb
 	 */
-	setMatchEnded: function (matchId, ended, cb) {
+	setMatchRound: function (matchId, round, cb) {
 		assert.string(matchId, 'matchId');
-		assert.boolean(ended, 'ended');
+		assert.string(round, 'round');
 		
-		matchesDb.update({ _id: matchId }, { $set: { ended: ended } }, callback(cb));
+		matchesDb.update({ _id: matchId }, { $set: { round: round } }, callback(cb));
 	},
 	
 	/**

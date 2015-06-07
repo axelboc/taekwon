@@ -1,29 +1,47 @@
 
-define(['minpubsub'], function (PubSub) {
+define([
+	'../common/helpers',
+
+], function (Helpers) {
 	
-	function Timer(name) {
+	function Timer(name, io, beep) {
 		this.name = name;
+		this.io = io;
+		this.beep = beep;
+		
+		this.root = document.getElementById(name + '-timer');
+		this.min = this.root.querySelector('.tk-timer-min');
+		this.sec = this.root.querySelector('.tk-timer-sec');
+		
 		this.intervalId = null;
 		this.value = null;
+		
+		// Subscribe to events
+		Helpers.subscribeToEvents(io, name + 'Timer', [
+			'reset',
+			'start',
+			'stop',
+		], this);
 	}
 
-	Timer.prototype.reset = function (value) {
-		this.value = value;
+	Timer.prototype.reset = function (data) {
+		this.value = data.value;
 		this._valueChanged();
 	};
 
-	Timer.prototype.start = function (down, delay) {
+	Timer.prototype.start = function (data) {
 		// Just in case, clear the previous timer interval
 		this.stop();
 
-		var tickFunc = (down ? this._tickDown : this._tickUp).bind(this);
+		var tickFunc = (data.countDown ? this._tickDown : this._tickUp).bind(this);
 
 		// Timer intervals may start after a delay of 600ms:
 		// 300ms to account for the sliding transition, plus 300ms for usability purposes
+		// TODO: refactor with `transitionend` event
 		window.setTimeout((function () {
 			tickFunc();
 			this.intervalId = window.setInterval(tickFunc, 1000);
-		}).bind(this), (delay ? 600 : 0));
+		}).bind(this), (data.delay ? 600 : 0));
 	};
 
 	Timer.prototype.stop = function () {
@@ -36,7 +54,8 @@ define(['minpubsub'], function (PubSub) {
 			this._valueChanged();
 
 			if (this.value === 0) {
-				PubSub.publish('timer.zero', [this.name]);
+				// Beep and stop the timer
+				this.tkBeeps.play();
 				this.stop();
 			}
 		}
@@ -48,7 +67,9 @@ define(['minpubsub'], function (PubSub) {
 	};
 		
 	Timer.prototype._valueChanged = function () {
-		PubSub.publish('timer.tick', [this.name, this.value]);
+		var sec = this.value % 60
+		this.sec.textContent = (sec < 10 ? '0' : '') + sec;
+		this.min.textContent = Math.floor(this.value / 60);
 	};
 	
 	return Timer;

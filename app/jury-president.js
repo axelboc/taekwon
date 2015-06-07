@@ -1,15 +1,16 @@
 
-// Modules
+// Dependencies
+var util = require('util');
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('jp');
-var util = require('util');
 var DB = require('./lib/db');
 var User = require('./user').User;
+var MatchStates = require('./enum/match-states');
 
 var INBOUND_SPARK_EVENTS = [
 	'selectRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
 	'configureMatch', 'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
-	'startMatchState', 'endMatchState', 'startEndInjury', 'enableScoring'
+	'startMatchState', 'endMatchState', 'startEndInjury'
 ];
 
 
@@ -151,6 +152,8 @@ JuryPresident.prototype.matchBegan = function (config, scoreSlots, scoringEnable
 		scoringEnabled: scoringEnabled,
 		penalties: penalties
 	});
+	
+	this._send('roundTimer.reset', { value: config.roundTime });
 };
 
 /**
@@ -165,18 +168,41 @@ JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
 
 /*
  * The state of the match has changed.
- * @param {Object} config
  * @param {State} state
  */
-JuryPresident.prototype.matchStateChanged = function (config, state) {
-	assert.object(config, 'config');
+JuryPresident.prototype.matchStateChanged = function (state) {
 	assert.provided(state, 'state');
-	//TODO
-	this._send('matchPanel.matchStateChanged', {
-		config: config,
-		state: state
+	
+	this._send('matchPanel.updateState', {
+		state: {
+			isIdle: MatchStates.isIdle(state),
+			isStarted: MatchStates.isStarted(state),
+			isBreak: MatchStates.isBreak(state),
+			isInjury: MatchStates.isInjury(state),
+			enableInjuryBtn: state === MatchStates.ROUND_STARTED || MatchStates.isInjury(state)
+		}
 	});
-	this._send('matchPanel.state', { state: state });
+	
+	this._send('matchPanel.enablePenaltyBtns', { enable: MatchStates.isScoringEnabled(state) });
+	
+	if (state === MatchStates.BREAK_IDLE) {
+		this._send('ringView.showPanel', { panel: 'matchPanel' });
+		this._send('matchPanel.setStateLabel', { label: 'Break' });
+	}
+	
+	/*this._send('roundTimer.start', {
+		countDown: state.isGoldenPoint,
+		delay: false
+	});*/
+};
+
+/**
+ * The round of a match has changed.
+ * @param {String} round
+ */
+JuryPresident.prototype.matchRoundChanged = function (round) {
+	assert.string(round, 'round');
+	this._send('matchPanel.setStateLabel', { label: round });
 };
 
 /**
@@ -213,15 +239,8 @@ JuryPresident.prototype.matchResultsComputed = function (winner, config, scorebo
  * The match has been ended.
  */
 JuryPresident.prototype.matchEnded = function () {
-	this._send('matchPanel.resetRoundTimer');
+	this._send('roundTimer.stop');
 	this._send('resultPanel.showEndBtns');
-};
-
-/**
- * The scoring state has changed.
- */
-JuryPresident.prototype.scoringStateChanged = function (enabled) {
-	this._send('matchPanel.enablePenaltyBtns', { enable: enabled });
 };
 
 /**

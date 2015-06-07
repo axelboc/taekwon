@@ -12,14 +12,14 @@ var Match = require('./match').Match;
 var JP_HANDLER_PREFIX = '_jp';
 var JP_EVENTS = ['addSlot', 'removeSlot', 'authoriseCJ',
 				 'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
-				 'startMatchState', 'endMatchState', 'startEndInjury', 'enableScoring',
+				 'startMatchState', 'endMatchState', 'startEndInjury',
 				 'connectionStateChanged'];
 
 var CJ_HANDLER_PREFIX = '_cj';
 var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged'];
 
 var MATCH_HANDLER_PREFIX = '_match';
-var MATCH_EVENTS = ['began', 'scoresUpdated', 'stateChanged', 'resultsComputed', 'ended'];
+var MATCH_EVENTS = ['began', 'scoresUpdated', 'stateChanged', 'roundChanged', 'resultsComputed', 'ended'];
 
 
 /**
@@ -468,26 +468,6 @@ Ring.prototype._jpStartEndInjury = function () {
 };
 
 /**
- * Enable/disable scoring.
- * @param {Object}  data
- * 		  {Boolean} data.enable - `true` to enable; `false` to disable
- */
-Ring.prototype._jpEnableScoring = function (data) {
-	assert.array(this.cornerJudges, 'cornerJudges');
-	assert.object(data, 'data');
-	
-	var enable = data.enable;
-	assert.boolean(enable, 'data.enable');
-
-	this.scoringEnabled = enable;
-
-	this.juryPresident.scoringStateChanged(enable);
-	this.cornerJudges.forEach(function (cj) {
-		cj.scoringStateChanged(enable);
-	}, this);
-};
-
-/**
  * The connection state of the Jury President has changed.
  */
 Ring.prototype._jpConnectionStateChanged = function () {
@@ -576,18 +556,30 @@ Ring.prototype._matchScoresUpdated = function () {
 
 /**
  * The state of the match has changed.
- * @param {Object} state
+ * @param {String} state
  */
 Ring.prototype._matchStateChanged = function (state) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
-	assert.ok(this.match, "ring must have a match");
-	assert.object(state, 'state');
+	assert.string(state, 'state');
 	
 	// Notify Jury President and Corner Judges
-	this.juryPresident.matchStateChanged(this.match.config, state);
+	this.juryPresident.matchStateChanged(state);
 	this.cornerJudges.forEach(function (cj) {
-		cj.scoringStateChanged(state.stateStarted && !state.isBreak && !state.injuryStarted);
+		cj.matchStateChanged(state, this.juryPresident.connected);
 	}, this);
+};
+
+/**
+ * The round of the match has changed.
+ * @param {String} round
+ */
+Ring.prototype._matchRoundChanged = function (round) {
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.ok(this.match, "ring must have a match");
+	assert.string(round, 'round');
+	
+	// Notify Jury President and Corner Judges
+	this.juryPresident.matchRoundChanged(round);
 };
 
 /**

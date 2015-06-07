@@ -26,9 +26,8 @@ function Match(id, config) {
 	
 	// Create match state machine
 	this.state = StateMachine.create({
-		initial: States.MATCH_IDLE,
 		events: [
-			{ name: 'begin', from: States.MATCH_IDLE, to: States.ROUND_IDLE },
+			{ name: 'begin', from: 'none', to: States.ROUND_IDLE },
 			{ name: 'startState', from: States.ROUND_IDLE, to: States.ROUND_STARTED },
 			{ name: 'startState', from: States.BREAK_IDLE, to: States.BREAK_STARTED },
 			{ name: 'endState', from: States.ROUND_STARTED, to: States.ROUND_ENDED },
@@ -39,12 +38,14 @@ function Match(id, config) {
 			{ name: 'break', from: [States.ROUND_ENDED, States.RESULTS], to: States.BREAK_IDLE },
 			{ name: 'results', from: States.ROUND_ENDED, to: States.RESULTS },
 			{ name: 'end', from: States.RESULTS, to: States.MATCH_ENDED }
-		]
+		],
+		callbacks: {
+			onleavestate: this._onLeaveState.bind(this),
+			onbegin: this._onBegin.bind(this)
+		}
 	});
 	
-	// Add callbacks
-	this.state.onleavestate = this._onLeaveState.bind(this);
-	this.state.onbegin = this._onBegin.bind(this);
+	// Add more callbacks dynamically
 	this.state['on' + States.ROUND_IDLE] = this._onRoundIdle.bind(this);
 	this.state['on' + States.ROUND_ENDED] = this._onRoundEnded.bind(this);
 	this.state['on' + States.BREAK_ENDED] = this._onBreakEnded.bind(this);
@@ -52,7 +53,7 @@ function Match(id, config) {
 	
 	// Prepare round state machine transitions based on number of rounds
 	var roundTransitions = [
-		{ name: 'next', from: Rounds.NONE, to: Rounds.ROUND_1 },
+		{ name: 'next', from: 'none', to: Rounds.ROUND_1 },
 		{ name: 'next', from: Rounds.ROUND_1, to: config.twoRounds ? Rounds.ROUND_2 : Rounds.TIE_BREAKER },
 		{ name: 'next', from: Rounds.ROUND_2, to: Rounds.TIE_BREAKER },
 		{ name: 'next', from: Rounds.TIE_BREAKER, to: Rounds.GOLDEN_POINT }
@@ -64,8 +65,10 @@ function Match(id, config) {
 	
 	// Create round state machine
 	this.round = StateMachine.create({
-		initial: Rounds.NONE,
-		events: roundTransitions
+		events: roundTransitions,
+		callbacks: {
+			onleavestate: this._onLeaveRound.bind(this)
+		}
 	});
 	
 	/**
@@ -104,39 +107,54 @@ util.inherits(Match, EventEmitter);
 
 
 /**
- * Get the state of the match.
- * @param {String} state (optional) - use instead of current state
- * @return {Object}
+ * The state machine is transitioning to a new state.
+ * @param {String} transition
+ * @param {String} from
+ * @param {String} to
  */
-Match.prototype.getState = function (state) {
-	var currentState = state || this.state.current;
-	return {
-		state: currentState,
-		round: this.round.current,
-		isBreak: States.BREAK_REGEX.test(currentState),
-		stateStarted: States.STARTED_REGEX.test(currentState),
-		injuryStarted: currentState === States.INJURY
-	};
-};
-
-Match.prototype._onLeaveState = function (event, from, to) {
-	logger.debug('event: ' + event + ', from: ' + from + ', to: ' + to);
+Match.prototype._onLeaveState = function (transition, from, to) {
+	logger.debug('state transition: ' + transition + ', from: ' + from + ', to: ' + to);
 	
 	// Update database
-	var state = this.getState(to);
-	DB.setMatchState(this.id, state, function () {
+	DB.setMatchState(this.id, to, function () {
 		// Transition state machine
 		this.state.transition();
 		
 		// Emit event
-		this.emit('stateChanged', state);
+		this.emit('stateChanged', to);
 	}.bind(this));
 	
 	// Pause state machine until database call has completed
 	return StateMachine.ASYNC;
 };
 
+/**
+ * The round state machine is transitioning to a new round.
+ * @param {String} transition
+ * @param {String} from
+ * @param {String} to
+ */
+Match.prototype._onLeaveRound = function (transition, from, to) {
+	logger.debug('round transition: ' + transition + ', from: ' + from + ', to: ' + to);
+	
+	// Update database
+	DB.setMatchRound(this.id, to, function () {
+		// Transition round state machine
+		this.round.transition();
+		
+		// Emit event
+		this.emit('roundChanged', this.round.current);
+	}.bind(this));
+	
+	// Pause round state machine until database call has completed
+	return StateMachine.ASYNC;
+};
+
+/**
+ * The match has begun.
+ */
 Match.prototype._onBegin = function () {
+	this.round.next();
 	this.emit('began');
 };
 

@@ -5,6 +5,7 @@ var logger = require('./lib/log')('cj');
 var util = require('./lib/util');
 var DB = require('./lib/db');
 var User = require('./user').User;
+var MatchStates = require('./enum/match-states');
 
 var INBOUND_SPARK_EVENTS = ['selectRing', 'score', 'undo'];
 
@@ -221,13 +222,16 @@ CornerJudge.prototype.ringLeft = function (message, ringStates) {
 };
 
 /**
- * The scoring state of the Ring has changed.
- * @param {Boolean} enabled - `true` if scoring is now enabled; `false` if it is disabled
+ * The state of the Match has changed.
+ * @param {String} state
+ * @param {Boolean} jpConnected
  */
-CornerJudge.prototype.scoringStateChanged = function (enabled) {
-	assert.boolean(enabled, 'enabled');
+CornerJudge.prototype.matchStateChanged = function (state, jpConnected) {
+	assert.string(state, 'state');
+	assert.boolean(jpConnected, 'jpConnected');
 	
-	var backdropState = this._getBackdropState(enabled, this.ring.juryPresident.connected);
+	var scoringEnabled = state === MatchStates.ROUND_STARTED;
+	var backdropState = this._getBackdropState(scoringEnabled, jpConnected);
 	this._send('backdrop.update', backdropState);
 };
 

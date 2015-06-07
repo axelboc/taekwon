@@ -82,7 +82,7 @@ assert.integerGt0 = function (val, name) {
  */
 assert.integerGte0 = function (val, name) {
 	assert.ok(typeof val === 'number' && val >= 0 && val % 1 === 0, 
-		   "`" + name + "` must be a positive integer");
+			  "`" + name + "` must be a positive integer");
 };
 
 /**

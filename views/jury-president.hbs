@@ -83,7 +83,7 @@
 		</div>
 		{{!-- Match panel --}}
 		<div id="match-panel" class="panel hidden">
-			<h2 class="mp-state"></h2>
+			<h2 class="mp-state-label"></h2>
 			<div class="mp-row mp-row--top">
 				{{!-- Time keeping --}}
 				<div class="time-keeping tk_off mp-cell">
@@ -92,10 +92,10 @@
 						<source src="audio/beeps.mp3" type="audio/mp3">
 					</audio>
 					<div class="tk-inner">
-						<div class="tk-timer tk-timer--round">
+						<div id="round-timer" class="tk-timer tk-timer--round">
 							<span class="tk-timer-min"></span><span class="tk-timer-sep">:</span><span class="tk-timer-sec"></span>
 						</div>
-						<div class="tk-timer tk-timer--injury">
+						<div id="injury-timer" class="tk-timer tk-timer--injury">
 							<span class="tk-timer-min"></span><span class="tk-timer-sep">:</span><span class="tk-timer-sec"></span>
 						</div>
 					</div>
@@ -104,9 +104,9 @@
 				<div class="state mp-cell">
 					<div class="st-inner"></div>
 					<script id="st-inner-tmpl" type="x-handlebars-template">
-						<button type="button" class="st-btn st-btn--start match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#if stateStarted}} disabled\{{/if}}>Start</button>
-						<button type="button" class="st-btn st-btn--end match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#unless stateStarted}} disabled\{{/unless}}\{{#if stateStarted}}\{{#if injuryStarted}} disabled\{{/if}}\{{/if}}>End</button>
-						<button type="button" class="st-btn st-btn--injury match-btn btn btn--minor"\{{#unless enableInjuryBtn}} disabled\{{/unless}}>\{{#unless injuryStarted}}Start\{{else}}End\{{/unless}} Injury</button>
+						<button type="button" class="st-btn st-btn--start match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#unless isIdle}} disabled\{{/unless}}>Start</button>
+						<button type="button" class="st-btn st-btn--end match-btn btn\{{#unless isBreak}} btn--major\{{/unless}}"\{{#unless isStarted}} disabled\{{/unless}}\{{#if isStarted}}\{{#if isInjury}} disabled\{{/if}}\{{/if}}>End</button>
+						<button type="button" class="st-btn st-btn--injury match-btn btn btn--minor"\{{#unless enableInjuryBtn}} disabled\{{/unless}}>\{{#unless isInjury}}Start\{{else}}End\{{/unless}} Injury</button>
 					</script>
 				</div>
 			</div>

@@ -41,7 +41,7 @@ consoleFuncs[LOG_LEVELS.DEBUG] = console.log;
  * @param {Object} data - optional data to store with the log entry
  */
 function log(topic, level, message, data) {
-	assert(typeof message === 'string', 'message');
+	assert(typeof message === 'string', "`message` must be a string");
 	assert(typeof data === 'undefined' || typeof data === 'object', 
 		   "if `data` is provided, it must be an object");
 	
