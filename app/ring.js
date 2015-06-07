@@ -22,7 +22,8 @@ var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged'];
 
 var MATCH_HANDLER_PREFIX = '_match';
 var MATCH_EVENTS = [
-	'began', 'continued', 'ended', 'stateChanged', 'roundChanged',
+	'began', 'continued', 'ended',
+	'stateChanged', 'roundChanged', 'injuryStateChanged',
 	'scoresUpdated', 'resultsComputed'
 ];
 
@@ -546,6 +547,9 @@ Ring.prototype._cjConnectionStateChanged = function (cj) {
  * The match has begun.
  */
 Ring.prototype._matchBegan = function () {
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.ok(this.match, "ring must have a match");
+	
 	// Notify Jury President
 	this.juryPresident.matchBegan(this.match.config, this.getScoreSlots(), false,
 								  this.match.getPenalties());
@@ -555,6 +559,9 @@ Ring.prototype._matchBegan = function () {
  * The match has been continued.
  */
 Ring.prototype._matchContinued = function () {
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.ok(this.match, "ring must have a match");
+	
 	// Notify Jury President
 	this.juryPresident.matchContinued();
 };
@@ -563,6 +570,9 @@ Ring.prototype._matchContinued = function () {
  * The match has ended.
  */
 Ring.prototype._matchEnded = function () {
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.ok(this.match, "ring must have a match");
+	
 	// Remove match
 	this.match = null;
 	
@@ -573,13 +583,16 @@ Ring.prototype._matchEnded = function () {
 /**
  * The state of the match has changed.
  * @param {String} state
+ * @param {String} round
  */
-Ring.prototype._matchStateChanged = function (state) {
+Ring.prototype._matchStateChanged = function (state, round) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.ok(this.match, "ring must have a match");
 	assert.string(state, 'state');
+	assert.string(round, 'round');
 	
 	// Notify Jury President and Corner Judges
-	this.juryPresident.matchStateChanged(state);
+	this.juryPresident.matchStateChanged(this.match.config, state, round);
 	this.cornerJudges.forEach(function (cj) {
 		cj.matchStateChanged(state, this.juryPresident.connected);
 	}, this);
@@ -594,14 +607,30 @@ Ring.prototype._matchRoundChanged = function (round) {
 	assert.ok(this.match, "ring must have a match");
 	assert.string(round, 'round');
 	
-	// Notify Jury President and Corner Judges
+	// Notify Jury President
 	this.juryPresident.matchRoundChanged(round);
+};
+
+/**
+ * An injury has started or ended.
+ * @param {Boolean} started
+ */
+Ring.prototype._matchInjuryStateChanged = function (started) {
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.ok(this.match, "ring must have a match");
+	assert.boolean(started, 'started');
+	
+	// Notify Jury President
+	this.juryPresident.injuryStateChanged(this.match.config, started);
 };
 
 /**
  * The match's scores have been updated.
  */
 Ring.prototype._matchScoresUpdated = function () {
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.ok(this.match, "ring must have a match");
+	
 	// Notify Jury President
 	this.juryPresident.matchScoresUpdated(this.getScoreSlots());
 };
@@ -611,6 +640,8 @@ Ring.prototype._matchScoresUpdated = function () {
  * @param {String} winner
  */
 Ring.prototype._matchResultsComputed = function (winner) {
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.ok(this.match, "ring must have a match");
 	assert.ok(winner === null || typeof winner === 'string' && winner.length > 0,
 			  '`winner` must be null or a non-empty string');
 	

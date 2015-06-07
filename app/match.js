@@ -42,9 +42,11 @@ function Match(id, config) {
 		callbacks: {
 			// Generic callbacks
 			onleavestate: this._onLeaveState.bind(this),
+			onenterstate: this._onEnterState.bind(this),
 			// Transition-based callbacks
 			onbegin: this._onBegin.bind(this),
-			onend: this._onEnd.bind(this)
+			onend: this._onEnd.bind(this),
+			onstartEndInjury: this._onStartEndInjury.bind(this)
 		}
 	});
 	
@@ -70,7 +72,8 @@ function Match(id, config) {
 		initial: Rounds.ROUND_1,
 		events: roundTransitions,
 		callbacks: {
-			onleavestate: this._onLeaveRound.bind(this)
+			onleavestate: this._onLeaveRound.bind(this),
+			onenterstate: this._onEnterRound.bind(this)
 		}
 	});
 	
@@ -122,13 +125,17 @@ Match.prototype._onLeaveState = function (transition, from, to) {
 	DB.setMatchState(this.id, to, function () {
 		// Transition state machine
 		this.state.transition();
-		
-		// Emit event
-		this.emit('stateChanged', to);
 	}.bind(this));
 	
 	// Pause state machine until database call has completed
 	return StateMachine.ASYNC;
+};
+
+/**
+ * The state machine has transitioned to a new state.
+ */
+Match.prototype._onEnterState = function () {
+	this.emit('stateChanged', this.state.current, this.round.current);
 };
 
 /**
@@ -144,13 +151,17 @@ Match.prototype._onLeaveRound = function (transition, from, to) {
 	DB.setMatchRound(this.id, to, function () {
 		// Transition round state machine
 		this.round.transition();
-		
-		// Emit event
-		this.emit('roundChanged', this.round.current);
 	}.bind(this));
 	
 	// Pause round state machine until database call has completed
 	return StateMachine.ASYNC;
+};
+
+/**
+ * The round state machine has transitioned to a new round.
+ */
+Match.prototype._onEnterRound = function () {
+	this.emit('roundChanged', this.round.current);
 };
 
 /**
@@ -171,6 +182,13 @@ Match.prototype._onEnd = function () {
 	logger.info('ended', {
 		id: this.id
 	});
+};
+
+/**
+ * An injury has started or ended.
+ */
+Match.prototype._onStartEndInjury = function (transition, from, to) {
+	this.emit('injuryStateChanged', to === States.INJURY);
 };
 
 /**
@@ -223,7 +241,6 @@ Match.prototype._onRoundEnded = function () {
  * A break is about to start
  */
 Match.prototype._onBreakIdle = function () {
-	this.emit('roundChanged', 'Break');
 	this.emit('continued');
 };
 

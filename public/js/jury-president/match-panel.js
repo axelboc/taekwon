@@ -15,6 +15,7 @@ define([
 		// Subscribe to events
 		Helpers.subscribeToEvents(io, 'matchPanel', [
 			'setRoundLabel',
+			'toggleInjuryTimer',
 			'updateState',
 			'updateScoreSlots',
 			'updatePenalties',
@@ -57,36 +58,10 @@ define([
 		this.mpStateLabel.textContent = data.label;
 	};
 	
-	MatchPanel.prototype.matchStateChanged = function (data) {
-		var state = data.state.state;
-
-		switch (data.state.latestEvent) {
-			case MatchStates.events.NEXT:
-				// Reset round timer
-				this.roundTimer.timer.reset(
-					(state === MatchStates.BREAK ? data.config.breakTime :
-					(state === MatchStates.GOLDEN_POINT ? 0 : data.config.roundTime)));
-				break;
-
-			case MatchStates.events.INJURY_STARTED:
-				this.timeKeeping.classList.add('tk_injury');
-
-				this.injuryTimer.timer.reset(data.config.injuryTime);
-				this.injuryTimer.timer.start(true, true);
-				this.roundTimer.timer.stop();
-				break;
-
-			case MatchStates.events.INJURY_ENDED:
-				this.timeKeeping.classList.remove('tk_injury');
-
-				this.injuryTimer.timer.stop();
-				this.roundTimer.timer.start(state !== MatchStates.GOLDEN_POINT, true);
-				break;
-
-			default:
-		}
+	MatchPanel.prototype.toggleInjuryTimer = function (data) {
+		this.timeKeeping.classList.toggle('tk_injury', data.show);
 	};
-
+	
 	MatchPanel.prototype.updateState = function (data) {
 		console.log("State changed", data.state);
 		this.stateInner.innerHTML = this.stateInnerTemplate(data.state);

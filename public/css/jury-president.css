@@ -390,6 +390,7 @@
 	font-weight: bold;
 }
 
+.match-btn--end,
 .match-btn--config {
 	margin-right: 1em;
 }

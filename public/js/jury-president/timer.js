@@ -15,12 +15,15 @@ define([
 		
 		this.intervalId = null;
 		this.value = null;
+		this.paused = false;
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(io, name + 'Timer', [
 			'reset',
 			'start',
 			'stop',
+			'pause',
+			'unpause'
 		], this);
 	}
 
@@ -36,34 +39,46 @@ define([
 		var tickFunc = (data.countDown ? this._tickDown : this._tickUp).bind(this);
 
 		// Timer intervals may start after a delay of 600ms:
-		// 300ms to account for the sliding transition, plus 300ms for usability purposes
-		// TODO: refactor with `transitionend` event
+		// 300ms to account for the sliding transition, plus 200ms for usability purposes
+		// TODO: refactor with `transitionend` event?
 		window.setTimeout((function () {
 			tickFunc();
 			this.intervalId = window.setInterval(tickFunc, 1000);
-		}).bind(this), (data.delay ? 600 : 0));
+		}).bind(this), (data.delay ? 500 : 0));
 	};
 
 	Timer.prototype.stop = function () {
 		window.clearInterval(this.intervalId);
 	};
 
+	Timer.prototype.pause = function () {
+		this.paused = true;
+	};
+
+	Timer.prototype.unpause = function (data) {
+		window.setTimeout((function () {
+			this.paused = false;
+		}).bind(this), (data.delay ? 500 : 0));
+	};
+
 	Timer.prototype._tickDown = function () {
-		if (this.value > 0) {
+		if (!this.paused && this.value > 0) {
 			this.value -= 1;
 			this._valueChanged();
 
 			if (this.value === 0) {
 				// Beep and stop the timer
-				this.tkBeeps.play();
+				this.beep.play();
 				this.stop();
 			}
 		}
 	};
 
 	Timer.prototype._tickUp = function () {
-		this.value += 1;
-		this._valueChanged();
+		if (!this.paused) {
+			this.value += 1;
+			this._valueChanged();
+		}
 	};
 		
 	Timer.prototype._valueChanged = function () {
