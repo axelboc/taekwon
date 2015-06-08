@@ -73,11 +73,7 @@ define([
 
 	MatchPanel.prototype.updatePenalties = function (data) {
 		Object.keys(data.penalties).forEach(function (key) {
-			var penalties = data.penalties[key];
-			penalties.allowDecHong = penalties.hong > 0;
-			penalties.allowDecChong = penalties.chong > 0;
-
-			this[key + 'Inner'].innerHTML = this.penaltiesTemplate(penalties);
+			this[key + 'Inner'].innerHTML = this.penaltiesTemplate(data.penalties[key]);
 		}, this);
 	};
 

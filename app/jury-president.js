@@ -144,6 +144,13 @@ JuryPresident.prototype.matchBegan = function (config, scoreSlots, scoringEnable
 	assert.boolean(scoringEnabled, 'scoringEnabled');
 	assert.object(penalties, 'penalties');
 	
+	// Add flags to `penalties` object to indicate whether the values can be decremented
+	Object.keys(penalties).forEach(function (key) {
+		var p = penalties[key];
+		p.allowDecHong = p.hong > 0;
+		p.allowDecChong = p.chong > 0;
+	});
+
 	this._send('matchPanel.updateScoreSlots', { scoreSlots: scoreSlots });
 	this._send('matchPanel.updatePenalties', {
 		scoringEnabled: scoringEnabled,
