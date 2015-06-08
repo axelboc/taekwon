@@ -89,8 +89,7 @@ JuryPresident.prototype.ringOpened = function (ring, matchConfig, slots) {
 		title: "Jury President | Ring " + (ring.index + 1)
 	});
 	
-	// Update configuration panel and judges sidebar
-	this._send('configPanel.updateConfig', { config: matchConfig });
+	this.matchConfigUpdated(matchConfig);
 	this._send('judgesSidebar.updateSlotList', { slots: slots });
 	
 	this._send('ringView.showPanel', { panel: 'configPanel' });
@@ -106,7 +105,6 @@ JuryPresident.prototype.slotsUpdated = function (slots, scoreSlots) {
 	assert.array(slots, 'slots');
 	assert.ok(scoreSlots === null || Array.isArray(scoreSlots), "`scoreSlots` must be either null or an array");
 	
-	// Update slots in judges sidebar and score slots in match panel
 	this._send('judgesSidebar.updateSlotList', { slots: slots });
 	if (scoreSlots !== null) {
 		this._send('matchPanel.updateScoreSlots', { scoreSlots: scoreSlots });
@@ -123,12 +121,37 @@ JuryPresident.prototype.slotNotRemoved = function (reason) {
 };
 
 /**
- * A configuration item has been set.
- * @param {Object} matchConfig - the new match configuration for the ring
+ * The match configuration has been updated.
+ * @param {Object} matchConfig
  */
-JuryPresident.prototype.configItemSet = function (matchConfig) {
+JuryPresident.prototype.matchConfigUpdated = function (matchConfig) {
 	assert.object(matchConfig, 'matchConfig');
-	this._send('configPanel.updateConfig', { config: matchConfig });
+	
+	// Prepare template context for config panel
+	var configItems = Object.keys(matchConfig).reduce(function (arr, name) {
+		var item = matchConfig[name];
+		
+		var customItem = {
+			name: name,
+			label: item.label,
+			type: item.type,
+			isTime: item.type === 'time',
+			isBoolean: item.type === 'boolean'
+		};
+		
+		if (customItem.isTime) {
+			customItem.isDecEnabled = item.value - parseInt(process.env.TIME_CONFIG_STEP, 10) > 0;
+			customItem.value = util.numToTime(item.value);
+		} else if (customItem.isBoolean) {
+			customItem.isFalse = !item.value;
+			customItem.isTrue = item.value;
+		}
+		
+		arr.push(customItem);
+		return arr;
+	}.bind(this), []);
+	
+	this._send('configPanel.updateConfig', { configItems: configItems });
 };
 
 /**

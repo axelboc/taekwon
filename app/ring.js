@@ -392,11 +392,17 @@ Ring.prototype._jpSetConfigItem = function (data) {
 	// Assert `value` according to the type of the configuration item
 	switch (item.type) {
 		case 'time':
-			assert.integer(value, 'value');
-			assert.ok(item.value + value > 0, "value of time configuration item must remain greater than 0");
-			value = item.value + value;
+			// Value indicates whether to increment (1) or decrement (-1) the time
+			assert.ok(value === 1 || value === -1, "`value` must be 1 to increment or -1 to decrement");
+			
+			// Check that the new value is greater than zero
+			var newVal = item.value + value * parseInt(process.env.TIME_CONFIG_STEP, 10);
+			assert.ok(newVal > 0, "value of time configuration item must remain greater than 0");
+			
+			value = newVal;
 			break;
 		case 'boolean':
+			// Value provided is the new value to set
 			assert.boolean(value, 'value');
 			break;
 		default:
@@ -407,7 +413,7 @@ Ring.prototype._jpSetConfigItem = function (data) {
 	DB.setRingMatchConfigItem(this.id, name, value, function () {
 		// Set and acknowledge
 		item.value = value;
-		this.juryPresident.configItemSet(this.matchConfig);
+		this.juryPresident.matchConfigUpdated(this.matchConfig);
 	}.bind(this));
 };
 

@@ -91,7 +91,7 @@ function Match(id, config) {
 	this.scoreboardColumnId;
 	
 	/**
-	 * Scoreboard and name of each Corner Judge.
+	 * Scoreboard, and name of each Corner Judge that scored at some point during the match.
 	 */
 	this.scoreboards = {};
 	this.cjNames = {};

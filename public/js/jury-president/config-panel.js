@@ -20,42 +20,14 @@ define([
 		this.configInner.addEventListener('click', this.onConfigInnerDelegate.bind(this));
 	}
 	
-	ConfigPanel.prototype.numToTime = function (num) {
-		var sec = num % 60;
-		return Math.floor(num / 60) + ":" + (sec < 10 ? '0' : '') + sec;
-	};
-	
-	ConfigPanel.prototype.prepareContext = function (configItems) {
-		return Object.keys(configItems).reduce(function (arr, itemName) {
-			var item = configItems[itemName];
-			
-			item.name = itemName;
-			item.isTime = item.type === 'time';
-			item.isBoolean = item.type === 'boolean';
-			
-			if (item.isTime) {
-				item.isDecEnabled = item.isTime && (item.value - config.timeConfigStep) > 0;
-				item.value = this.numToTime(item.value);
-			} else if (item.isBoolean) {
-				item.isFalse = item.value === false;
-				item.isTrue = item.value === true;
-			}
-			
-			arr.push(item);
-			return arr;
-		}.bind(this), []);
-	};
-	
 	
 	/* ==================================================
 	 * IO events
 	 * ================================================== */
 
 	ConfigPanel.prototype.updateConfig = function (data) {
-		// Execute template
-		this.configInner.innerHTML = this.configInnerTemplate({
-			configItems: this.prepareContext(data.config)
-		});
+		console.log(data);
+		this.configInner.innerHTML = this.configInnerTemplate(data);
 	};
 	
 	
@@ -71,7 +43,7 @@ define([
 			
 			switch (item.dataset.type) {
 				case 'time':
-					value = config.timeConfigStep * (btn.classList.contains('cf-dec') ? -1 : 1);
+					value = btn.classList.contains('cf-dec') ? -1 : 1;
 					break;
 				case 'boolean':
 					value = !btn.classList.contains('cf-false');
