@@ -13,7 +13,7 @@ var JP_HANDLER_PREFIX = '_jp';
 var JP_EVENTS = [
 	'addSlot', 'removeSlot', 'authoriseCJ',
 	'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
-	'startMatchState', 'endMatchState', 'startEndInjury',
+	'startMatchState', 'endMatchState', 'startEndInjury', 'incrementPenalty', 'decrementPenalty',
 	'connectionStateChanged'
 ];
 
@@ -24,7 +24,7 @@ var MATCH_HANDLER_PREFIX = '_match';
 var MATCH_EVENTS = [
 	'began', 'continued', 'ended',
 	'stateChanged', 'roundChanged', 'injuryStateChanged',
-	'scoresUpdated', 'resultsComputed'
+	'scoresUpdated', 'penaltiesUpdated', 'resultsComputed'
 ];
 
 
@@ -474,6 +474,22 @@ Ring.prototype._jpStartEndInjury = function () {
 };
 
 /**
+ * Increment a competitor's penalty type.
+ */
+Ring.prototype._jpIncrementPenalty = function (data) {
+	assert.ok(this.match, "ring must have a match");
+	this.match.incrementPenalty(data.type, data.competitor);
+};
+
+/**
+ * Decrement a competitor's penalty type.
+ */
+Ring.prototype._jpDecrementPenalty = function (data) {
+	assert.ok(this.match, "ring must have a match");
+	this.match.decrementPenalty(data.type, data.competitor);
+};
+
+/**
  * The connection state of the Jury President has changed.
  */
 Ring.prototype._jpConnectionStateChanged = function () {
@@ -632,6 +648,18 @@ Ring.prototype._matchScoresUpdated = function () {
 	
 	// Notify Jury President
 	this.juryPresident.matchScoresUpdated(this.getScoreSlots());
+};
+
+/**
+ * The match's penalties have been updated.
+ * @param {Object} penalties
+ */
+Ring.prototype._matchPenaltiesUpdated = function (penalties) {
+	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.ok(this.match, "ring must have a match");
+	
+	// Notify Jury President
+	this.juryPresident.penaltiesUpdated(penalties, true);
 };
 
 /**

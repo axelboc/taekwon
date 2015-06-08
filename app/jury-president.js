@@ -11,7 +11,7 @@ var MatchRounds = require('./enum/match-rounds');
 var INBOUND_SPARK_EVENTS = [
 	'selectRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
 	'configureMatch', 'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
-	'startMatchState', 'endMatchState', 'startEndInjury'
+	'startMatchState', 'endMatchState', 'startEndInjury', 'incrementPenalty', 'decrementPenalty'
 ];
 
 
@@ -143,7 +143,7 @@ JuryPresident.prototype.matchBegan = function (config, scoreSlots, penalties) {
 	assert.object(penalties, 'penalties');
 
 	this._send('matchPanel.updateScoreSlots', { scoreSlots: scoreSlots });
-	this._penaltiesUpdated(penalties, false);
+	this.penaltiesUpdated(penalties, false);
 	
 	this._send('roundTimer.reset', { value: config.roundTime });
 	this._send('ringView.showPanel', { panel: 'matchPanel' });
@@ -200,7 +200,7 @@ JuryPresident.prototype.matchStateChanged = function (config, state, round, pena
 			break;
 			
 		case MatchStates.ROUND_STARTED:
-			this._penaltiesUpdated(penalties, true);
+			this.penaltiesUpdated(penalties, true);
 		case MatchStates.BREAK_STARTED:
 			this._send('roundTimer.start', {
 				countDown: !isGoldenPoint,
@@ -275,7 +275,7 @@ JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
  * @param {Object} penalties
  * @param {Boolean} enable - whether the penalties can be changed in the current state of the match
  */
-JuryPresident.prototype._penaltiesUpdated = function (penalties, enable) {
+JuryPresident.prototype.penaltiesUpdated = function (penalties, enable) {
 	assert.object(penalties, 'penalties');
 	assert.boolean(enable, 'enable');
 	

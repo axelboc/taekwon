@@ -297,17 +297,55 @@ Match.prototype.getRoundPenalties = function () {
 	return this.penalties[this.scoreboardColumnId];
 };
 
+/**
+ * Increment a penalty.
+ * @param {String} type - (warnings|fouls)
+ * @param {String} competitor - (hong|chong)
+ */
 Match.prototype.incrementPenalty = function (type, competitor) {
-	this.penalties[this.scoreboardColumnId][type][competitor === Competitors.HONG ? 0 : 1] += 1;
+	this._updatePenalty(type, competitor, 1);
 };
 
+/**
+ * Decrement a penalty.
+ * @param {String} type - (warnings|fouls)
+ * @param {String} competitor - (hong|chong)
+ */
 Match.prototype.decrementPenalty = function (type, competitor) {
-	this.penalties[this.scoreboardColumnId][type][competitor === Competitors.HONG ? 0 : 1] -= 1;
+	this._updatePenalty(type, competitor, -1);
+};
+
+/**
+ * Increment or decrement a penalty.
+ * @param {String} type - (warnings|fouls)
+ * @param {String} competitor - (hong|chong)
+ * @param {String} value - (1|-1)
+ */
+Match.prototype._updatePenalty = function (type, competitor, value) {
+	// Ensure that the match is in the correct state to allow manipulating penalties
+	assert.ok(this.state.is(States.ROUND_STARTED) || this.state.is(States.INJURY), 
+			  "manipulating penalties not allowed in current match state: " + this.state.current);
+	
+	assert.string(type, 'type');
+	assert.string(competitor, 'competitor');
+	assert.ok(value === 1 || value === -1, "`value` must be 1 or -1");
+	
+	var penalty = this.penalties[this.scoreboardColumnId][type];
+	assert.object(penalty, 'penalty');
+	
+	// Ensure that the new value is greater than or equal to zero
+	var newValue = penalty[competitor] + value;
+	assert.ok(newValue >= 0, "cannot decrement penalty (cannot be negative)");
+	
+	// Change penalty value and emit event
+	penalty[competitor]  = newValue;
+	this.emit('penaltiesUpdated', this.getRoundPenalties());
 };
 
 Match.prototype.score = function (cjId, cjName, score) {
 	// Ensure that the match is in the correct state to allow scoring
-	assert.ok(this.state.is(States.ROUND_STARTED));
+	assert.ok(this.state.is(States.ROUND_STARTED), 
+			  "scoring not allowed in current match state: " + this.state.current);
 	
 	assert.string(cjId, 'cjId');
 	assert.string(score.competitor, 'score.competitor');

@@ -106,12 +106,12 @@ define([
 			btn.blur();
 			if (btn.classList.contains('pe-inc')) {
 				this.io.send('incrementPenalty', {
-					type: 'warning',
+					type: 'warnings',
 					competitor: btn.dataset.competitor
 				});
 			} else if (btn.classList.contains('pe-dec')) {
 				this.io.send('decrementPenalty', {
-					type: 'warning',
+					type: 'warnings',
 					competitor: btn.dataset.competitor
 				});
 			}
@@ -124,12 +124,12 @@ define([
 			btn.blur();
 			if (btn.classList.contains('pe-inc')) {
 				this.io.send('incrementPenalty', {
-					type: 'foul',
+					type: 'fouls',
 					competitor: btn.dataset.competitor
 				});
 			} else if (btn.classList.contains('pe-dec')) {
 				this.io.send('decrementPenalty', {
-					type: 'foul',
+					type: 'fouls',
 					competitor: btn.dataset.competitor
 				});
 			}
