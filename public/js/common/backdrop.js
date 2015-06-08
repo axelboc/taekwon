@@ -1,5 +1,8 @@
 
-define(['./helpers'], function (Helpers) {
+define([
+	'./helpers'
+
+], function (Helpers) {
 	
 	function Backdrop(io) {
 		this.root = document.getElementById('backdrop');

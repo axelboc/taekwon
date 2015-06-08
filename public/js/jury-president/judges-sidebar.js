@@ -28,7 +28,7 @@ define([
 	 * IO events
 	 * ================================================== */
 
-	JudgesSidebar.prototype.updateSlotList = function updateSlotList(data) {
+	JudgesSidebar.prototype.updateSlotList = function (data) {
 		// Execute template
 		this.list.innerHTML = this.listTemplate({
 			slots: data.slots
@@ -40,7 +40,7 @@ define([
 	 * UI events
 	 * ================================================== */
 
-	JudgesSidebar.prototype.onListDelegate = function onListDelegate(evt) {
+	JudgesSidebar.prototype.onListDelegate = function (evt) {
 		var btn = evt.target;
 		if (btn && btn.nodeName == 'BUTTON') {
 			// Prepare IO data
@@ -65,12 +65,12 @@ define([
 		}
 	};
 
-	JudgesSidebar.prototype.onAddSlotBtn = function onAddSlotBtn() {
+	JudgesSidebar.prototype.onAddSlotBtn = function () {
 		this.addSlotBtn.blur();
 		this.io.send('addSlot');
 	};
 
-	JudgesSidebar.prototype.onRemoveSlotBtn = function onRemoveSlotBtn() {
+	JudgesSidebar.prototype.onRemoveSlotBtn = function () {
 		this.removeSlotBtn.blur();
 		this.io.send('removeSlot');
 	};

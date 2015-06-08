@@ -16,8 +16,8 @@ define([
 		var event = 'ontouchstart' in document.documentElement ? 'touchstart' : 'click';
 		var hongBtns = this.root.querySelector('.score-btns--hong');
 		var chongBtns = this.root.querySelector('.score-btns--chong');
-		hongBtns.addEventListener(event, this.onScoreBtsDeletage.bind(this, 'hong'));
-		chongBtns.addEventListener(event, this.onScoreBtsDeletage.bind(this, 'chong'));
+		hongBtns.addEventListener(event, this.onScoreBtnsDeletage.bind(this, 'hong'));
+		chongBtns.addEventListener(event, this.onScoreBtnsDeletage.bind(this, 'chong'));
 		
 		// Feedback elements
 		document.addEventListener('transitionend', this.onTransitionEnd.bind(this));
@@ -46,11 +46,11 @@ define([
 	 * Inbound IO events
 	 * ================================================== */
 	
-	RoundView.prototype.enableUndoBtn = function enableUndoBtn(data) {
+	RoundView.prototype.enableUndoBtn = function (data) {
 		Helpers.enableBtn(this.undoBtn, data.enable);
 	};
 
-	RoundView.prototype.showFdb = function showFdb(data) {
+	RoundView.prototype.showFdb = function (data) {
 		// Clone and customise the default fdb element
 		var fdb = this.fdb.cloneNode();
 		fdb.classList.add.apply(fdb.classList, [
@@ -83,7 +83,7 @@ define([
 	 * UI events
 	 * ================================================== */
 	
-	RoundView.prototype.onScoreBtsDeletage = function onScoreBtsDeletage(competitor, evt) {
+	RoundView.prototype.onScoreBtnsDeletage = function (competitor, evt) {
 		var btn = evt.target;
 		if (btn && btn.nodeName == 'BUTTON') {
 			btn.blur();
@@ -94,12 +94,12 @@ define([
 		}
 	};
 
-	RoundView.prototype.onUndoBtn = function onUndoBtn() {
+	RoundView.prototype.onUndoBtn = function () {
 		this.undoBtn.blur();
 		this.io.send('undo');
 	};
 
-	RoundView.prototype.onTransitionEnd = function onTransitionEnd(evt) {
+	RoundView.prototype.onTransitionEnd = function (evt) {
 		var fdb = evt.target;
 		if (fdb.classList.contains('fdb')) {
 			this.feedback.removeChild(fdb);

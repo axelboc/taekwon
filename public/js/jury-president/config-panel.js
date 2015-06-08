@@ -20,12 +20,12 @@ define([
 		this.configInner.addEventListener('click', this.onConfigInnerDelegate.bind(this));
 	}
 	
-	ConfigPanel.prototype.numToTime = function numToTime(num) {
+	ConfigPanel.prototype.numToTime = function (num) {
 		var sec = num % 60;
 		return Math.floor(num / 60) + ":" + (sec < 10 ? '0' : '') + sec;
 	};
 	
-	ConfigPanel.prototype.prepareContext = function prepareContext(configItems) {
+	ConfigPanel.prototype.prepareContext = function (configItems) {
 		return Object.keys(configItems).reduce(function (arr, itemName) {
 			var item = configItems[itemName];
 			
@@ -51,7 +51,7 @@ define([
 	 * IO events
 	 * ================================================== */
 
-	ConfigPanel.prototype.updateConfig = function updateConfig(data) {
+	ConfigPanel.prototype.updateConfig = function (data) {
 		// Execute template
 		this.configInner.innerHTML = this.configInnerTemplate({
 			configItems: this.prepareContext(data.config)
@@ -63,7 +63,7 @@ define([
 	 * UI events
 	 * ================================================== */
 
-	ConfigPanel.prototype.onConfigInnerDelegate = function onConfigInnerDelegate(evt) {
+	ConfigPanel.prototype.onConfigInnerDelegate = function (evt) {
 		var btn = evt.target;
 		if (btn && btn.nodeName == 'BUTTON') {
 			var item = btn.parentElement.parentElement;

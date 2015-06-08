@@ -23,7 +23,7 @@ define([
 		Helpers.subscribeToEvents(io, 'ringView', ['showPanel'], this);
 	}
 	
-	RingView.prototype.showPanel = function showPanel(data) {
+	RingView.prototype.showPanel = function (data) {
 		// Hide the previously visible panel
 		if (this.currentPanel) {
 			this.currentPanel.root.classList.add('hidden');

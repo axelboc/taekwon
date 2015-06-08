@@ -2,10 +2,9 @@
 define([
 	'handlebars',
 	'../common/helpers',
-	'../common/states',
 	'./timer'
 
-], function (Handlebars, Helpers, MatchStates, Timer) {
+], function (Handlebars, Helpers, Timer) {
 	
 	function MatchPanel(io) {
 		this.io = io;
@@ -77,7 +76,7 @@ define([
 
 	MatchPanel.prototype.disablePenaltyBtns = function () {
 		[].forEach.call(this.root.querySelectorAll('.pe-btn'), function (btn) {
-			btn.setAttribute('disabled', 'disabled');
+			Helpers.enableBtn(btn, false);
 		});
 	};
 

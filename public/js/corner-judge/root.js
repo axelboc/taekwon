@@ -25,7 +25,7 @@ define([
 		Helpers.subscribeToEvents(io, 'root', ['showView'], this);
 	}
 	
-	Root.prototype.showView = function showView(data) {
+	Root.prototype.showView = function (data) {
 		// Hide the previously visible view
 		if (this.curentView) {
 			this.curentView.root.classList.add('hidden');
