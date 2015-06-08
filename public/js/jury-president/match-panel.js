@@ -19,7 +19,7 @@ define([
 			'updateState',
 			'updateScoreSlots',
 			'updatePenalties',
-			'enablePenaltyBtns'
+			'disablePenaltyBtns'
 		], this);
 		
 		// Match state
@@ -41,7 +41,6 @@ define([
 		this.scoresInnerTemplate = Handlebars.compile(document.getElementById('sc-inner-tmpl').innerHTML);
 		
 		// Penalties
-		this.penaltyBtns = this.root.querySelectorAll('.pe-btn');
 		this.penaltiesTemplate = Handlebars.compile(document.getElementById('pe-penalties-tmpl').innerHTML);
 		this.warningsInner = this.root.querySelector('.pe-inner--warnings');
 		this.warningsInner.addEventListener('click', this.onWarningsInnerDelegate.bind(this));
@@ -72,29 +71,13 @@ define([
 	};
 
 	MatchPanel.prototype.updatePenalties = function (data) {
-		Object.keys(data.penalties).forEach(function (key) {
-			this[key + 'Inner'].innerHTML = this.penaltiesTemplate(data.penalties[key]);
-		}, this);
+		this.warningsInner.innerHTML = this.penaltiesTemplate(data.warnings);
+		this.foulsInner.innerHTML = this.penaltiesTemplate(data.fouls);
 	};
 
-	MatchPanel.prototype.enablePenaltyBtns = function (data) {
-		// Enable or disable penalty buttons
-		[].forEach.call(this.penaltyBtns, function (btn) {
-			if (data.enable) {
-				// Enable the button, unless it was previously disabled
-				if (btn.dataset.wasDisabled === 'true') {
-					btn.removeAttribute('disabled');
-				}
-			} else {
-				if (btn.hasAttribute('disabled')) {
-					// If the button is already disabled (decrement button when value is 0), 
-					// save this information in a data attribute
-					btn.dataset.wasDisabled = 'true';
-				} else {
-					// Disable the button
-					btn.setAttribute('disabled', 'disabled');
-				}
-			}
+	MatchPanel.prototype.disablePenaltyBtns = function () {
+		[].forEach.call(this.root.querySelectorAll('.pe-btn'), function (btn) {
+			btn.setAttribute('disabled', 'disabled');
 		});
 	};
 

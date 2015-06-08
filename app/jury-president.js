@@ -135,27 +135,15 @@ JuryPresident.prototype.configItemSet = function (matchConfig) {
  * A new match has begun.
  * @param {Object} config
  * @param {Object} scoreSlots
- * @param {Boolean} scoringEnabled
  * @param {Object} penalties
  */
-JuryPresident.prototype.matchBegan = function (config, scoreSlots, scoringEnabled, penalties) {
+JuryPresident.prototype.matchBegan = function (config, scoreSlots, penalties) {
 	assert.object(config, 'config');
 	assert.object(scoreSlots, 'scoreSlots');
-	assert.boolean(scoringEnabled, 'scoringEnabled');
 	assert.object(penalties, 'penalties');
-	
-	// Add flags to `penalties` object to indicate whether the values can be decremented
-	Object.keys(penalties).forEach(function (key) {
-		var p = penalties[key];
-		p.allowDecHong = p.hong > 0;
-		p.allowDecChong = p.chong > 0;
-	});
 
 	this._send('matchPanel.updateScoreSlots', { scoreSlots: scoreSlots });
-	this._send('matchPanel.updatePenalties', {
-		scoringEnabled: scoringEnabled,
-		penalties: penalties
-	});
+	this._penaltiesUpdated(penalties, false);
 	
 	this._send('roundTimer.reset', { value: config.roundTime });
 	this._send('ringView.showPanel', { panel: 'matchPanel' });
@@ -182,11 +170,13 @@ JuryPresident.prototype.matchEnded = function () {
  * @param {Object} config
  * @param {String} state
  * @param {String} round
+ * @param {Object} penalties
  */
-JuryPresident.prototype.matchStateChanged = function (config, state, round) {
+JuryPresident.prototype.matchStateChanged = function (config, state, round, penalties) {
 	assert.object(config, 'config')
 	assert.string(state, 'state');
 	assert.string(round, 'round');
+	assert.object(penalties, 'penalties');
 	var isGoldenPoint =  round === MatchRounds.GOLDEN_POINT;
 	
 	switch (state) {
@@ -210,6 +200,7 @@ JuryPresident.prototype.matchStateChanged = function (config, state, round) {
 			break;
 			
 		case MatchStates.ROUND_STARTED:
+			this._penaltiesUpdated(penalties, true);
 		case MatchStates.BREAK_STARTED:
 			this._send('roundTimer.start', {
 				countDown: !isGoldenPoint,
@@ -218,12 +209,12 @@ JuryPresident.prototype.matchStateChanged = function (config, state, round) {
 			break;
 			
 		case MatchStates.ROUND_ENDED:
+			this._send('matchPanel.disablePenaltyBtns');
 		case MatchStates.BREAK_ENDED:
 			this._send('roundTimer.stop');
 			break;
 	}
 	
-	this._send('matchPanel.enablePenaltyBtns', { enable: MatchStates.isScoringEnabled(state) });
 	this._send('matchPanel.updateState', {
 		state: {
 			isIdle: MatchStates.isIdle(state),
@@ -277,6 +268,30 @@ JuryPresident.prototype.injuryStateChanged = function (config, started) {
 JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
 	assert.object(scoreSlots, 'scoreSlots');
 	this._send('matchPanel.updateScoreSlots', { scoreSlots: scoreSlots });
+};
+
+/**
+ * The penalties have been updated.
+ * @param {Object} penalties
+ * @param {Boolean} enable - whether the penalties can be changed in the current state of the match
+ */
+JuryPresident.prototype._penaltiesUpdated = function (penalties, enable) {
+	assert.object(penalties, 'penalties');
+	assert.boolean(enable, 'enable');
+	
+	// Add flags to `penalties` objects to indicate whether the values can be incremented and decremented
+	Object.keys(penalties).forEach(function (key) {
+		var p = penalties[key];
+		p.allowIncHong = enable;
+		p.allowDecHong = enable && p.hong > 0;
+		p.allowIncChong = enable;
+		p.allowDecChong = enable && p.chong > 0;
+	});
+	
+	this._send('matchPanel.updatePenalties', {
+		warnings: penalties['warnings'],
+		fouls: penalties['fouls']
+	});
 };
 
 /**

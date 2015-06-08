@@ -290,10 +290,10 @@ Match.prototype.getScores = function (cjId) {
 };
 
 /**
- * Get the current penalties.
+ * Get the penalties for the current round.
  * @return {Object}
  */
-Match.prototype.getPenalties = function () {
+Match.prototype.getRoundPenalties = function () {
 	return this.penalties[this.scoreboardColumnId];
 };
 

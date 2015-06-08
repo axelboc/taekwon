@@ -551,8 +551,7 @@ Ring.prototype._matchBegan = function () {
 	assert.ok(this.match, "ring must have a match");
 	
 	// Notify Jury President
-	this.juryPresident.matchBegan(this.match.config, this.getScoreSlots(), false,
-								  this.match.getPenalties());
+	this.juryPresident.matchBegan(this.match.config, this.getScoreSlots(), this.match.getRoundPenalties());
 };
 
 /**
@@ -592,7 +591,7 @@ Ring.prototype._matchStateChanged = function (state, round) {
 	assert.string(round, 'round');
 	
 	// Notify Jury President and Corner Judges
-	this.juryPresident.matchStateChanged(this.match.config, state, round);
+	this.juryPresident.matchStateChanged(this.match.config, state, round, this.match.getRoundPenalties());
 	this.cornerJudges.forEach(function (cj) {
 		cj.matchStateChanged(state, this.juryPresident.connected);
 	}, this);
