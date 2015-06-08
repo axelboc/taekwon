@@ -11,7 +11,8 @@ define([
 		
 		// Subscribe to events
 		Helpers.subscribeToEvents(io, 'resultPanel', [
-			'matchResultsComputed',
+			'setWinner',
+			'showContinueBtns',
 			'showEndBtns',
 			'updateScoreboard'
 		], this);
@@ -112,8 +113,7 @@ define([
 	 * IO events
 	 * ================================================== */
 
-	ResultPanel.prototype.matchResultsComputed = function matchResultsComputed(data) {
-		// Show winner
+	ResultPanel.prototype.setWinner = function (data) {
 		if (data.winner) {
 			this.winner.className = 'rp-winner ' + data.winner + '-col';
 			this.winner.textContent = data.winner.charAt(0).toUpperCase() + data.winner.slice(1) + " wins";
@@ -121,7 +121,9 @@ define([
 			this.winner.className = 'rp-winner';
 			this.winner.textContent = "Draw";
 		}
-
+	};
+	
+	ResultPanel.prototype.showContinueBtns = function (data) {
 		// Show buttons to continue or end the match
 		this.continueBtnsWrap.classList.remove('hidden');
 		this.endBtnsWrap.classList.add('hidden');
@@ -133,7 +135,7 @@ define([
 		this.endBtnsWrap.classList.remove('hidden');
 	};
 
-	ResultPanel.prototype.updateScoreboard = function updateScoreboard(data) {
+	ResultPanel.prototype.updateScoreboard = function (data) {
 		var columns = data.scoreboardColumns;
 
 		// Clear scoreboard table first

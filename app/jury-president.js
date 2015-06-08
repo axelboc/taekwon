@@ -183,11 +183,12 @@ JuryPresident.prototype.matchStateChanged = function (config, state, round) {
 	var isGoldenPoint =  round === MatchRounds.GOLDEN_POINT;
 	
 	switch (state) {
-		case MatchStates.RESULTS:
-			this._send('ringView.showPanel', { panel: 'resultPanel' });
+		case MatchStates.MATCH_ENDED:
 			return;
 			
-		case MatchStates.MATCH_ENDED:
+		case MatchStates.RESULTS:
+			this._send('resultPanel.showContinueBtns');
+			this._send('ringView.showPanel', { panel: 'resultPanel' });
 			return;
 			
 		case MatchStates.ROUND_IDLE:
@@ -290,7 +291,7 @@ JuryPresident.prototype.matchResultsComputed = function (winner, config, scorebo
 	assert.object(penalties, 'penalties');
 	assert.object(cjNames, 'cjNames');
 	
-	this._send('resultPanel.matchResultsComputed', { winner: winner });
+	this._send('resultPanel.setWinner', { winner: winner });
 	this._send('resultPanel.updateScoreboard', {
 		config: config,
 		scoreboardColumns: scoreboardColumns,
