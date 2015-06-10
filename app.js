@@ -1,9 +1,11 @@
 
 // Import modules
+var config = require('./config/config.json');
 var assert = require('./app/lib/assert');
 var logger = require('./app/lib/log')('app');
 var DB = require('./app/lib/db');
 var Tournament = require('./app/tournament').Tournament;
+
 var async = require('async');
 var dotenv = require('assert-dotenv');
 var http = require('http');
@@ -15,6 +17,7 @@ var cookieParser = require('cookie-parser');
 var cookie = require('cookie');
 var Primus = require('primus');
 var Emit = require('primus-emit');
+
 
 // Load environment configuration
 dotenv({
@@ -150,7 +153,7 @@ dotenv({
 				if (newDoc) {
 					// Initialise the new tournament
 					tournament = new Tournament(newDoc._id, primus);
-					tournament.initRings(parseInt(process.env.RING_COUNT, 10), function () {
+					tournament.initRings(config.ringCount, function () {
 						logger.debug("> Tournament started (ID=" + newDoc._id + ")");
 					});
 				}

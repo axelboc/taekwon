@@ -1,5 +1,6 @@
 
 // Modules
+var config = require('../config/config.json');
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('ring');
 var util = require('./lib/util');
@@ -396,7 +397,7 @@ Ring.prototype._jpSetConfigItem = function (data) {
 			assert.ok(value === 1 || value === -1, "`value` must be 1 to increment or -1 to decrement");
 			
 			// Check that the new value is greater than zero
-			var newVal = item.value + value * parseInt(process.env.TIME_CONFIG_STEP, 10);
+			var newVal = item.value + value * config.matchConfig.timeStep;
 			assert.ok(newVal > 0, "value of time configuration item must remain greater than 0");
 			
 			value = newVal;

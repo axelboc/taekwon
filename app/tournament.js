@@ -1,5 +1,6 @@
 
 // Modules
+var config = require('../config/config.json');
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('tournament');
 var util = require('./lib/util');
@@ -10,7 +11,6 @@ var Ring = require('./ring').Ring;
 var User = require('./user').User;
 var JuryPresident = require('./jury-president').JuryPresident;
 var CornerJudge = require('./corner-judge').CornerJudge;
-var defaults = require('./enum/defaults');
 
 var RING_HANDLER_PREFIX = '_ring';
 var RING_EVENTS = ['stateChanged'];
@@ -344,12 +344,11 @@ Tournament.prototype.initRings = function (count, cb) {
 	assert.integerGt0(count, 'count');
 	assert.function(cb, 'cb');
 
-	// Retrieve the number of corner judge slots per ring and the default match configuration
-	var slotCount = parseInt(process.env.CJS_PER_RING, 10);
-	var matchConfig = defaults.matchConfig;
+	// Retrieve the default match configuration
+	var defaults = config.matchConfig.defaults;
 
 	// Insert new rings in the database one at a time
-	DB.insertRings(this.id, count, slotCount, matchConfig, function (newDocs) {
+	DB.insertRings(this.id, count, config.cornerJudgesPerRing, defaults, function (newDocs) {
 		newDocs.forEach(this._initRing, this);
 		logger.debug("Rings initialised");
 		cb();

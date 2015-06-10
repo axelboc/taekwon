@@ -1,6 +1,7 @@
 
 // Dependencies
 var util = require('util');
+var config = require('../config/config.json');
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('jp');
 var DB = require('./lib/db');
@@ -140,7 +141,7 @@ JuryPresident.prototype.matchConfigUpdated = function (matchConfig) {
 		};
 		
 		if (customItem.isTime) {
-			customItem.isDecEnabled = item.value - parseInt(process.env.TIME_CONFIG_STEP, 10) > 0;
+			customItem.isDecEnabled = item.value - config.matchConfig.timeStep > 0;
 			customItem.value = util.numToTime(item.value);
 		} else if (customItem.isBoolean) {
 			customItem.isFalse = !item.value;

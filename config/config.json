@@ -1,0 +1,29 @@
+{
+	"ringCount": 2,
+	"cornerJudgesPerRing": 4,
+	"matchConfig": {
+		"timeStep": 15,
+		"defaults": {
+			"roundTime": {
+				"label": "Round time",
+				"type": "time",
+				"value": 120
+			},
+			"breakTime": {
+				"label": "Break time",
+				"type": "time",
+				"value": 60
+			},
+			"injuryTime": {
+				"label": "Injury time",
+				"type": "time",
+				"value": 120
+			},
+			"twoRounds": {
+				"label": "Number of rounds",
+				"type": "boolean",
+				"value": true
+			}
+		}
+	}
+}
