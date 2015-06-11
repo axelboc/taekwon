@@ -61,7 +61,6 @@ define([
 	};
 	
 	MatchPanel.prototype.updateState = function (data) {
-		console.log("State changed", data.state);
 		this.stateInner.innerHTML = this.stateInnerTemplate(data.state);
 	};
 

@@ -26,7 +26,6 @@ define([
 	 * ================================================== */
 
 	ConfigPanel.prototype.updateConfig = function (data) {
-		console.log(data);
 		this.configInner.innerHTML = this.configInnerTemplate(data);
 	};
 	

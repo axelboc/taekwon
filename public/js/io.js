@@ -34,7 +34,14 @@ define([
 			});
 
 			// Listen for incoming data
-			this.primus.on('data', function data(data) {
+			this.primus.on('incoming::data', function data(data) {
+				try {
+					var obj = JSON.parse(data);
+					if (obj && obj.emit) {
+						console.log(obj.emit[0], obj.emit[1] ? obj.emit[1] : null);
+						return;
+					}
+				} catch (exc) {}
 				console.log(data);
 			});
 
