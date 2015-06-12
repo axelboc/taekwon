@@ -9,6 +9,7 @@ var EventEmitter = require('events').EventEmitter;
 var StateMachine = require('javascript-state-machine');
 
 var States = require('./enum/match-states');
+var Transitions = require('./enum/match-transitions');
 var Rounds = require('./enum/match-rounds');
 var Competitors = require('./enum/competitors');
 
@@ -24,39 +25,51 @@ function Match(id, config) {
 	this.id = id;
 	this.config = config;
 	
-	// Create match state machine
+	
+	/* ==================================================
+	 * Match state machine
+	 * ================================================== */
+	
+	// Create state machine
 	this.state = StateMachine.create({
 		events: [
-			{ name: 'begin', from: 'none', to: States.ROUND_IDLE },
-			{ name: 'startState', from: States.ROUND_IDLE, to: States.ROUND_STARTED },
-			{ name: 'startState', from: States.BREAK_IDLE, to: States.BREAK_STARTED },
-			{ name: 'endState', from: States.ROUND_STARTED, to: States.ROUND_ENDED },
-			{ name: 'endState', from: States.BREAK_STARTED, to: States.BREAK_ENDED },
-			{ name: 'startEndInjury', from: States.ROUND_STARTED, to: States.INJURY },
-			{ name: 'startEndInjury', from: States.INJURY, to: States.ROUND_STARTED },
-			{ name: 'nextRound', from: States.BREAK_ENDED, to: States.ROUND_IDLE },
-			{ name: 'break', from: [States.ROUND_ENDED, States.RESULTS], to: States.BREAK_IDLE },
-			{ name: 'results', from: States.ROUND_ENDED, to: States.RESULTS },
-			{ name: 'end', from: [States.ROUND_ENDED, States.RESULTS], to: States.MATCH_ENDED }
+			{ name: Transitions.BEGIN, from: States.NONE, to: States.ROUND_IDLE },
+			{ name: Transitions.START_STATE, from: States.ROUND_IDLE, to: States.ROUND_STARTED },
+			{ name: Transitions.START_STATE, from: States.BREAK_IDLE, to: States.BREAK_STARTED },
+			{ name: Transitions.END_STATE, from: States.ROUND_STARTED, to: States.ROUND_ENDED },
+			{ name: Transitions.END_STATE, from: States.BREAK_STARTED, to: States.BREAK_ENDED },
+			{ name: Transitions.START_END_INJURY, from: States.ROUND_STARTED, to: States.INJURY },
+			{ name: Transitions.START_END_INJURY, from: States.INJURY, to: States.ROUND_STARTED },
+			{ name: Transitions.NEXT_ROUND, from: States.BREAK_ENDED, to: States.ROUND_IDLE },
+			{ name: Transitions.BREAK, from: [States.ROUND_ENDED, States.RESULTS], to: States.BREAK_IDLE },
+			{ name: Transitions.RESULTS, from: States.ROUND_ENDED, to: States.RESULTS },
+			{ name: Transitions.END, from: [States.ROUND_ENDED, States.RESULTS], to: States.MATCH_ENDED }
 		],
 		callbacks: {
-			// Generic callbacks
+			// Register generic callbacks
 			onleavestate: this._onLeaveState.bind(this),
 			onenterstate: this._onEnterState.bind(this),
-			// Transition-based callbacks
-			onbegin: this._onBegin.bind(this),
-			onend: this._onEnd.bind(this),
-			onstartEndInjury: this._onStartEndInjury.bind(this)
+			onafterevent: this._onAfterStateTransition.bind(this)
 		}
 	});
 	
-	// State-based callbacks
+	// Register state-based callbacks
 	this.state['on' + States.ROUND_IDLE] = this._onRoundIdle.bind(this);
 	this.state['on' + States.ROUND_ENDED] = this._onRoundEnded.bind(this);
 	this.state['on' + States.BREAK_IDLE] = this._onBreakIdle.bind(this);
 	this.state['on' + States.BREAK_ENDED] = this._onBreakEnded.bind(this);
 	
-	// Prepare round state machine transitions based on number of rounds
+	// Register transition-based callbacks
+	this.state['on' + Transitions.BEGIN] = this._onBegin.bind(this);
+	this.state['on' + Transitions.END] = this._onEnd.bind(this);
+	this.state['on' + Transitions.START_END_INJURY] = this._onStartEndInjury.bind(this);
+	
+	
+	/* ==================================================
+	 * Round state machine
+	 * ================================================== */
+	
+	// Prepare transitions based on number of rounds
 	var roundTransitions = [
 		{ name: 'next', from: Rounds.ROUND_1, to: config.twoRounds ? Rounds.ROUND_2 : Rounds.TIE_BREAKER },
 		{ name: 'next', from: Rounds.ROUND_2, to: Rounds.TIE_BREAKER },
@@ -67,15 +80,18 @@ function Match(id, config) {
 		roundTransitions.splice(1, 1);
 	}
 	
-	// Create round state machine
+	// Create state machine
 	this.round = StateMachine.create({
 		initial: Rounds.ROUND_1,
 		events: roundTransitions,
 		callbacks: {
+			// Register generic callbacks
 			onleavestate: this._onLeaveRound.bind(this),
-			onenterstate: this._onEnterRound.bind(this)
+			onenterstate: this._onEnterRound.bind(this),
+			onafterevent: this._onAfterRoundTransition.bind(this)
 		}
 	});
+	
 	
 	/**
 	 * Columns in the scoreboards and penalties array.
@@ -132,10 +148,23 @@ Match.prototype._onLeaveState = function (transition, from, to) {
 };
 
 /**
- * The state machine has transitioned to a new state.
+ * The state machine has entered a new state.
+ * @param {String} transition
+ * @param {String} from
+ * @param {String} to
  */
-Match.prototype._onEnterState = function () {
+Match.prototype._onEnterState = function (transition, from, to) {
 	this.emit('stateChanged', this.state.current, this.round.current);
+};
+
+/**
+ * The state machine has transitioned to a new state.
+ * @param {String} transition
+ * @param {String} from
+ * @param {String} to
+ */
+Match.prototype._onAfterStateTransition = function (transition, from, to) {
+	this.emit('stateTransitioned', transition, from, to);
 };
 
 /**
@@ -158,10 +187,23 @@ Match.prototype._onLeaveRound = function (transition, from, to) {
 };
 
 /**
- * The round state machine has transitioned to a new round.
+ * The round state machine has entered a new round.
+ * @param {String} transition
+ * @param {String} from
+ * @param {String} to
  */
-Match.prototype._onEnterRound = function () {
+Match.prototype._onEnterRound = function (transition, from, to) {
 	this.emit('roundChanged', this.round.current);
+};
+
+/**
+ * The round state machine has transitioned to a new round.
+ * @param {String} transition
+ * @param {String} from
+ * @param {String} to
+ */
+Match.prototype._onEnterRound = function (transition, from, to) {
+	this.emit('roundTransitioned', transition, from, to);
 };
 
 /**

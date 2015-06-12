@@ -13,6 +13,7 @@ var BREAK_REGEX = /^break.*$/;
  */
 var MatchStates = {
 	
+	NONE: 'none',
 	ROUND_IDLE: 'roundidle',
 	ROUND_STARTED: 'roundstarted',
 	ROUND_ENDED: 'roundended',
