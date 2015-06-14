@@ -9,6 +9,7 @@ var EventEmitter = require('events').EventEmitter;
 var CornerJudge = require('./corner-judge').CornerJudge;
 var JuryPresident = require('./jury-president').JuryPresident;
 var Match = require('./match').Match;
+var MatchStates = require('./enum/match-states');
 
 var JP_HANDLER_PREFIX = '_jp';
 var JP_EVENTS = [
@@ -23,9 +24,8 @@ var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged'];
 
 var MATCH_HANDLER_PREFIX = '_match';
 var MATCH_EVENTS = [
-	'began', 'continued', 'ended',
-	'stateChanged', 'roundChanged', 'injuryStateChanged',
-	'scoresUpdated', 'penaltiesUpdated', 'resultsComputed'
+	'stateChanged', 'roundChanged',
+	'scoresUpdated', 'penaltiesUpdated'
 ];
 
 
@@ -567,83 +567,41 @@ Ring.prototype._cjConnectionStateChanged = function (cj) {
  */
 
 /**
- * The match has begun.
- */
-Ring.prototype._matchBegan = function () {
-	assert.ok(this.juryPresident, "ring must have Jury President");
-	assert.ok(this.match, "ring must have a match");
-	
-	// Notify Jury President
-	this.juryPresident.matchBegan(this.match.config, this.getScoreSlots(), this.match.getRoundPenalties());
-};
-
-/**
- * The match has been continued.
- */
-Ring.prototype._matchContinued = function () {
-	assert.ok(this.juryPresident, "ring must have Jury President");
-	assert.ok(this.match, "ring must have a match");
-	
-	// Notify Jury President
-	this.juryPresident.matchContinued();
-};
-
-/**
- * The match has ended.
- */
-Ring.prototype._matchEnded = function () {
-	assert.ok(this.juryPresident, "ring must have Jury President");
-	assert.ok(this.match, "ring must have a match");
-	
-	// Remove match
-	this.match = null;
-	
-	// Notify Jury President
-	this.juryPresident.matchEnded();
-};
-
-/**
  * The state of the match has changed.
  * @param {String} state
  * @param {String} round
  */
-Ring.prototype._matchStateChanged = function (state, round) {
+Ring.prototype._matchStateChanged = function (transition, fromState, toState) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
+	assert.array(this.cornerJudges, 'cornerJudges');
 	assert.ok(this.match, "ring must have a match");
-	assert.string(state, 'state');
-	assert.string(round, 'round');
+	assert.string(transition, 'transition');
+	assert.string(fromState, 'fromState');
+	assert.string(toState, 'toState');
 	
 	// Notify Jury President and Corner Judges
-	this.juryPresident.matchStateChanged(this.match.config, state, round, this.match.getRoundPenalties());
+	this.juryPresident.matchStateChanged(this, this.match, transition, fromState, toState);
 	this.cornerJudges.forEach(function (cj) {
-		cj.matchStateChanged(state, this.juryPresident.connected);
+		cj.matchStateChanged(toState, this.juryPresident.connected);
 	}, this);
+	
+	// If the match has ended, clear the reference
+	if (toState === MatchStates.MATCH_ENDED) {
+		this.match = null;
+	}
 };
 
 /**
  * The round of the match has changed.
- * @param {String} round
+ * @param {String} toRound
  */
-Ring.prototype._matchRoundChanged = function (round) {
+Ring.prototype._matchRoundChanged = function (toRound) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
 	assert.ok(this.match, "ring must have a match");
-	assert.string(round, 'round');
+	assert.string(toRound, 'toRound');
 	
 	// Notify Jury President
-	this.juryPresident.matchRoundChanged(round);
-};
-
-/**
- * An injury has started or ended.
- * @param {Boolean} started
- */
-Ring.prototype._matchInjuryStateChanged = function (started) {
-	assert.ok(this.juryPresident, "ring must have Jury President");
-	assert.ok(this.match, "ring must have a match");
-	assert.boolean(started, 'started');
-	
-	// Notify Jury President
-	this.juryPresident.injuryStateChanged(this.match.config, started);
+	this.juryPresident.matchRoundChanged(toRound);
 };
 
 /**
@@ -666,21 +624,7 @@ Ring.prototype._matchPenaltiesUpdated = function (penalties) {
 	assert.ok(this.match, "ring must have a match");
 	
 	// Notify Jury President
-	this.juryPresident.penaltiesUpdated(penalties, true);
-};
-
-/**
- * The results of a round have been computed.
- * @param {String} winner
- */
-Ring.prototype._matchResultsComputed = function (winner) {
-	assert.ok(this.juryPresident, "ring must have Jury President");
-	assert.ok(this.match, "ring must have a match");
-	assert.ok(winner === null || typeof winner === 'string' && winner.length > 0,
-			  '`winner` must be null or a non-empty string');
-	
-	this.juryPresident.matchResultsComputed(winner, this.match.config, this.match.scoreboardColumns, 
-											this.match.scoreboards, this.match.penalties, this.match.cjNames);
+	this.juryPresident.penaltiesUpdated(penalties);
 };
 
 

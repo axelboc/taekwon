@@ -9,6 +9,7 @@ var EventEmitter = require('events').EventEmitter;
 var StateMachine = require('javascript-state-machine');
 
 var States = require('./enum/match-states');
+var Transitions = require('./enum/match-transitions');
 var Rounds = require('./enum/match-rounds');
 var Competitors = require('./enum/competitors');
 
@@ -24,39 +25,44 @@ function Match(id, config) {
 	this.id = id;
 	this.config = config;
 	
-	// Create match state machine
+	
+	/* ==================================================
+	 * Match state machine
+	 * ================================================== */
+	
+	// Create state machine
 	this.state = StateMachine.create({
 		events: [
-			{ name: 'begin', from: 'none', to: States.ROUND_IDLE },
-			{ name: 'startState', from: States.ROUND_IDLE, to: States.ROUND_STARTED },
-			{ name: 'startState', from: States.BREAK_IDLE, to: States.BREAK_STARTED },
-			{ name: 'endState', from: States.ROUND_STARTED, to: States.ROUND_ENDED },
-			{ name: 'endState', from: States.BREAK_STARTED, to: States.BREAK_ENDED },
-			{ name: 'startEndInjury', from: States.ROUND_STARTED, to: States.INJURY },
-			{ name: 'startEndInjury', from: States.INJURY, to: States.ROUND_STARTED },
-			{ name: 'nextRound', from: States.BREAK_ENDED, to: States.ROUND_IDLE },
-			{ name: 'break', from: [States.ROUND_ENDED, States.RESULTS], to: States.BREAK_IDLE },
-			{ name: 'results', from: States.ROUND_ENDED, to: States.RESULTS },
-			{ name: 'end', from: [States.ROUND_ENDED, States.RESULTS], to: States.MATCH_ENDED }
+			{ name: Transitions.BEGIN, from: States.NONE, to: States.ROUND_IDLE },
+			{ name: Transitions.START_STATE, from: States.ROUND_IDLE, to: States.ROUND_STARTED },
+			{ name: Transitions.START_STATE, from: States.BREAK_IDLE, to: States.BREAK_STARTED },
+			{ name: Transitions.END_STATE, from: States.ROUND_STARTED, to: States.ROUND_ENDED },
+			{ name: Transitions.END_STATE, from: States.BREAK_STARTED, to: States.BREAK_ENDED },
+			{ name: Transitions.START_END_INJURY, from: States.ROUND_STARTED, to: States.INJURY },
+			{ name: Transitions.START_END_INJURY, from: States.INJURY, to: States.ROUND_STARTED },
+			{ name: Transitions.NEXT_ROUND, from: States.BREAK_ENDED, to: States.ROUND_IDLE },
+			{ name: Transitions.BREAK, from: [States.ROUND_ENDED, States.RESULTS], to: States.BREAK_IDLE },
+			{ name: Transitions.RESULTS, from: States.ROUND_ENDED, to: States.RESULTS },
+			{ name: Transitions.END, from: [States.ROUND_ENDED, States.RESULTS], to: States.MATCH_ENDED }
 		],
 		callbacks: {
-			// Generic callbacks
+			// Register generic callbacks
 			onleavestate: this._onLeaveState.bind(this),
-			onenterstate: this._onEnterState.bind(this),
-			// Transition-based callbacks
-			onbegin: this._onBegin.bind(this),
-			onend: this._onEnd.bind(this),
-			onstartEndInjury: this._onStartEndInjury.bind(this)
+			onenterstate: this._onEnterState.bind(this)
 		}
 	});
 	
-	// State-based callbacks
+	// Register state-based callbacks
 	this.state['on' + States.ROUND_IDLE] = this._onRoundIdle.bind(this);
 	this.state['on' + States.ROUND_ENDED] = this._onRoundEnded.bind(this);
-	this.state['on' + States.BREAK_IDLE] = this._onBreakIdle.bind(this);
 	this.state['on' + States.BREAK_ENDED] = this._onBreakEnded.bind(this);
 	
-	// Prepare round state machine transitions based on number of rounds
+	
+	/* ==================================================
+	 * Round state machine
+	 * ================================================== */
+	
+	// Prepare transitions based on number of rounds
 	var roundTransitions = [
 		{ name: 'next', from: Rounds.ROUND_1, to: config.twoRounds ? Rounds.ROUND_2 : Rounds.TIE_BREAKER },
 		{ name: 'next', from: Rounds.ROUND_2, to: Rounds.TIE_BREAKER },
@@ -67,15 +73,17 @@ function Match(id, config) {
 		roundTransitions.splice(1, 1);
 	}
 	
-	// Create round state machine
+	// Create state machine
 	this.round = StateMachine.create({
 		initial: Rounds.ROUND_1,
 		events: roundTransitions,
 		callbacks: {
+			// Register generic callbacks
 			onleavestate: this._onLeaveRound.bind(this),
 			onenterstate: this._onEnterRound.bind(this)
 		}
 	});
+	
 	
 	/**
 	 * Columns in the scoreboards and penalties array.
@@ -132,63 +140,13 @@ Match.prototype._onLeaveState = function (transition, from, to) {
 };
 
 /**
- * The state machine has transitioned to a new state.
- */
-Match.prototype._onEnterState = function () {
-	this.emit('stateChanged', this.state.current, this.round.current);
-};
-
-/**
- * The round state machine is transitioning to a new round.
+ * The state machine has entered a new state.
  * @param {String} transition
  * @param {String} from
  * @param {String} to
  */
-Match.prototype._onLeaveRound = function (transition, from, to) {
-	logger.debug('round transition: ' + transition + ', from: ' + from + ', to: ' + to);
-	
-	// Update database
-	DB.setMatchRound(this.id, to, function () {
-		// Transition round state machine
-		this.round.transition();
-	}.bind(this));
-	
-	// Pause round state machine until database call has completed
-	return StateMachine.ASYNC;
-};
-
-/**
- * The round state machine has transitioned to a new round.
- */
-Match.prototype._onEnterRound = function () {
-	this.emit('roundChanged', this.round.current);
-};
-
-/**
- * The match has begun.
- */
-Match.prototype._onBegin = function () {
-	this.emit('began');
-	logger.info('began', {
-		id: this.id
-	});
-};
-
-/**
- * The match has ended.
- */
-Match.prototype._onEnd = function () {
-	this.emit('ended');
-	logger.info('ended', {
-		id: this.id
-	});
-};
-
-/**
- * An injury has started or ended.
- */
-Match.prototype._onStartEndInjury = function (transition, from, to) {
-	this.emit('injuryStateChanged', to === States.INJURY);
+Match.prototype._onEnterState = function (transition, from, to) {
+	this.emit('stateChanged', transition, from, to);
 };
 
 /**
@@ -211,9 +169,6 @@ Match.prototype._onRoundIdle = function () {
 				chong: 0
 			}
 		};
-
-		this.emit('scoresUpdated');
-		this.emit('penaltiesReset');
 	}
 };
 
@@ -225,8 +180,8 @@ Match.prototype._onRoundEnded = function () {
 		// If round 1 and match is to have two rounds, trigger a break
 		this.state.break();
 	} else {
-		// Otherwise, compute results
-		this._computeResults();
+		// Otherwise, compute winner
+		this.winner = this._computeWinner(this._computeTotals());
 		
 		// If winner, end match
 		if (this.winner || this.round.is(Rounds.GOLDEN_POINT)) {
@@ -235,13 +190,6 @@ Match.prototype._onRoundEnded = function () {
 			this.state.results();
 		}
 	}
-};
-
-/**
- * A break is about to start
- */
-Match.prototype._onBreakIdle = function () {
-	this.emit('continued');
 };
 
 /**
@@ -254,19 +202,32 @@ Match.prototype._onBreakEnded = function () {
 };
 
 /**
- * Get the scoreboard of a judge.
- * Initialise the scoreboard if it doesn't already exist.
- * @param {String} cjId
- * @return {Object}
+ * The round state machine is transitioning to a new round.
+ * @param {String} transition
+ * @param {String} from
+ * @param {String} to
  */
-Match.prototype._getScoreboard = function (cjId) {
-	assert.string(cjId, 'cjId');
+Match.prototype._onLeaveRound = function (transition, from, to) {
+	logger.debug('round transition: ' + transition + ', from: ' + from + ', to: ' + to);
 	
-	if (!this.scoreboards[cjId]) {
-		this.scoreboards[cjId] = {};
-	}
+	// Update database
+	DB.setMatchRound(this.id, to, function () {
+		// Transition round state machine
+		this.round.transition();
+	}.bind(this));
 	
-	return this.scoreboards[cjId];
+	// Pause round state machine until database call has completed
+	return StateMachine.ASYNC;
+};
+
+/**
+ * The round state machine has entered a new round.
+ * @param {String} transition
+ * @param {String} from
+ * @param {String} to
+ */
+Match.prototype._onEnterRound = function (transition, from, to) {
+	this.emit('roundChanged', to);
 };
 
 /**
@@ -287,6 +248,48 @@ Match.prototype.getScores = function (cjId) {
 	}
 	
 	return scoreboard[this.scoreboardColumnId];
+};
+
+/**
+ * Get the scoreboard of a judge.
+ * Initialise the scoreboard if it doesn't already exist.
+ * @param {String} cjId
+ * @return {Object}
+ */
+Match.prototype._getScoreboard = function (cjId) {
+	assert.string(cjId, 'cjId');
+	
+	if (!this.scoreboards[cjId]) {
+		this.scoreboards[cjId] = {};
+	}
+	
+	return this.scoreboards[cjId];
+};
+
+/**
+ * A Corner Judge has scored.
+ * @param {String} cjId
+ * @param {String} cjName
+ * @param {Object} score
+ */
+Match.prototype.score = function (cjId, cjName, score) {
+	// Ensure that the match is in the correct state to allow scoring
+	assert.ok(this.state.is(States.ROUND_STARTED), 
+			  "scoring not allowed in current match state: " + this.state.current);
+	
+	assert.string(cjId, 'cjId');
+	assert.string(cjName, 'cjName');
+	assert.string(score.competitor, 'score.competitor');
+	assert.integer(score.points, 'score.points');
+	
+	// Store the name of the Corner Judge for future reference
+	if (!this.cjNames[cjId]) {
+		this.cjNames[cjId] = cjName;
+	}
+	
+	// Record the new score
+	this.getScores(cjId)[score.competitor] += score.points;
+	this.emit('scoresUpdated');
 };
 
 /**
@@ -342,31 +345,36 @@ Match.prototype._updatePenalty = function (type, competitor, value) {
 	this.emit('penaltiesUpdated', this.getRoundPenalties());
 };
 
-Match.prototype.score = function (cjId, cjName, score) {
-	// Ensure that the match is in the correct state to allow scoring
-	assert.ok(this.state.is(States.ROUND_STARTED), 
-			  "scoring not allowed in current match state: " + this.state.current);
-	
-	assert.string(cjId, 'cjId');
-	assert.string(score.competitor, 'score.competitor');
-	assert.integer(score.points, 'score.points');
-	
-	// Store the name of the Corner Judge for future reference
-	if (!this.cjNames[cjId]) {
-		this.cjNames[cjId] = cjName;
-	}
-	
-	// Record the new score
-	this.getScores(cjId)[score.competitor] += score.points;
-	this.emit('scoresUpdated');
-};
-
 /**
- * Compute the winner, maluses and total scores for the last round(s).
+ * Compute the winner for the last round(s).
+ * @return {String} - the winner of the round(s), or null if it's a tie
  */
-Match.prototype._computeResults = function () {
-	this.winner = this._computeWinner(this._computeTotals());
-	this.emit('resultsComputed', this.winner);
+Match.prototype._computeWinner = function (totalColumnId) {
+	var diff = 0;
+	var ties = 0;
+
+	// Compute each Corner Judge's winner
+	var cjIds = Object.keys(this.scoreboards);
+	cjIds.forEach(function (cjId) {
+		// Retrieve Corner Judge's totals
+		var totals = this.scoreboards[cjId][totalColumnId];
+		
+		// Compute winner
+		var winner = totals.hong > totals.chong ? Competitors.HONG : 
+					 (totals.chong > totals.hong ? Competitors.CHONG : null);
+
+		// +1 if hong wins, -1 if chong wins, 0 if tie (null)
+		diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
+		ties += (!winner ? 1 : 0);
+	}, this);
+
+	// If majority of ties, match is also a tie
+	if (cjIds.length > 2 && ties > Math.floor(cjIds.length % 2)) {
+		return null;
+	} else {
+		// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
+		return (diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null));
+	}
 };
 
 /**
@@ -407,38 +415,6 @@ Match.prototype._computeMaluses = function (columnId) {
 		hong: - Math.floor(penalties.warnings.hong / 3) - penalties.fouls.hong,
 		chong: - Math.floor(penalties.warnings.chong / 3) - penalties.fouls.chong,
 	};
-};
-
-/**
- * Compute the winner for the last round(s).
- * @return {String} - the winner of the round(s), or null if it's a tie
- */
-Match.prototype._computeWinner = function (totalColumnId) {
-	var diff = 0;
-	var ties = 0;
-
-	// Compute each Corner Judge's winner
-	var cjIds = Object.keys(this.scoreboards);
-	cjIds.forEach(function (cjId) {
-		// Retrieve Corner Judge's totals
-		var totals = this.scoreboards[cjId][totalColumnId];
-		
-		// Compute winner
-		var winner = totals.hong > totals.chong ? Competitors.HONG : 
-					 (totals.chong > totals.hong ? Competitors.CHONG : null);
-
-		// +1 if hong wins, -1 if chong wins, 0 if tie (null)
-		diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
-		ties += (!winner ? 1 : 0);
-	}, this);
-
-	// If majority of ties, match is also a tie
-	if (cjIds.length > 2 && ties > Math.floor(cjIds.length % 2)) {
-		return null;
-	} else {
-		// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
-		return (diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null));
-	}
 };
 
 exports.Match = Match;

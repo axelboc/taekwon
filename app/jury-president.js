@@ -84,8 +84,6 @@ JuryPresident.prototype.ringOpened = function (ring, matchConfig, slots) {
 	assert.object(matchConfig, 'matchConfig');
 	assert.array(slots, 'slots');
 	
-	this.ring = ring;
-	
 	this._send('io.setPageTitle', {
 		title: "Jury President | Ring " + (ring.index + 1)
 	});
@@ -155,90 +153,121 @@ JuryPresident.prototype.matchConfigUpdated = function (matchConfig) {
 	this._send('configPanel.updateConfig', { configItems: configItems });
 };
 
-/**
- * A new match has begun.
- * @param {Object} config
- * @param {Object} scoreSlots
- * @param {Object} penalties
- */
-JuryPresident.prototype.matchBegan = function (config, scoreSlots, penalties) {
-	assert.object(config, 'config');
-	assert.object(scoreSlots, 'scoreSlots');
-	assert.object(penalties, 'penalties');
-
-	this._send('matchPanel.updateScoreSlots', { scoreSlots: scoreSlots });
-	this.penaltiesUpdated(penalties, false);
-	
-	this._send('roundTimer.reset', { value: config.roundTime });
-	this._send('ringView.showPanel', { panel: 'matchPanel' });
-};
-
-/**
- * The match has been continued.
- */
-JuryPresident.prototype.matchContinued = function () {
-	this._send('ringView.showPanel', { panel: 'matchPanel' });
-};
-
-/**
- * The match has been ended.
- */
-JuryPresident.prototype.matchEnded = function () {
-	this._send('roundTimer.stop');
-	this._send('resultPanel.showEndBtns');
-	this._send('ringView.showPanel', { panel: 'resultPanel' });
-};
-
 /*
  * The state of the match has changed.
- * @param {Object} config
- * @param {String} state
- * @param {String} round
- * @param {Object} penalties
+ * @param {Ring} ring
+ * @param {Match} match
+ * @param {String} transition
+ * @param {String} fromState
+ * @param {String} toState
  */
-JuryPresident.prototype.matchStateChanged = function (config, state, round, penalties) {
-	assert.object(config, 'config')
-	assert.string(state, 'state');
-	assert.string(round, 'round');
-	assert.object(penalties, 'penalties');
-	var isGoldenPoint =  round === MatchRounds.GOLDEN_POINT;
+JuryPresident.prototype.matchStateChanged = function (ring, match, transition, fromState, toState) {
+	assert.ok(ring, "`ring` must be provided");
+	assert.ok(match, "`match` must be provided");
+	assert.string(transition, 'transition');
+	assert.string(fromState, 'fromState');
+	assert.string(toState, 'toState');
 	
-	switch (state) {
-		case MatchStates.MATCH_ENDED:
-			return;
-			
-		case MatchStates.RESULTS:
-			this._send('resultPanel.showContinueBtns');
-			this._send('ringView.showPanel', { panel: 'resultPanel' });
-			return;
-			
+	// Perform various UI operations depending on the new state
+	switch (toState) {
 		case MatchStates.ROUND_IDLE:
 			this._send('roundTimer.reset', {
-				value: isGoldenPoint ? 0 : config.roundTime
+				value: match.round.is(MatchRounds.GOLDEN_POINT) ? 0 : match.config.roundTime
 			});
-			break;
 			
-		case MatchStates.BREAK_IDLE:
-			this._send('matchPanel.setRoundLabel', { label: 'Break' });
-			this._send('roundTimer.reset', { value: config.breakTime });
+			this._updateState(toState);
+			this._send('matchPanel.updateScoreSlots', { scoreSlots: ring.getScoreSlots() });
+			this._updatePenalties(match.getRoundPenalties(), false);
+			
+			this._send('ringView.showPanel', { panel: 'matchPanel' });
 			break;
 			
 		case MatchStates.ROUND_STARTED:
-			this.penaltiesUpdated(penalties, true);
-		case MatchStates.BREAK_STARTED:
-			this._send('roundTimer.start', {
-				countDown: !isGoldenPoint,
-				delay: false
-			});
+			if (fromState !== MatchStates.INJURY) {
+				this._updatePenalties(match.getRoundPenalties(), true);
+				this._send('roundTimer.start', {
+					countDown: !match.round.is(MatchRounds.GOLDEN_POINT),
+					delay: false
+				});
+			} else {
+				this._send('injuryTimer.stop');
+				this._send('matchPanel.toggleInjuryTimer', { show: false });
+				this._send('roundTimer.unpause', { delay: true });
+			}
+			
+			this._updateState(toState);
 			break;
 			
 		case MatchStates.ROUND_ENDED:
+			this._send('roundTimer.stop');
 			this._send('matchPanel.disablePenaltyBtns');
+			break;
+			
+		case MatchStates.BREAK_IDLE:
+			this._send('roundTimer.reset', { value: match.config.breakTime });
+			this._send('matchPanel.setRoundLabel', { label: 'Break' });
+			this._updateState(toState);
+			
+			if (fromState === MatchStates.RESULTS) {
+				this._send('ringView.showPanel', { panel: 'matchPanel' });
+			}
+			break;
+			
+		case MatchStates.BREAK_STARTED:
+			this._send('roundTimer.start', {
+				countDown: true,
+				delay: false
+			});
+			
+			this._updateState(toState);
+			break;
+			
 		case MatchStates.BREAK_ENDED:
 			this._send('roundTimer.stop');
 			break;
+			
+		case MatchStates.INJURY:
+			this._send('roundTimer.pause');
+			this._send('injuryTimer.reset', { value: match.config.injuryTime });
+			this._send('matchPanel.toggleInjuryTimer', { show: true });
+			this._send('injuryTimer.start', {
+				countDown: true,
+				delay: true
+			});
+			
+			this._updateState(toState);
+			break;
+			
+		case MatchStates.RESULTS:
+		case MatchStates.MATCH_ENDED:
+			if (toState === MatchStates.MATCH_ENDED) {
+				this._send('resultPanel.showEndBtns');
+			} else {
+				this._send('resultPanel.showContinueBtns');
+			}
+			
+			this._send('resultPanel.setWinner', { winner: match.winner });
+			this._send('resultPanel.updateScoreboard', {
+				twoRounds: match.config.twoRounds,
+				scoreboardColumns: match.scoreboardColumns,
+				scoreboards: match.scoreboards,
+				penalties: match.penalties,
+				cjNames: match.cjNames
+			});
+			
+			if (fromState !== MatchStates.RESULTS) {
+				this._send('ringView.showPanel', { panel: 'resultPanel' });
+			}
+			break;
 	}
-	
+};
+
+/**
+ * Update state in match panel.
+ * @param {String} state
+ */
+JuryPresident.prototype._updateState = function (state) {
+	assert.string(state, 'state');
 	this._send('matchPanel.updateState', {
 		state: {
 			isIdle: MatchStates.isIdle(state),
@@ -252,11 +281,11 @@ JuryPresident.prototype.matchStateChanged = function (config, state, round, pena
 
 /**
  * The round of a match has changed.
- * @param {String} round
+ * @param {String} toRound
  */
-JuryPresident.prototype.matchRoundChanged = function (round) {
-	assert.string(round, 'round');
-	this._send('matchPanel.setRoundLabel', { label: round });
+JuryPresident.prototype.matchRoundChanged = function (toRound) {
+	assert.string(toRound, 'toRound');
+	this._send('matchPanel.setRoundLabel', { label: toRound });
 };
 
 /**
@@ -264,26 +293,14 @@ JuryPresident.prototype.matchRoundChanged = function (round) {
  * @param {Object} config
  * @param {Boolean} started
  */
-JuryPresident.prototype.injuryStateChanged = function (config, started) {
+/*JuryPresident.prototype.injuryStateChanged = function (config, started) {
 	assert.object(config, 'config')
 	assert.boolean(started, 'started');
 	
 	if (started) {
-		this._send('matchPanel.toggleInjuryTimer', { show: true });
-		this._send('roundTimer.pause');
-		this._send('injuryTimer.reset', { value: config.injuryTime });
-		this._send('injuryTimer.start', {
-			countDown: true,
-			delay: true
-		});
 	} else {
-		this._send('matchPanel.toggleInjuryTimer', { show: false });
-		this._send('injuryTimer.stop');
-		this._send('roundTimer.unpause', {
-			delay: true
-		});
 	}
-};
+};*/
 
 /**
  * The match's scores have been updated.
@@ -297,9 +314,18 @@ JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
 /**
  * The penalties have been updated.
  * @param {Object} penalties
+ */
+JuryPresident.prototype.penaltiesUpdated = function (penalties) {
+	assert.object(penalties, 'penalties');
+	this._updatePenalties(penalties, true);
+};
+
+/**
+ * Update penalties in match panel.
+ * @param {Object} penalties
  * @param {Boolean} enable - whether the penalties can be changed in the current state of the match
  */
-JuryPresident.prototype.penaltiesUpdated = function (penalties, enable) {
+JuryPresident.prototype._updatePenalties = function (penalties, enable) {
 	assert.object(penalties, 'penalties');
 	assert.boolean(enable, 'enable');
 	
@@ -315,35 +341,6 @@ JuryPresident.prototype.penaltiesUpdated = function (penalties, enable) {
 	this._send('matchPanel.updatePenalties', {
 		warnings: penalties['warnings'],
 		fouls: penalties['fouls']
-	});
-};
-
-/**
- * The results of a round have been computed.
- * @param {String} winner
- * @param {Object} config
- * @param {Array} scoreboardColumns
- * @param {Object} scoreboards
- * @param {Object} penalties
- * @param {Object} cjNames
- */
-JuryPresident.prototype.matchResultsComputed = function (winner, config, scoreboardColumns, scoreboards,
-														 penalties, cjNames) {
-	assert.ok(winner === null || typeof winner === 'string' && winner.length > 0,
-			  '`winner` must be null or a non-empty string');
-	assert.object(config, 'config');
-	assert.array(scoreboardColumns, 'scoreboardColumns');
-	assert.object(scoreboards, 'scoreboards');
-	assert.object(penalties, 'penalties');
-	assert.object(cjNames, 'cjNames');
-	
-	this._send('resultPanel.setWinner', { winner: winner });
-	this._send('resultPanel.updateScoreboard', {
-		config: config,
-		scoreboardColumns: scoreboardColumns,
-		scoreboards: scoreboards,
-		penalties: penalties,
-		cjNames: cjNames
 	});
 };
 

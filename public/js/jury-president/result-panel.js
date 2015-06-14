@@ -71,7 +71,7 @@ define([
 		this.sbBody.innerHTML = '';
 
 		// Build header row
-		this.buildHeaderRow(columns, data.config.twoRounds);
+		this.buildHeaderRow(columns, data.twoRounds);
 
 		// Build penalties row
 		this.buildPenaltiesRow(columns, data.penalties, 'warnings');
