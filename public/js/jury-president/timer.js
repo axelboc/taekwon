@@ -38,7 +38,7 @@ define([
 
 		var tickFunc = (data.countDown ? this._tickDown : this._tickUp).bind(this);
 
-		// Timer intervals may start after a delay of 600ms:
+		// Timer intervals may start after a delay of 500ms:
 		// 300ms to account for the sliding transition, plus 200ms for usability purposes
 		// TODO: refactor with `transitionend` event?
 		window.setTimeout((function () {

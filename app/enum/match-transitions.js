@@ -5,10 +5,10 @@
  */
 module.exports = {
 	BEGIN: 'begin',
-	START_STATE: 'startestate',
-	END_STATE: 'endstate',
-	START_END_INJURY: 'startendinjury',
-	NEXT_ROUND: 'nextround',
+	START_STATE: 'startState',
+	END_STATE: 'endState',
+	START_END_INJURY: 'startEndInjury',
+	NEXT_ROUND: 'nextRound',
 	BREAK: 'break',
 	RESULTS: 'results',
 	END: 'end'

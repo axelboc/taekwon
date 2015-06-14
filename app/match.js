@@ -48,21 +48,14 @@ function Match(id, config) {
 		callbacks: {
 			// Register generic callbacks
 			onleavestate: this._onLeaveState.bind(this),
-			onenterstate: this._onEnterState.bind(this),
-			onafterevent: this._onAfterStateTransition.bind(this)
+			onenterstate: this._onEnterState.bind(this)
 		}
 	});
 	
 	// Register state-based callbacks
 	this.state['on' + States.ROUND_IDLE] = this._onRoundIdle.bind(this);
 	this.state['on' + States.ROUND_ENDED] = this._onRoundEnded.bind(this);
-	this.state['on' + States.BREAK_IDLE] = this._onBreakIdle.bind(this);
 	this.state['on' + States.BREAK_ENDED] = this._onBreakEnded.bind(this);
-	
-	// Register transition-based callbacks
-	this.state['on' + Transitions.BEGIN] = this._onBegin.bind(this);
-	this.state['on' + Transitions.END] = this._onEnd.bind(this);
-	this.state['on' + Transitions.START_END_INJURY] = this._onStartEndInjury.bind(this);
 	
 	
 	/* ==================================================
@@ -87,8 +80,7 @@ function Match(id, config) {
 		callbacks: {
 			// Register generic callbacks
 			onleavestate: this._onLeaveRound.bind(this),
-			onenterstate: this._onEnterRound.bind(this),
-			onafterevent: this._onAfterRoundTransition.bind(this)
+			onenterstate: this._onEnterRound.bind(this)
 		}
 	});
 	
@@ -154,17 +146,59 @@ Match.prototype._onLeaveState = function (transition, from, to) {
  * @param {String} to
  */
 Match.prototype._onEnterState = function (transition, from, to) {
-	this.emit('stateChanged', this.state.current, this.round.current);
+	this.emit('stateChanged', transition, from, to);
 };
 
 /**
- * The state machine has transitioned to a new state.
- * @param {String} transition
- * @param {String} from
- * @param {String} to
+ * A round is about to start.
  */
-Match.prototype._onAfterStateTransition = function (transition, from, to) {
-	this.emit('stateTransitioned', transition, from, to);
+Match.prototype._onRoundIdle = function () {
+	if (!this.round.is(Rounds.ROUND_2)) {
+		// Unless round 2, prepare the next column of the judges' scoreboards
+		this.scoreboardColumnId = this.round.is(Rounds.ROUND_1) ? 'main' : this.round.current;
+		this.scoreboardColumns.push(this.scoreboardColumnId);
+
+		// Initialise penalty objects for new state
+		this.penalties[this.scoreboardColumnId] = {
+			warnings: {
+				hong: 0,
+				chong: 0
+			},
+			fouls: {
+				hong: 0,
+				chong: 0
+			}
+		};
+	}
+};
+
+/**
+ * A round has ended.
+ */
+Match.prototype._onRoundEnded = function () {
+	if (this.round.is(Rounds.ROUND_1) && this.config.twoRounds) {
+		// If round 1 and match is to have two rounds, trigger a break
+		this.state.break();
+	} else {
+		// Otherwise, compute winner
+		this.winner = this._computeWinner(this._computeTotals());
+		
+		// If winner, end match
+		if (this.winner || this.round.is(Rounds.GOLDEN_POINT)) {
+			this.state.end();
+		} else {
+			this.state.results();
+		}
+	}
+};
+
+/**
+ * A break has ended.
+ */
+Match.prototype._onBreakEnded = function () {
+	// Always continue to the next round after a break
+	this.round.next();
+	this.state.nextRound();
 };
 
 /**
@@ -193,122 +227,7 @@ Match.prototype._onLeaveRound = function (transition, from, to) {
  * @param {String} to
  */
 Match.prototype._onEnterRound = function (transition, from, to) {
-	this.emit('roundChanged', this.round.current);
-};
-
-/**
- * The round state machine has transitioned to a new round.
- * @param {String} transition
- * @param {String} from
- * @param {String} to
- */
-Match.prototype._onEnterRound = function (transition, from, to) {
-	this.emit('roundTransitioned', transition, from, to);
-};
-
-/**
- * The match has begun.
- */
-Match.prototype._onBegin = function () {
-	this.emit('began');
-	logger.info('began', {
-		id: this.id
-	});
-};
-
-/**
- * The match has ended.
- */
-Match.prototype._onEnd = function () {
-	this.emit('ended');
-	logger.info('ended', {
-		id: this.id
-	});
-};
-
-/**
- * An injury has started or ended.
- */
-Match.prototype._onStartEndInjury = function (transition, from, to) {
-	this.emit('injuryStateChanged', to === States.INJURY);
-};
-
-/**
- * A round is about to start.
- */
-Match.prototype._onRoundIdle = function () {
-	if (!this.round.is(Rounds.ROUND_2)) {
-		// Unless round 2, prepare the next column of the judges' scoreboards
-		this.scoreboardColumnId = this.round.is(Rounds.ROUND_1) ? 'main' : this.round.current;
-		this.scoreboardColumns.push(this.scoreboardColumnId);
-
-		// Initialise penalty objects for new state
-		this.penalties[this.scoreboardColumnId] = {
-			warnings: {
-				hong: 0,
-				chong: 0
-			},
-			fouls: {
-				hong: 0,
-				chong: 0
-			}
-		};
-
-		this.emit('scoresUpdated');
-		this.emit('penaltiesReset');
-	}
-};
-
-/**
- * A round has ended.
- */
-Match.prototype._onRoundEnded = function () {
-	if (this.round.is(Rounds.ROUND_1) && this.config.twoRounds) {
-		// If round 1 and match is to have two rounds, trigger a break
-		this.state.break();
-	} else {
-		// Otherwise, compute results
-		this._computeResults();
-		
-		// If winner, end match
-		if (this.winner || this.round.is(Rounds.GOLDEN_POINT)) {
-			this.state.end();
-		} else {
-			this.state.results();
-		}
-	}
-};
-
-/**
- * A break is about to start
- */
-Match.prototype._onBreakIdle = function () {
-	this.emit('continued');
-};
-
-/**
- * A break has ended.
- */
-Match.prototype._onBreakEnded = function () {
-	// Always continue to the next round after a break
-	this.round.next();
-	this.state.nextRound();
-};
-
-/**
- * Get the scoreboard of a judge.
- * Initialise the scoreboard if it doesn't already exist.
- * @param {String} cjId
- * @return {Object}
- */
-Match.prototype._getScoreboard = function (cjId) {
-	assert.string(cjId, 'cjId');
-	
-	if (!this.scoreboards[cjId]) {
-		this.scoreboards[cjId] = {};
-	}
-	
-	return this.scoreboards[cjId];
+	this.emit('roundChanged', to);
 };
 
 /**
@@ -329,6 +248,48 @@ Match.prototype.getScores = function (cjId) {
 	}
 	
 	return scoreboard[this.scoreboardColumnId];
+};
+
+/**
+ * Get the scoreboard of a judge.
+ * Initialise the scoreboard if it doesn't already exist.
+ * @param {String} cjId
+ * @return {Object}
+ */
+Match.prototype._getScoreboard = function (cjId) {
+	assert.string(cjId, 'cjId');
+	
+	if (!this.scoreboards[cjId]) {
+		this.scoreboards[cjId] = {};
+	}
+	
+	return this.scoreboards[cjId];
+};
+
+/**
+ * A Corner Judge has scored.
+ * @param {String} cjId
+ * @param {String} cjName
+ * @param {Object} score
+ */
+Match.prototype.score = function (cjId, cjName, score) {
+	// Ensure that the match is in the correct state to allow scoring
+	assert.ok(this.state.is(States.ROUND_STARTED), 
+			  "scoring not allowed in current match state: " + this.state.current);
+	
+	assert.string(cjId, 'cjId');
+	assert.string(cjName, 'cjName');
+	assert.string(score.competitor, 'score.competitor');
+	assert.integer(score.points, 'score.points');
+	
+	// Store the name of the Corner Judge for future reference
+	if (!this.cjNames[cjId]) {
+		this.cjNames[cjId] = cjName;
+	}
+	
+	// Record the new score
+	this.getScores(cjId)[score.competitor] += score.points;
+	this.emit('scoresUpdated');
 };
 
 /**
@@ -384,31 +345,36 @@ Match.prototype._updatePenalty = function (type, competitor, value) {
 	this.emit('penaltiesUpdated', this.getRoundPenalties());
 };
 
-Match.prototype.score = function (cjId, cjName, score) {
-	// Ensure that the match is in the correct state to allow scoring
-	assert.ok(this.state.is(States.ROUND_STARTED), 
-			  "scoring not allowed in current match state: " + this.state.current);
-	
-	assert.string(cjId, 'cjId');
-	assert.string(score.competitor, 'score.competitor');
-	assert.integer(score.points, 'score.points');
-	
-	// Store the name of the Corner Judge for future reference
-	if (!this.cjNames[cjId]) {
-		this.cjNames[cjId] = cjName;
-	}
-	
-	// Record the new score
-	this.getScores(cjId)[score.competitor] += score.points;
-	this.emit('scoresUpdated');
-};
-
 /**
- * Compute the winner, maluses and total scores for the last round(s).
+ * Compute the winner for the last round(s).
+ * @return {String} - the winner of the round(s), or null if it's a tie
  */
-Match.prototype._computeResults = function () {
-	this.winner = this._computeWinner(this._computeTotals());
-	this.emit('resultsComputed', this.winner);
+Match.prototype._computeWinner = function (totalColumnId) {
+	var diff = 0;
+	var ties = 0;
+
+	// Compute each Corner Judge's winner
+	var cjIds = Object.keys(this.scoreboards);
+	cjIds.forEach(function (cjId) {
+		// Retrieve Corner Judge's totals
+		var totals = this.scoreboards[cjId][totalColumnId];
+		
+		// Compute winner
+		var winner = totals.hong > totals.chong ? Competitors.HONG : 
+					 (totals.chong > totals.hong ? Competitors.CHONG : null);
+
+		// +1 if hong wins, -1 if chong wins, 0 if tie (null)
+		diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
+		ties += (!winner ? 1 : 0);
+	}, this);
+
+	// If majority of ties, match is also a tie
+	if (cjIds.length > 2 && ties > Math.floor(cjIds.length % 2)) {
+		return null;
+	} else {
+		// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
+		return (diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null));
+	}
 };
 
 /**
@@ -449,38 +415,6 @@ Match.prototype._computeMaluses = function (columnId) {
 		hong: - Math.floor(penalties.warnings.hong / 3) - penalties.fouls.hong,
 		chong: - Math.floor(penalties.warnings.chong / 3) - penalties.fouls.chong,
 	};
-};
-
-/**
- * Compute the winner for the last round(s).
- * @return {String} - the winner of the round(s), or null if it's a tie
- */
-Match.prototype._computeWinner = function (totalColumnId) {
-	var diff = 0;
-	var ties = 0;
-
-	// Compute each Corner Judge's winner
-	var cjIds = Object.keys(this.scoreboards);
-	cjIds.forEach(function (cjId) {
-		// Retrieve Corner Judge's totals
-		var totals = this.scoreboards[cjId][totalColumnId];
-		
-		// Compute winner
-		var winner = totals.hong > totals.chong ? Competitors.HONG : 
-					 (totals.chong > totals.hong ? Competitors.CHONG : null);
-
-		// +1 if hong wins, -1 if chong wins, 0 if tie (null)
-		diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
-		ties += (!winner ? 1 : 0);
-	}, this);
-
-	// If majority of ties, match is also a tie
-	if (cjIds.length > 2 && ties > Math.floor(cjIds.length % 2)) {
-		return null;
-	} else {
-		// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
-		return (diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null));
-	}
 };
 
 exports.Match = Match;
