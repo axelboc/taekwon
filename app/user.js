@@ -20,12 +20,11 @@ function User(id, spark, connected) {
 	assert.boolean(connected, 'connected');
 	
 	this.id = id;
+	this.connected = connected;
+	
 	if (spark) {
 		this.initSpark(spark);
 	}
-	
-	this.connected = connected;
-	this.ring = null;
 }
 
 // Inherit EventEmitter
@@ -96,11 +95,7 @@ User.prototype.idSuccess = function (ringStates) {
  */
 User.prototype.ringStateChanged = function (ringStates) {
 	assert.array(ringStates, 'ringStates');
-	
-	// Only send the updated ring states if the Jury President hasn't opened a ring yet
-	if (!this.ring) {
-		this._send('ringListView.updateList', { rings: ringStates });
-	}
+	this._send('ringListView.updateList', { rings: ringStates });
 };
 
 /**

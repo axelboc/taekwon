@@ -76,7 +76,14 @@ Tournament.prototype._findJPRing = function (jp) {
  * @return {Ring}
  */
 Tournament.prototype._findCJRing = function (cj) {
-	// TODO
+	var r = null;
+	this.rings.some(function (ring) {
+		if (ring.hasCJ(cj)) {
+			r = ring;
+			return true;
+		}
+	});
+	return r;
 };
 
 /*
@@ -327,9 +334,9 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 			user.idSuccess(this._getRingStates());
 		} else {
 			if (!user.authorised) {
-				user.waitingForAuthorisation(ring);
+				user.waitingForAuthorisation();
 			} else {
-				user.ringJoined();
+				user.ringJoined(ring);
 			}
 		}
 	}
@@ -353,9 +360,7 @@ Tournament.prototype._initRing = function (doc) {
 		if (jp) {
 			ring.initJP(jp);
 		} else {
-			logger.error("Jury President is not in the system", {
-				id: doc.jpId
-			});
+			logger.error("Jury President is not in the system", { id: doc.jpId });
 		}
 	}
 
@@ -364,12 +369,9 @@ Tournament.prototype._initRing = function (doc) {
 		doc.cjIds.forEach(function (id) {
 			var cj = this.users[id];
 			if (cj) {
-				cj.ring = ring;
 				ring.initCJ(cj);
 			} else {
-				logger.error("Corner Judge is not in the system", {
-					id: id
-				});
+				logger.error("Corner Judge is not in the system", { id: id });
 			}
 		}, this);
 	}
@@ -464,7 +466,7 @@ Tournament.prototype._jpOpenRing = function (jp, ringIndex) {
 /**
  * A Corner Judge's request to join the ring has been rejected by the Jury President.
  * @param {Object} data
- * 		  {String} data.id - the ID of the Corner Judge to reject
+ * 		  {String} data.id - the ID of the Corner Judge that was rejected
  */
 Tournament.prototype._jpRejectCJ = function (data) {
 	assert.object(data, 'data');
@@ -472,10 +474,12 @@ Tournament.prototype._jpRejectCJ = function (data) {
 	
 	var cj = this.users[data.id];
 	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
-	assert.ok(cj.ring, "Corner Judge not in a ring");
+	
+	var ring = this._findCJRing(cj);
+	assert.ok(ring, "Corner Judge not in a ring");
 	
 	// Remove Corner Judge from ring
-	cj.ring.removeCJ(cj, "Not authorised to join ring", this._getRingStates());
+	ring.removeCJ(cj, "Not authorised to join ring", this._getRingStates());
 };
 
 /**
@@ -489,10 +493,12 @@ Tournament.prototype._jpRemoveCJ = function (data) {
 	
 	var cj = this.users[data.id];
 	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
-	assert.ok(cj.ring, "Corner Judge not in a ring");
+	
+	var ring = this._findCJRing(cj);
+	assert.ok(ring, "Corner Judge not in a ring");
 	
 	// Remove Corner Judge from ring
-	cj.ring.removeCJ(cj, "Removed from ring", this._getRingStates());
+	ring.removeCJ(cj, "Removed from ring", this._getRingStates());
 };
 
 /**
@@ -549,7 +555,7 @@ Tournament.prototype._cjExited = function (cj) {
 	// Remove event listeners
 	util.removeEventListeners(cj, CJ_EVENTS);
 	
-	var ring = cj.ring;
+	var ring = this._findCJRing(cj);
 	if (ring) {
 		// Remove Corner Judge from ring
 		ring.removeCJ(cj, "Exited system", this._getRingStates());

@@ -11,7 +11,7 @@
     "node" : "0.12.x" 
   },
   "scripts": {
-    "test": "mocha tests --require tests/helpers/common.js & pause",
+    "test": "mocha tests",
     "reset": "del data\\*.db",
     "restart": "node app",
     "prerestart": "npm run reset"

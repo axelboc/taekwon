@@ -51,7 +51,6 @@ function Ring(id, index, slotCount, matchConfig) {
 	this.juryPresident = null;
 	this.cornerJudges = [];
 	this.match = null;
-	this.scoringEnabled = false;
 }
 
 // Inherit EventEmitter
@@ -230,7 +229,7 @@ Ring.prototype.addCJ = function (cj) {
 		// Request authorisation from Jury President
 		this.juryPresident.slotsUpdated(this.getSlots(), this.getScoreSlots());
 		// Acknowledge
-		cj.waitingForAuthorisation(this);
+		cj.waitingForAuthorisation();
 
 		logger.info('cjAdded', {
 			number: this.number,
@@ -267,7 +266,7 @@ Ring.prototype.removeCJ = function (cj, message, ringStates) {
 			if (!cj.authorised) {
 				cj.rejected(message, ringStates);
 			} else {
-				cj.ringLeft(message, ringStates);
+				cj.ringLeft(this, message, ringStates);
 			}
 
 			logger.info('cjRemoved', {
@@ -278,6 +277,15 @@ Ring.prototype.removeCJ = function (cj, message, ringStates) {
 			});
 		}.bind(this));
 	}.bind(this));
+};
+
+/**
+ * Test whether a Corner Judge has (or is trying to) join the ring.
+ * @param {CornerJudge} cj
+ * @return {Boolean}
+ */
+Ring.prototype.hasCJ = function (cj) {
+	return this.cornerJudges.indexOf(cj) !== -1;
 };
 
 /**
@@ -309,6 +317,14 @@ Ring.prototype.restoreMatch = function (cb) {
 		}
 		cb();
 	}.bind(this));
+};
+
+/**
+ * Test whether scoring is enabled on the ring.
+ * @return {Boolean}
+ */
+Ring.prototype.isScoringEnabled = function () {
+	return this.match && this.match.state.current === MatchStates.ROUND_STARTED;
 };
 
 
@@ -368,7 +384,7 @@ Ring.prototype._jpAuthoriseCJ = function (data) {
 	// Update the database
 	DB.setCJAuthorised(data.id, true, function () {
 		// Acknowledge
-		cj.ringJoined();
+		cj.ringJoined(this);
 		this.juryPresident.slotsUpdated(this.getSlots(), this.getScoreSlots());
 	}.bind(this));
 };
@@ -504,9 +520,8 @@ Ring.prototype._jpConnectionStateChanged = function () {
 	assert.array(this.cornerJudges, 'cornerJudges');
 
 	// Notify Corner Judges
-	var connected = this.juryPresident.connected;
 	this.cornerJudges.forEach(function (cj) {
-		cj.jpConnectionStateChanged(connected);
+		cj.jpConnectionStateChanged(this);
 	}, this);
 };
 
@@ -582,7 +597,7 @@ Ring.prototype._matchStateChanged = function (transition, fromState, toState) {
 	// Notify Jury President and Corner Judges
 	this.juryPresident.matchStateChanged(this, this.match, transition, fromState, toState);
 	this.cornerJudges.forEach(function (cj) {
-		cj.matchStateChanged(toState, this.juryPresident.connected);
+		cj.matchStateChanged(this);
 	}, this);
 	
 	// If the match has ended, clear the reference
