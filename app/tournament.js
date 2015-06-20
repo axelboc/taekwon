@@ -53,6 +53,31 @@ Tournament.prototype._getRingStates = function () {
 	}, []);
 };
 
+/**
+ * Find a Jury President's ring.
+ * Return `null` if the Jury President has not opened a ring yet.
+ * @param {JuryPresident} jp
+ * @return {Ring}
+ */
+Tournament.prototype._findJPRing = function (jp) {
+	var r = null;
+	this.rings.some(function (ring) {
+		if (jp === ring.juryPresident) {
+			r = ring;
+			return true;
+		}
+	});
+	return r;
+};
+
+/**
+ * Find a Corner Judge's ring.
+ * @param {CornerJudge} cj
+ * @return {Ring}
+ */
+Tournament.prototype._findCJRing = function (cj) {
+	// TODO
+};
 
 /*
  * ==================================================
@@ -92,9 +117,12 @@ Tournament.prototype._onConnection = function (spark) {
 			});
 			spark.end();
 		} else {
-			// Ask user to confirm its identity
+			// Listen for identity confirmation
+			spark.once('identityConfirmation', this._onIdentityConfirmation.bind(this, sessionId, spark, user));
+
+			// Send identity confirmation request
 			logger.debug("> Confirming identity...");
-			this._confirmUserIdentity(sessionId, spark, user);
+			spark.emit('io.confirmIdentity');
 		}
 	}
 };
@@ -132,50 +160,8 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 	assert.string(sessionId, 'sessionId');
 	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
 
-	var onIdentification = function (data) {
-		assert.object(data, 'data');
-		assert.string(data.identity, 'data.identity');
-		assert.ok(data.identity === 'juryPresident' || data.identity === 'cornerJudge',
-			   "`data.identity` must be 'juryPresident' or 'cornerJudge'");
-
-		// Check identification
-		if (data.identity === 'juryPresident' && data.value !== process.env.MASTER_PWD ||
-			data.identity === 'cornerJudge' && (typeof data.value !== 'string' || data.value.length === 0)) {
-			// Identification failed
-			logger.debug("> Failed identification (identity=" + data.identity + ")");
-			
-			// Shake field
-			spark.emit('login.shakeResetField');
-			
-			// Update instruction text if appropriate
-			if (data.identity === 'juryPresident') {
-				spark.emit('login.setInstr', { text: "Master password incorrect" });
-			}
-			
-			// Listen for identification again
-			spark.once('identification', onIdentification);
-			return;
-		}
-
-		// Insert the new user in the database
-		DB.insertUser(this.id, sessionId, data.identity, data.value, function (newDoc) {
-			if (newDoc) {
-				var user = this._initUser(spark, true, newDoc);
-				logger.info('newUser', newDoc);
-
-				// Notify client of success and send along ring states
-				logger.debug("> Successful identification (identity=" + data.identity + ")");
-				user.idSuccess(this._getRingStates());
-			} else {
-				// If database insertion failed, notify client that identification failed
-				spark.emit('login.setInstr', { text: "Unexpected error" });
-				spark.once('identification', onIdentification);
-			}
-		}.bind(this));
-	}.bind(this);
-	
 	// Listen for identification
-	spark.once('identification', onIdentification);
+	spark.once('identification', this._onIdentification.bind(this, sessionId, spark));
 
 	// Inform user that we're waiting for an identification
 	logger.debug("> Waiting for identification...");
@@ -184,42 +170,91 @@ Tournament.prototype._identifyUser = function (sessionId, spark) {
 };
 
 /**
- * Ask a user to confirm its identity.
+ * A user is identifying itself.
+ * @param {String} sessionId
+ * @param {Spark} spark
+ * @param {Object} data
+ * 		  {String} data.identity - (juryPresident|cornerJudge)
+ * 		  {String} data.value - JP password or CJ name
+ */
+Tournament.prototype._onIdentification = function (sessionId, spark, data) {
+	assert.string(sessionId, 'sessionId');
+	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
+	assert.object(data, 'data');
+	assert.string(data.identity, 'data.identity');
+	assert.ok(data.identity === 'juryPresident' || data.identity === 'cornerJudge',
+			  "`data.identity` must be 'juryPresident' or 'cornerJudge'");
+
+	// Check identification
+	if (data.identity === 'juryPresident' && data.value !== process.env.MASTER_PWD ||
+		data.identity === 'cornerJudge' && (typeof data.value !== 'string' || data.value.length === 0)) {
+		// Identification failed
+		logger.debug("> Failed identification (identity=" + data.identity + ")");
+
+		// Shake field
+		spark.emit('login.shakeResetField');
+
+		// Update instruction text if appropriate
+		if (data.identity === 'juryPresident') {
+			spark.emit('login.setInstr', { text: "Master password incorrect" });
+		}
+
+		// Listen for identification again
+		spark.once('identification', this._onIdentification.bind(this, sessionId, spark));
+		return;
+	}
+
+	// Insert the new user in the database
+	DB.insertUser(this.id, sessionId, data.identity, data.value, function (newDoc) {
+		if (newDoc) {
+			var user = this._initUser(spark, true, newDoc);
+			logger.info('newUser', newDoc);
+
+			// Notify client of success and send along ring states
+			logger.debug("> Successful identification (identity=" + data.identity + ")");
+			user.idSuccess(this._getRingStates());
+		} else {
+			// If database insertion failed, notify client that identification failed
+			spark.emit('login.setInstr', { text: "Unexpected error" });
+			
+			// Listen for identification again
+			spark.once('identification', this._onIdentification.bind(this, sessionId, spark));
+		}
+	}.bind(this));
+};
+
+/**
+ * A user is confirming its identity.
  * @param {String} sessionId
  * @param {Spark} spark
  * @param {User} user
+ * @param {Object} data
+ * 		  {String} data.identity - (juryPresident|cornerJudge)
  */
-Tournament.prototype._confirmUserIdentity = function (sessionId, spark, user) {
+Tournament.prototype._onIdentityConfirmation = function (sessionId, spark, user, data) {
 	assert.string(sessionId, 'sessionId');
 	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
 	assert.instanceOf(user, 'user', User, 'User');
+	assert.object(data, 'data');
+	assert.string(data.identity, 'data.identity');
+	assert.ok(data.identity === 'juryPresident' || data.identity === 'cornerJudge',
+		   "`data.identity` must be 'juryPresident' or 'cornerJudge'");
 
-	// Listen for identity confirmation
-	spark.once('identityConfirmation', function _onIdentityConfirmation(data) {
-		assert.object(data, 'data');
-		assert.string(data.identity, 'data.identity');
-		assert.ok(data.identity === 'juryPresident' || data.identity === 'cornerJudge',
-			   "`data.identity` must be 'juryPresident' or 'cornerJudge'");
-
-		// Check whether user is switching role
-		var isJP = data.identity === 'juryPresident';
-		if (isJP && user instanceof JuryPresident || !isJP && user instanceof CornerJudge) {
-			// Not switching; restore session
-			logger.debug("> Identity confirmed: " + data.identity);
-			this.restoreUserSession(user, spark);
-		} else {
-			// Switching; remove user from system and request identification from new user
-			logger.debug("> User has changed identity. Starting new identification process...");
-			DB.removeUser(user, function () {
-				user.exit();
-				delete this.users[sessionId];
-				this._identifyUser(sessionId, spark);
-			}.bind(this));
-		}
-	}.bind(this));
-
-	// Send identity confirmation request
-	spark.emit('io.confirmIdentity');
+	// Check whether user is switching role
+	var isJP = data.identity === 'juryPresident';
+	if (isJP && user instanceof JuryPresident || !isJP && user instanceof CornerJudge) {
+		// Not switching; restore session
+		logger.debug("> Identity confirmed: " + data.identity);
+		this._restoreUserSession(user, spark);
+	} else {
+		// Switching; remove user from system and request identification from new user
+		logger.debug("> User has changed identity. Starting new identification process...");
+		DB.removeUser(user, function () {
+			user.exit();
+			delete this.users[sessionId];
+			this._identifyUser(sessionId, spark);
+		}.bind(this));
+	}
 };
 
 
@@ -269,18 +304,27 @@ Tournament.prototype.restoreUsers = function (cb) {
 	}.bind(this));
 };
 
-Tournament.prototype.restoreUserSession = function (user, spark) {
+Tournament.prototype._restoreUserSession = function (user, spark) {
 	assert.instanceOf(user, 'user', User, 'User');
 	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
 	
+	// Initialise the new spark
 	user.initSpark(spark);
 	
-	if (!user.ring) {
-		user.idSuccess(this._getRingStates());
-	} else {
-		var ring = user.ring;
-		if (user instanceof JuryPresident) {
+	// Restore Jury President
+	if (user instanceof JuryPresident) {
+		var ring = this._findJPRing(user);
+		if (!ring) {
+			user.idSuccess(this._getRingStates());
+		} else {
 			user.ringOpened(ring, ring.matchConfig, ring.getSlots());
+		}
+	
+	// Restore Corner Judge
+	} else {
+		var ring = this._findCJRing(user);
+		if (!ring) {
+			user.idSuccess(this._getRingStates());
 		} else {
 			if (!user.authorised) {
 				user.waitingForAuthorisation(ring);
@@ -307,7 +351,6 @@ Tournament.prototype._initRing = function (doc) {
 	if (doc.jpId) {
 		var jp = this.users[doc.jpId];
 		if (jp) {
-			jp.ring = ring;
 			ring.initJP(jp);
 		} else {
 			logger.error("Jury President is not in the system", {
@@ -459,9 +502,11 @@ Tournament.prototype._jpRemoveCJ = function (data) {
 Tournament.prototype._jpExited = function (jp) {
 	assert.instanceOf(jp, 'jp', JuryPresident, 'JuryPresident');
 	
-	if (jp.ring) {
+	// Check if the Jury President has opened a ring
+	var ring = this._findJPRing(jp);
+	if (ring) {
 		// Close the ring
-		jp.ring.close(this._getRingStates());
+		ring.close(this._getRingStates());
 	}
 };
 
