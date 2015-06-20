@@ -60,31 +60,6 @@ CornerJudge.prototype.getState = function () {
 	};
 };
 
-/**
- * Get backdrop state and content based on Jury President connection state and Ring scoring state.
- * @param {Boolean} scoringEnabled
- * @param {Boolean} jpConnected
- * @return {Object}
- */
-CornerJudge.prototype._getBackdropState = function (scoringEnabled, jpConnected) {
-	var text = '';
-	var subtext = '';
-	
-	if (!jpConnected) {
-		text = "Jury President disconnected";
-		subtext = "Waiting for reconnection...";
-	} else if (!scoringEnabled) {
-		text = "Please wait for round to begin";
-		subtext = "... or timeout to end";
-	}
-	
-	return {
-		visible: !jpConnected || !scoringEnabled,
-		text: text,
-		subtext: subtext
-	};
-};
-
 
 /* ==================================================
  * Inbound spark events:
@@ -140,12 +115,8 @@ CornerJudge.prototype._onUndo = function () {
 
 /**
  * Waiting for authorisation to join the ring.
- * @param {Ring} ring
  */
-CornerJudge.prototype.waitingForAuthorisation = function (ring) {
-	assert.provided(ring, 'ring');
-	
-	this.ring = ring;
+CornerJudge.prototype.waitingForAuthorisation = function () {
 	this._send('root.showView', { view: 'authorisationView' });
 };
 
@@ -159,10 +130,8 @@ CornerJudge.prototype.waitingForAuthorisation = function (ring) {
 CornerJudge.prototype.rejected = function (message, ringStates) {
 	assert.string(message, 'message');
 	assert.array(ringStates, 'ringStates');
-	assert.ok(!this.authorised, "already authorised");
 	logger.debug("> " + message);
 
-	this.ring = null;
 	this._send('ringListView.setInstr', { text: message });
 	this._send('ringListView.updateList', { rings: ringStates });
 	this._send('root.showView', { view: 'ringListView' });
@@ -170,26 +139,22 @@ CornerJudge.prototype.rejected = function (message, ringStates) {
 
 /**
  * The Jury President has authorised the Corner Judge's request to join the ring.
+ * @param {Ring} ring
  */
-CornerJudge.prototype.ringJoined = function () {
-	assert.ok(this.ring, "not in a ring");
-	
+CornerJudge.prototype.ringJoined = function (ring) {
+	assert.provided(ring, 'ring');
+
 	// Mark the Corner Judge as authorised
 	this.authorised = true;
 
-	this._send('io.setPageTitle', {
-		title: "Corner Judge | Ring " + (this.ring.index + 1)
-	});
-	
-	var backdropState = this._getBackdropState(this.ring.scoringEnabled, this.ring.juryPresident.connected);
-	this._send('backdrop.update', backdropState);
-
+	this._send('io.setPageTitle', { title: "Corner Judge | Ring " + (ring.index + 1) });
+	this._updateBackdrop(ring);
 	this._send('root.showView', { view: 'roundView' });
 	
 	logger.info('ringJoined', {
 		id: this.id,
 		name: this.name,
-		ringNumber: this.ring.number
+		ringNumber: ring.number
 	});
 };
 
@@ -197,17 +162,16 @@ CornerJudge.prototype.ringJoined = function () {
  * The Corner Judge has left the ring, either voluntarily or by force:
  * - The Jury President has rejected the Corner Judge's request to join the ring.
  * - The Jury President has removed the Corner Judge from the ring.
+ * @param {Ring} ring
  * @param {String} message - an explanation intended to be displayed to the human user
  * @param {Array} ringStates
  */
-CornerJudge.prototype.ringLeft = function (message, ringStates) {
+CornerJudge.prototype.ringLeft = function (ring, message, ringStates) {
+	assert.provided(ring, 'ring');
 	assert.string(message, 'message');
 	assert.array(ringStates, 'ringStates');
-	assert.ok(this.ring, "not in a ring");
-	var ringNumber = this.ring.number;
 
 	// Remove the Corner Judge from the ring and mark it as unauthorised
-	this.ring = null;
 	this.authorised = false;
 
 	this._send('io.setPageTitle', { title: "Corner Judge" });
@@ -218,22 +182,17 @@ CornerJudge.prototype.ringLeft = function (message, ringStates) {
 	logger.info('ringLeft', {
 		id: this.id,
 		name: this.name,
-		ringNumber: ringNumber
+		ringNumber: ring.number
 	});
 };
 
 /**
  * The state of the Match has changed.
- * @param {String} state
- * @param {Boolean} jpConnected
+ * @param {Ring} ring
  */
-CornerJudge.prototype.matchStateChanged = function (state, jpConnected) {
-	assert.string(state, 'state');
-	assert.boolean(jpConnected, 'jpConnected');
-	
-	var scoringEnabled = state === MatchStates.ROUND_STARTED;
-	var backdropState = this._getBackdropState(scoringEnabled, jpConnected);
-	this._send('backdrop.update', backdropState);
+CornerJudge.prototype.matchStateChanged = function (ring) {
+	assert.provided(ring, 'ring');
+	this._updateBackdrop(ring);
 };
 
 /**
@@ -280,13 +239,41 @@ CornerJudge.prototype.undid = function (score) {
 
 /**
  * The connection state of the Jury President has changed.
- * @param {Boolean} connected
+ * @param {Ring} ring
  */
-CornerJudge.prototype.jpConnectionStateChanged = function (connected) {
-	assert.boolean(connected, 'connected');
+CornerJudge.prototype.jpConnectionStateChanged = function (ring) {
+	assert.provided(ring, 'ring');
+	this._updateBackdrop(ring);
+};
+
+/**
+ * Update backdrop based on ring state.
+ * @param {Ring} ring
+ * @return {Object}
+ */
+CornerJudge.prototype._updateBackdrop = function (ring) {
+	assert.provided(ring, 'ring');
+	assert.ok(ring.juryPresident, "ring must have a Jury President");	
+
+	var scoringEnabled = ring.isScoringEnabled();
+	var jpConnected = ring.juryPresident.connected
 	
-	var backdropState = this._getBackdropState(this.ring.scoringEnabled, connected);
-	this._send('backdrop.update', backdropState);
+	var text = '';
+	var subtext = '';
+	
+	if (!jpConnected) {
+		text = "Jury President disconnected";
+		subtext = "Waiting for reconnection...";
+	} else if (!scoringEnabled) {
+		text = "Please wait for round to begin";
+		subtext = "... or timeout to end";
+	}
+	
+	this._send('backdrop.update', {
+		visible: !jpConnected || !scoringEnabled,
+		text: text,
+		subtext: subtext
+	});
 };
 
 

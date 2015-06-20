@@ -289,20 +289,6 @@ JuryPresident.prototype.matchRoundChanged = function (toRound) {
 };
 
 /**
- * An injury has started or ended.
- * @param {Object} config
- * @param {Boolean} started
- */
-/*JuryPresident.prototype.injuryStateChanged = function (config, started) {
-	assert.object(config, 'config')
-	assert.boolean(started, 'started');
-	
-	if (started) {
-	} else {
-	}
-};*/
-
-/**
  * The match's scores have been updated.
  * @param {Object} scoreSlots
  */
