@@ -29,12 +29,22 @@ define([
 		// Debug
 		if (!config.isProd) {
 			// Listen for opening of connection
-			this.primus.on('open', function open() {
+			this.primus.on('open', function () {
 				console.log('Connection is alive and kicking');
 			});
 
+			// Listen for connection timeouts
+			this.primus.on('timeout', function (err) {
+				console.log('Timeout!', err);
+			});
+
+			// Listen for closing of connection
+			this.primus.on('end', function () {
+				console.log('Connection closed');
+			});
+
 			// Listen for incoming data
-			this.primus.on('incoming::data', function data(data) {
+			this.primus.on('incoming::data', function (data) {
 				try {
 					var obj = JSON.parse(data);
 					if (obj && obj.emit) {
@@ -46,57 +56,62 @@ define([
 			});
 
 			// Listen for when Primus attempts to reconnect
-			this.primus.on('reconnect', function reconnect() {
+			this.primus.on('reconnect', function () {
 				console.log('Reconnect attempt started');
 			});
 
+			// Listen for when Primus has succeeded in reconnecting
+			this.primus.on('reconnected', function () {
+				console.log('Reconnected');
+			});
+
 			// Listen for when Primus plans on reconnecting
-			this.primus.on('reconnecting', function reconnecting(opts) {
+			this.primus.on('reconnect scheduled', function (opts) {
 				console.log('Reconnecting in %d ms', opts.timeout);
 				console.log('This is attempt %d out of %d', opts.attempt, opts.retries);
 			});
 
-			// Listen for timeouts
-			this.primus.on('timeout', function timeout(msg) {
-				console.log('Timeout!', msg);
+			// Listen for reconnection timeouts
+			this.primus.on('reconnect timeout', function (err) {
+				console.log('Reconnection timed out', err);
 			});
 
-			// Listen for closing of connection
-			this.primus.on('end', function end() {
-				console.log('Connection closed');
+			// Listen for failed reconnects
+			this.primus.on('reconnect failed', function (err) {
+				console.log('Reconnection failed', err);
 			});
 
 			// Regained network connection
-			this.primus.on('online', function online(msg) {
+			this.primus.on('online', function (msg) {
 				console.log('Online!', msg);
 			});
 
 			// Lost network connection
-			this.primus.on('offline', function offline(msg) {
+			this.primus.on('offline', function (msg) {
 				console.log('Offline!', msg);
 			});
 		}
 	}
 	
-	IO.prototype.confirmIdentity = function confirmIdentity() {
+	IO.prototype.confirmIdentity = function () {
 		this.send('identityConfirmation', {
 			identity: this.identity
 		});
 	};
 	
-	IO.prototype.alert = function alert(data) {
+	IO.prototype.alert = function (data) {
 		window.alert(data.reason);
 	};
 	
-	IO.prototype.setPageTitle = function setPageTitle(data) {
+	IO.prototype.setPageTitle = function (data) {
 		document.title = data.title;
 	};
 	
-	IO.prototype.wsError = function wsError(data) {
+	IO.prototype.wsError = function (data) {
 		this.onError(data);
 	};
 	
-	IO.prototype.error = function error(err) {
+	IO.prototype.error = function (err) {
 		console.error('Error:', err.reason);
 		
 		// Retrieve message to display in error view
@@ -121,11 +136,11 @@ define([
 		}
 	};
 	
-	IO.prototype.send = function send(event, data) {
+	IO.prototype.send = function (event, data) {
 		this.primus.emit(event, data);
 	};
 	
-	IO.prototype.sendFunc = function sendFunc(event) {
+	IO.prototype.sendFunc = function (event) {
 		return this.send.bind(this, event);
 	};
 	
