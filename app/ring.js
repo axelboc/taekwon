@@ -597,7 +597,7 @@ Ring.prototype._matchStateChanged = function (transition, fromState, toState) {
 	// Notify Jury President and Corner Judges
 	this.juryPresident.matchStateChanged(this, this.match, transition, fromState, toState);
 	this.cornerJudges.forEach(function (cj) {
-		cj.matchStateChanged(this);
+		cj.matchStateChanged(this, this.match, transition, fromState, toState);
 	}, this);
 	
 	// If the match has ended, clear the reference

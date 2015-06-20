@@ -146,9 +146,11 @@ CornerJudge.prototype.ringJoined = function (ring) {
 
 	// Mark the Corner Judge as authorised
 	this.authorised = true;
+	this.undoEnabled = false;
 
 	this._send('io.setPageTitle', { title: "Corner Judge | Ring " + (ring.index + 1) });
 	this._updateBackdrop(ring);
+	this._send('roundView.enableUndoBtn', { enable: false });
 	this._send('root.showView', { view: 'roundView' });
 	
 	logger.info('ringJoined', {
@@ -190,9 +192,23 @@ CornerJudge.prototype.ringLeft = function (ring, message, ringStates) {
  * The state of the Match has changed.
  * @param {Ring} ring
  */
-CornerJudge.prototype.matchStateChanged = function (ring) {
+CornerJudge.prototype.matchStateChanged = function (ring, match, transition, fromState, toState) {
 	assert.provided(ring, 'ring');
+	assert.ok(match, "`match` must be provided");
+	assert.string(transition, 'transition');
+	assert.string(fromState, 'fromState');
+	assert.string(toState, 'toState');
+	
 	this._updateBackdrop(ring);
+	
+	// If round has ended, clear the score history
+	switch (toState) {
+		case MatchStates.ROUND_ENDED:
+			this.scores = [];
+			this.undoEnabled = false;
+			this._send('roundView.enableUndoBtn', { enable: false });
+			break;
+	}
 };
 
 /**
