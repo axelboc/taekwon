@@ -17,8 +17,11 @@ var Competitors = require('./enum/competitors');
 /**
  * Match.
  * @param {String} id
+ * @param {Object} config
+ * @param {String} state - the initial state (optional, defaults to States.ROUND_IDLE) 
+ * @param {String} round - the initial round (optional, defaults to Rounds.ROUND_1) 
  */
-function Match(id, config) {
+function Match(id, config, state, round) {
 	assert.string(id, 'id');
 	assert.object(config, 'config');
 	
@@ -32,8 +35,8 @@ function Match(id, config) {
 	
 	// Create state machine
 	this.state = StateMachine.create({
+		initial: state || MatchStates.ROUND_IDLE,
 		events: [
-			{ name: Transitions.BEGIN, from: States.NONE, to: States.ROUND_IDLE },
 			{ name: Transitions.START_STATE, from: States.ROUND_IDLE, to: States.ROUND_STARTED },
 			{ name: Transitions.START_STATE, from: States.BREAK_IDLE, to: States.BREAK_STARTED },
 			{ name: Transitions.END_STATE, from: States.ROUND_STARTED, to: States.ROUND_ENDED },
@@ -75,7 +78,7 @@ function Match(id, config) {
 	
 	// Create state machine
 	this.round = StateMachine.create({
-		initial: Rounds.ROUND_1,
+		initial: round || Rounds.ROUND_1,
 		events: roundTransitions,
 		callbacks: {
 			// Register generic callbacks
