@@ -385,7 +385,7 @@ Tournament.prototype._initRing = function (doc) {
  * @param {Number} count - the number of rings, as an integer greater than 0
  * @param {Function} cb - a function called when the initialisation is complete
  */
-Tournament.prototype.initRings = function (count, cb) {
+Tournament.prototype.createRings = function (count, cb) {
 	assert.integerGt0(count, 'count');
 	assert.function(cb, 'cb');
 

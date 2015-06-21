@@ -153,7 +153,7 @@ dotenv({
 				if (newDoc) {
 					// Initialise the new tournament
 					tournament = new Tournament(newDoc._id, primus);
-					tournament.initRings(config.ringCount, function () {
+					tournament.createRings(config.ringCount, function () {
 						logger.debug("> Tournament started (ID=" + newDoc._id + ")");
 					});
 				}
