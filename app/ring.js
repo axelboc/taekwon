@@ -10,6 +10,7 @@ var CornerJudge = require('./corner-judge').CornerJudge;
 var JuryPresident = require('./jury-president').JuryPresident;
 var Match = require('./match').Match;
 var MatchStates = require('./enum/match-states');
+var MatchRounds = require('./enum/match-rounds');
 
 var JP_HANDLER_PREFIX = '_jp';
 var JP_EVENTS = [
@@ -296,11 +297,8 @@ Ring.prototype.hasCJ = function (cj) {
 Ring.prototype._initMatch = function (doc, cb) {
 	assert.object(doc, 'doc');
 	
-	this.match = new Match(doc._id, doc.config);
+	this.match = new Match(doc._id, doc.config, doc.state, doc.round);
 	util.addEventListeners(this, this.match, MATCH_EVENTS, MATCH_HANDLER_PREFIX);
-	
-	// Begin the match
-	this.match.state.begin();
 };
 
 /**
@@ -447,7 +445,7 @@ Ring.prototype._jpCreateMatch = function () {
 	}.bind(this), {});
 	
 	// Insert a new match in the database
-	DB.insertMatch(this.id, config, function (newDoc) {
+	DB.insertMatch(this.id, config, MatchStates.ROUND_IDLE, MatchRounds.ROUND_1, function (newDoc) {
 		if (newDoc) {
 			// Initialise the match
 			this._initMatch(newDoc);

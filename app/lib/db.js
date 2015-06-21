@@ -194,15 +194,21 @@ var DB = {
 	 * Insert a new match.
 	 * @param {String} ringId
 	 * @param {Object} config
+	 * @param {String} state
+	 * @param {String} round
 	 * @param {Function} cb
 	 */
-	insertMatch: function (ringId, config, cb) {
+	insertMatch: function (ringId, config, state, round, cb) {
 		assert.string(ringId, 'ringId');
 		assert.object(config, 'config');
+		assert.string(state, 'state');
+		assert.string(round, 'round');
 		
 		matchesDb.insert({
 			ringId: ringId,
-			config: config
+			config: config,
+			state: state,
+			round: round
 		}, callback(cb));
 	},
 	
