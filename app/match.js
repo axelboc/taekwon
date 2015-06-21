@@ -18,47 +18,48 @@ var Competitors = require('./enum/competitors');
  * Match.
  * @param {String} id
  * @param {Object} config
- * @param {String} state - the initial state (optional, defaults to States.ROUND_IDLE) 
- * @param {String} round - the initial round (optional, defaults to Rounds.ROUND_1) 
+ * @param {String} state
+ * @param {Object} data - additional state data
  */
-function Match(id, config, state, round) {
+function Match(id, config, state, data) {
 	assert.string(id, 'id');
 	assert.object(config, 'config');
+	assert.string(state, 'state');
+	assert.object(data, 'data');
 	
 	this.id = id;
 	this.config = config;
 	
 	
-	/* ==================================================
-	 * Match state machine
-	 * ================================================== */
+	/**
+	 * Columns in the scoreboards and penalties array.
+	 * A column is added for each non-break state during the match, as well as when 
+	 * computing the total scores of previous rounds.
+	 * Examples of column ID sequences for various matches:
+	 * - 1-round match: 		main, total-1
+	 * - 2-round match: 		main, total-2
+	 * - up to golden point: 	main, total-2, tie-breaker, total-4, golden point, total-6
+	 */
+	this.scoreboardColumns = data.scoreboardColumns || [];
+	// The latest scoreboard column created
+	this.scoreboardColumnId = data.scoreboardColumnId || null;
 	
-	// Create state machine
-	this.state = StateMachine.create({
-		initial: state || MatchStates.ROUND_IDLE,
-		events: [
-			{ name: Transitions.START_STATE, from: States.ROUND_IDLE, to: States.ROUND_STARTED },
-			{ name: Transitions.START_STATE, from: States.BREAK_IDLE, to: States.BREAK_STARTED },
-			{ name: Transitions.END_STATE, from: States.ROUND_STARTED, to: States.ROUND_ENDED },
-			{ name: Transitions.END_STATE, from: States.BREAK_STARTED, to: States.BREAK_ENDED },
-			{ name: Transitions.START_END_INJURY, from: States.ROUND_STARTED, to: States.INJURY },
-			{ name: Transitions.START_END_INJURY, from: States.INJURY, to: States.ROUND_STARTED },
-			{ name: Transitions.NEXT_ROUND, from: States.BREAK_ENDED, to: States.ROUND_IDLE },
-			{ name: Transitions.BREAK, from: [States.ROUND_ENDED, States.RESULTS], to: States.BREAK_IDLE },
-			{ name: Transitions.RESULTS, from: States.ROUND_ENDED, to: States.RESULTS },
-			{ name: Transitions.END, from: [States.ROUND_ENDED, States.RESULTS], to: States.MATCH_ENDED }
-		],
-		callbacks: {
-			// Register generic callbacks
-			onleavestate: this._onLeaveState.bind(this),
-			onenterstate: this._onEnterState.bind(this)
-		}
-	});
+	/**
+	 * Scoreboard, and name of each Corner Judge that scored at some point during the match.
+	 */
+	this.scoreboards = data.scoreboards || {};
+	this.cjNames = data.cjNames || {};
+
+	/**
+	 * Penalties ('warnings' and 'fouls') for each scoreboard column (except break states).
+	 * Total maluses are stored against 'total' columns (as negative integers).
+	 */
+	this.penalties = data.penalties || {};
 	
-	// Register state-based callbacks
-	this.state['on' + States.ROUND_IDLE] = this._onRoundIdle.bind(this);
-	this.state['on' + States.ROUND_ENDED] = this._onRoundEnded.bind(this);
-	this.state['on' + States.BREAK_ENDED] = this._onBreakEnded.bind(this);
+	/**
+	 * The winner of the match.
+	 */
+	this.winner = data.winner || null;
 	
 	
 	/* ==================================================
@@ -78,69 +79,46 @@ function Match(id, config, state, round) {
 	
 	// Create state machine
 	this.round = StateMachine.create({
-		initial: round || Rounds.ROUND_1,
+		initial: data.round || Rounds.ROUND_1,
 		events: roundTransitions,
 		callbacks: {
-			// Register generic callbacks
-			onleavestate: this._onLeaveRound.bind(this),
 			onenterstate: this._onEnterRound.bind(this)
 		}
 	});
 	
 	
-	/**
-	 * Columns in the scoreboards and penalties array.
-	 * A column is added for each non-break state during the match, as well as when 
-	 * computing the total scores of previous rounds.
-	 * Examples of column ID sequences for various matches:
-	 * - 1-round match: 		main, total-1
-	 * - 2-round match: 		main, total-2
-	 * - up to golden point: 	main, total-2, tie-breaker, total-4, golden point, total-6
-	 */
-	this.scoreboardColumns = [];
-	// The latest scoreboard column created
-	this.scoreboardColumnId;
+	/* ==================================================
+	 * Match state machine
+	 * ================================================== */
 	
-	/**
-	 * Scoreboard, and name of each Corner Judge that scored at some point during the match.
-	 */
-	this.scoreboards = {};
-	this.cjNames = {};
-
-	/**
-	 * Penalties ('warnings' and 'fouls') for each scoreboard column (except break states).
-	 * Total maluses are stored against 'total' columns (as negative integers).
-	 */
-	this.penalties = {};
+	// Create state machine
+	this.state = StateMachine.create({
+		initial: state,
+		events: [
+			{ name: Transitions.START_STATE, from: States.ROUND_IDLE, to: States.ROUND_STARTED },
+			{ name: Transitions.START_STATE, from: States.BREAK_IDLE, to: States.BREAK_STARTED },
+			{ name: Transitions.END_STATE, from: States.ROUND_STARTED, to: States.ROUND_ENDED },
+			{ name: Transitions.END_STATE, from: States.BREAK_STARTED, to: States.BREAK_ENDED },
+			{ name: Transitions.START_END_INJURY, from: States.ROUND_STARTED, to: States.INJURY },
+			{ name: Transitions.START_END_INJURY, from: States.INJURY, to: States.ROUND_STARTED },
+			{ name: Transitions.NEXT_ROUND, from: States.BREAK_ENDED, to: States.ROUND_IDLE },
+			{ name: Transitions.BREAK, from: [States.ROUND_ENDED, States.RESULTS], to: States.BREAK_IDLE },
+			{ name: Transitions.RESULTS, from: States.ROUND_ENDED, to: States.RESULTS },
+			{ name: Transitions.END, from: [States.ROUND_ENDED, States.RESULTS], to: States.MATCH_ENDED }
+		],
+		callbacks: {
+			onenterstate: this._onEnterState.bind(this)
+		}
+	});
 	
-	/**
-	 * The winner of the match.
-	 */
-	this.winner = null;
+	// Register state-based callbacks
+	this.state['on' + States.ROUND_ENDED] = this._onRoundEnded.bind(this);
+	this.state['on' + States.BREAK_ENDED] = this._onBreakEnded.bind(this);
 }
 
 // Inherit EventEmitter
 util.inherits(Match, EventEmitter);
 
-
-/**
- * The state machine is transitioning to a new state.
- * @param {String} transition
- * @param {String} from
- * @param {String} to
- */
-Match.prototype._onLeaveState = function (transition, from, to) {
-	logger.debug('state transition: ' + transition + ', from: ' + from + ', to: ' + to);
-	
-	// Update database
-	DB.setMatchState(this.id, to, function () {
-		// Transition state machine
-		this.state.transition();
-	}.bind(this));
-	
-	// Pause state machine until database call has completed
-	return StateMachine.ASYNC;
-};
 
 /**
  * The state machine has entered a new state.
@@ -149,30 +127,18 @@ Match.prototype._onLeaveState = function (transition, from, to) {
  * @param {String} to
  */
 Match.prototype._onEnterState = function (transition, from, to) {
-	this.emit('stateChanged', transition, from, to);
-};
-
-/**
- * A round is about to start.
- */
-Match.prototype._onRoundIdle = function () {
-	if (!this.round.is(Rounds.ROUND_2)) {
-		// Unless round 2, prepare the next column of the judges' scoreboards
-		this.scoreboardColumnId = this.round.is(Rounds.ROUND_1) ? 'main' : this.round.current;
-		this.scoreboardColumns.push(this.scoreboardColumnId);
-
-		// Initialise penalty objects for new state
-		this.penalties[this.scoreboardColumnId] = {
-			warnings: {
-				hong: 0,
-				chong: 0
-			},
-			fouls: {
-				hong: 0,
-				chong: 0
-			}
-		};
-	}
+	// Update database
+	DB.setMatchState(this.id, to, {
+		round: this.round.current,
+		scoreboardColumns: this.scoreboardColumns,
+		scoreboardColumnId: this.scoreboardColumnId,
+		scoreboards: this.scoreboards,
+		cjNames: this.cjNames,
+		penalties: this.penalties,
+		winner: this.winner
+	}, function () {
+		this.emit('stateChanged', transition, from, to);
+	}.bind(this));
 };
 
 /**
@@ -205,32 +171,29 @@ Match.prototype._onBreakEnded = function () {
 };
 
 /**
- * The round state machine is transitioning to a new round.
- * @param {String} transition
- * @param {String} from
- * @param {String} to
- */
-Match.prototype._onLeaveRound = function (transition, from, to) {
-	logger.debug('round transition: ' + transition + ', from: ' + from + ', to: ' + to);
-	
-	// Update database
-	DB.setMatchRound(this.id, to, function () {
-		// Transition round state machine
-		this.round.transition();
-	}.bind(this));
-	
-	// Pause round state machine until database call has completed
-	return StateMachine.ASYNC;
-};
-
-/**
  * The round state machine has entered a new round.
  * @param {String} transition
  * @param {String} from
  * @param {String} to
  */
 Match.prototype._onEnterRound = function (transition, from, to) {
-	this.emit('roundChanged', to);
+	if (to !== Rounds.ROUND_2) {
+		// Unless round 2, prepare the next column of the judges' scoreboards
+		this.scoreboardColumnId = to === Rounds.ROUND_1 ? 'main' : to;
+		this.scoreboardColumns.push(this.scoreboardColumnId);
+
+		// Initialise penalty objects for new state
+		this.penalties[this.scoreboardColumnId] = {
+			warnings: {
+				hong: 0,
+				chong: 0
+			},
+			fouls: {
+				hong: 0,
+				chong: 0
+			}
+		};
+	}
 };
 
 /**

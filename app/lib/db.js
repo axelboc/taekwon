@@ -4,6 +4,8 @@ var assert = require('./assert');
 var logger = require('./log')('db');
 var async = require('async');
 var Datastore = require('nedb');
+var MatchStates = require('../enum/match-states');
+var MatchRounds = require('../enum/match-rounds');
 
 // Load NeDB datastores
 var tournamentsDb = new Datastore({
@@ -113,7 +115,7 @@ var DB = {
 	findMatchInProgress: function (ringId, cb) {
 		assert.string(ringId, 'ringId');
 		
-		matchesDb.find({ ringId: ringId, ended: false }, function (err, docs) {
+		matchesDb.find({ ringId: ringId, $not: { state: MatchStates.MATCH_ENDED } }, function (err, docs) {
 			assert.ok(docs.length === 0 || docs.length === 1, "`docs` should contain zero or one document");
 			// If the array is empty, `undefined` is passed to the callback
 			callback(cb)(null, docs[0]);
@@ -194,21 +196,17 @@ var DB = {
 	 * Insert a new match.
 	 * @param {String} ringId
 	 * @param {Object} config
-	 * @param {String} state
-	 * @param {String} round
 	 * @param {Function} cb
 	 */
-	insertMatch: function (ringId, config, state, round, cb) {
+	insertMatch: function (ringId, config, cb) {
 		assert.string(ringId, 'ringId');
 		assert.object(config, 'config');
-		assert.string(state, 'state');
-		assert.string(round, 'round');
 		
 		matchesDb.insert({
 			ringId: ringId,
 			config: config,
-			state: state,
-			round: round
+			state: MatchStates.ROUND_IDLE,
+			data: {}
 		}, callback(cb));
 	},
 	
@@ -272,26 +270,18 @@ var DB = {
 	 * Set the current state of a match.
 	 * @param {String} matchId
 	 * @param {String} state
+	 * @param {Object} data
 	 * @param {Function} cb
 	 */
-	setMatchState: function (matchId, state, cb) {
+	setMatchState: function (matchId, state, data, cb) {
 		assert.string(matchId, 'matchId');
 		assert.string(state, 'state');
+		assert.object(data, 'data');
 		
-		matchesDb.update({ _id: matchId }, { $set: { state: state } }, callback(cb));
-	},
-	
-	/**
-	 * Set the current round of a match.
-	 * @param {String} matchId
-	 * @param {String} round
-	 * @param {Function} cb
-	 */
-	setMatchRound: function (matchId, round, cb) {
-		assert.string(matchId, 'matchId');
-		assert.string(round, 'round');
-		
-		matchesDb.update({ _id: matchId }, { $set: { round: round } }, callback(cb));
+		matchesDb.update({ _id: matchId }, { $set: {
+			state: state,
+			data: data
+		} }, callback(cb));
 	},
 	
 	/**

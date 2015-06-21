@@ -10,7 +10,6 @@ var CornerJudge = require('./corner-judge').CornerJudge;
 var JuryPresident = require('./jury-president').JuryPresident;
 var Match = require('./match').Match;
 var MatchStates = require('./enum/match-states');
-var MatchRounds = require('./enum/match-rounds');
 
 var JP_HANDLER_PREFIX = '_jp';
 var JP_EVENTS = [
@@ -24,10 +23,7 @@ var CJ_HANDLER_PREFIX = '_cj';
 var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged'];
 
 var MATCH_HANDLER_PREFIX = '_match';
-var MATCH_EVENTS = [
-	'stateChanged', 'roundChanged',
-	'scoresUpdated', 'penaltiesUpdated'
-];
+var MATCH_EVENTS = ['stateChanged', 'scoresUpdated', 'penaltiesUpdated'];
 
 
 /**
@@ -297,7 +293,7 @@ Ring.prototype.hasCJ = function (cj) {
 Ring.prototype._initMatch = function (doc, cb) {
 	assert.object(doc, 'doc');
 	
-	this.match = new Match(doc._id, doc.config, doc.state, doc.round);
+	this.match = new Match(doc._id, doc.config, doc.state, doc.data);
 	util.addEventListeners(this, this.match, MATCH_EVENTS, MATCH_HANDLER_PREFIX);
 };
 
@@ -312,6 +308,8 @@ Ring.prototype.restoreMatch = function (cb) {
 		if (doc) {
 			this._initMatch(doc);
 			logger.debug("> Match restored");
+		} else {
+			logger.debug("> No match in progress");
 		}
 		cb();
 	}.bind(this));
@@ -445,7 +443,7 @@ Ring.prototype._jpCreateMatch = function () {
 	}.bind(this), {});
 	
 	// Insert a new match in the database
-	DB.insertMatch(this.id, config, MatchStates.ROUND_IDLE, MatchRounds.ROUND_1, function (newDoc) {
+	DB.insertMatch(this.id, config, function (newDoc) {
 		if (newDoc) {
 			// Initialise the match
 			this._initMatch(newDoc);
@@ -602,19 +600,6 @@ Ring.prototype._matchStateChanged = function (transition, fromState, toState) {
 	if (toState === MatchStates.MATCH_ENDED) {
 		this.match = null;
 	}
-};
-
-/**
- * The round of the match has changed.
- * @param {String} toRound
- */
-Ring.prototype._matchRoundChanged = function (toRound) {
-	assert.ok(this.juryPresident, "ring must have Jury President");
-	assert.ok(this.match, "ring must have a match");
-	assert.string(toRound, 'toRound');
-	
-	// Notify Jury President
-	this.juryPresident.matchRoundChanged(toRound);
 };
 
 /**

@@ -171,6 +171,7 @@ JuryPresident.prototype.matchStateChanged = function (ring, match, transition, f
 	// Perform various UI operations depending on the new state
 	switch (toState) {
 		case MatchStates.ROUND_IDLE:
+			this._send('matchPanel.setRoundLabel', { label: match.round.current });
 			this._send('roundTimer.reset', {
 				value: match.round.is(MatchRounds.GOLDEN_POINT) ? 0 : match.config.roundTime
 			});
@@ -277,15 +278,6 @@ JuryPresident.prototype._updateState = function (state) {
 			enableInjuryBtn: state === MatchStates.ROUND_STARTED || MatchStates.isInjury(state)
 		}
 	});
-};
-
-/**
- * The round of a match has changed.
- * @param {String} toRound
- */
-JuryPresident.prototype.matchRoundChanged = function (toRound) {
-	assert.string(toRound, 'toRound');
-	this._send('matchPanel.setRoundLabel', { label: toRound });
 };
 
 /**
