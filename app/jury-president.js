@@ -307,6 +307,9 @@ JuryPresident.prototype._updatePenalties = function (penalties, enable) {
 	assert.object(penalties, 'penalties');
 	assert.boolean(enable, 'enable');
 	
+	// Clone the object before modifying it
+	penalties = util.clone(penalties);
+	
 	// Add flags to `penalties` objects to indicate whether the values can be incremented and decremented
 	Object.keys(penalties).forEach(function (key) {
 		var p = penalties[key];

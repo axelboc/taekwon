@@ -72,4 +72,14 @@ util.numToTime = function (num) {
 	return Math.floor(num / 60) + ":" + (sec < 10 ? '0' : '') + sec;
 };
 
+/**
+ * Clone a plain object.
+ * @param {Object} obj
+ * @return {Object}
+ */
+util.clone = function (obj) {
+	return JSON.parse(JSON.stringify(obj));
+};
+
+
 module.exports = util;
