@@ -11,10 +11,6 @@ var dotenv = require('assert-dotenv');
 var http = require('http');
 var express = require('express');
 var handlebars = require('express-handlebars');
-var session = require('express-session');
-var NeDBSessionStore = require('connect-nedb-session')(session);
-var cookieParser = require('cookie-parser');
-var cookie = require('cookie');
 var Primus = require('primus');
 var Emit = require('primus-emit');
 
@@ -31,7 +27,7 @@ dotenv({
 	var app = express();
 	var server = http.Server(app);
 
-	// Configure templating
+	// Configure templating engine
 	app.engine('hbs', handlebars({
 		defaultLayout: 'layout',
 		extname: 'hbs',
@@ -44,29 +40,30 @@ dotenv({
 	// Pass server-side configuration to client
 	app.locals.baseUrl = process.env.BASE_URL;
 
-
-	/*
-	 * Add middlewares
-	 */
-	// Server static files from public folder
+	// Serve static files from the `public` folder
 	app.use(express.static(__dirname + '/public'));
 
-	// Parse cookies
-	app.use(cookieParser(process.env.COOKIE_SECRET));
+	// Corner Judge route
+	app.get('/', function (req, res) {
+		var type = 'corner-judge';
+		res.render(type, {
+			type: type,
+			identity: 'cornerJudge',
+			title: "Corner Judge",
+			metaViewport: 'width=device-width, initial-scale=1, user-scalable=no'
+		});
+	});
 
-	// Manage session
-	app.use(session({
-		name: process.env.COOKIE_KEY,
-		secret: process.env.COOKIE_SECRET,
-		saveUninitialized: true,
-		resave: true,
-		store: new NeDBSessionStore({
-			filename: 'data/sessions.db'
-		}),
-		cookie: {
-			maxAge: 1000 * 60 * 60 * 24 // one day
-		}
-	}));
+	// Jury President route
+	app.get('/jury', function (req, res) {
+		var type = 'jury-president';
+		res.render(type, {
+			type: type,
+			identity: 'juryPresident',
+			title: "Jury President",
+			metaViewport: 'width=device-width, initial-scale=1'
+		});
+	});
 
 
 	/*
@@ -78,47 +75,6 @@ dotenv({
 
 	// Add plugin
 	primus.use('emit', Emit);
-
-	// Add middleware
-	primus.before('session', function (req, res, next) {
-		if (!req.headers.cookie) {
-			req.sessionId = null;
-			next(new Error('Session cookie not transmitted'));
-		} else {
-			// Parse and store cookies
-			req.cookie = cookie.parse(req.headers.cookie);
-			// Decode Express session ID
-			req.sessionId = cookieParser.signedCookie(
-				req.cookie[process.env.COOKIE_KEY], process.env.COOKIE_SECRET);
-			next(null, true);
-		}
-	});
-
-
-	/*
-	 * Routes
-	 */
-	// Jury President
-	app.get('/jury', function (req, res) {
-		var type = 'jury-president';
-		res.render(type, {
-			type: type,
-			identity: 'juryPresident',
-			title: "Jury President",
-			metaViewport: 'width=device-width, initial-scale=1'
-		});
-	});
-
-	// Corner Judge
-	app.get('/', function (req, res) {
-		var type = 'corner-judge';
-		res.render(type, {
-			type: type,
-			identity: 'cornerJudge',
-			title: "Corner Judge",
-			metaViewport: 'width=device-width, initial-scale=1, user-scalable=no'
-		});
-	});
 	
 
 	/*
