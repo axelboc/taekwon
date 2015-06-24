@@ -84,6 +84,7 @@ User.prototype._send = function (event, data) {
 User.prototype.idSuccess = function (ringStates) {
 	assert.array(ringStates, 'ringStates');
 	
+	this._send('io.saveId', { id: this.id });
 	this._send('login.blurField');
 	this._send('ringListView.updateList', { rings: ringStates });
 	this._send('root.showView', { view: 'ringListView' });

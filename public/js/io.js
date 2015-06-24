@@ -11,7 +11,7 @@ define([
 	
 	function IO(identity) {
 		this.identity = identity;
-		this.url = config.isProd ? config.prodUrl : config.devUrl;
+		this.url = (config.isProd ? config.prodUrl : config.devUrl) + '?identity=' + identity;
 		
 		// Initialise Primus
 		console.log("Connecting to server");
@@ -19,7 +19,7 @@ define([
 		
 		// Subscribe to inbound IO events
 		Helpers.subscribeToEvents(this, 'io', [
-			'confirmIdentity',
+			'saveId',
 			'alert',
 			'setPageTitle',
 			'wsError',
@@ -93,10 +93,8 @@ define([
 		}
 	}
 	
-	IO.prototype.confirmIdentity = function () {
-		this.send('identityConfirmation', {
-			identity: this.identity
-		});
+	IO.prototype.saveId = function (data) {
+		console.log(data);
 	};
 	
 	IO.prototype.alert = function (data) {
