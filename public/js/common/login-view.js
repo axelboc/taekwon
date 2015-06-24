@@ -11,7 +11,6 @@ define([
 		this.instr = this.root.querySelector('.login-instr');
 		this.field = this.root.querySelector('.login-field');
 		this.btn = this.root.querySelector('.login-btn');
-		this.field.addEventListener('keypress', this.onField.bind(this));
 		this.btn.addEventListener('click', this.sendIdentification.bind(this));
 		
 		// Cancel form submission
@@ -63,17 +62,6 @@ define([
 		Helpers.shake(this.field);
 	};
 	
-	
-	/* ==================================================
-	 * UI events
-	 * ================================================== */
-	
-	LoginView.prototype.onField = function onField(evt) {
-		// If Enter key was pressed, send identification
-		if (evt.which === 13 || evt.keyCode === 13) {
-			this.sendIdentification();
-		}
-	};
 	
 	return LoginView;
 	
