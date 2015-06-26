@@ -4,14 +4,23 @@
  * shared by both client types (e.g. `confirmIdentity`, `setPageTitle`, etc.)
  */
 define([
+	'cookie',
 	'./common/config',
 	'./common/helpers'
 
-], function (config, Helpers) {
+], function (cookie, config, Helpers) {
 	
 	function IO(identity) {
 		this.identity = identity;
+		this.id = cookie.get('id');
+		
+		// Build server URL
 		this.url = (config.isProd ? config.prodUrl : config.devUrl) + '?identity=' + identity;
+		
+		// Add ID parameter if available
+		if (this.id) {
+			this.url += '&id=' + this.id;
+		}
 		
 		// Initialise Primus
 		console.log("Connecting to server");
@@ -94,7 +103,9 @@ define([
 	}
 	
 	IO.prototype.saveId = function (data) {
-		console.log(data);
+		cookie.set('id', data.id, {
+			expires: config.cookieExpires
+		});
 	};
 	
 	IO.prototype.alert = function (data) {
