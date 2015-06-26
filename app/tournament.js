@@ -103,7 +103,8 @@ Tournament.prototype._onConnection = function (spark) {
 	var identity = spark.query.identity;
 	assert.string(identity, 'identity');
 	
-	// Check whether the user ID is passed as a query parameter
+	// Check whether the user ID is passed as a query parameter and if it matches and existing user
+	// In some situations, such as when the database is reset, an ID might not match any user
 	var id = spark.query.id;
 	if (!id || !this.users[id]) {
 		// New user; equest identification
@@ -151,7 +152,8 @@ Tournament.prototype._onConnection = function (spark) {
 Tournament.prototype._onDisconnection = function (spark) {
 	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
 	
-	// Check whether the user ID is passed as a query parameter
+	// Check whether the user ID is passed as a query parameter and if it matches and existing user
+	// In some situations, such as when the database is reset, an ID might not match any user
 	var id = spark.query.id;
 	if (id && this.users[id]) {
 		// Notify user of disconnection
