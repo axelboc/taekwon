@@ -102,47 +102,45 @@ Tournament.prototype._onConnection = function (spark) {
 	
 	var identity = spark.query.identity;
 	assert.string(identity, 'identity');
-	logger.debug(identity);
 	
 	// Check whether the user ID is passed as a query parameter
-	if (spark.query.id) {
-		var id = spark.query.id;
-		
-		// Find the user with the ID
-		var user = this.users[id];
-		assert.ok(user, "no user found with ID=" + id);
-		logger.debug("Existing user with ID=" + id);
-		
-		// Check whether the user's previous spark is still open
-		if (user.spark && user.spark.readyState === Spark.OPEN) {
-			// Inform client that a session conflict has been detected
-			logger.debug("> Session conflict detected");
-			spark.emit('io.wsError', {
-				reason: "Session already open"
-			});
-			spark.end();
-			return;
-		}
-			
-		// Check whether user is switching role
-		var isJP = identity === 'juryPresident';
-		if (isJP && user instanceof JuryPresident || !isJP && user instanceof CornerJudge) {
-			// Not switching; restore session
-			logger.debug("> Identity confirmed: " + identity);
-			this._restoreUserSession(user, spark);
-		} else {
-			// Switching; remove user from system and request identification from new user
-			logger.debug("> User has changed identity. Starting new identification process...");
-			DB.removeUser(user, function () {
-				user.exit();
-				delete this.users[id];
-				this._identifyUser(spark);
-			}.bind(this));
-		}
-	} else {
-		// Request identification from new user
-		logger.debug("New user");
+	var id = spark.query.id;
+	if (!id || !this.users[id]) {
+		// New user; equest identification
+		logger.debug("New user with identity=" + identity);
 		this._identifyUser(spark);
+		return;
+	}
+	
+	// Existing user
+	var user = this.users[id];
+	logger.debug("Existing user with ID=" + id);
+
+	// Check whether the user's previous spark is still open
+	if (user.spark && user.spark.readyState === Spark.OPEN) {
+		// Inform client that a session conflict has been detected
+		logger.debug("> Session conflict detected");
+		spark.emit('io.wsError', {
+			reason: "Session already open"
+		});
+		spark.end();
+		return;
+	}
+
+	// Check whether user is switching role
+	var isJP = identity === 'juryPresident';
+	if (isJP && user instanceof JuryPresident || !isJP && user instanceof CornerJudge) {
+		// Not switching; restore session
+		logger.debug("> Identity confirmed: " + identity);
+		this._restoreUserSession(user, spark);
+	} else {
+		// Switching; remove user from system and request identification from new user
+		logger.debug("> User has changed identity. Starting new identification process...");
+		DB.removeUser(user, function () {
+			user.exit();
+			delete this.users[id];
+			this._identifyUser(spark);
+		}.bind(this));
 	}
 };
 
@@ -151,23 +149,15 @@ Tournament.prototype._onConnection = function (spark) {
  * @param {Spark} spark
  */
 Tournament.prototype._onDisconnection = function (spark) {
-	/*assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
-
-	var request = spark.request;
-	assert.ok(request, "`spark.request` is " + request);
-
-	var sessionId = request.sessionId;
-	assert.ok(sessionId, "session ID is invalid (cookies not transmitted)");
-	assert.string(sessionId, 'sessionId');
-
-	// Look for the user with this session ID
-	var user = this.users[sessionId];
-
-	// If the user exists (has been successfully identified), notify it of the disconnection
-	if (user) {
-		logger.debug("User with ID=" + sessionId + " disconnected.");
-		user.disconnected();
-	}*/
+	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
+	
+	// Check whether the user ID is passed as a query parameter
+	var id = spark.query.id;
+	if (id && this.users[id]) {
+		// Notify user of disconnection
+		logger.debug("User with ID=" + id + " disconnected.");
+		this.users[id].disconnected();
+	}
 };
 
 /**
