@@ -5,7 +5,8 @@ require.config({
 	paths: {
 		domReady: '../lib/domReady',
 		fastclick: '../lib/fast-click.min',
-		handlebars: '../lib/handlebars.min'
+		handlebars: '../lib/handlebars.min',
+		cookie: '../lib/tiny-cookie.min'
 	},
 	shim: {
 		fastclick: { exports: 'FastClick' },
