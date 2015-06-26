@@ -134,13 +134,13 @@ var DB = {
 	
 	/**
 	 * Insert a new user.
-	 * @param {User} user
+	 * @param {String} tournamentId
 	 * @param {String} identity - the user's identity ('juryPresident' or 'cornerJudge')
+	 * @param {String} name
 	 * @param {Function} cb
 	 */
-	insertUser: function (tournamentId, id, identity, name, cb) {
+	insertUser: function (tournamentId, identity, name, cb) {
 		assert.string(tournamentId, 'tournamentId');
-		assert.string(id, 'id');
 		assert.string(identity, 'identity');
 		assert.ok(identity === 'juryPresident' || identity === 'cornerJudge',
 				  "`identity` must be 'juryPresident' or 'cornerJudge'");
@@ -149,7 +149,6 @@ var DB = {
 		
 		// Build user document
 		var doc = {
-			_id: id,
 			tournamentId: tournamentId,
 			identity: identity
 		};

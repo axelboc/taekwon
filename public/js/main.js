@@ -6,7 +6,7 @@ require.config({
 		domReady: '../lib/domReady',
 		fastclick: '../lib/fast-click.min',
 		handlebars: '../lib/handlebars.min',
-		minpubsub: '../lib/minpubsub'
+		cookie: '../lib/tiny-cookie.min'
 	},
 	shim: {
 		fastclick: { exports: 'FastClick' },
@@ -23,8 +23,11 @@ require([
 
 ], function (document, FastClick, IO, Root) {
 	
+	// Retrieve identity
+	var identity = document.documentElement.getAttribute('data-identity');
+	
 	// Initialise IO and root modules
-	var io = new IO(document.documentElement.getAttribute('data-identity'));
+	var io = new IO(identity);
 	var root = new Root(io);
 
 	// Initialise FastClick to remove 300ms delay on mobile devices
