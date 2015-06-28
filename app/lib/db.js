@@ -141,7 +141,8 @@ var DB = {
 	 * @param {Function} cb
 	 */
 	insertUser: function (userId, tournamentId, identity, name, cb) {
-		assert.string(userId, 'userId');
+		assert.ok(typeof userId === 'undefined' || typeof userId === 'string' && userId.length > 0,
+				  "if provided, `userId` must be a non-empty string");
 		assert.string(tournamentId, 'tournamentId');
 		assert.string(identity, 'identity');
 		assert.ok(identity === 'juryPresident' || identity === 'cornerJudge',

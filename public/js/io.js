@@ -82,7 +82,7 @@ define([
 
 			// Listen for when Primus plans on reconnecting
 			this.primus.on('reconnect scheduled', function (opts) {
-				console.log('Reconnecting in %d ms', opts.timeout);
+				console.log('Reconnecting in %d ms', opts.scheduled);
 				console.log('This is attempt %d out of %d', opts.attempt, opts.retries);
 			});
 
