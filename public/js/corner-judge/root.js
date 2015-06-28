@@ -1,17 +1,13 @@
 
 define([
 	'../common/helpers',
-	'../common/backdrop',
 	'../common/login-view',
 	'../common/ring-list-view',
 	'./round-view'
 
-], function (Helpers, Backdrop, LoginView, RingListView, RoundView) {
+], function (Helpers, LoginView, RingListView, RoundView) {
 	
 	function Root(io) {
-		// Initialise backdrop
-		this.backdrop = new Backdrop(io);
-		
 		// Initialise views
 		this.curentView = null;
 		this.loginView = new LoginView(io);

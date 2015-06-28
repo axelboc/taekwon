@@ -134,12 +134,14 @@ var DB = {
 	
 	/**
 	 * Insert a new user.
+	 * @param {String} userId - if falsy, let DB pick an ID, 
 	 * @param {String} tournamentId
 	 * @param {String} identity - the user's identity ('juryPresident' or 'cornerJudge')
 	 * @param {String} name
 	 * @param {Function} cb
 	 */
-	insertUser: function (tournamentId, identity, name, cb) {
+	insertUser: function (userId, tournamentId, identity, name, cb) {
+		assert.string(userId, 'userId');
 		assert.string(tournamentId, 'tournamentId');
 		assert.string(identity, 'identity');
 		assert.ok(identity === 'juryPresident' || identity === 'cornerJudge',
@@ -152,6 +154,10 @@ var DB = {
 			tournamentId: tournamentId,
 			identity: identity
 		};
+		
+		if (userId) {
+			doc._id = userId;
+		}
 		
 		if (identity === 'cornerJudge') {
 			doc.name = name;

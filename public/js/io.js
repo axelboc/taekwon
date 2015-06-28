@@ -6,9 +6,10 @@
 define([
 	'cookie',
 	'./common/config',
-	'./common/helpers'
+	'./common/helpers',
+	'./common/backdrop'
 
-], function (cookie, config, Helpers) {
+], function (cookie, config, Helpers, Backdrop) {
 	
 	function IO(identity) {
 		if (!cookie.enabled()) {
@@ -17,6 +18,7 @@ define([
 		}
 		
 		this.identity = identity;
+		this.backdrop = new Backdrop();
 		this.id = cookie.get('id');
 		
 		// Build server URL
@@ -31,11 +33,16 @@ define([
 		console.log("Connecting to server");
 		this.primus = new Primus(this.url, config.primusConfig);
 		
+		// Listen for Web Socket events
+		this.primus.on('error', this.wsError.bind(this));
+		this.primus.on('reconnected', this.wsReconnected.bind(this));
+		
 		// Subscribe to inbound IO events
 		Helpers.subscribeToEvents(this, 'io', [
 			'saveId',
-			'alert',
 			'setPageTitle',
+			'updateBackdrop',
+			'alert',
 			'error'
 		], this);
 		
@@ -73,11 +80,6 @@ define([
 				console.log('Reconnect attempt started');
 			});
 
-			// Listen for when Primus has succeeded in reconnecting
-			this.primus.on('reconnected', function () {
-				console.info('Reconnected');
-			});
-
 			// Listen for when Primus plans on reconnecting
 			this.primus.on('reconnect scheduled', function (opts) {
 				console.log('Reconnecting in %d ms', opts.timeout);
@@ -103,11 +105,32 @@ define([
 			this.primus.on('offline', function (msg) {
 				console.warn('Offline!', msg);
 			});
-			
-			// Errors
-			this.primus.on('error', this.error.bind(this));
 		}
 	}
+	
+	IO.prototype.wsError = function (err) {
+		console.warn("Web Socket error", err.code);
+		
+		if (err.code === 1001) {
+			// User is reloading or navigating away from the page
+			return;
+		}
+		
+		if (err.code === 1006) {
+			// Server is down
+			this.updateBackdrop({
+				text: "Connection lost",
+				subtext: "Attempting to reconnect...",
+				visible: true
+			});
+			return;
+		}
+	};
+	
+	IO.prototype.wsReconnected = function () {
+		console.info("Reconnected");
+		this.backdrop.hide();
+	};
 	
 	IO.prototype.saveId = function (data) {
 		cookie.set('id', data.id, {
@@ -115,22 +138,21 @@ define([
 		});
 	};
 	
-	IO.prototype.alert = function (data) {
-		window.alert(data.reason);
-	};
-	
 	IO.prototype.setPageTitle = function (data) {
 		document.title = data.title;
 	};
 	
-	IO.prototype.error = function (err) {
-		console.error('Error:', err);
-		var msg = err.message || "Unexpected error";
-		
-		// Skip ignored error codes
-		if (err.code && config.ignoreErrors.indexOf(err.code) !== -1) {
-			return;
-		}
+	IO.prototype.updateBackdrop = function (data) {
+		this.backdrop.update(data.text, data.subtext, data.visible);
+	};
+	
+	IO.prototype.alert = function (data) {
+		window.alert(data.reason);
+	};
+	
+	IO.prototype.error = function (data) {
+		var msg = data.message || "Unexpected error";
+		console.error('Error:', msg);
 
 		// Hide the backdrop and all the views
 		document.getElementById('backdrop').classList.add('hidden');

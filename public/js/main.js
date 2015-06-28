@@ -14,7 +14,7 @@ require.config({
 	}
 });
 
-// Main entry point
+// Main entry point (paths are relative to the `baseUrl`)
 require([
 	'domReady!',
 	'fastclick',
@@ -22,7 +22,6 @@ require([
 	'./root'
 
 ], function (document, FastClick, IO, Root) {
-	
 	// Retrieve identity
 	var identity = document.documentElement.getAttribute('data-identity');
 	
@@ -32,5 +31,4 @@ require([
 
 	// Initialise FastClick to remove 300ms delay on mobile devices
 	FastClick.attach(document.body);
-	
 });

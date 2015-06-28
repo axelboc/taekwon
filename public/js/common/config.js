@@ -6,8 +6,5 @@ define({
 	cookieExpires: '12h',
 	primusConfig: {
 		strategy: ['online', 'disconnect']
-	},
-	ignoreErrors: [
-		1001 // User reloads the page or navigates away
-	]
+	}
 })

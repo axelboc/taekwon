@@ -285,7 +285,7 @@ CornerJudge.prototype._updateBackdrop = function (ring) {
 		subtext = "... or timeout to end";
 	}
 	
-	this._send('backdrop.update', {
+	this._send('io.updateBackdrop', {
 		visible: !jpConnected || !scoringEnabled,
 		text: text,
 		subtext: subtext

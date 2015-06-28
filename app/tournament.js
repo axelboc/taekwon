@@ -107,7 +107,7 @@ Tournament.prototype._onConnection = function (spark) {
 	// In some situations, such as when the database is reset, an ID might not match any user
 	var id = spark.query.id;
 	if (!id || !this.users[id]) {
-		// New user; equest identification
+		// New user; request identification
 		logger.debug("New user with identity=" + identity);
 		this._identifyUser(spark);
 		return;
@@ -211,7 +211,7 @@ Tournament.prototype._onIdentification = function (spark, data) {
 	}
 
 	// Successful identification; insert the new user in the database
-	DB.insertUser(this.id, data.identity, data.value, function (newDoc) {
+	DB.insertUser(spark.query.id, this.id, data.identity, data.value, function (newDoc) {
 		if (newDoc) {
 			var user = this._initUser(spark, true, newDoc);
 			logger.info('newUser', newDoc);
@@ -257,7 +257,8 @@ Tournament.prototype._initUser = function (spark, connected, doc) {
 			util.addEventListeners(this, user, CJ_EVENTS, CJ_HANDLER_PREFIX);
 			break;
 	}
-
+	
+	logger.debug('==== User initialised with ID=' + user.id);
 	this.users[user.id] = user;
 	return user;
 };
