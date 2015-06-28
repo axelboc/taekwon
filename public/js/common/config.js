@@ -7,8 +7,7 @@ define({
 	primusConfig: {
 		strategy: ['online', 'disconnect']
 	},
-	errorMessages: {
-		// "Can't connect to server" => Session cookie not transmitted
-		1002: "Enable cookies and try again"
-	}
+	ignoreErrors: [
+		1001 // User reloads the page or navigates away
+	]
 })

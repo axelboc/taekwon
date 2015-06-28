@@ -121,8 +121,8 @@ Tournament.prototype._onConnection = function (spark) {
 	if (user.spark && user.spark.readyState === Spark.OPEN) {
 		// Inform client that a session conflict has been detected
 		logger.debug("> Session conflict detected");
-		spark.emit('io.wsError', {
-			reason: "Session already open"
+		spark.emit('io.error', {
+			message: "Session already open"
 		});
 		spark.end();
 		return;

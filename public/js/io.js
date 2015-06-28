@@ -11,6 +11,11 @@ define([
 ], function (cookie, config, Helpers) {
 	
 	function IO(identity) {
+		if (!cookie.enabled()) {
+			this.error({ message: "Enable cookies and try again" });
+			return;
+		}
+		
 		this.identity = identity;
 		this.id = cookie.get('id');
 		
@@ -24,14 +29,13 @@ define([
 		
 		// Initialise Primus
 		console.log("Connecting to server");
-		this.primus = new Primus(this.url, config.primusConfig)
+		this.primus = new Primus(this.url, config.primusConfig);
 		
 		// Subscribe to inbound IO events
 		Helpers.subscribeToEvents(this, 'io', [
 			'saveId',
 			'alert',
 			'setPageTitle',
-			'wsError',
 			'error'
 		], this);
 		
@@ -39,17 +43,17 @@ define([
 		if (!config.isProd) {
 			// Listen for opening of connection
 			this.primus.on('open', function () {
-				console.log('Connection is alive and kicking');
+				console.info('Connection is alive and kicking');
 			});
 
 			// Listen for connection timeouts
 			this.primus.on('timeout', function (err) {
-				console.log('Timeout!', err);
+				console.warn('Timeout!', err);
 			});
 
 			// Listen for closing of connection
 			this.primus.on('end', function () {
-				console.log('Connection closed');
+				console.info('Connection closed');
 			});
 
 			// Listen for incoming data
@@ -57,7 +61,7 @@ define([
 				try {
 					var obj = JSON.parse(data);
 					if (obj && obj.emit) {
-						console.log(obj.emit[0], obj.emit[1] ? obj.emit[1] : null);
+						console.log(obj.emit[0], obj.emit[1]);
 						return;
 					}
 				} catch (exc) {}
@@ -71,7 +75,7 @@ define([
 
 			// Listen for when Primus has succeeded in reconnecting
 			this.primus.on('reconnected', function () {
-				console.log('Reconnected');
+				console.info('Reconnected');
 			});
 
 			// Listen for when Primus plans on reconnecting
@@ -82,23 +86,26 @@ define([
 
 			// Listen for reconnection timeouts
 			this.primus.on('reconnect timeout', function (err) {
-				console.log('Reconnection timed out', err);
+				console.warn('Reconnection timed out', err);
 			});
 
 			// Listen for failed reconnects
 			this.primus.on('reconnect failed', function (err) {
-				console.log('Reconnection failed', err);
+				console.warn('Reconnection failed', err);
 			});
 
 			// Regained network connection
 			this.primus.on('online', function (msg) {
-				console.log('Online!', msg);
+				console.info('Online!', msg);
 			});
 
 			// Lost network connection
 			this.primus.on('offline', function (msg) {
-				console.log('Offline!', msg);
+				console.warn('Offline!', msg);
 			});
+			
+			// Errors
+			this.primus.on('error', this.error.bind(this));
 		}
 	}
 	
@@ -116,33 +123,30 @@ define([
 		document.title = data.title;
 	};
 	
-	IO.prototype.wsError = function (data) {
-		this.onError(data);
-	};
-	
 	IO.prototype.error = function (err) {
-		console.error('Error:', err.reason);
+		console.error('Error:', err);
+		var msg = err.message || "Unexpected error";
 		
-		// Retrieve message to display in error view
-		var message = err.code ? config.errorMessages[err.code] : err.reason;
-
-		if (message) {
-			// Hide the backdrop and all the views
-			document.getElementById('backdrop').classList.add('hidden');
-			[].forEach.call(document.querySelectorAll('.view'), function (view) {
-				view.classList.add('hidden');
-			});
-			
-			// Show the error view and the error message
-			var wsErrorView = document.getElementById('ws-error');
-			wsErrorView.classList.remove('hidden');
-			wsErrorView.querySelector('.wse-instr').textContent = message;
-			
-			// Reload when the retry button is pressed
-			wsErrorView.querySelector('.wse-btn--retry').addEventListener('click', function () {
-				window.location.reload();
-			});
+		// Skip ignored error codes
+		if (err.code && config.ignoreErrors.indexOf(err.code) !== -1) {
+			return;
 		}
+
+		// Hide the backdrop and all the views
+		document.getElementById('backdrop').classList.add('hidden');
+		[].forEach.call(document.querySelectorAll('.view'), function (view) {
+			view.classList.add('hidden');
+		});
+
+		// Show the error view and the error message
+		var errorView = document.getElementById('error');
+		errorView.classList.remove('hidden');
+		errorView.querySelector('.err-instr').textContent = msg;
+
+		// Reload when the retry button is pressed
+		errorView.querySelector('.err-btn--retry').addEventListener('click', function () {
+			window.location.reload();
+		});
 	};
 	
 	IO.prototype.send = function (event, data) {
