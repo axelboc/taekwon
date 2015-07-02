@@ -258,7 +258,6 @@ Tournament.prototype._initUser = function (spark, connected, doc) {
 			break;
 	}
 	
-	logger.debug('==== User initialised with ID=' + user.id);
 	this.users[user.id] = user;
 	return user;
 };
