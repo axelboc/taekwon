@@ -19,7 +19,7 @@ var LOG_LEVELS = {
  * @type {Logger}
  */
 var nedbLogger = new Logger({
-	filename: 'data/logs.db'
+	filename: 'app/data/logs.db'
 });
 
 /**

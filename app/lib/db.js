@@ -9,22 +9,22 @@ var MatchRounds = require('../enum/match-rounds');
 
 // Load NeDB datastores
 var tournamentsDb = new Datastore({
-	filename: 'data/tournaments.db',
+	filename: 'app/data/tournaments.db',
 	autoload: true
 });
 
 var usersDb = new Datastore({
-	filename: 'data/users.db',
+	filename: 'app/data/users.db',
 	autoload: true
 });
 
 var ringsDb = new Datastore({
-	filename: 'data/rings.db',
+	filename: 'app/data/rings.db',
 	autoload: true
 });
 
 var matchesDb = new Datastore({
-	filename: 'data/matches.db',
+	filename: 'app/data/matches.db',
 	autoload: true
 });
 

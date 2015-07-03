@@ -1,5 +1,5 @@
 
-define({
+module.exports = {
 	isProd: false,
 	prodUrl: 'http://taekwon.do/',
 	devUrl: 'http://taekwon.do/',
@@ -7,4 +7,4 @@ define({
 	primusConfig: {
 		strategy: ['online', 'disconnect']
 	}
-})
+};
