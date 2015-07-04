@@ -1,0 +1,9 @@
+{{#if isJP}}
+	{{#each rings}}
+		<li><button type="button" class="btn rl-btn" data-index="{{index}}"{{#if open}} disabled{{/if}}>{{number}}</button></li>
+	{{/each}}
+{{else}}
+	{{#each rings}}
+		<li><button type="button" class="btn no-hover rl-btn" data-index="{{index}}"{{#unless open}} disabled{{/unless}}>{{number}}</button></li>
+	{{/each}}
+{{/if}}

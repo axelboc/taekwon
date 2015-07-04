@@ -1,9 +1,11 @@
 'use strict';
 
 // Dependencies
-var Handlebars = require('handlebars');
 var helpers = require('../shared/helpers');
 var Timer = require('./timer').Timer;
+var stateBtnsTemplate = require('../templates/state-btns.hbs');
+var scoreSlotsTemplate = require('../templates/score-slots.hbs');
+var penaltyItemTemplate = require('../templates/penalty-item.hbs');
 
 
 function MatchPanel(io) {
@@ -21,29 +23,21 @@ function MatchPanel(io) {
 		'disablePenaltyBtns'
 	], this);
 
-	// Match state
-	this.mpStateLabel = this.root.querySelector('.mp-round-label');
-
 	// Time keeping
 	this.timeKeeping = this.root.querySelector('.time-keeping');
 	var tkBeeps = document.getElementById('tk-beeps');
 	this.roundTimer = new Timer('round', io, tkBeeps);
 	this.injuryTimer = new Timer('injury', io, tkBeeps);
 
-	// Match state
+	// Match state, scores and penalties
+	this.mpStateLabel = this.root.querySelector('.mp-round-label');
 	this.stateInner = this.root.querySelector('.st-inner');
-	this.stateInnerTemplate = Handlebars.compile(document.getElementById('st-inner-tmpl').innerHTML);
-	this.stateInner.addEventListener('click', this.onStateInnerDelegate.bind(this));
-
-	// Scores
 	this.scoresInner = this.root.querySelector('.sc-inner');
-	this.scoresInnerTemplate = Handlebars.compile(document.getElementById('sc-inner-tmpl').innerHTML);
-
-	// Penalties
-	this.penaltiesTemplate = Handlebars.compile(document.getElementById('pe-penalties-tmpl').innerHTML);
 	this.warningsInner = this.root.querySelector('.pe-inner--warnings');
-	this.warningsInner.addEventListener('click', this.onWarningsInnerDelegate.bind(this));
 	this.foulsInner = this.root.querySelector('.pe-inner--fouls');
+	
+	this.stateInner.addEventListener('click', this.onStateInnerDelegate.bind(this));
+	this.warningsInner.addEventListener('click', this.onWarningsInnerDelegate.bind(this));
 	this.foulsInner.addEventListener('click', this.onFoulsInnerDelegate.bind(this));
 }
 
@@ -61,16 +55,16 @@ MatchPanel.prototype.toggleInjuryTimer = function (data) {
 };
 
 MatchPanel.prototype.updateState = function (data) {
-	this.stateInner.innerHTML = this.stateInnerTemplate(data.state);
+	this.stateInner.innerHTML = stateBtnsTemplate(data.state);
 };
 
 MatchPanel.prototype.updateScoreSlots = function (data) {
-	this.scoresInner.innerHTML = this.scoresInnerTemplate(data);
+	this.scoresInner.innerHTML = scoreSlotsTemplate(data);
 };
 
 MatchPanel.prototype.updatePenalties = function (data) {
-	this.warningsInner.innerHTML = this.penaltiesTemplate(data.warnings);
-	this.foulsInner.innerHTML = this.penaltiesTemplate(data.fouls);
+	this.warningsInner.innerHTML = penaltyItemTemplate(data.warnings);
+	this.foulsInner.innerHTML = penaltyItemTemplate(data.fouls);
 };
 
 MatchPanel.prototype.disablePenaltyBtns = function () {

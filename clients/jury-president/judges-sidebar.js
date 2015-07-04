@@ -1,8 +1,8 @@
 'use strict';
 
 // Dependencies
-var Handlebars = require('handlebars');
 var helpers = require('../shared/helpers');
+var judgeSlotsTemplate = require('../templates/judge-slots.hbs');
 
 
 function JudgesSidebar(io) {
@@ -13,8 +13,6 @@ function JudgesSidebar(io) {
 	helpers.subscribeToEvents(io, 'judgesSidebar', ['updateSlotList'], this);
 
 	this.list = this.root.querySelector('.js-list');
-	this.listTemplate = Handlebars.compile(document.getElementById('js-list-tmpl').innerHTML);
-
 	this.addSlotBtn = this.root.querySelector('.js-add');
 	this.removeSlotBtn = this.root.querySelector('.js-remove');
 
@@ -30,9 +28,7 @@ function JudgesSidebar(io) {
 
 JudgesSidebar.prototype.updateSlotList = function (data) {
 	// Execute template
-	this.list.innerHTML = this.listTemplate({
-		slots: data.slots
-	});
+	this.list.innerHTML = judgeSlotsTemplate(data);
 };
 
 

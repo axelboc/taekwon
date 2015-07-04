@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "author": "Axel Bocciarelli",
   "description": "Scoring software for ITF Taekwon-Do sparring matches",
-  "license": "LICENSE.md",
+  "license": "CC-BY-NC-SA-4.0",
   "repository": {
     "type": "git",
     "url": "http://github.com/axelboc/taekwon"
@@ -23,7 +23,6 @@
     "express": "4.12.*",
     "express-handlebars": "2.0.*",
     "fastclick": "^1.0.6",
-    "handlebars": "^3.0.3",
     "javascript-state-machine": "2.3.*",
     "nedb": "1.1.*",
     "nedb-logger": "0.1.*",
@@ -41,6 +40,8 @@
     "gulp-sourcemaps": "^1.5.2",
     "gulp-uglify": "^1.2.0",
     "gulp-util": "^3.0.6",
+    "handlebars": "^3.0.3",
+    "hbsfy": "^2.2.1",
     "mocha": "2.2.*",
     "sinon": "1.15.*",
     "vinyl-buffer": "^1.0.0",

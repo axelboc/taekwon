@@ -4,6 +4,7 @@
 var pkg = require('./package.json');
 var gulp = require('gulp');
 var browserify = require('browserify');
+var hbsfy = require('hbsfy');
 var cache = require('gulp-cached');
 var jshint = require('gulp-jshint');
 var sourcemaps = require('gulp-sourcemaps');
@@ -36,13 +37,16 @@ var p = {
 function buildClientScript(folder) {
 	return browserify({
 			entries: path.join(p.clients.dir, folder, p.clients.root),
+			noParse: ['fastclick', 'tiny-cookie'],
 			debug: true
-		}).bundle()
+		})
+		.transform(hbsfy)
+		.bundle()
 		.pipe(source(folder + '.js'))
 		.pipe(buffer())
 		.pipe(sourcemaps.init({ loadMaps: true }))
-			.pipe(uglify())
-			.on('error', gutil.log)
+		.pipe(uglify())
+		.on('error', gutil.log)
 		.pipe(sourcemaps.write('./'))
 		.pipe(gulp.dest(p.clientsDest));
 }

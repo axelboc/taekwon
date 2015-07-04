@@ -1,8 +1,8 @@
 'use strict';
 
 // Dependencies
-var Handlebars = require('handlebars');
 var helpers = require('../shared/helpers');
+var configItemsTemplate = require('../templates/config-items.hbs');
 
 
 function ConfigPanel(io) {
@@ -13,10 +13,9 @@ function ConfigPanel(io) {
 	helpers.subscribeToEvents(io, 'configPanel', ['updateConfig'], this);
 
 	this.newMatchBtn = this.root.querySelector('.match-btn--new');
-	this.newMatchBtn.addEventListener('click', this.io.sendFunc('createMatch'));
-
 	this.configInner = this.root.querySelector('.cf-inner');
-	this.configInnerTemplate = Handlebars.compile(document.getElementById('cf-inner-tmpl').innerHTML);
+	
+	this.newMatchBtn.addEventListener('click', this.io.sendFunc('createMatch'));
 	this.configInner.addEventListener('click', this.onConfigInnerDelegate.bind(this));
 }
 
@@ -26,7 +25,7 @@ function ConfigPanel(io) {
  * ================================================== */
 
 ConfigPanel.prototype.updateConfig = function (data) {
-	this.configInner.innerHTML = this.configInnerTemplate(data);
+	this.configInner.innerHTML = configItemsTemplate(data);
 };
 
 

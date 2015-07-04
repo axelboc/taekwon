@@ -27,7 +27,7 @@ function LoginView(io) {
 	], this);
 }
 
-LoginView.prototype.sendIdentification = function sendIdentification() {
+LoginView.prototype.sendIdentification = function () {
 	this.io.send('identification', {
 		identity: this.io.identity,
 		value: this.field.value
@@ -39,23 +39,23 @@ LoginView.prototype.sendIdentification = function sendIdentification() {
  * IO events
  * ================================================== */
 
-LoginView.prototype.setInstr = function setInstr(data) {
+LoginView.prototype.setInstr = function (data) {
 	// Update instructions
 	this.instr.textContent = data.text;
 };
 
-LoginView.prototype.focusField = function focusField() {
+LoginView.prototype.focusField = function () {
 	// HACK: set focus on field
 	setTimeout(function () {
 		this.field.focus();
 	}.bind(this), 100);
 };
 
-LoginView.prototype.blurField = function blurField() {
+LoginView.prototype.blurField = function () {
 	this.field.blur();
 };
 
-LoginView.prototype.shakeResetField = function shakeResetField() {
+LoginView.prototype.shakeResetField = function () {
 	// Reset, focus and shake field
 	this.field.value = "";
 	this.field.focus();
