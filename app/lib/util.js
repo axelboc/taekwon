@@ -1,3 +1,4 @@
+'use strict';
 
 // Modules
 var assert = require('./assert');

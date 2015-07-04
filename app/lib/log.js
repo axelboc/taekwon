@@ -1,3 +1,4 @@
+'use strict';
 
 // Modules
 var assert = require('assert');
@@ -19,7 +20,7 @@ var LOG_LEVELS = {
  * @type {Logger}
  */
 var nedbLogger = new Logger({
-	filename: 'data/logs.db'
+	filename: 'app/data/logs.db'
 });
 
 /**

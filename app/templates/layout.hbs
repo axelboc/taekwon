@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-type="{{ type }}" data-identity="{{ identity }}">
+<html lang="en">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="{{ metaViewport }}">
@@ -8,11 +8,11 @@
 	<link rel="apple-touch-icon" href="/favicon-152.png">
 	<link rel="apple-touch-icon-precomposed" href="/favicon-57.png">
 	<link rel="stylesheet" href="/css/main.css">
-	<link rel="stylesheet" href="/css/{{ type }}.css">
-	<script src="{{ baseUrl }}/primus/primus.js"></script>
-	<script src="/js/lib/require.js" data-main="/js/main.js"></script>
+	<link rel="stylesheet" href="/css/{{ identity }}.css">
 </head>
 <body>
 	{{{ body }}}
+	<script src="{{ baseUrl }}/primus/primus.js"></script>
+	<script src="/js/{{ identity }}.js"></script>
 </body>
 </html>

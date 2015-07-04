@@ -1,10 +1,9 @@
+'use strict';
 
 // Dependencies
 var util = require('util');
 var config = require('../config/config.json');
 var assert = require('./lib/assert');
-var logger = require('./lib/log')('jp');
-var DB = require('./lib/db');
 var User = require('./user').User;
 var MatchStates = require('./enum/match-states');
 var MatchRounds = require('./enum/match-rounds');
@@ -29,8 +28,6 @@ function JuryPresident(id, spark, connected) {
 
 // Inherit from User
 util.inherits(JuryPresident, User);
-// Keep a pointer to the parent prototype
-parent = JuryPresident.super_.prototype;
 
 
 /**
@@ -39,7 +36,7 @@ parent = JuryPresident.super_.prototype;
  */
 JuryPresident.prototype.initSpark = function (spark) {
 	// Call parent function
-	parent.initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
+	User.prototype.initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
 };
 
 
@@ -320,8 +317,8 @@ JuryPresident.prototype._updatePenalties = function (penalties, enable) {
 	});
 	
 	this._send('matchPanel.updatePenalties', {
-		warnings: penalties['warnings'],
-		fouls: penalties['fouls']
+		warnings: penalties.warnings,
+		fouls: penalties.fouls
 	});
 };
 

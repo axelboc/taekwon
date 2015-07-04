@@ -1,8 +1,9 @@
 
-node_modules/
-resources/
+app/data/
 config/config.env
-data/
+node_modules/
+public/js/
+resources/
 
 
 #############

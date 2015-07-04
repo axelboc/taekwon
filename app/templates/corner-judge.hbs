@@ -18,11 +18,6 @@
 		<p class="rl-instr instr">Select ring number</p>
 		<ul class="rl-list list-reset list-grid"></ul>
 	</div>
-	<script id="rl-list-tmpl" type="x-handlebars-template">
-		\{{#each rings}}
-			<li><button type="button" class="btn no-hover rl-btn" data-index="\{{index}}"\{{#unless open}} disabled\{{/unless}}>\{{number}}</button></li>
-		\{{/each}}
-	</script>
 </div>
 
 {{!-- Authorisation view (waiting for authorisation to join ring) --}}

@@ -1,3 +1,4 @@
+'use strict';
 
 // Modules
 var config = require('../config/config.json');
@@ -258,7 +259,6 @@ Tournament.prototype._initUser = function (spark, connected, doc) {
 			break;
 	}
 	
-	logger.debug('==== User initialised with ID=' + user.id);
 	this.users[user.id] = user;
 	return user;
 };
@@ -285,8 +285,9 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 	user.initSpark(spark);
 	
 	// Restore Jury President
+	var ring;
 	if (user instanceof JuryPresident) {
-		var ring = this._findJPRing(user);
+		ring = this._findJPRing(user);
 		if (!ring) {
 			user.idSuccess(this._getRingStates());
 		} else {
@@ -295,7 +296,7 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 	
 	// Restore Corner Judge
 	} else {
-		var ring = this._findCJRing(user);
+		ring = this._findCJRing(user);
 		if (!ring) {
 			user.idSuccess(this._getRingStates());
 		} else {

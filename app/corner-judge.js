@@ -1,9 +1,9 @@
+'use strict';
 
 // Modules
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('cj');
 var util = require('./lib/util');
-var DB = require('./lib/db');
 var User = require('./user').User;
 var MatchStates = require('./enum/match-states');
 
@@ -34,8 +34,6 @@ function CornerJudge(id, spark, connected, name, authorised) {
 
 // Inherit from User
 util.inherits(CornerJudge, User);
-// Keep a pointer to the parent prototype
-parent = CornerJudge.super_.prototype;
 
 
 /**
@@ -44,7 +42,7 @@ parent = CornerJudge.super_.prototype;
  */
 CornerJudge.prototype.initSpark = function (spark) {
 	// Call parent function
-	parent.initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
+	User.prototype.initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
 };
 
 /**
@@ -272,7 +270,7 @@ CornerJudge.prototype._updateBackdrop = function (ring) {
 	assert.ok(ring.juryPresident, "ring must have a Jury President");	
 
 	var scoringEnabled = ring.isScoringEnabled();
-	var jpConnected = ring.juryPresident.connected
+	var jpConnected = ring.juryPresident.connected;
 	
 	var text = '';
 	var subtext = '';

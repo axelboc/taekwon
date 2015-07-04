@@ -1,3 +1,4 @@
+'use strict';
 
 // Dependencies
 var assert = require('../lib/assert');
