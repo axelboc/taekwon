@@ -7,6 +7,7 @@ var browserify = require('browserify');
 var hbsfy = require('hbsfy');
 var cache = require('gulp-cached');
 var jshint = require('gulp-jshint');
+var nodemon = require('gulp-nodemon');
 var sourcemaps = require('gulp-sourcemaps');
 var uglify = require('gulp-uglify');
 var gutil = require('gulp-util');
@@ -14,55 +15,58 @@ var buffer = require('vinyl-buffer');
 var source = require('vinyl-source-stream');
 var path = require('path');
 
-// Path configurations
-var p = {
-	jsGlob: '**/*.js',
-	cssGlob: '**/*.css',
-	app: 'app',
-	clients: {
-		dir: 'clients',
-		jp: 'jury-president',
-		cj: 'corner-judge',
-		shared: 'shared',
-		root: 'root.js',
-	},
-	clientsDest: 'public/js',
-	styles: 'styles',
-	tests: 'tests'
+// Clients
+var clients = ['corner-judge', 'jury-president'];
+
+// Tasks to be run by default (client tasks are added further down)
+var defaultTasks = ['scripts:lint', 'server', 'watch'];
+
+// Globs
+var globs = {
+	js: '**/*.js',
+	hbs: '**/*.hbs',
 };
 
-/**
- * Build a client script.
- */
-function buildClientScript(folder) {
-	return browserify({
-			entries: path.join(p.clients.dir, folder, p.clients.root),
-			noParse: ['fastclick', 'tiny-cookie'],
-			debug: true
-		})
-		.transform(hbsfy)
-		.bundle()
-		.pipe(source(folder + '.js'))
-		.pipe(buffer())
-		.pipe(sourcemaps.init({ loadMaps: true }))
-		.pipe(uglify())
-		.on('error', gutil.log)
-		.pipe(sourcemaps.write('./'))
-		.pipe(gulp.dest(p.clientsDest));
-}
+// Sets of paths
+var sets = {
+	lint: [
+		'app.js',
+		'gulpfile.js',
+		path.join('app', globs.js),
+		path.join('clients', globs.js),
+		path.join('tests', globs.js)
+	],
+	client: [
+		path.join('config/**'),
+		path.join('clients/shared', globs.js),
+		path.join('clients/templates', globs.hbs)
+	]
+};
 
-/**
- * Build Jury President client script with Browserify.
- */
-gulp.task('scripts:jp', function () {
-	return buildClientScript('jury-president');
-});
-
-/**
- * Build Corner Judge client script with Browserify.
- */
-gulp.task('scripts:cj', function () {
-	return buildClientScript('corner-judge');
+// Initialise a build task for each client
+clients.forEach(function (client) {
+	var task = 'scripts:' + client;
+	defaultTasks.unshift(task);
+	
+	/**
+	 * Build each client script with Browserify.
+	 */
+	gulp.task(task, function () {
+		return browserify({
+				entries: path.join('clients', client, 'root.js'),
+				noParse: ['fastclick', 'tiny-cookie'],
+				debug: true
+			})
+			.transform(hbsfy)
+			.bundle()
+			.pipe(source(client + '.js'))
+			.pipe(buffer())
+			.pipe(sourcemaps.init({ loadMaps: true }))
+			.pipe(uglify())
+			.on('error', gutil.log)
+			.pipe(sourcemaps.write('./'))
+			.pipe(gulp.dest('public/js'));
+	});
 });
 
 /**
@@ -70,27 +74,44 @@ gulp.task('scripts:cj', function () {
  * Use gulp-cached to re-lint only files that have changed.
  */
 gulp.task('scripts:lint', function() {
-	return gulp.src([
-			'app.js',
-			'gulpfile.js',
-			path.join(p.app, p.jsGlob),
-			path.join(p.clients.dir, p.jsGlob),
-			path.join(p.tests, p.jsGlob)
-		])
+	return gulp.src(sets.lint)
 		.pipe(cache('scripts:lint'))
 		.pipe(jshint(pkg.jshintConfig))
 		.pipe(jshint.reporter('default'));
 });
 
 /**
- * Re-run tasks when files change.
+ * Start the server.
+ * Reload when the relevant files have changed.
  */
-gulp.task('watch', function () {
-	//gulp.watch('templates/*.tmpl.html', ['build']);
+gulp.task('server', function () {
+	nodemon({
+		script: 'app.js',
+		watch: [
+			'app',
+			'config/config.env',
+			'config/config.json',
+			'app.js'
+		]
+	});
 });
 
 /**
- * Default task.
- * Run with `gulp`.
+ * Watch for changes.
  */
-gulp.task('default', ['scripts:jp', 'scripts:cj', 'scripts:lint', 'watch']);
+gulp.task('watch', function () {
+	// Watch and rebuild each client's scritps
+	clients.forEach(function (client) {
+		gulp.watch(sets.client.concat([
+			path.join('clients', client, globs.js),
+		]), ['scripts:' + client]);
+	});
+	
+	// Lint any changed JS files
+	gulp.watch(sets.lint, ['scripts:lint']);
+});
+
+/**
+ * Register the default tasks.
+ */
+gulp.task('default', defaultTasks);

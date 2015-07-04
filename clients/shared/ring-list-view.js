@@ -33,8 +33,8 @@ RingListView.prototype.setInstr = function (data) {
 RingListView.prototype.updateList = function (data) {
 	// Populate ring list from template
 	this.list.innerHTML = ringListTemplate({
-		isJP: this.io.identity === 'jury-president',
-		rings: data.ringStates
+		isJP: this.io.identity === 'juryPresident',
+		rings: data.rings
 	});
 };
 
