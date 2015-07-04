@@ -1,3 +1,4 @@
+'use strict';
 
 // Dependencies
 var helpers = require('../shared/helpers');
@@ -81,7 +82,7 @@ Timer.prototype._tickUp = function () {
 };
 
 Timer.prototype._valueChanged = function () {
-	var sec = this.value % 60
+	var sec = this.value % 60;
 	this.sec.textContent = (sec < 10 ? '0' : '') + sec;
 	this.min.textContent = Math.floor(this.value / 60);
 };

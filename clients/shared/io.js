@@ -1,6 +1,8 @@
+'use strict';
 
 // Dependencies
-var cookie = require('cookie');
+/* globals Primus */
+var cookie = require('tiny-cookie');
 var config = require('./config');
 var helpers = require('./helpers');
 var Backdrop = require('./backdrop').Backdrop;
@@ -37,7 +39,7 @@ function IO(identity) {
 	this.primus.on('reconnected', this.wsReconnected.bind(this));
 
 	// Subscribe to inbound IO events
-	Helpers.subscribeToEvents(this, 'io', [
+	helpers.subscribeToEvents(this, 'io', [
 		'saveId',
 		'setPageTitle',
 		'updateBackdrop',

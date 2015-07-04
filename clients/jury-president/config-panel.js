@@ -1,6 +1,7 @@
+'use strict';
 
 // Dependencies
-var config = require('../shared/config');
+var Handlebars = require('handlebars');
 var helpers = require('../shared/helpers');
 
 
@@ -35,7 +36,7 @@ ConfigPanel.prototype.updateConfig = function (data) {
 
 ConfigPanel.prototype.onConfigInnerDelegate = function (evt) {
 	var btn = evt.target;
-	if (btn && btn.nodeName == 'BUTTON') {
+	if (btn && btn.nodeName === 'BUTTON') {
 		var item = btn.parentElement.parentElement;
 		var value;
 
@@ -55,4 +56,4 @@ ConfigPanel.prototype.onConfigInnerDelegate = function (evt) {
 	}
 };
 
-module.exports.ConfigPanel;
+module.exports.ConfigPanel = ConfigPanel;

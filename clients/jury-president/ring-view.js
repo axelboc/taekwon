@@ -1,10 +1,11 @@
+'use strict';
 
 // Dependencies
 var helpers = require('../shared/helpers');
-var JudgesSidebar = require('../shared/judges-sidebar').JudgesSidebar;
-var ConfigPanel = require('../shared/config-panel').ConfigPanel;
-var MathPanel = require('../shared/match-panel').MathPanel;
-var ResultPanel = require('../shared/result-panel').ResultPanel;
+var JudgesSidebar = require('./judges-sidebar').JudgesSidebar;
+var ConfigPanel = require('./config-panel').ConfigPanel;
+var MathPanel = require('./match-panel').MathPanel;
+var ResultPanel = require('./result-panel').ResultPanel;
 
 
 function RingView(io) {

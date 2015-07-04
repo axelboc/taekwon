@@ -1,6 +1,7 @@
 'use strict';
 
 // Dependencies
+var pkg = require('./package.json');
 var gulp = require('gulp');
 var browserify = require('browserify');
 var cache = require('gulp-cached');
@@ -25,7 +26,8 @@ var p = {
 		root: 'root.js',
 	},
 	clientsDest: 'public/js',
-	styles: 'styles'
+	styles: 'styles',
+	tests: 'tests'
 };
 
 /**
@@ -64,9 +66,15 @@ gulp.task('scripts:cj', function () {
  * Use gulp-cached to re-lint only files that have changed.
  */
 gulp.task('scripts:lint', function() {
-	return gulp.src(p.jsGlob)
+	return gulp.src([
+			'app.js',
+			'gulpfile.js',
+			path.join(p.app, p.jsGlob),
+			path.join(p.clients.dir, p.jsGlob),
+			path.join(p.tests, p.jsGlob)
+		])
 		.pipe(cache('scripts:lint'))
-		.pipe(jshint())
+		.pipe(jshint(pkg.jshintConfig))
 		.pipe(jshint.reporter('default'));
 });
 

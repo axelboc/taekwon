@@ -1,3 +1,4 @@
+'use strict';
 
 // Dependencies
 var Handlebars = require('handlebars');
@@ -14,7 +15,7 @@ function RingListView(io) {
 	this.listTemplate = Handlebars.compile(document.getElementById('rl-list-tmpl').innerHTML);
 
 	// Subscribe to events from server and views
-	Helpers.subscribeToEvents(io, 'ringListView', [
+	helpers.subscribeToEvents(io, 'ringListView', [
 		'setInstr',
 		'updateList'
 	], this);
@@ -44,7 +45,7 @@ RingListView.prototype.updateList = function updateList(data) {
 
 RingListView.prototype.onListDelegate = function onListDelegate(evt) {
 	var btn = evt.target;
-	if (btn && btn.nodeName == 'BUTTON') {
+	if (btn && btn.nodeName === 'BUTTON') {
 		btn.blur();
 
 		var index = parseInt(btn.dataset.index, 10);

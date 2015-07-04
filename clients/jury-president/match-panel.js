@@ -1,3 +1,4 @@
+'use strict';
 
 // Dependencies
 var Handlebars = require('handlebars');
@@ -27,7 +28,7 @@ function MatchPanel(io) {
 	this.timeKeeping = this.root.querySelector('.time-keeping');
 	var tkBeeps = document.getElementById('tk-beeps');
 	this.roundTimer = new Timer('round', io, tkBeeps);
-	this.injuryTimer = new Timer('injury', io, tkBeeps),
+	this.injuryTimer = new Timer('injury', io, tkBeeps);
 
 	// Match state
 	this.stateInner = this.root.querySelector('.st-inner');
@@ -85,7 +86,7 @@ MatchPanel.prototype.disablePenaltyBtns = function () {
 
 MatchPanel.prototype.onStateInnerDelegate = function (evt) {
 	var btn = evt.target;
-	if (btn && btn.nodeName == 'BUTTON') {
+	if (btn && btn.nodeName === 'BUTTON') {
 		btn.blur();
 		if (btn.classList.contains('st-btn--start')) {
 			this.io.send('startMatchState');
@@ -99,7 +100,7 @@ MatchPanel.prototype.onStateInnerDelegate = function (evt) {
 
 MatchPanel.prototype.onWarningsInnerDelegate = function (evt) {
 	var btn = evt.target;
-	if (btn && btn.nodeName == 'BUTTON') {
+	if (btn && btn.nodeName === 'BUTTON') {
 		btn.blur();
 		if (btn.classList.contains('pe-inc')) {
 			this.io.send('incrementPenalty', {
@@ -117,7 +118,7 @@ MatchPanel.prototype.onWarningsInnerDelegate = function (evt) {
 
 MatchPanel.prototype.onFoulsInnerDelegate = function (evt) {
 	var btn = evt.target;
-	if (btn && btn.nodeName == 'BUTTON') {
+	if (btn && btn.nodeName === 'BUTTON') {
 		btn.blur();
 		if (btn.classList.contains('pe-inc')) {
 			this.io.send('incrementPenalty', {

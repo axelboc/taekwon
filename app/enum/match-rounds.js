@@ -1,3 +1,4 @@
+'use strict';
 
 /**
  * Match rounds enum.

@@ -1,3 +1,4 @@
+'use strict';
 
 function Backdrop() {
 	this.root = document.getElementById('backdrop');

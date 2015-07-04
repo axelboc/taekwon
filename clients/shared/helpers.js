@@ -1,3 +1,4 @@
+'use strict';
 
 var helpers = {
 
@@ -19,7 +20,7 @@ var helpers = {
 	 * @param {HTMLElement} elem
 	 */
 	shake: function shake(elem) {
-		var onShakeEnd = function onShakeEnd(evt) {
+		var onShakeEnd = function onShakeEnd() {
 			// Remove shake class in case another shake animation needs to be performed
 			elem.classList.remove('shake');
 			// Remove listener

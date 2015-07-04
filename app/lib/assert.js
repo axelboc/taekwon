@@ -1,3 +1,4 @@
+'use strict';
 
 // Logger
 var logger = require('./log')('assert');

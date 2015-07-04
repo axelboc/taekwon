@@ -1,3 +1,4 @@
+'use strict';
 
 // Dependencies
 var Handlebars = require('handlebars');
@@ -41,7 +42,7 @@ JudgesSidebar.prototype.updateSlotList = function (data) {
 
 JudgesSidebar.prototype.onListDelegate = function (evt) {
 	var btn = evt.target;
-	if (btn && btn.nodeName == 'BUTTON') {
+	if (btn && btn.nodeName === 'BUTTON') {
 		// Prepare IO data
 		var data = {
 			id: btn.dataset.id

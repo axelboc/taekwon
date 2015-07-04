@@ -1,11 +1,10 @@
+'use strict';
 
 // Modules
 var assert = require('./assert');
 var logger = require('./log')('db');
-var async = require('async');
 var Datastore = require('nedb');
 var MatchStates = require('../enum/match-states');
-var MatchRounds = require('../enum/match-rounds');
 
 // Load NeDB datastores
 var tournamentsDb = new Datastore({

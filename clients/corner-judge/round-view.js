@@ -1,3 +1,4 @@
+'use strict';
 
 // Dependencies
 var helpers = require('../shared/helpers');
@@ -25,7 +26,7 @@ function RoundView(io) {
 	this.fdb.className = 'fdb';
 
 	// Subscribe to inbound IO events
-	Helpers.subscribeToEvents(io, 'roundView', [
+	helpers.subscribeToEvents(io, 'roundView', [
 		'enableUndoBtn',
 		'showFdb'
 	], this);
@@ -46,7 +47,7 @@ function RoundView(io) {
  * ================================================== */
 
 RoundView.prototype.enableUndoBtn = function (data) {
-	Helpers.enableBtn(this.undoBtn, data.enable);
+	helpers.enableBtn(this.undoBtn, data.enable);
 };
 
 RoundView.prototype.showFdb = function (data) {
@@ -84,7 +85,7 @@ RoundView.prototype.showFdb = function (data) {
 
 RoundView.prototype.onScoreBtnsDeletage = function (competitor, evt) {
 	var btn = evt.target;
-	if (btn && btn.nodeName == 'BUTTON') {
+	if (btn && btn.nodeName === 'BUTTON') {
 		btn.blur();
 		this.io.send('score', {
 			competitor: competitor,
@@ -105,4 +106,4 @@ RoundView.prototype.onTransitionEnd = function (evt) {
 	}
 };
 
-module.exports. = RoundView;
+module.exports.RoundView = RoundView;

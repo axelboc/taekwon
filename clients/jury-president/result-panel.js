@@ -1,6 +1,6 @@
+'use strict';
 
 // Dependencies
-var Handlebars = require('handlebars');
 var helpers = require('../shared/helpers');
 
 
@@ -50,7 +50,7 @@ ResultPanel.prototype.setWinner = function (data) {
 	}
 };
 
-ResultPanel.prototype.showContinueBtns = function (data) {
+ResultPanel.prototype.showContinueBtns = function () {
 	// Show buttons to continue or end the match
 	this.continueBtnsWrap.classList.remove('hidden');
 	this.endBtnsWrap.classList.add('hidden');
@@ -116,7 +116,7 @@ ResultPanel.prototype.buildHeaderRow = function (columns, twoRounds) {
 		if (columnId === 'main') {
 			label = twoRounds ? "Rounds 1 & 2" : "Round 1";
 		} else if (/^total/.test(columnId)) {
-			label = "Total"
+			label = "Total";
 		} else {
 			label = columnId.split('-').reduce(function (label, part) {
 				return label += part.charAt(0).toUpperCase() + part.slice(1) + " ";

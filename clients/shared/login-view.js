@@ -1,3 +1,4 @@
+'use strict';
 
 // Dependencies
 var helpers = require('./helpers');
@@ -18,7 +19,7 @@ function LoginView(io) {
 	});
 
 	// Subscribe to events from server and views
-	Helpers.subscribeToEvents(io, 'login', [
+	helpers.subscribeToEvents(io, 'login', [
 		'setInstr',
 		'focusField',
 		'blurField',
@@ -58,7 +59,7 @@ LoginView.prototype.shakeResetField = function shakeResetField() {
 	// Reset, focus and shake field
 	this.field.value = "";
 	this.field.focus();
-	Helpers.shake(this.field);
+	helpers.shake(this.field);
 };
 
 module.exports.LoginView = LoginView;

@@ -1,3 +1,4 @@
+'use strict';
 
 // Modules
 var config = require('../config/config.json');
@@ -288,9 +289,8 @@ Ring.prototype.hasCJ = function (cj) {
 /**
  * Instanciate and initialise a new match object based on a database document.
  * @param {Object} doc
- * @param {Function} cb
  */
-Ring.prototype._initMatch = function (doc, cb) {
+Ring.prototype._initMatch = function (doc) {
 	assert.object(doc, 'doc');
 	
 	this.match = new Match(doc._id, doc.config, doc.state, doc.data);

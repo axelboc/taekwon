@@ -1,8 +1,11 @@
+'use strict';
 
 // Dependencies
+var FastClick = require('fastclick');
+var IO = require('../shared/io').IO;
 var helpers = require('../shared/helpers');
 var LoginView = require('../shared/login-view').LoginView;
-var RingListView = require('../ring-list-view/').RingListView;
+var RingListView = require('../shared/ring-list-view').RingListView;
 var RoundView = require('./round-view').RoundView;
 
 // Initialise IO and root modules
@@ -13,23 +16,25 @@ FastClick.attach(document.body);
 
 // Initialise views
 var currentView = null;
-var loginView = new LoginView(io);
-var ringListView = new RingListView(io);
-var authorisationView = { root: document.getElementById('authorisation') };
-var roundView = new RoundView(io);
+var views = {
+	loginView: new LoginView(io),
+	ringListView: new RingListView(io),
+	authorisationView: { root: document.getElementById('authorisation') },
+	roundView: new RoundView(io)
+};
 
 // Subscribe to inbound IO events
 helpers.subscribeToEvents(io, 'root', ['showView'], {
 	
 	showView: function (data) {
 		// Hide the previously visible view
-		if (curentView) {
-			curentView.root.classList.add('hidden');
+		if (currentView) {
+			currentView.root.classList.add('hidden');
 		}
 
 		// Show the new view
-		curentView = this[data.view];
-		curentView.root.classList.remove('hidden');
+		currentView = views[data.view];
+		currentView.root.classList.remove('hidden');
 	}
 	
 });

@@ -1,7 +1,8 @@
+'use strict';
 
 // Import modules
 var config = require('./config/config.json');
-var assert = require('./app/lib/assert');
+var assert = require('./lib/assert');
 var logger = require('./app/lib/log')('app');
 var DB = require('./app/lib/db');
 var Tournament = require('./app/tournament').Tournament;
