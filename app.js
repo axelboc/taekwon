@@ -2,7 +2,6 @@
 
 // Import modules
 var config = require('./config/config.json');
-var assert = require('./lib/assert');
 var logger = require('./app/lib/log')('app');
 var DB = require('./app/lib/db');
 var Tournament = require('./app/tournament').Tournament;
@@ -27,15 +26,17 @@ dotenv({
 	 */
 	var app = express();
 	var server = http.Server(app);
-
+	
 	// Configure templating engine
 	app.engine('hbs', handlebars({
-		defaultLayout: 'layout',
 		extname: 'hbs',
-		layoutsDir: 'app/templates'
+		layoutsDir: 'app/templates',
+		partialsDir: 'app/templates/partials',
+		defaultLayout: 'layout'
 	}));
 
-	// Set view engine
+	// Set template folder and view engine
+	app.set('views', 'app/templates');
 	app.set('view engine', 'hbs');
 
 	// Pass server-side configuration to client

@@ -36,7 +36,7 @@ util.inherits(JuryPresident, User);
  */
 JuryPresident.prototype.initSpark = function (spark) {
 	// Call parent function
-	JuryPresident.prototype.initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
+	User.prototype.initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
 };
 
 

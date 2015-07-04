@@ -4,7 +4,7 @@
 var helpers = require('../shared/helpers');
 var JudgesSidebar = require('./judges-sidebar').JudgesSidebar;
 var ConfigPanel = require('./config-panel').ConfigPanel;
-var MathPanel = require('./match-panel').MathPanel;
+var MatchPanel = require('./match-panel').MatchPanel;
 var ResultPanel = require('./result-panel').ResultPanel;
 
 
@@ -15,7 +15,7 @@ function RingView(io) {
 	// Initialise panels and sidebar
 	this.currentPanel = null;
 	this.configPanel = new ConfigPanel(io);
-	this.matchPanel = new MathPanel(io);
+	this.matchPanel = new MatchPanel(io);
 	this.resultPanel = new ResultPanel(io);
 	this.judgesSidebar = new JudgesSidebar(io);
 
