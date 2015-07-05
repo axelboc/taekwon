@@ -46,28 +46,39 @@
 .score-btns--hong > .score-btn { border-radius: 0 10px 10px 0; }
 .score-btns--chong > .score-btn { border-radius: 10px 0 0 10px; }
 
+.score-btns[data-max="3"] > .score-btn--1 { height: 36%; top: 6% }
+.score-btns[data-max="3"] > .score-btn--2 { height: 28%; top: 4% }
+.score-btns[data-max="3"] > .score-btn--3 { height: 22%; top: 2% }
+
+.score-btns[data-max="4"] > .score-btn--1 { height: 25%; top: 8%; }
+.score-btns[data-max="4"] > .score-btn--2 { height: 25%; top: 6%; }
+.score-btns[data-max="4"] > .score-btn--3 { height: 17%; top: 4%; }
+.score-btns[data-max="4"] > .score-btn--4 { height: 17%; top: 2%; }
+
+.score-btns[data-max="5"] > .score-btn--1 { height: 23%; top: 10%; }
+.score-btns[data-max="5"] > .score-btn--2 { height: 23%; top: 8%; }
+.score-btns[data-max="5"] > .score-btn--3 { height: 16%; top: 6%; }
+.score-btns[data-max="5"] > .score-btn--4 { height: 10%; top: 4%; }
+.score-btns[data-max="5"] > .score-btn--5 { height: 10%; top: 2%; }
+
+.score-btns[data-max="3"] > .score-btn--1 {
+	font-size: 400%;
+}
+
 .score-btn--1,
 .score-btn--2 {
-	height: 25%;
 	font-size: 350%;
 }
 
-.score-btn--3 {
-	height: 18%;
+.score-btn--3,
+.score-btns[data-max="4"] .score-btn--4 {
 	font-size: 250%;
 }
 
 .score-btn--4,
 .score-btn--5 {
-	height: 10%;
 	font-size: 150%;
 }
-
-.score-btn--5 { top: 2%; }
-.score-btn--4 { top: 4%; }
-.score-btn--3 { top: 6%; }
-.score-btn--2 { top: 8%; }
-.score-btn--1 { top: 10%; }
 
 .score-btn:active {
 	background-color: #444;
