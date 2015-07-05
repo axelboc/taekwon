@@ -32,11 +32,14 @@ nunjucks.configure(['app/templates', 'app/templates/partials'], {
 // Set the view engine
 app.set('view engine', 'njk');
 
+// Serve static files from the `public` folder
+app.use(express.static(__dirname + '/public'));
+
 // Pass server-side configuration to client
 app.locals.baseUrl = process.env.BASE_URL;
 
-// Serve static files from the `public` folder
-app.use(express.static(__dirname + '/public'));
+// Assert relevant configuration options
+assert(maxScore >= 3 && maxScore <= 5, "maximum score must be 3, 4 or 5 (current: " + config.maxScore + ")");
 
 // Corner Judge route
 app.get('/', function (req, res) {
