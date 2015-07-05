@@ -9,11 +9,13 @@ var hbsfy = require('hbsfy');
 var envify = require('envify');
 var cache = require('gulp-cached');
 var jshint = require('gulp-jshint');
+var mocha = require('gulp-mocha');
 var nodemon = require('gulp-nodemon');
 var sourcemaps = require('gulp-sourcemaps');
 var uglify = require('gulp-uglify');
 var gutil = require('gulp-util');
 var path = require('path');
+var del = require('del');
 
 // Load environment variables (later used by envify) 
 require('dotenv').config({ path: 'config/.env' });
@@ -30,7 +32,7 @@ var globs = {
 	hbs: '**/*.hbs',
 };
 
-// Sets of paths
+// Path sets
 var sets = {
 	lint: [
 		'app.js',
@@ -47,13 +49,20 @@ var sets = {
 };
 
 
+/**
+ * Task to clear the datastores.
+ */
+gulp.task('clear:data', function () {
+	del('app/data/**');
+});
+
 // Initialise a build task for each client
 clients.forEach(function (client) {
 	var task = 'scripts:' + client;
 	defaultTasks.unshift(task);
 	
 	/**
-	 * Build each client script with Browserify.
+	 * Task to build a client script with Browserify.
 	 */
 	gulp.task(task, function () {
 		return browserify({
@@ -75,7 +84,7 @@ clients.forEach(function (client) {
 });
 
 /**
- * Lint all scripts.
+ * Task to lint all scripts.
  * Use gulp-cached to re-lint only files that have changed.
  */
 gulp.task('scripts:lint', function() {
@@ -90,7 +99,7 @@ gulp.task('scripts:lint', function() {
 });
 
 /**
- * Start the server.
+ * Task to start the server.
  * Reload when the relevant files have changed.
  */
 gulp.task('server', function () {
@@ -106,7 +115,15 @@ gulp.task('server', function () {
 });
 
 /**
- * Watch for changes.
+ * Task to run Mocha tests.
+ */
+gulp.task('test', function () {
+	return gulp.src(path.join('tests', globs.js))
+		.pipe(mocha());
+});
+
+/**
+ * Task to watch for changes.
  */
 gulp.task('watch', function () {
 	// Watch and rebuild each client's scritps
@@ -121,6 +138,7 @@ gulp.task('watch', function () {
 });
 
 /**
- * Register the default tasks.
+ * Main tasks.
  */
 gulp.task('default', defaultTasks);
+gulp.task('reset', ['clear:data'].concat(defaultTasks));
