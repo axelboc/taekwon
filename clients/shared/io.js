@@ -3,7 +3,6 @@
 // Dependencies
 /* globals Primus */
 var cookie = require('tiny-cookie');
-var config = require('./config');
 var helpers = require('./helpers');
 var Backdrop = require('./backdrop').Backdrop;
 
@@ -23,7 +22,7 @@ function IO(identity) {
 	this.id = cookie.get('id');
 
 	// Build server URL
-	this.url = (config.isProd ? config.prodUrl : config.devUrl) + '?identity=' + identity;
+	this.url = process.env.BASE_URL + '?identity=' + identity;
 
 	// Add ID parameter if available
 	if (this.id) {
@@ -32,7 +31,9 @@ function IO(identity) {
 
 	// Initialise Primus
 	console.log("Connecting to server");
-	this.primus = new Primus(this.url, config.primusConfig);
+	this.primus = new Primus(this.url, {
+		strategy: ['online', 'disconnect']
+	});
 
 	// Listen for Web Socket events
 	this.primus.on('error', this.wsError.bind(this));
@@ -48,7 +49,7 @@ function IO(identity) {
 	], this);
 
 	// Debug
-	if (!config.isProd) {
+	if (process.env.NODE_ENV === 'development') {
 		// Listen for opening of connection
 		this.primus.on('open', function () {
 			console.info('Connection is alive and kicking');
@@ -135,7 +136,7 @@ IO.prototype.wsReconnected = function () {
 
 IO.prototype.saveId = function (data) {
 	cookie.set('id', data.id, {
-		expires: config.cookieExpires
+		expires: '12h'
 	});
 };
 

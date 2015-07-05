@@ -1,19 +1,22 @@
 'use strict';
 
 // Dependencies
-var pkg = require('./package.json');
 var gulp = require('gulp');
+var buffer = require('vinyl-buffer');
+var source = require('vinyl-source-stream');
 var browserify = require('browserify');
 var hbsfy = require('hbsfy');
+var envify = require('envify');
 var cache = require('gulp-cached');
 var jshint = require('gulp-jshint');
 var nodemon = require('gulp-nodemon');
 var sourcemaps = require('gulp-sourcemaps');
 var uglify = require('gulp-uglify');
 var gutil = require('gulp-util');
-var buffer = require('vinyl-buffer');
-var source = require('vinyl-source-stream');
 var path = require('path');
+
+// Load environment variables (later used by envify) 
+require('dotenv').config({ path: 'config/.env' });
 
 // Clients
 var clients = ['corner-judge', 'jury-president'];
@@ -37,11 +40,12 @@ var sets = {
 		path.join('tests', globs.js)
 	],
 	client: [
-		path.join('config/**'),
+		path.join('config/.env'),
 		path.join('clients/shared', globs.js),
 		path.join('clients/templates', globs.hbs)
 	]
 };
+
 
 // Initialise a build task for each client
 clients.forEach(function (client) {
@@ -57,6 +61,7 @@ clients.forEach(function (client) {
 				noParse: ['fastclick', 'tiny-cookie'],
 				debug: true
 			})
+			.transform(envify)
 			.transform(hbsfy)
 			.bundle()
 			.pipe(source(client + '.js'))
@@ -76,7 +81,11 @@ clients.forEach(function (client) {
 gulp.task('scripts:lint', function() {
 	return gulp.src(sets.lint)
 		.pipe(cache('scripts:lint'))
-		.pipe(jshint(pkg.jshintConfig))
+		.pipe(jshint({
+			"lookup": false, "devel": true, "browser": true, "node": true,
+			"bitwise": true, "curly": true, "eqeqeq": true, "funcscope": true, 
+			"latedef": "nofunc", "nocomma": true, "undef": true, "unused": false
+		}))
 		.pipe(jshint.reporter('default'));
 });
 
@@ -89,9 +98,9 @@ gulp.task('server', function () {
 		script: 'app.js',
 		watch: [
 			'app',
-			'config/config.env',
-			'config/config.json',
-			'app.js'
+			'app.js',
+			'config/.env',
+			'config/config.json'
 		]
 	});
 });

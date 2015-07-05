@@ -11,7 +11,6 @@ var penaltyItemTemplate = require('../templates/penalty-item.hbs');
 function MatchPanel(io) {
 	this.io = io;
 	this.root = document.getElementById('match-panel');
-	this.config = null;
 
 	// Subscribe to events
 	helpers.subscribeToEvents(io, 'matchPanel', [
