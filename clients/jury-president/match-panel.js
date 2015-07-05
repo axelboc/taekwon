@@ -86,7 +86,7 @@ MatchPanel.prototype.onStateInnerDelegate = function (evt) {
 		} else if (btn.classList.contains('st-btn--end')) {
 			this.io.send('endMatchState');
 		} else if (btn.classList.contains('st-btn--injury')) {
-			this.io.send('startEndInjury');
+			this.io.send('toggleInjury');
 		}
 	}
 };

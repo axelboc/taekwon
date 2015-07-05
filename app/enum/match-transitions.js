@@ -8,7 +8,7 @@ module.exports = {
 	BEGIN: 'begin',
 	START_STATE: 'startState',
 	END_STATE: 'endState',
-	START_END_INJURY: 'startEndInjury',
+	START_END_INJURY: 'toggleInjury',
 	NEXT_ROUND: 'nextRound',
 	BREAK: 'break',
 	RESULTS: 'results',

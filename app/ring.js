@@ -16,7 +16,7 @@ var JP_HANDLER_PREFIX = '_jp';
 var JP_EVENTS = [
 	'addSlot', 'removeSlot', 'authoriseCJ',
 	'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
-	'startMatchState', 'endMatchState', 'startEndInjury', 'incrementPenalty', 'decrementPenalty',
+	'startMatchState', 'endMatchState', 'toggleInjury', 'incrementPenalty', 'decrementPenalty',
 	'connectionStateChanged'
 ];
 
@@ -487,9 +487,9 @@ Ring.prototype._jpEndMatchState = function () {
 /**
  * Start or end an injury.
  */
-Ring.prototype._jpStartEndInjury = function () {
+Ring.prototype._jpToggleInjury = function () {
 	assert.ok(this.match, "ring must have a match");
-	this.match.state.startEndInjury();
+	this.match.state.toggleInjury();
 };
 
 /**

@@ -11,7 +11,7 @@ var MatchRounds = require('./enum/match-rounds');
 var INBOUND_SPARK_EVENTS = [
 	'selectRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
 	'configureMatch', 'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
-	'startMatchState', 'endMatchState', 'startEndInjury', 'incrementPenalty', 'decrementPenalty'
+	'startMatchState', 'endMatchState', 'toggleInjury', 'incrementPenalty', 'decrementPenalty'
 ];
 
 
