@@ -47,7 +47,8 @@ app.get('/', function (req, res) {
 	res.render(identity, {
 		identity: identity,
 		title: "Corner Judge",
-		metaViewport: 'width=device-width, initial-scale=1, user-scalable=no'
+		metaViewport: 'width=device-width, initial-scale=1, user-scalable=no',
+		maxScore: config.maxScore
 	});
 });
 

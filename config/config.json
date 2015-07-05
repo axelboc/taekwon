@@ -1,6 +1,7 @@
 {
 	"ringCount": 2,
 	"cornerJudgesPerRing": 4,
+	"maxScore": 3,
 	"matchConfig": {
 		"timeStep": 15,
 		"defaults": {
