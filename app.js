@@ -3,7 +3,7 @@
 // Dependencies
 var express = require('express');
 var http = require('http');
-var handlebars = require('express-handlebars');
+var nunjucks = require('nunjucks');
 var Primus = require('primus');
 var Emit = require('primus-emit');
 var async = require('async');
@@ -23,17 +23,14 @@ require('dotenv').config({ path: 'config/.env' });
 var app = express();
 var server = http.Server(app);
 
-// Configure templating engine
-app.engine('hbs', handlebars({
-	extname: 'hbs',
-	layoutsDir: 'app/templates',
-	partialsDir: 'app/templates/partials',
-	defaultLayout: 'layout'
-}));
+// Configure Nunjucks
+nunjucks.configure(['app/templates', 'app/templates/partials'], {
+	autoescape: true,
+	express: app
+});
 
-// Set template folder and view engine
-app.set('views', 'app/templates');
-app.set('view engine', 'hbs');
+// Set the view engine
+app.set('view engine', 'njk');
 
 // Pass server-side configuration to client
 app.locals.baseUrl = process.env.BASE_URL;

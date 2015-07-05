@@ -11,7 +11,7 @@
 	<link rel="stylesheet" href="/css/{{ identity }}.css">
 </head>
 <body>
-	{{{ body }}}
+	{% block body %}{% endblock %}
 	<script src="{{ baseUrl }}/primus/primus.js"></script>
 	<script src="/js/{{ identity }}.js"></script>
 </body>

@@ -1,0 +1,57 @@
+{% extends "layout.njk" %}
+{% block body %}
+
+	{# Error view #}
+	{% include "error-view.njk" %}
+
+	{# Name view (identification) #}
+	<div id="login" class="view hidden">
+		<h1>{{ title }}</h1>
+		<form class="login-form action" action="#">
+			<p class="instr">Enter your name</p>
+			<input class="login-field field" type="text" autocapitalize="on">
+			<button class="login-btn btn" type="submit" title="Go">&raquo;</button>
+		</form>
+	</div>
+
+	{# Ring List view (ring selection) #}
+	<div id="ring-list" class="view hidden">
+		<h1>{{ title }}</h1>
+		<div class="action">
+			<p class="rl-instr instr">Select ring number</p>
+			<ul class="rl-list list-reset list-grid"></ul>
+		</div>
+	</div>
+
+	{# Authorisation view (waiting for authorisation to join ring) #}
+	<div id="authorisation" class="view hidden">
+		<h1>{{ title }}</h1>
+		<div class="action">
+			<p class="instr">Waiting for authorisation...</p>
+		</div>
+	</div>
+
+	{# Round view (scoring) #}
+	<div id="round" class="view hidden">
+		<button type="button" class="undo-btn btn btn--minor no-hover">Undo</button>
+		<div class="score-btns score-btns--hong">
+			<button type="button" class="score-btn score-btn--5 hong-bg">5</button>
+			<button type="button" class="score-btn score-btn--4 hong-bg">4</button>
+			<button type="button" class="score-btn score-btn--3 hong-bg">3</button>
+			<button type="button" class="score-btn score-btn--2 hong-bg">2</button>
+			<button type="button" class="score-btn score-btn--1 hong-bg">1</button>
+		</div>
+		<div class="score-btns score-btns--chong">
+			<button type="button" class="score-btn score-btn--5 chong-bg">5</button>
+			<button type="button" class="score-btn score-btn--4 chong-bg">4</button>
+			<button type="button" class="score-btn score-btn--3 chong-bg">3</button>
+			<button type="button" class="score-btn score-btn--2 chong-bg">2</button>
+			<button type="button" class="score-btn score-btn--1 chong-bg">1</button>
+		</div>
+		<div class="feedback"></div>
+	</div>
+
+	{# Backdrop #}
+	{% include "backdrop.njk" %}
+
+{% endblock %}

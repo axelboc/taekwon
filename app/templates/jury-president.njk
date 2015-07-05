@@ -1,0 +1,113 @@
+{% extends "layout.njk" %}
+{% block body %}
+
+	{# Error view #}
+	{% include "error-view.njk" %}
+
+	{# Password view #}
+	<div id="login" class="view hidden">
+		<h1>{{ title }}</h1>
+		<form class="action login-form" action="#">
+			<p class="login-instr instr">Master password required</p>
+			<input class="login-field field" type="password">
+			<button class="login-btn btn" type="submit" title="Go">&raquo;</button>
+		</form>
+	</div>
+
+	{# Ring List view #}
+	<div id="ring-list" class="view hidden">
+		<h1>{{ title }}</h1>
+		<div class="action">
+			<p class="rl-instr instr">Select ring number</p>
+			<ul class="rl-list list-reset list-grid"></ul>
+		</div>
+	</div>
+
+	{# Ring view #}
+	<div id="ring" class="view hidden">
+		{# Sidebar (Corner Judges management) #}
+		<div id="judges-sidebar">
+			<h2 class="js-heading">Corner Judges</h2>
+			<ul class="js-list list-reset"></ul>
+			<div class="js-btns">
+				<button type="button" class="js-add btn btn--minor" title="Add slot">+</button>
+				<button type="button" class="js-remove btn btn--minor" title="Remove slot">&minus;</button>
+			</div>
+		</div>
+		{# Match dashboard #}
+		<div class="main">
+			{# Configuration panel #}
+			<div id="config-panel" class="panel">
+				<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
+				<div class="config action">
+					<h2 class="cf-heading">Match Configuration</h2>
+					<div class="cf-inner"></div>
+				</div>
+			</div>
+			{# Match panel #}
+			<div id="match-panel" class="panel hidden">
+				<h2 class="mp-round-label"></h2>
+				<div class="mp-row mp-row--top">
+					{# Time keeping #}
+					<div class="time-keeping tk_off mp-cell">
+						<audio id="tk-beeps">
+							<source src="audio/beeps.ogg" type="audio/ogg">
+							<source src="audio/beeps.mp3" type="audio/mp3">
+						</audio>
+						<div class="tk-inner">
+							<div id="round-timer" class="tk-timer tk-timer--round">
+								<span class="tk-timer-min"></span><span class="tk-timer-sep">:</span><span class="tk-timer-sec"></span>
+							</div>
+							<div id="injury-timer" class="tk-timer tk-timer--injury">
+								<span class="tk-timer-min"></span><span class="tk-timer-sep">:</span><span class="tk-timer-sec"></span>
+							</div>
+						</div>
+					</div>
+					{# Match state management #}
+					<div class="state mp-cell">
+						<div class="st-inner"></div>
+					</div>
+				</div>
+				<div class="mp-row mp-row--bottom">
+					{# Scores #}
+					<div class="scores mp-cell">
+						<div class="sc-inner"></div>
+					</div>
+					{# Penalties #}
+					<div class="penalties mp-cell">
+						<h2 class="pe-heading">Warnings</h2>
+						<div class="pe-inner pe-inner--warnings"></div>
+						<h2 class="pe-heading">Fouls</h2>
+						<div class="pe-inner pe-inner--fouls"></div>
+					</div>
+				</div>
+			</div>
+			{# Result panel #}
+			<div id="result-panel" class="panel hidden">
+				<p class="rp-winner"></p>
+				<div id="rp-buttons--continue">
+					<button type="button" class="match-btn match-btn--end btn btn--minor">End Match</button>
+					<button type="button" class="match-btn match-btn--continue btn btn--major">Continue Match</button>
+				</div>
+				<div id="rp-buttons--end">
+					<button type="button" class="match-btn match-btn--config btn btn--minor">Match Configuration</button>
+					<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
+				</div>
+				<div class="scoreboard-wrap">
+					<table class="scoreboard">
+						<thead class="sb-head">
+							<tr class="sb-header-row">
+							</tr>
+						</thead>
+						<tbody class="sb-body">
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{# Backdrop #}
+	{% include "backdrop.njk" %}
+
+{% endblock %}
