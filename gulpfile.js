@@ -23,8 +23,9 @@ require('dotenv').config({ path: 'config/.env' });
 // Clients
 var clients = ['corner-judge', 'jury-president'];
 
-// Tasks to be run by default (client tasks are added further down)
-var defaultTasks = ['scripts:lint', 'server', 'watch'];
+// Task groups (client tasks are added to the default tasks further down)
+var resetTasks = ['clear:data', 'scripts:lint', 'server', 'watch'];
+var defaultTasks = resetTasks.slice(1);
 
 // Globs
 var globs = {
@@ -139,6 +140,7 @@ gulp.task('watch', function () {
 
 /**
  * Main tasks.
+ * Client scripts are not rebuilt as part of the `reset` task.
  */
+gulp.task('reset', resetTasks);
 gulp.task('default', defaultTasks);
-gulp.task('reset', ['clear:data'].concat(defaultTasks));
