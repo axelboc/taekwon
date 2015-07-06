@@ -94,7 +94,7 @@ function Match(id, config, state, data) {
 	
 	// Create state machine
 	this.state = StateMachine.create({
-		initial: state,
+		initial: { state: state, event: 'init', defer: true },
 		events: [
 			{ name: Transitions.START_STATE, from: States.ROUND_IDLE, to: States.ROUND_STARTED },
 			{ name: Transitions.START_STATE, from: States.BREAK_IDLE, to: States.BREAK_STARTED },
@@ -128,6 +128,9 @@ util.inherits(Match, EventEmitter);
  * @param {String} to
  */
 Match.prototype._onEnterState = function (transition, from, to) {
+	// Emit event synchronously to avoid race conditions
+	this.emit('stateChanged', transition, from, to);
+	
 	// Update database
 	DB.setMatchState(this.id, to, {
 		round: this.round.current,
@@ -137,38 +140,42 @@ Match.prototype._onEnterState = function (transition, from, to) {
 		cjNames: this.cjNames,
 		penalties: this.penalties,
 		winner: this.winner
-	}, function () {
-		this.emit('stateChanged', transition, from, to);
-	}.bind(this));
+	});
 };
 
 /**
  * A round has ended.
  */
 Match.prototype._onRoundEnded = function () {
-	if (this.round.is(Rounds.ROUND_1) && this.config.twoRounds) {
-		// If round 1 and match is to have two rounds, trigger a break
-		this.state.break();
-	} else {
-		// Otherwise, compute winner
-		this.winner = this._computeWinner(this._computeTotals());
-		
-		// If winner, end match
-		if (this.winner || this.round.is(Rounds.GOLDEN_POINT)) {
-			this.state.end();
+	// Decide what to do on the next tick
+	setTimeout(function () {
+		if (this.round.is(Rounds.ROUND_1) && this.config.twoRounds) {
+			// If round 1 and match is to have two rounds, trigger a break
+			this.state.break();
 		} else {
-			this.state.results();
+			// Otherwise, compute winner
+			this.winner = this._computeWinner(this._computeTotals());
+
+			// If winner, end match
+			if (this.winner || this.round.is(Rounds.GOLDEN_POINT)) {
+				this.state.end();
+			} else {
+				this.state.results();
+			}
 		}
-	}
+	}.bind(this), 0);
 };
 
 /**
  * A break has ended.
  */
 Match.prototype._onBreakEnded = function () {
-	// Always continue to the next round after a break
-	this.round.next();
-	this.state.nextRound();
+	// Decide what to do on the next tick
+	setTimeout(function () {
+		// Always continue to the next round after a break
+		this.round.next();
+		this.state.nextRound();
+	}.bind(this), 0);
 };
 
 /**

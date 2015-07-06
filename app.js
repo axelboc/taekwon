@@ -9,6 +9,7 @@ var Emit = require('primus-emit');
 var async = require('async');
 
 var config = require('./config/config.json');
+var assert = require('./app/lib/assert');
 var logger = require('./app/lib/log')('app');
 var DB = require('./app/lib/db');
 var Tournament = require('./app/tournament').Tournament;
@@ -39,7 +40,7 @@ app.use(express.static(__dirname + '/public'));
 app.locals.baseUrl = process.env.BASE_URL;
 
 // Assert relevant configuration options
-assert(maxScore >= 3 && maxScore <= 5, "maximum score must be 3, 4 or 5 (current: " + config.maxScore + ")");
+assert.ok(config.maxScore >= 3 && config.maxScore <= 5, "maximum score must be 3, 4 or 5 (current: " + config.maxScore + ")");
 
 // Corner Judge route
 app.get('/', function (req, res) {

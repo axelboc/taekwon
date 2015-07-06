@@ -295,6 +295,9 @@ Ring.prototype._initMatch = function (doc) {
 	
 	this.match = new Match(doc._id, doc.config, doc.state, doc.data);
 	util.addEventListeners(this, this.match, MATCH_EVENTS, MATCH_HANDLER_PREFIX);
+	
+	// Start the state machine
+	this.match.state.init();
 };
 
 /**
