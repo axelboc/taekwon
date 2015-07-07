@@ -44,6 +44,7 @@ function IO(identity) {
 		'saveId',
 		'setPageTitle',
 		'updateBackdrop',
+		'hideBackdrop',
 		'alert',
 		'error'
 	], this);
@@ -131,7 +132,7 @@ IO.prototype.wsError = function (err) {
 
 IO.prototype.wsReconnected = function () {
 	console.info("Reconnected");
-	this.backdrop.hide();
+	this.hideBackdrop();
 };
 
 IO.prototype.saveId = function (data) {
@@ -146,6 +147,11 @@ IO.prototype.setPageTitle = function (data) {
 
 IO.prototype.updateBackdrop = function (data) {
 	this.backdrop.update(data.text, data.subtext, data.visible);
+};
+
+IO.prototype.hideBackdrop = function () {
+	console.log('====', this.backdrop);
+	this.backdrop.hide();
 };
 
 IO.prototype.alert = function (data) {

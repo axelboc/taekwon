@@ -174,6 +174,7 @@ CornerJudge.prototype.ringLeft = function (ring, message, ringStates) {
 	// Remove the Corner Judge from the ring and mark it as unauthorised
 	this.authorised = false;
 
+	this._send('io.hideBackdrop');
 	this._send('io.setPageTitle', { title: "Corner Judge" });
 	this._send('ringListView.setInstr', { text: message });
 	this._send('ringListView.updateList', { rings: ringStates });
