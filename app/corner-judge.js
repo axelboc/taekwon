@@ -273,19 +273,40 @@ CornerJudge.prototype._updateBackdrop = function (ring) {
 	var scoringEnabled = ring.isScoringEnabled();
 	var jpConnected = ring.juryPresident.connected;
 	
+	var visible = false;
 	var text = '';
 	var subtext = '';
 	
 	if (!jpConnected) {
+		visible = true;
 		text = "Jury President disconnected";
 		subtext = "Waiting for reconnection...";
-	} else if (!scoringEnabled) {
-		text = "Please wait for round to begin";
-		subtext = "... or timeout to end";
+	} else {
+		visible = true;
+		text = "Please wait...";
+		
+		if (!ring.match) {
+			subtext = "No match in progress";
+		} else {
+			switch (ring.match.state.current) {
+				case MatchStates.ROUND_STARTED:
+					visible = false;
+					break;
+				case MatchStates.ROUND_IDLE:
+					subtext = "Round is about to being";
+					break;
+				case MatchStates.BREAK_STARTED:
+					subtext = "Break in progress";
+					break;
+				case MatchStates.INJURY:
+					subtext = "Timeout in progress";
+					break;
+			}
+		}
 	}
 	
 	this._send('io.updateBackdrop', {
-		visible: !jpConnected || !scoringEnabled,
+		visible: visible,
 		text: text,
 		subtext: subtext
 	});
