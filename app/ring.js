@@ -6,6 +6,7 @@ var assert = require('./lib/assert');
 var logger = require('./lib/log')('ring');
 var util = require('./lib/util');
 var DB = require('./lib/db');
+var async = require('async');
 var EventEmitter = require('events').EventEmitter;
 var CornerJudge = require('./corner-judge').CornerJudge;
 var JuryPresident = require('./jury-president').JuryPresident;
@@ -173,18 +174,18 @@ Ring.prototype.close = function (ringStates) {
 	// Update the database
 	DB.setRingJPId(this.id, null, function () {
 		// Ask Corner Judges to leave the ring
-		this.cornerJudges.forEach(function (cj) {
-			this.removeCJ(cj, "Ring closed", ringStates);
-		}, this);
-		
-		// Close ring
-		util.removeEventListeners(this.juryPresident, JP_EVENTS);
-		this.juryPresident = null;
-		this.emit('stateChanged');
-		
-		logger.info('closed', {
-			number: this.number
-		});
+		async.each(this.cornerJudges, function (cj, cb) {
+			this.removeCJ(cj, "Ring closed", ringStates, cb);
+		}.bind(this), function () {
+			// Once all Corner Judges have been removed, close the ring
+			util.removeEventListeners(this.juryPresident, JP_EVENTS);
+			this.juryPresident = null;
+			this.emit('stateChanged');
+
+			logger.info('closed', {
+				number: this.number
+			});
+		}.bind(this));
 	}.bind(this));
 };
 
@@ -242,8 +243,9 @@ Ring.prototype.addCJ = function (cj) {
  * @param {String|CornerJudge} cj - the ID of the Corner Judge or the CornerJudge object to remove
  * @param {String} message - the reason for the removal, which will be shown to the Corner Judge
  * @param {Array} ringStates
+ * @param {Function} cb - optional callback
  */
-Ring.prototype.removeCJ = function (cj, message, ringStates) {
+Ring.prototype.removeCJ = function (cj, message, ringStates, cb) {
 	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 	assert.string(message, 'message');
 	assert.array(ringStates, 'ringStates');
@@ -273,6 +275,8 @@ Ring.prototype.removeCJ = function (cj, message, ringStates) {
 				cjName: cj.name,
 				message: message
 			});
+			
+			if (cb) { cb(); }
 		}.bind(this));
 	}.bind(this));
 };

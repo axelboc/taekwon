@@ -525,10 +525,10 @@ Tournament.prototype._cjExited = function (cj) {
 	var ring = this._findCJRing(cj);
 	if (ring) {
 		// Remove Corner Judge from ring
-		ring.removeCJ(cj, "Exited system", this._getRingStates());
-
-		// Notify Jury President
-		ring.juryPresident.cjExited(cj);
+		ring.removeCJ(cj, "Exited system", this._getRingStates(), function () {
+			// Notify Jury President
+			ring.juryPresident.cjExited(cj);
+		}.bind(this));
 	}
 };
 
