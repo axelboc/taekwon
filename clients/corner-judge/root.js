@@ -6,6 +6,7 @@ var IO = require('../shared/io').IO;
 var helpers = require('../shared/helpers');
 var LoginView = require('../shared/login-view').LoginView;
 var RingListView = require('../shared/ring-list-view').RingListView;
+var WaitingView = require('./waiting-view').WaitingView;
 var RoundView = require('./round-view').RoundView;
 
 // Initialise IO and root modules
@@ -19,7 +20,7 @@ var currentView = null;
 var views = {
 	loginView: new LoginView(io),
 	ringListView: new RingListView(io),
-	authorisationView: { root: document.getElementById('authorisation') },
+	waitingView: new WaitingView(io),
 	roundView: new RoundView(io)
 };
 

@@ -22,7 +22,7 @@ var JP_EVENTS = [
 ];
 
 var CJ_HANDLER_PREFIX = '_cj';
-var CJ_EVENTS = ['score', 'undo', 'connectionStateChanged'];
+var CJ_EVENTS = ['cancelJoin', 'score', 'undo', 'connectionStateChanged'];
 
 var MATCH_HANDLER_PREFIX = '_match';
 var MATCH_EVENTS = ['stateChanged', 'scoresUpdated', 'penaltiesUpdated'];
@@ -165,17 +165,15 @@ Ring.prototype.open = function (jp) {
 
 /**
  * Close the ring.
- * @param {Array} ringStates
  */
-Ring.prototype.close = function (ringStates) {
-	assert.array(ringStates, 'ringStates');
+Ring.prototype.close = function () {
 	assert.ok(this.juryPresident, "ring is already closed");
 	
 	// Update the database
 	DB.setRingJPId(this.id, null, function () {
 		// Ask Corner Judges to leave the ring
 		async.each(this.cornerJudges, function (cj, cb) {
-			this.removeCJ(cj, "Ring closed", ringStates, cb);
+			this.removeCJ(cj, "Ring closed", cb);
 		}.bind(this), function () {
 			// Once all Corner Judges have been removed, close the ring
 			util.removeEventListeners(this.juryPresident, JP_EVENTS);
@@ -242,13 +240,11 @@ Ring.prototype.addCJ = function (cj) {
  * Remove a Corner Judge from the ring.
  * @param {String|CornerJudge} cj - the ID of the Corner Judge or the CornerJudge object to remove
  * @param {String} message - the reason for the removal, which will be shown to the Corner Judge
- * @param {Array} ringStates
  * @param {Function} cb - optional callback
  */
-Ring.prototype.removeCJ = function (cj, message, ringStates, cb) {
+Ring.prototype.removeCJ = function (cj, message, cb) {
 	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
-	assert.string(message, 'message');
-	assert.array(ringStates, 'ringStates');
+	assert.string(message, 'message', true);
 	var index = this.cornerJudges.indexOf(cj);
 	assert.ok(index > -1, "Corner Judge is not in the ring");
 	assert.ok(this.juryPresident, "ring must have Jury President");
@@ -264,9 +260,9 @@ Ring.prototype.removeCJ = function (cj, message, ringStates, cb) {
 			// Acknowledge
 			this.juryPresident.slotsUpdated(this.getSlots(), this.getScoreSlots());
 			if (!cj.authorised) {
-				cj.rejected(message, ringStates);
+				cj.rejected(message);
 			} else {
-				cj.ringLeft(this, message, ringStates);
+				cj.ringLeft(message);
 			}
 
 			logger.info('cjRemoved', {
@@ -320,14 +316,6 @@ Ring.prototype.restoreMatch = function (cb) {
 		}
 		cb();
 	}.bind(this));
-};
-
-/**
- * Test whether scoring is enabled on the ring.
- * @return {Boolean}
- */
-Ring.prototype.isScoringEnabled = function () {
-	return this.match && this.match.state.current === MatchStates.ROUND_STARTED;
 };
 
 
@@ -534,6 +522,15 @@ Ring.prototype._jpConnectionStateChanged = function () {
  * Corner Judge events
  * ==================================================
  */
+
+/**
+ * A Corner Judge has cancelled its own request to join the ring.
+ * @param {CornerJudge} cj
+ */
+Ring.prototype._cjCancelJoin = function (cj) {
+	assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
+	this.removeCJ(cj, "");
+};
 
 /**
  * A Corner Judge has scored.

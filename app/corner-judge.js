@@ -7,7 +7,7 @@ var util = require('./lib/util');
 var User = require('./user').User;
 var MatchStates = require('./enum/match-states');
 
-var INBOUND_SPARK_EVENTS = ['selectRing', 'score', 'undo'];
+var INBOUND_SPARK_EVENTS = ['selectRing', 'cancelJoin', 'score', 'undo'];
 
 
 /**
@@ -60,10 +60,16 @@ CornerJudge.prototype.getState = function () {
 
 
 /* ==================================================
- * Inbound spark events:
- * - assert spark event data
- * - propagate to Tournament and Ring via events
+ * Custom handlers for inbound spark events.
+ * (By default, such events are forwarded with EventEmitter.)
  * ================================================== */
+
+/**
+ * Cancel request to join a ring.
+ */
+CornerJudge.prototype._onCancelJoin = function () {
+	this.emit('cancelJoin', this);
+};
 
 /**
  * Select a ring (i.e. join).
@@ -115,7 +121,7 @@ CornerJudge.prototype._onUndo = function () {
  * Waiting for authorisation to join the ring.
  */
 CornerJudge.prototype.waitingForAuthorisation = function () {
-	this._send('root.showView', { view: 'authorisationView' });
+	this._send('root.showView', { view: 'waitingView' });
 };
 
 /**
@@ -123,15 +129,16 @@ CornerJudge.prototype.waitingForAuthorisation = function () {
  * - rejected by Jury President,
  * - ring full.
  * @param {String} message
- * @param {Array} ringStates
  */
-CornerJudge.prototype.rejected = function (message, ringStates) {
-	assert.string(message, 'message');
-	assert.array(ringStates, 'ringStates');
+CornerJudge.prototype.rejected = function (message) {
+	assert.string(message, 'message', true);
 	logger.debug("> " + message);
 
-	this._send('ringListView.setInstr', { text: message });
-	this._send('ringListView.updateList', { rings: ringStates });
+	// Set the instruction text if a non-empty message is provided
+	if (message.length > 0) {
+		this._send('ringListView.setInstr', { text: message });
+	}
+	
 	this._send('root.showView', { view: 'ringListView' });
 };
 
@@ -162,14 +169,10 @@ CornerJudge.prototype.ringJoined = function (ring) {
  * The Corner Judge has left the ring, either voluntarily or by force:
  * - The Jury President has rejected the Corner Judge's request to join the ring.
  * - The Jury President has removed the Corner Judge from the ring.
- * @param {Ring} ring
  * @param {String} message - an explanation intended to be displayed to the human user
- * @param {Array} ringStates
  */
-CornerJudge.prototype.ringLeft = function (ring, message, ringStates) {
-	assert.provided(ring, 'ring');
+CornerJudge.prototype.ringLeft = function (message) {
 	assert.string(message, 'message');
-	assert.array(ringStates, 'ringStates');
 
 	// Remove the Corner Judge from the ring and mark it as unauthorised
 	this.authorised = false;
@@ -177,13 +180,11 @@ CornerJudge.prototype.ringLeft = function (ring, message, ringStates) {
 	this._send('io.hideBackdrop');
 	this._send('io.setPageTitle', { title: "Corner Judge" });
 	this._send('ringListView.setInstr', { text: message });
-	this._send('ringListView.updateList', { rings: ringStates });
 	this._send('root.showView', { view: 'ringListView' });
 
 	logger.info('ringLeft', {
 		id: this.id,
 		name: this.name,
-		ringNumber: ring.number
 	});
 };
 
@@ -258,7 +259,10 @@ CornerJudge.prototype.undid = function (score) {
  */
 CornerJudge.prototype.jpConnectionStateChanged = function (ring) {
 	assert.provided(ring, 'ring');
-	this._updateBackdrop(ring);
+	
+	if (this.authorised) {
+		this._updateBackdrop(ring);
+	}
 };
 
 /**
@@ -270,14 +274,11 @@ CornerJudge.prototype._updateBackdrop = function (ring) {
 	assert.provided(ring, 'ring');
 	assert.ok(ring.juryPresident, "ring must have a Jury President");	
 
-	var scoringEnabled = ring.isScoringEnabled();
-	var jpConnected = ring.juryPresident.connected;
-	
 	var visible = false;
 	var text = '';
 	var subtext = '';
 	
-	if (!jpConnected) {
+	if (!ring.juryPresident.connected) {
 		visible = true;
 		text = "Jury President disconnected";
 		subtext = "Waiting for reconnection...";

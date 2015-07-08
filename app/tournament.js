@@ -277,19 +277,25 @@ Tournament.prototype.restoreUsers = function (cb) {
 	}.bind(this));
 };
 
+/**
+ * Restore a user's session.
+ * @param {User} user
+ * @param {Spark} spark
+ */
 Tournament.prototype._restoreUserSession = function (user, spark) {
 	assert.instanceOf(user, 'user', User, 'User');
 	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
 	
 	// Initialise the new spark
 	user.initSpark(spark);
+	user.ringStateChanged(this._getRingStates());
 	
 	// Restore Jury President
 	var ring;
 	if (user instanceof JuryPresident) {
 		ring = this._findJPRing(user);
 		if (!ring) {
-			user.idSuccess(this._getRingStates());
+			user.idSuccess();
 		} else {
 			user.ringOpened(ring, ring.matchConfig, ring.getSlots());
 		}
@@ -298,7 +304,7 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 	} else {
 		ring = this._findCJRing(user);
 		if (!ring) {
-			user.idSuccess(this._getRingStates());
+			user.idSuccess();
 		} else {
 			if (!user.authorised) {
 				user.waitingForAuthorisation();
@@ -446,7 +452,7 @@ Tournament.prototype._jpRejectCJ = function (data) {
 	assert.ok(ring, "Corner Judge not in a ring");
 	
 	// Remove Corner Judge from ring
-	ring.removeCJ(cj, "Not authorised to join ring", this._getRingStates());
+	ring.removeCJ(cj, "Not authorised to join ring");
 };
 
 /**
@@ -465,7 +471,7 @@ Tournament.prototype._jpRemoveCJ = function (data) {
 	assert.ok(ring, "Corner Judge not in a ring");
 	
 	// Remove Corner Judge from ring
-	ring.removeCJ(cj, "Removed from ring", this._getRingStates());
+	ring.removeCJ(cj, "Removed from ring");
 };
 
 /**
@@ -479,7 +485,7 @@ Tournament.prototype._jpExited = function (jp) {
 	var ring = this._findJPRing(jp);
 	if (ring) {
 		// Close the ring
-		ring.close(this._getRingStates());
+		ring.close();
 	}
 };
 
@@ -525,7 +531,7 @@ Tournament.prototype._cjExited = function (cj) {
 	var ring = this._findCJRing(cj);
 	if (ring) {
 		// Remove Corner Judge from ring
-		ring.removeCJ(cj, "Exited system", this._getRingStates(), function () {
+		ring.removeCJ(cj, "Exited system", function () {
 			// Notify Jury President
 			ring.juryPresident.cjExited(cj);
 		}.bind(this));
