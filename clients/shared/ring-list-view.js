@@ -10,6 +10,8 @@ function RingListView(io) {
 	this.root = document.getElementById('ring-list');
 
 	this.instr = this.root.querySelector('.rl-instr');
+	this.defaultInstrTxt = this.instr.textContent;
+	
 	this.list = this.root.querySelector('.rl-list');
 	this.list.addEventListener('click', this.onListDelegate.bind(this));
 
@@ -27,7 +29,7 @@ function RingListView(io) {
 
 RingListView.prototype.setInstr = function (data) {
 	// Update instructions
-	this.instr.textContent = data.text;
+	this.instr.textContent = data.text || this.defaultInstrTxt;
 };
 
 RingListView.prototype.updateList = function (data) {

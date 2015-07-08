@@ -132,13 +132,9 @@ CornerJudge.prototype.waitingForAuthorisation = function () {
  */
 CornerJudge.prototype.rejected = function (message) {
 	assert.string(message, 'message', true);
-	logger.debug("> " + message);
+	logger.debug("> " + (message || "Join request cancelled"));
 
-	// Set the instruction text if a non-empty message is provided
-	if (message.length > 0) {
-		this._send('ringListView.setInstr', { text: message });
-	}
-	
+	this._send('ringListView.setInstr', { text: message });
 	this._send('root.showView', { view: 'ringListView' });
 };
 
