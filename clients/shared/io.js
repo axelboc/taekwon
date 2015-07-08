@@ -35,9 +35,8 @@ function IO(identity) {
 		strategy: ['online', 'disconnect']
 	});
 
-	// Listen for Web Socket events
+	// Listen for Web Socket error event
 	this.primus.on('error', this.wsError.bind(this));
-	this.primus.on('reconnected', this.wsReconnected.bind(this));
 
 	// Subscribe to inbound IO events
 	helpers.subscribeToEvents(this, 'io', [
@@ -81,6 +80,11 @@ function IO(identity) {
 		// Listen for when Primus attempts to reconnect
 		this.primus.on('reconnect', function () {
 			console.log('Reconnect attempt started');
+		});
+		
+		// Listen for when Primus has managed to reconnect
+		this.primus.on('reconnected', function () {
+			console.info("Reconnected!");
 		});
 
 		// Listen for when Primus plans on reconnecting
@@ -130,11 +134,6 @@ IO.prototype.wsError = function (err) {
 	}
 };
 
-IO.prototype.wsReconnected = function () {
-	console.info("Reconnected");
-	this.hideBackdrop();
-};
-
 IO.prototype.saveId = function (data) {
 	cookie.set('id', data.id, {
 		expires: '12h'
@@ -150,7 +149,6 @@ IO.prototype.updateBackdrop = function (data) {
 };
 
 IO.prototype.hideBackdrop = function () {
-	console.log('====', this.backdrop);
 	this.backdrop.hide();
 };
 

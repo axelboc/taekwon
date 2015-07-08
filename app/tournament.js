@@ -98,6 +98,7 @@ Tournament.prototype._findCJRing = function (cj) {
  * @param {Spark} spark
  */
 Tournament.prototype._onConnection = function (spark) {
+	console.log("=== Connection!");
 	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
 	assert.object(spark.query, 'spark.query');
 	
@@ -288,14 +289,13 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 	
 	// Initialise the new spark
 	user.initSpark(spark);
-	user.ringStateChanged(this._getRingStates());
 	
 	// Restore Jury President
 	var ring;
 	if (user instanceof JuryPresident) {
 		ring = this._findJPRing(user);
 		if (!ring) {
-			user.idSuccess();
+			user.idSuccess(this._getRingStates());
 		} else {
 			user.ringOpened(ring, ring.matchConfig, ring.getSlots());
 		}
@@ -304,7 +304,7 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 	} else {
 		ring = this._findCJRing(user);
 		if (!ring) {
-			user.idSuccess();
+			user.idSuccess(this._getRingStates());
 		} else {
 			if (!user.authorised) {
 				user.waitingForAuthorisation();
