@@ -4,8 +4,6 @@
 var express = require('express');
 var http = require('http');
 var nunjucks = require('nunjucks');
-var Primus = require('primus');
-var Emit = require('primus-emit');
 var async = require('async');
 
 var config = require('./config/config.json');
@@ -65,17 +63,6 @@ app.get('/jury', function (req, res) {
 
 
 /*
- * Initialise Primus
- */
-var primus = new Primus(server, {
-	transformer: 'sockjs'
-});
-
-// Add plugin
-primus.use('emit', Emit);
-
-
-/*
  * Initialise tournament
  */
 var tournament;
@@ -90,7 +77,7 @@ DB.findOpenTournament(startOfToday, function (doc) {
 		logger.debug("Tournament found (ID=" + doc._id + "). Restoring...");
 
 		// If a tournament was found, restore it
-		tournament = new Tournament(doc._id, primus);
+		tournament = new Tournament(doc._id, server);
 
 		// Restore its users and rings
 		async.series([
@@ -106,7 +93,7 @@ DB.findOpenTournament(startOfToday, function (doc) {
 		DB.insertTournament(function (newDoc) {
 			if (newDoc) {
 				// Initialise the new tournament
-				tournament = new Tournament(newDoc._id, primus);
+				tournament = new Tournament(newDoc._id, server);
 				tournament.createRings(config.ringCount, function () {
 					logger.debug("> Tournament started (ID=" + newDoc._id + ")");
 				});

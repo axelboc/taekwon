@@ -1,13 +1,15 @@
 'use strict';
 
-// Modules
+// Dependencies
+var async = require('async');
+var Primus = require('primus');
+var Emit = require('primus-emit');
+
 var config = require('../config/config.json');
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('tournament');
 var util = require('./lib/util');
 var DB = require('./lib/db');
-var async = require('async');
-var Spark = require('primus').Spark;
 var Ring = require('./ring').Ring;
 var User = require('./user').User;
 var JuryPresident = require('./jury-president').JuryPresident;
@@ -26,21 +28,27 @@ var CJ_EVENTS = ['joinRing', 'exited'];
 /**
  * Tournament; the root of the application.
  * @param {String} id
- * @param {Primus} primus
+ * @param {Server} server
  */
-function Tournament(id, primus) {
+function Tournament(id, server) {
 	assert.string(id, 'id');
-	assert.provided(primus, 'primus');
+	assert.provided(server, 'server');
 	
 	this.id = id;
-	this.primus = primus;
-	
 	this.rings = [];
 	this.users = {};
 	
+	// Initialise Primus
+	this.primus = new Primus(server, {
+		transformer: 'sockjs'
+	});;
+	
+	// Add emit plugin
+	this.primus.use('emit', Emit);
+	
 	// Bind socket events
-	primus.on('connection', this._onConnection.bind(this));
-	primus.on('disconnection', this._onDisconnection.bind(this));
+	this.primus.on('connection', this._onConnection.bind(this));
+	this.primus.on('disconnection', this._onDisconnection.bind(this));
 }
 
 /**
@@ -98,8 +106,7 @@ Tournament.prototype._findCJRing = function (cj) {
  * @param {Spark} spark
  */
 Tournament.prototype._onConnection = function (spark) {
-	console.log("=== Connection!");
-	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
+	assert.instanceOf(spark, 'spark', Primus.Spark, 'Spark');
 	assert.object(spark.query, 'spark.query');
 	
 	var identity = spark.query.identity;
@@ -120,7 +127,7 @@ Tournament.prototype._onConnection = function (spark) {
 	logger.debug("Existing user with ID=" + id);
 
 	// Check whether the user's previous spark is still open
-	if (user.spark && user.spark.readyState === Spark.OPEN) {
+	if (user.spark && user.spark.readyState === Primus.Spark.OPEN) {
 		// Inform client that a session conflict has been detected
 		logger.debug("> Session conflict detected");
 		spark.emit('io.error', {
@@ -152,7 +159,7 @@ Tournament.prototype._onConnection = function (spark) {
  * @param {Spark} spark
  */
 Tournament.prototype._onDisconnection = function (spark) {
-	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
+	assert.instanceOf(spark, 'spark', Primus.Spark, 'Spark');
 	
 	// Check whether the user ID is passed as a query parameter and if it matches and existing user
 	// In some situations, such as when the database is reset, an ID might not match any user
@@ -169,7 +176,7 @@ Tournament.prototype._onDisconnection = function (spark) {
  * @param {Spark} spark
  */
 Tournament.prototype._identifyUser = function (spark) {
-	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
+	assert.instanceOf(spark, 'spark', Primus.Spark, 'Spark');
 
 	// Listen for identification
 	spark.once('identification', this._onIdentification.bind(this, spark));
@@ -188,7 +195,7 @@ Tournament.prototype._identifyUser = function (spark) {
  * 		  {String} data.value - JP password or CJ name
  */
 Tournament.prototype._onIdentification = function (spark, data) {
-	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
+	assert.instanceOf(spark, 'spark', Primus.Spark, 'Spark');
 	assert.object(data, 'data');
 	assert.string(data.identity, 'data.identity');
 	assert.ok(data.identity === 'juryPresident' || data.identity === 'cornerJudge',
@@ -285,7 +292,7 @@ Tournament.prototype.restoreUsers = function (cb) {
  */
 Tournament.prototype._restoreUserSession = function (user, spark) {
 	assert.instanceOf(user, 'user', User, 'User');
-	assert.instanceOf(spark, 'spark', this.primus.Spark, 'Spark');
+	assert.instanceOf(spark, 'spark', Primus.Spark, 'Spark');
 	
 	// Initialise the new spark
 	user.initSpark(spark);
