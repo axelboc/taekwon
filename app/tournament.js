@@ -49,6 +49,9 @@ function Tournament(id, server) {
 	// Bind socket events
 	this.primus.on('connection', this._onConnection.bind(this));
 	this.primus.on('disconnection', this._onDisconnection.bind(this));
+	
+	// Start server
+	server.listen(80);
 }
 
 /**

@@ -101,9 +101,3 @@ DB.findOpenTournament(startOfToday, function (doc) {
 		});
 	}
 });
-
-
-/*
- * Start server
- */
-server.listen(80);
