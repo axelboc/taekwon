@@ -330,5 +330,4 @@ JuryPresident.prototype.cjExited = function (cj) {
 	assert.provided(cj, 'cj');
 };
 
-
-exports.JuryPresident = JuryPresident;
+module.exports.JuryPresident = JuryPresident;

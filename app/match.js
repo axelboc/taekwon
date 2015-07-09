@@ -1,13 +1,14 @@
 'use strict';
 
 // Dependencies
+var EventEmitter = require('events').EventEmitter;
+var StateMachine = require('javascript-state-machine');
+
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('match');
 var util = require('./lib/util');
 var DB = require('./lib/db');
-
-var EventEmitter = require('events').EventEmitter;
-var StateMachine = require('javascript-state-machine');
+var Scoreboard = require('./scoreboard').Scoreboard;
 
 var States = require('./enum/match-states');
 var Transitions = require('./enum/match-transitions');
@@ -391,4 +392,4 @@ Match.prototype._computeMaluses = function (columnId) {
 	};
 };
 
-exports.Match = Match;
+module.exports.Match = Match;

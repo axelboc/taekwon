@@ -629,5 +629,4 @@ Ring.prototype._matchPenaltiesUpdated = function (penalties) {
 	this.juryPresident.penaltiesUpdated(penalties);
 };
 
-
-exports.Ring = Ring;
+module.exports.Ring = Ring;

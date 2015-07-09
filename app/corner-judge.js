@@ -309,5 +309,4 @@ CornerJudge.prototype._updateBackdrop = function (ring) {
 	});
 };
 
-
-exports.CornerJudge = CornerJudge;
+module.exports.CornerJudge = CornerJudge;

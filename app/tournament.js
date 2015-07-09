@@ -550,5 +550,4 @@ Tournament.prototype._cjExited = function (cj) {
 	}
 };
 
-
-exports.Tournament = Tournament;
+module.exports.Tournament = Tournament;

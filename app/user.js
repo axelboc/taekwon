@@ -118,5 +118,4 @@ User.prototype.exit = function () {
 	});
 };
 
-
-exports.User = User;
+module.exports.User = User;
