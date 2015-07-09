@@ -41,7 +41,7 @@ function Tournament(id, server) {
 	// Initialise Primus
 	this.primus = new Primus(server, {
 		transformer: 'sockjs'
-	});;
+	});
 	
 	// Add emit plugin
 	this.primus.use('emit', Emit);
@@ -230,7 +230,8 @@ Tournament.prototype._onIdentification = function (spark, data) {
 			
 			// Notify client of success and send along ring states
 			logger.debug("> Successful identification (identity=" + data.identity + ")");
-			user.idSuccess(this._getRingStates());
+			user.ringStateChanged(this._getRingStates());
+			user.idSuccess();
 		} else {
 			// If database insertion failed, notify client that identification failed
 			spark.emit('login.setInstr', { text: "Unexpected error" });
@@ -299,13 +300,14 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 	
 	// Initialise the new spark
 	user.initSpark(spark);
+	user.ringStateChanged(this._getRingStates());
 	
 	// Restore Jury President
 	var ring;
 	if (user instanceof JuryPresident) {
 		ring = this._findJPRing(user);
 		if (!ring) {
-			user.idSuccess(this._getRingStates());
+			user.idSuccess();
 		} else {
 			user.ringOpened(ring, ring.matchConfig, ring.getSlots());
 		}
@@ -314,7 +316,7 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 	} else {
 		ring = this._findCJRing(user);
 		if (!ring) {
-			user.idSuccess(this._getRingStates());
+			user.idSuccess();
 		} else {
 			if (!user.authorised) {
 				user.waitingForAuthorisation();

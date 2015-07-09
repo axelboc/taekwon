@@ -282,7 +282,7 @@ CornerJudge.prototype._updateBackdrop = function (ring) {
 		visible = true;
 		text = "Please wait...";
 		
-		if (!ring.match) {
+		if (!ring.match || ring.match.state.current === MatchStates.MATCH_ENDED) {
 			subtext = "No match in progress";
 		} else {
 			switch (ring.match.state.current) {
