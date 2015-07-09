@@ -10,11 +10,11 @@ var Competitors = require('./enum/competitors');
 /**
  * The scoreboard of a Corner Judge during a match.
  * A new scoreboard is initialised for each judge and each match.
- * @param {CornerJudge} cj
+ * @param {String} cjName
  */
-function Scoreboard(cj) {
-	assert.provided(cj, 'cj');
-	this.cj = cj;
+function Scoreboard(cjName) {
+	assert.string(cjName, 'cjName');
+	this.cjName = cjName;
 	
 	// The columns of the scoreboard
 	// Each column stores either the raw scores or the totals (inc. maluses) for a period of the match
@@ -54,7 +54,7 @@ Scoreboard.prototype.addColumn = function (colId) {
  * @param {String} competitor
  * @param {Interger} value - can be negative when undoing
  */
-Scoreboard.prototype.score = function (colId, competitor, value) {
+Scoreboard.prototype.markScore = function (colId, competitor, value) {
 	assert.string(colId, 'colId');
 	assert.string(competitor, 'competitor');
 	assert.integer(value, 'value');

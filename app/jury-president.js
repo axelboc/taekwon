@@ -250,7 +250,6 @@ JuryPresident.prototype.matchStateChanged = function (ring, match, transition, f
 				scoreboardColumns: match.scoreboardColumns,
 				scoreboards: match.scoreboards,
 				penalties: match.penalties,
-				cjNames: match.cjNames
 			});
 			
 			if (fromState !== MatchStates.RESULTS) {

@@ -77,8 +77,8 @@ ResultPanel.prototype.updateScoreboard = function (data) {
 	this.buildPenaltiesRow(columns, data.penalties, 'fouls');
 
 	// Build judge rows
-	Object.keys(data.cjNames).forEach(function (cjId) { 
-		this.buildJudgeRow(columns, data.cjNames[cjId], data.scoreboards[cjId]);
+	Object.keys(data.scoreboards).forEach(function (cjId) { 
+		this.buildJudgeRow(data.scoreboards[cjId], columns);
 	}, this);
 };
 
@@ -144,9 +144,9 @@ ResultPanel.prototype.buildPenaltiesRow = function (columns, penalties, type) {
 	}, this);
 };
 
-ResultPanel.prototype.buildJudgeRow = function (columns, name, scoreboard) {
+ResultPanel.prototype.buildJudgeRow = function (scoreboard, columns) {
 	var row = document.createElement('tr');
-	this.appendHeaderCell(row, 'row', 1, '', name);
+	this.appendHeaderCell(row, 'row', 1, '', scoreboard.cjName);
 	this.sbBody.appendChild(row);
 
 	columns.forEach(function (columnId) {

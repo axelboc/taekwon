@@ -100,7 +100,7 @@ Ring.prototype.getScoreSlots = function () {
 		assert.instanceOf(cj, 'cj', CornerJudge, 'CornerJudge');
 		
 		var obj = cj.getState();
-		obj.scores = this.match.getScores(cj.id);
+		obj.scores = this.match.getCurentScores(cj.id);
 		return obj;
 	}.bind(this));
 };
