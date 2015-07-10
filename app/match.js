@@ -115,6 +115,21 @@ util.inherits(Match, EventEmitter);
 
 
 /**
+ * Initialise a Corner Judge's scoreboard.
+ * @param {CornerJudge} cj
+ */
+Match.prototype.initScoreboard = function (cj) {
+	assert.provided(cj, 'cj');
+	
+	// Ignore if the Corner Judge already has a scoreboard.
+	// This happens when a judge leaves the ring and re-joins it,
+	// as scoreboards are kept for the whole duration of a match.
+	if (!this.scoreboards[cj.id]) {
+		this.scoreboards[cj.id] = new Scoreboard(cj.name);
+	}
+};
+
+/**
  * The state machine has entered a new state.
  * @param {String} transition
  * @param {String} from

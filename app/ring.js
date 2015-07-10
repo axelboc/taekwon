@@ -227,6 +227,11 @@ Ring.prototype.addCJ = function (cj) {
 		this.juryPresident.slotsUpdated(this.getSlots(), this.getScoreSlots());
 		// Acknowledge
 		cj.waitingForAuthorisation();
+		
+		// If a match is in progress, initialise a scoreboard for the new judge
+		if (this.match) {
+			this.match.initScoreboard(cj);
+		}
 
 		logger.info('cjAdded', {
 			number: this.number,
@@ -310,6 +315,7 @@ Ring.prototype.restoreMatch = function (cb) {
 	DB.findMatchInProgress(this.id, function (doc) {
 		if (doc) {
 			this._initMatch(doc);
+			// TODO restore scoreboards
 			logger.debug("> Match restored");
 		} else {
 			logger.debug("> No match in progress");
@@ -443,6 +449,9 @@ Ring.prototype._jpCreateMatch = function () {
 			// Initialise the match
 			this._initMatch(newDoc);
 			assert.instanceOf(this.match, 'match', Match, 'Match');
+			
+			// Initialise a new scoreboard for each Corner Judge
+			this.cornerJudges.forEach(this.match.initScoreboard.bind(this.match));
 		}
 	}.bind(this));
 };
