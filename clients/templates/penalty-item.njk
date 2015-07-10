@@ -1,0 +1,14 @@
+<div class="pe-item">
+	<span class="pe-value hong-bg">{{ hong }}</span>
+	<div class="pe-btns">
+		<button class="pe-inc pe-btn btn" type="button" data-competitor="hong"{% if not allowIncHong %} disabled{% endif %}>+</button>
+		<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="hong"{% if not allowDecHong %} disabled{% endif %}>&minus;</button>
+	</div>
+</div>
+<div class="pe-item">
+	<span class="pe-value chong-bg">{{ chong }}</span>
+	<div class="pe-btns">
+		<button class="pe-inc pe-btn btn" type="button" data-competitor="chong"{% if not allowIncChong %} disabled{% endif %}>+</button>
+		<button class="pe-dec pe-btn btn btn--minor" type="button" data-competitor="chong"{% if not allowDecChong %} disabled{% endif %}>&minus;</button>
+	</div>
+</div>

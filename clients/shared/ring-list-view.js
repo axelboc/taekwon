@@ -2,7 +2,7 @@
 
 // Dependencies
 var helpers = require('./helpers');
-var ringListTemplate = require('../templates/ring-list.hbs');
+var ringListTemplate = require('../templates/ring-list.njk');
 
 
 function RingListView(io) {
@@ -34,7 +34,7 @@ RingListView.prototype.setInstr = function (data) {
 
 RingListView.prototype.updateList = function (data) {
 	// Populate ring list from template
-	this.list.innerHTML = ringListTemplate({
+	this.list.innerHTML = ringListTemplate.render({
 		isJP: this.io.identity === 'juryPresident',
 		rings: data.rings
 	});

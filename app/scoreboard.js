@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 // Dependencies
 var assert = require('./lib/assert');
@@ -45,7 +45,7 @@ Scoreboard.prototype.addColumn = function (colId) {
 	this.columns[colId] = {
 		hong: 0,
 		chong: 0
-	});
+	};
 };
 
 /**

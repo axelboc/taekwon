@@ -3,9 +3,9 @@
 // Dependencies
 var helpers = require('../shared/helpers');
 var Timer = require('./timer').Timer;
-var stateBtnsTemplate = require('../templates/state-btns.hbs');
-var scoreSlotsTemplate = require('../templates/score-slots.hbs');
-var penaltyItemTemplate = require('../templates/penalty-item.hbs');
+var stateBtnsTemplate = require('../templates/state-btns.njk');
+var scoreSlotsTemplate = require('../templates/score-slots.njk');
+var penaltyItemTemplate = require('../templates/penalty-item.njk');
 
 
 function MatchPanel(io) {
@@ -54,16 +54,16 @@ MatchPanel.prototype.toggleInjuryTimer = function (data) {
 };
 
 MatchPanel.prototype.updateState = function (data) {
-	this.stateInner.innerHTML = stateBtnsTemplate(data.state);
+	this.stateInner.innerHTML = stateBtnsTemplate.render(data.state);
 };
 
 MatchPanel.prototype.updateScoreSlots = function (data) {
-	this.scoresInner.innerHTML = scoreSlotsTemplate(data);
+	this.scoresInner.innerHTML = scoreSlotsTemplate.render(data);
 };
 
 MatchPanel.prototype.updatePenalties = function (data) {
-	this.warningsInner.innerHTML = penaltyItemTemplate(data.warnings);
-	this.foulsInner.innerHTML = penaltyItemTemplate(data.fouls);
+	this.warningsInner.innerHTML = penaltyItemTemplate.render(data.warnings);
+	this.foulsInner.innerHTML = penaltyItemTemplate.render(data.fouls);
 };
 
 MatchPanel.prototype.disablePenaltyBtns = function () {

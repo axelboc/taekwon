@@ -5,7 +5,7 @@ var gulp = require('gulp');
 var buffer = require('vinyl-buffer');
 var source = require('vinyl-source-stream');
 var browserify = require('browserify');
-var hbsfy = require('hbsfy');
+var nunjucksify = require('nunjucksify');
 var envify = require('envify');
 var cache = require('gulp-cached');
 var jshint = require('gulp-jshint');
@@ -30,7 +30,7 @@ var defaultTasks = resetTasks.slice(1);
 // Globs
 var globs = {
 	js: '**/*.js',
-	hbs: '**/*.hbs',
+	njk: '**/*.njk',
 };
 
 // Path sets
@@ -45,7 +45,7 @@ var sets = {
 	client: [
 		path.join('config/.env'),
 		path.join('clients/shared', globs.js),
-		path.join('clients/templates', globs.hbs)
+		path.join('clients/templates', globs.njk)
 	]
 };
 
@@ -68,11 +68,11 @@ clients.forEach(function (client) {
 	gulp.task(task, function () {
 		return browserify({
 				entries: path.join('clients', client, 'root.js'),
-				noParse: ['fastclick', 'tiny-cookie'],
+				noParse: ['nunjucks', 'fastclick', 'tiny-cookie'],
 				debug: true
 			})
 			.transform(envify)
-			.transform(hbsfy)
+			.transform(nunjucksify, { extension: '.njk' })
 			.bundle()
 			.pipe(source(client + '.js'))
 			.pipe(buffer())
