@@ -1,12 +1,10 @@
-{% for item in configItems %}
-	<div class="cf-item" data-name="{{ item.name }}" data-type="{{ item.type }}">
+{% for name, item in configItems %}
+	<div class="cf-item" data-name="{{ name }}" data-type="{{ item.type }}">
 		<span class="cf-lbl">{{ item.label }}</span>
-		{% if item.isTime %}
-			<span class="cf-controls"><button class="cf-dec cf-btn btn btn--toggle" type="button"{% if not item.isDecEnabled %} disabled{% endif %}>&minus;</button><span class="cf-value">{{ item.value }}</span><button class="cf-inc cf-btn btn btn--toggle" type="button">+</button></span>
-		{% else %}
-			{% if item.isBoolean %}
-				<span class="cf-controls"><button class="cf-false cf-btn btn btn--toggle{% if item.isFalse %} btn_pressed{% endif %}" type="button">1</button><button class="cf-true cf-btn btn btn--toggle{% if item.isTrue %} btn_pressed{% endif %}" type="button">2</button></span>
-			{% endif %}
+		{% if item.type == 'time' %}
+			<span class="cf-controls"><button class="cf-dec cf-btn btn btn--toggle" type="button"{% if item.value <= timeStep %} disabled{% endif %}>&minus;</button><span class="cf-value">{{ item.value | time }}</span><button class="cf-inc cf-btn btn btn--toggle" type="button">+</button></span>
+		{% elif item.type == 'boolean' %}
+				<span class="cf-controls"><button class="cf-false cf-btn btn btn--toggle{% if not item.value %} btn_pressed{% endif %}" type="button">1</button><button class="cf-true cf-btn btn btn--toggle{% if item.value %} btn_pressed{% endif %}" type="button">2</button></span>
 		{% endif %}
 	</div>
 {% endfor %}

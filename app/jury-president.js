@@ -122,32 +122,10 @@ JuryPresident.prototype.slotNotRemoved = function (reason) {
  */
 JuryPresident.prototype.matchConfigUpdated = function (matchConfig) {
 	assert.object(matchConfig, 'matchConfig');
-	
-	// Prepare template context for config panel
-	var configItems = Object.keys(matchConfig).reduce(function (arr, name) {
-		var item = matchConfig[name];
-		
-		var customItem = {
-			name: name,
-			label: item.label,
-			type: item.type,
-			isTime: item.type === 'time',
-			isBoolean: item.type === 'boolean'
-		};
-		
-		if (customItem.isTime) {
-			customItem.isDecEnabled = item.value - config.matchConfig.timeStep > 0;
-			customItem.value = util.numToTime(item.value);
-		} else if (customItem.isBoolean) {
-			customItem.isFalse = !item.value;
-			customItem.isTrue = item.value;
-		}
-		
-		arr.push(customItem);
-		return arr;
-	}.bind(this), []);
-	
-	this._send('configPanel.updateConfig', { configItems: configItems });
+	this._send('configPanel.updateConfig', {
+		configItems: matchConfig,
+		timeStep: config.matchConfig.timeStep
+	});
 };
 
 /*
