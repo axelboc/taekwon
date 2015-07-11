@@ -13,6 +13,7 @@ var Scoreboard = require('./scoreboard').Scoreboard;
 var States = require('./enum/match-states');
 var Transitions = require('./enum/match-transitions');
 var Rounds = require('./enum/match-rounds');
+var Periods = require('./enum/match-periods');
 var Competitors = require('./enum/competitors');
 
 
@@ -57,31 +58,6 @@ function Match(id, config, state, data) {
 	
 	
 	/* ==================================================
-	 * Round state machine
-	 * ================================================== */
-	
-	// Prepare transitions based on number of rounds
-	var roundTransitions = [
-		{ name: 'next', from: Rounds.ROUND_1, to: config.twoRounds ? Rounds.ROUND_2 : Rounds.TIE_BREAKER },
-		{ name: 'next', from: Rounds.ROUND_2, to: Rounds.TIE_BREAKER },
-		{ name: 'next', from: Rounds.TIE_BREAKER, to: Rounds.GOLDEN_POINT }
-	];
-	
-	if (!config.twoRounds) {
-		roundTransitions.splice(1, 1);
-	}
-	
-	// Create state machine
-	this.round = StateMachine.create({
-		initial: data.round || Rounds.ROUND_1,
-		events: roundTransitions,
-		callbacks: {
-			onenterstate: this._onEnterRound.bind(this)
-		}
-	});
-	
-	
-	/* ==================================================
 	 * Match state machine
 	 * ================================================== */
 	
@@ -108,6 +84,48 @@ function Match(id, config, state, data) {
 	// Register state-based callbacks
 	this.state['on' + States.ROUND_ENDED] = this._onRoundEnded.bind(this);
 	this.state['on' + States.BREAK_ENDED] = this._onBreakEnded.bind(this);
+	
+	
+	/* ==================================================
+	 * Round state machine
+	 * ================================================== */
+	
+	// Prepare transitions based on number of rounds
+	var roundTransitions = [
+		{ name: 'next', from: Rounds.ROUND_1, to: config.twoRounds ? Rounds.ROUND_2 : Rounds.TIE_BREAKER },
+		{ name: 'next', from: Rounds.ROUND_2, to: Rounds.TIE_BREAKER },
+		{ name: 'next', from: Rounds.TIE_BREAKER, to: Rounds.GOLDEN_POINT }
+	];
+	
+	if (!config.twoRounds) {
+		roundTransitions.splice(1, 1);
+	}
+	
+	// Create state machine
+	this.round = StateMachine.create({
+		initial: data.round || Rounds.ROUND_1,
+		events: roundTransitions,
+		callbacks: {
+			onenterstate: this._onEnterRound.bind(this)
+		}
+	});
+	
+	
+	/* ==================================================
+	 * Period state machine
+	 * ================================================== */
+	
+	// Create state machine
+	this.period = StateMachine.create({
+		initial: data.period || Periods.MAIN_ROUNDS,
+		events: [
+			{ name: 'next', from: Periods.MAIN_ROUNDS, to: Periods.TIE_BREAKER },
+			{ name: 'next', from: Periods.TIE_BREAKER, to: Periods.GOLDEN_POINT }
+		],
+		callbacks: {
+			onenterstate: this._onEnterPeriod.bind(this)
+		}
+	});
 }
 
 // Inherit EventEmitter
@@ -142,6 +160,7 @@ Match.prototype._onEnterState = function (transition, from, to) {
 	// Update database
 	DB.setMatchState(this.id, to, {
 		round: this.round.current,
+		period: this.period.current,
 		scoreboardColumns: this.scoreboardColumns,
 		scoreboardColumnId: this.scoreboardColumnId,
 		scoreboards: this.scoreboards,
@@ -192,23 +211,33 @@ Match.prototype._onBreakEnded = function () {
  * @param {String} to
  */
 Match.prototype._onEnterRound = function (transition, from, to) {
-	if (to !== Rounds.ROUND_2) {
-		// Unless round 2, prepare the next column of the judges' scoreboards
-		this.scoreboardColumnId = to === Rounds.ROUND_1 ? 'main' : to;
-		this.scoreboardColumns.push(this.scoreboardColumnId);
-
-		// Initialise penalty objects for new state
-		this.penalties[this.scoreboardColumnId] = {
-			warnings: {
-				hong: 0,
-				chong: 0
-			},
-			fouls: {
-				hong: 0,
-				chong: 0
-			}
-		};
+	// Start next period if entering tie breaker or golden point
+	if (!Rounds.isMainRound(to)) {
+		this.period.next();
 	}
+};
+
+/**
+ * The period state machine has entered a new period.
+ * @param {String} transition
+ * @param {String} from
+ * @param {String} to
+ */
+Match.prototype._onEnterPeriod = function (transition, from, to) {
+	this.scoreboardColumnId = to;
+	this.scoreboardColumns.push(this.scoreboardColumnId);
+
+	// Initialise penalty objects for new state
+	this.penalties[this.scoreboardColumnId] = {
+		warnings: {
+			hong: 0,
+			chong: 0
+		},
+		fouls: {
+			hong: 0,
+			chong: 0
+		}
+	};
 };
 
 /**

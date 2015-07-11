@@ -41,7 +41,6 @@
     "gulp-sourcemaps": "^1.5.2",
     "gulp-uglify": "^1.2.0",
     "gulp-util": "^3.0.6",
-    "handlebars": "^3.0.3",
     "mocha": "2.2.*",
     "nunjucksify": "^0.2.2",
     "sinon": "1.15.*",
