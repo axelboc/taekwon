@@ -8,7 +8,7 @@ var assert = require('./lib/assert');
 var logger = require('./lib/log')('match');
 var util = require('./lib/util');
 var DB = require('./lib/db');
-var Scoreboard = require('./scoreboard').Scoreboard;
+var ScoringSheet = require('./scoring-sheet').ScoringSheet;
 
 var States = require('./enum/match-states');
 var Transitions = require('./enum/match-transitions');
@@ -33,27 +33,19 @@ function Match(id, config, state, data) {
 	this.id = id;
 	this.config = config;
 	
-	/**
-	 * Columns in the scoreboards and penalties array.
-	 * A column is added for each non-break state during the match, as well as when 
-	 * computing the total scores of previous rounds.
-	 * Examples of column ID sequences for various matches:
-	 * - 1-round match: 		main, total-1
-	 * - 2-round match: 		main, total-2
-	 * - up to golden point: 	main, total-2, tie-breaker, total-4, golden point, total-6
-	 */
-	this.scoreboardColumns = data.scoreboardColumns || [];
-	// The latest scoreboard column created
-	this.scoreboardColumnId = data.scoreboardColumnId || null;
+	// Periods of the match
+	this.periods = [];
 	
-	// Scoreboard of each Corner Judge that was in the ring at some point during the match.
+	// Scoreboard object of each Corner Judge who has joined the ring at some point during the match
 	this.scoreboards = data.scoreboards || {};
-
-	// Penalties ('warnings' and 'fouls') for each scoreboard column (except break states).
-	// Total maluses are stored against 'total' columns (as negative integers).
+	
+	// Penalties ('warnings' and 'fouls') for each period
 	this.penalties = data.penalties || {};
 	
-	// The winner of the match
+	// Maluses for each period (calculated from the penalties at the end of a period)
+	this.maluses = data.maluses || {};
+	
+	// Winner of the match
 	this.winner = data.winner || null;
 	
 	
@@ -140,11 +132,43 @@ Match.prototype.initScoreboard = function (cj) {
 	assert.provided(cj, 'cj');
 	
 	// Ignore if the Corner Judge already has a scoreboard.
-	// This happens when a judge leaves the ring and re-joins it,
-	// as scoreboards are kept for the whole duration of a match.
+	// This happens when a judge leaves the ring and re-joins it, as scoreboards are kept 
+	// for the whole duration of a match.
 	if (!this.scoreboards[cj.id]) {
-		this.scoreboards[cj.id] = new Scoreboard(cj.name);
+		// Initiliase a scoring sheet for the current period
+		var sheets = [];
+		sheets[this.period.current] = new ScoringSheet();
+		
+		// Initialise the judge's scoreboard object
+		this.scoreboards[cj.id] = {
+			cjName: cj.name,
+			sheets: sheets
+		}
 	}
+	
+	this.emit('scoreboardsUpdated');
+};
+
+/**
+ * Get the scoreboards for the current period.
+ * @return {Array}
+ */
+Match.prototype.getCurrentScoreboards = function () {
+	return Object.keys(this.scoreboards).map(function (cjId) {
+		var scoreboard = this.scoreboards[cjId];
+		return {
+			cjName: scoreboard.cjName,
+			scores: scoreboard.sheets[this.period.current].scores.slice(0);
+		};
+	});
+};
+
+/**
+ * Get the penalties for the current period.
+ * @return {Object}
+ */
+Match.prototype.getCurrentPenalties = function () {
+	return this.penalties[this.period.current];
 };
 
 /**
@@ -161,10 +185,10 @@ Match.prototype._onEnterState = function (transition, from, to) {
 	DB.setMatchState(this.id, to, {
 		round: this.round.current,
 		period: this.period.current,
-		scoreboardColumns: this.scoreboardColumns,
-		scoreboardColumnId: this.scoreboardColumnId,
+		periods: this.periods,
 		scoreboards: this.scoreboards,
 		penalties: this.penalties,
+		maluses: this.maluses,
 		winner: this.winner
 	});
 };
@@ -179,10 +203,10 @@ Match.prototype._onRoundEnded = function () {
 			// If round 1 and match is to have two rounds, trigger a break
 			this.state.break();
 		} else {
-			// Otherwise, compute winner
-			this.winner = this._computeWinner(this._computeTotals());
+			// Otherwise, compute the maluses, total scores and overall winner
+			this._computeWinner();
 
-			// If winner, end match
+			// If winner or end of Golden Point, end match; otherwise, show results
 			if (this.winner || this.round.is(Rounds.GOLDEN_POINT)) {
 				this.state.end();
 			} else {
@@ -224,31 +248,18 @@ Match.prototype._onEnterRound = function (transition, from, to) {
  * @param {String} to
  */
 Match.prototype._onEnterPeriod = function (transition, from, to) {
-	this.scoreboardColumnId = to;
-	this.scoreboardColumns.push(this.scoreboardColumnId);
-
-	// Initialise penalty objects for new state
-	this.penalties[this.scoreboardColumnId] = {
-		warnings: {
-			hong: 0,
-			chong: 0
-		},
-		fouls: {
-			hong: 0,
-			chong: 0
-		}
+	this.periods.push(to);
+	
+	// Initialise a new scoring sheet in each scoreboard
+	Object.keys(this.scoreboards).forEach(function (cjId) {
+		this.scoreboards[cjId].sheets[to] = new ScoringSheet();
+	});
+	
+	// Initialise a new penalty object for the period
+	this.penalties[to] = {
+		warnings: [0, 0],
+		fouls: [0, 0]
 	};
-};
-
-/**
- * Get the current scores of a Corner Judge.
- * Initialise a new score object if one doesn't already exist.
- * @param {String} cjId
- * @return {Object}
- */
-Match.prototype.getCurentScores = function (cjId) {
-	assert.string(cjId, 'cjId');
-	return this.scoreboards[cjId].getColumn(this.scoreboardColumnId);
 };
 
 /**
@@ -257,25 +268,17 @@ Match.prototype.getCurentScores = function (cjId) {
  * @param {Object} score
  */
 Match.prototype.score = function (cjId, score) {
-	// Ensure that the match is in the correct state to allow scoring
-	assert.ok(this.state.is(States.ROUND_STARTED), 
-			  "scoring not allowed in current match state: " + this.state.current);
-	
 	assert.string(cjId, 'cjId');
 	assert.string(score.competitor, 'score.competitor');
 	assert.integer(score.points, 'score.points');
+	assert.ok(this.state.is(States.ROUND_STARTED), 
+			  "scoring not allowed in current match state: " + this.state.current);
 	
-	// Record the new score
-	this.scoreboards[cjId].markScore(this.scoreboardColumnId, score.competitor, score.points);
-	this.emit('scoresUpdated');
-};
+	// Find the judge's scoring sheet for the current period and mark the score
+	var sheet = this.scoreboards[cjId].sheets[this.period.current];
+	sheet.markScore(score.competitor, score.points);
 
-/**
- * Get the penalties for the current round.
- * @return {Object}
- */
-Match.prototype.getRoundPenalties = function () {
-	return this.penalties[this.scoreboardColumnId];
+	this.emit('scoreboardsUpdated');
 };
 
 /**
@@ -303,85 +306,61 @@ Match.prototype.decrementPenalty = function (type, competitor) {
  * @param {String} value - (1|-1)
  */
 Match.prototype._updatePenalty = function (type, competitor, value) {
-	// Ensure that the match is in the correct state to allow manipulating penalties
-	assert.ok(this.state.is(States.ROUND_STARTED) || this.state.is(States.INJURY), 
-			  "manipulating penalties not allowed in current match state: " + this.state.current);
-	
 	assert.string(type, 'type');
 	assert.string(competitor, 'competitor');
 	assert.ok(value === 1 || value === -1, "`value` must be 1 or -1");
+	assert.ok(this.state.is(States.ROUND_STARTED) || this.state.is(States.INJURY), 
+			  "manipulating penalties not allowed in current match state: " + this.state.current);
 	
-	var penalty = this.penalties[this.scoreboardColumnId][type];
-	assert.object(penalty, 'penalty');
+	// Retrieve the penalty array
+	var penalty = this.penalties[this.period.current][type];
+	var index = competitor === Competitors.HONG ? 0 : 1;
 	
 	// Ensure that the new value is greater than or equal to zero
-	var newValue = penalty[competitor] + value;
+	var newValue = penalty[index] + value;
 	assert.ok(newValue >= 0, "cannot decrement penalty (cannot be negative)");
 	
 	// Change penalty value and emit event
-	penalty[competitor]  = newValue;
-	this.emit('penaltiesUpdated', this.getRoundPenalties());
+	penalty[index] = newValue;
+	this.emit('penaltiesUpdated');
 };
 
 /**
- * Compute the winner for the last round(s).
- * @return {String} - the winner of the round(s), or null if it's a tie
+ * Compute the maluses, total scores and overall winner for the current period.
  */
-Match.prototype._computeWinner = function (totalColumnId) {
+Match.prototype._computeWinner = function () {
+	// Retrieve the penalties for the current period
+	var penalties = this.penalties[this.period.current];
+	
+	// Compute each competitor's malus
+	var maluses = [0, 1].map(function (index) {
+		return 0 - Math.floor(penalties.warnings[index] / 3) - penalties.fouls[index];
+	});
+	
+	// Store the maluses
+	this.maluses[this.period.current];
+	
+	// Prepare to compute the totals and the overall winner
+	var cjIds = Object.keys(this.scoreboards);
 	var diff = 0;
 	var ties = 0;
 
-	var cjIds = Object.keys(this.scoreboards);
-	
-	// Compute each scoreboard's winner
+	// Compute the totals for the current period in each scoreboard
 	cjIds.forEach(function (cjId) {
-		var winner = this.scoreboards[cjId].computeWinner(totalColumnId);
-
-		// +1 if hong wins, -1 if chong wins, 0 if tie (null)
+		var winner = this.scoreboards[cjId].sheets[this.period.current].computeTotals(maluses);
+		
+		// +1 if hong wins, -1 if chong wins, 0 if tie
 		diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
-		ties += (!winner ? 1 : 0);
+		ties += !winner ? 1 : 0;
 	}, this);
-
+	
 	// If majority of ties, match is also a tie
 	if (cjIds.length > 2 && ties > Math.floor(cjIds.length % 2)) {
-		return null;
+		this.winner = null;
 	} else {
 		// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
-		return (diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null));
+		this.winner = diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null);
 	}
-};
-
-/**
- * Compute the total scores of each Corner Judge and the total maluses for the last round(s).
- * @return {String} - the ID of the new total column
- */
-Match.prototype._computeTotals = function () {
-	// Create a unique ID for the new total column
-	var totalColumnId = 'total-' + this.scoreboardColumns.length;
-	this.scoreboardColumns.push(totalColumnId);
-
-	// Compute total maluses in penalties object
-	var maluses = this._computeMaluses(this.scoreboardColumnId);
-	this.penalties[totalColumnId] = maluses;
-
-	// Compute the new total column in each scoreboard
-	Object.keys(this.scoreboards).forEach(function (cjId) {
-		this.scoreboards[cjId].computeTotalColumn(this.scoreboardColumnId, totalColumnId, maluses);
-	}, this);
-
-	return totalColumnId;
-};
-
-/**
- * Compute maluses from one or more scoreboard columns' penalties, knowing that:
- * - 3 warnings = 1 foul = -1 pt
- */
-Match.prototype._computeMaluses = function (columnId) {
-	var penalties = this.penalties[columnId];
-	return {
-		hong: - Math.floor(penalties.warnings.hong / 3) - penalties.fouls.hong,
-		chong: - Math.floor(penalties.warnings.chong / 3) - penalties.fouls.chong,
-	};
 };
 
 module.exports.Match = Match;

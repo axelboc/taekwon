@@ -4,7 +4,7 @@
 var helpers = require('../shared/helpers');
 var Timer = require('./timer').Timer;
 var stateBtnsTemplate = require('../templates/state-btns.njk');
-var scoreSlotsTemplate = require('../templates/score-slots.njk');
+var scoreboardsTemplate = require('../templates/scoreboards.njk');
 var penaltyItemTemplate = require('../templates/penalty-item.njk');
 
 
@@ -17,7 +17,7 @@ function MatchPanel(io) {
 		'setRoundLabel',
 		'toggleInjuryTimer',
 		'updateState',
-		'updateScoreSlots',
+		'updateScoreboards',
 		'updatePenalties',
 		'disablePenaltyBtns'
 	], this);
@@ -31,7 +31,7 @@ function MatchPanel(io) {
 	// Match state, scores and penalties
 	this.mpStateLabel = this.root.querySelector('.mp-round-label');
 	this.stateInner = this.root.querySelector('.st-inner');
-	this.scoresInner = this.root.querySelector('.sc-inner');
+	this.scoreboardsInner = this.root.querySelector('.sc-inner');
 	this.warningsInner = this.root.querySelector('.pe-inner--warnings');
 	this.foulsInner = this.root.querySelector('.pe-inner--fouls');
 	
@@ -57,8 +57,8 @@ MatchPanel.prototype.updateState = function (data) {
 	this.stateInner.innerHTML = stateBtnsTemplate.render(data.state);
 };
 
-MatchPanel.prototype.updateScoreSlots = function (data) {
-	this.scoresInner.innerHTML = scoreSlotsTemplate.render(data);
+MatchPanel.prototype.updateScoreboards = function (data) {
+	this.scoreboardsInner.innerHTML = scoreboardsTemplate.render(data);
 };
 
 MatchPanel.prototype.updatePenalties = function (data) {

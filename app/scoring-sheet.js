@@ -32,8 +32,9 @@ ScoringSheet.prototype.markScore = function (competitor, value) {
 };
 
 /**
- * Compute the totals for the period.
+ * Compute the totals for the period and return the winner.
  * @param {Array} maluses - the maluses to add to the scores for the period
+ * @return {String} - the winner for the period
  */
 ScoringSheet.prototype.computeTotals = function (maluses) {
 	assert.array(maluses, 'maluses');
@@ -47,6 +48,9 @@ ScoringSheet.prototype.computeTotals = function (maluses) {
 	// Compute the winner of the scoring sheet
 	this.winner = this.totals[0] > this.totals[1] ? Competitors.HONG : 
 				  (this.totals[1] > this.totals[0] ? Competitors.CHONG : null);
+	
+	// Return the winner
+	return this.winner;
 };
 
 module.exports.ScoringSheet = ScoringSheet;

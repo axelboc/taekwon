@@ -95,16 +95,10 @@ JuryPresident.prototype.ringOpened = function (ring, matchConfig, slots) {
 /**
  * A Corner Judge slot has been added or removed from the ring.
  * @param {Array} slots
- * @param {Array} scoreSlots
  */
-JuryPresident.prototype.slotsUpdated = function (slots, scoreSlots) {
+JuryPresident.prototype.slotsUpdated = function (slots) {
 	assert.array(slots, 'slots');
-	assert.ok(scoreSlots === null || Array.isArray(scoreSlots), "`scoreSlots` must be either null or an array");
-	
 	this._send('judgesSidebar.updateSlotList', { slots: slots });
-	if (scoreSlots !== null) {
-		this._send('matchPanel.updateScoreSlots', { scoreSlots: scoreSlots });
-	}
 };
 
 /**
@@ -152,15 +146,15 @@ JuryPresident.prototype.matchStateChanged = function (ring, match, transition, f
 			});
 			
 			this._updateState(toState);
-			this._send('matchPanel.updateScoreSlots', { scoreSlots: ring.getScoreSlots() });
-			this._updatePenalties(match.getRoundPenalties(), false);
+			this._send('matchPanel.updateScoreboards', { scoreboards: match.getCurrentScoreboards() });
+			this._updatePenalties(match.getCurrentPenalties(), false);
 			
 			this._send('ringView.showPanel', { panel: 'matchPanel' });
 			break;
 			
 		case MatchStates.ROUND_STARTED:
 			if (fromState !== MatchStates.INJURY) {
-				this._updatePenalties(match.getRoundPenalties(), true);
+				this._updatePenalties(match.getCurrentPenalties(), true);
 				this._send('roundTimer.start', {
 					countDown: !match.round.is(MatchRounds.GOLDEN_POINT),
 					delay: false
@@ -224,10 +218,9 @@ JuryPresident.prototype.matchStateChanged = function (ring, match, transition, f
 			
 			this._send('resultPanel.setWinner', { winner: match.winner });
 			this._send('resultPanel.updateScoreboard', {
-				twoRounds: match.config.twoRounds,
-				scoreboardColumns: match.scoreboardColumns,
-				scoreboards: match.scoreboards,
+				periods: match.periods,
 				penalties: match.penalties,
+				scoreboards: match.scoreboards,
 			});
 			
 			if (fromState !== MatchStates.RESULTS) {
@@ -255,12 +248,12 @@ JuryPresident.prototype._updateState = function (state) {
 };
 
 /**
- * The match's scores have been updated.
- * @param {Object} scoreSlots
+ * The match's scoreboards have been updated.
+ * @param {Array} scoreboards
  */
-JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
-	assert.object(scoreSlots, 'scoreSlots');
-	this._send('matchPanel.updateScoreSlots', { scoreSlots: scoreSlots });
+JuryPresident.prototype.matchScoreboardsUpdated = function (scoreboards) {
+	assert.array(scoreboards, 'scoreboards');
+	this._send('matchPanel.updateScoreboards', { scoreboards: scoreboards });
 };
 
 /**
