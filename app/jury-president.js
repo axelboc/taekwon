@@ -73,32 +73,37 @@ JuryPresident.prototype._onConfigureMatch = function () {
 /**
  * The ring has been opened.
  * @param {Ring} ring
- * @param {Object} matchConfig
- * @param {Array} slots
  */
-JuryPresident.prototype.ringOpened = function (ring, matchConfig, slots) {
+JuryPresident.prototype.ringOpened = function (ring) {
 	assert.provided(ring, 'ring');
-	assert.object(matchConfig, 'matchConfig');
-	assert.array(slots, 'slots');
 	
 	this._send('io.setPageTitle', {
 		title: "Jury President | Ring " + (ring.index + 1)
 	});
 	
-	this.matchConfigUpdated(matchConfig);
-	this._send('judgesSidebar.updateSlotList', { slots: slots });
+	this.matchConfigUpdated(ring.matchConfig);
+	this._send('judgesSidebar.updateSlotList', {
+		slotCount: ring.slotCount,
+		cornerJudges: ring.getCJStates()
+	});
 	
 	this._send('ringView.showPanel', { panel: 'configPanel' });
 	this._send('root.showView', { view: 'ringView' });
 };
 
 /**
- * A Corner Judge slot has been added or removed from the ring.
- * @param {Array} slots
+ * A Corner Judge slot has been added or removed, or the state of a Corner Judge has changed.
+ * @param {Integer} slotCount
+ * @param {Array} cjStates
  */
-JuryPresident.prototype.slotsUpdated = function (slots) {
-	assert.array(slots, 'slots');
-	this._send('judgesSidebar.updateSlotList', { slots: slots });
+JuryPresident.prototype.slotsUpdated = function (slotCount, cjStates) {
+	assert.integerGt0(slotCount, 'slotCount');
+	assert.array(cjStates, 'cjStates');
+	
+	this._send('judgesSidebar.updateSlotList', {
+		slotCount: slotCount,
+		cornerJudges: cjStates
+	});
 };
 
 /**

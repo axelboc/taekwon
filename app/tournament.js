@@ -309,7 +309,7 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 		if (!ring) {
 			user.idSuccess();
 		} else {
-			user.ringOpened(ring, ring.matchConfig, ring.getSlots());
+			user.ringOpened(ring);
 		}
 	
 	// Restore Corner Judge

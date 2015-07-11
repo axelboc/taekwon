@@ -1,6 +1,6 @@
-{% for slot in slots %}
+{% for i in range(0, slotCount) %}
 	<li class="js-judge">
-	{% set cj = slot.cj %}
+	{% set cj = cornerJudges[i] %}
 	{% if cj %}
 		<h3 class="js-judge-name">{{ cj.name }}</h3>
 		<button type="button" class="js-judge-remove" title="Remove" data-id="{{ cj.id }}">&times;</button>
@@ -13,7 +13,7 @@
 			</div>
 		{% endif %}
 	{% else %}
-		<h3 class="js-judge-name">Judge #{{ slot.index }}</h3>
+		<h3 class="js-judge-name">Judge #{{ i + 1 }}</h3>
 		<span class="js-judge-state">Waiting for connection</span>
 	{% endif %}
 	</li>
