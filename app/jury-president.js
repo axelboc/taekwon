@@ -152,14 +152,21 @@ JuryPresident.prototype.matchStateChanged = function (ring, match, transition, f
 			
 			this._updateState(toState);
 			this._send('matchPanel.updateScoreboards', { scoreboards: match.getCurrentScoreboards() });
-			this._updatePenalties(match.getCurrentPenalties(), false);
+			this._send('matchPanel.updatePenalties', {
+				penalties: match.getCurrentPenalties(),
+				enabled: false
+			});
 			
 			this._send('ringView.showPanel', { panel: 'matchPanel' });
 			break;
 			
 		case MatchStates.ROUND_STARTED:
 			if (fromState !== MatchStates.INJURY) {
-				this._updatePenalties(match.getCurrentPenalties(), true);
+				this._send('matchPanel.updatePenalties', {
+					penalties: match.getCurrentPenalties(),
+					enabled: true
+				});
+				
 				this._send('roundTimer.start', {
 					countDown: !match.round.is(MatchRounds.GOLDEN_POINT),
 					delay: false
@@ -267,33 +274,10 @@ JuryPresident.prototype.matchScoreboardsUpdated = function (scoreboards) {
  */
 JuryPresident.prototype.penaltiesUpdated = function (penalties) {
 	assert.object(penalties, 'penalties');
-	this._updatePenalties(penalties, true);
-};
-
-/**
- * Update penalties in match panel.
- * @param {Object} penalties
- * @param {Boolean} enable - whether the penalties can be changed in the current state of the match
- */
-JuryPresident.prototype._updatePenalties = function (penalties, enable) {
-	assert.object(penalties, 'penalties');
-	assert.boolean(enable, 'enable');
-	
-	// Clone the object before modifying it
-	penalties = util.clone(penalties);
-	
-	// Add flags to `penalties` objects to indicate whether the values can be incremented and decremented
-	Object.keys(penalties).forEach(function (key) {
-		var p = penalties[key];
-		p.allowIncHong = enable;
-		p.allowDecHong = enable && p.hong > 0;
-		p.allowIncChong = enable;
-		p.allowDecChong = enable && p.chong > 0;
-	});
 	
 	this._send('matchPanel.updatePenalties', {
-		warnings: penalties.warnings,
-		fouls: penalties.fouls
+		penalties: penalties,
+		enabled: true
 	});
 };
 

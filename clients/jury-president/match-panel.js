@@ -5,7 +5,7 @@ var helpers = require('../shared/helpers');
 var Timer = require('./timer').Timer;
 var stateBtnsTemplate = require('../templates/state-btns.njk');
 var scoreboardsTemplate = require('../templates/scoreboards.njk');
-var penaltyItemTemplate = require('../templates/penalty-item.njk');
+var penaltiesTemplate = require('../templates/penalties.njk');
 
 
 function MatchPanel(io) {
@@ -32,12 +32,11 @@ function MatchPanel(io) {
 	this.mpStateLabel = this.root.querySelector('.mp-round-label');
 	this.stateInner = this.root.querySelector('.st-inner');
 	this.scoreboardsInner = this.root.querySelector('.sc-inner');
-	this.warningsInner = this.root.querySelector('.pe-inner--warnings');
+	this.penalties = this.root.querySelector('.penalties');
 	this.foulsInner = this.root.querySelector('.pe-inner--fouls');
 	
 	this.stateInner.addEventListener('click', this.onStateInnerDelegate.bind(this));
-	this.warningsInner.addEventListener('click', this.onWarningsInnerDelegate.bind(this));
-	this.foulsInner.addEventListener('click', this.onFoulsInnerDelegate.bind(this));
+	this.penalties.addEventListener('click', this.onPenaltiesDelegate.bind(this));
 }
 
 
@@ -62,8 +61,7 @@ MatchPanel.prototype.updateScoreboards = function (data) {
 };
 
 MatchPanel.prototype.updatePenalties = function (data) {
-	this.warningsInner.innerHTML = penaltyItemTemplate.render(data.warnings);
-	this.foulsInner.innerHTML = penaltyItemTemplate.render(data.fouls);
+	this.warningsInner.innerHTML = penaltiesTemplate.render(data);
 };
 
 MatchPanel.prototype.disablePenaltyBtns = function () {
@@ -91,36 +89,17 @@ MatchPanel.prototype.onStateInnerDelegate = function (evt) {
 	}
 };
 
-MatchPanel.prototype.onWarningsInnerDelegate = function (evt) {
+MatchPanel.prototype.onPenaltiesDelegate = function (evt) {
 	var btn = evt.target;
 	if (btn && btn.nodeName === 'BUTTON') {
 		btn.blur();
-		if (btn.classList.contains('pe-inc')) {
-			this.io.send('incrementPenalty', {
-				type: 'warnings',
-				competitor: btn.dataset.competitor
-			});
-		} else if (btn.classList.contains('pe-dec')) {
-			this.io.send('decrementPenalty', {
-				type: 'warnings',
-				competitor: btn.dataset.competitor
-			});
-		}
-	}
-};
-
-MatchPanel.prototype.onFoulsInnerDelegate = function (evt) {
-	var btn = evt.target;
-	if (btn && btn.nodeName === 'BUTTON') {
-		btn.blur();
-		if (btn.classList.contains('pe-inc')) {
-			this.io.send('incrementPenalty', {
-				type: 'fouls',
-				competitor: btn.dataset.competitor
-			});
-		} else if (btn.classList.contains('pe-dec')) {
-			this.io.send('decrementPenalty', {
-				type: 'fouls',
+		
+		var action = btn.classList.contains('pe-inc') ? 'incrementPenalty' :
+					 (btn.classList.contains('pe-dec') ? 'decrementPenalty' : null);
+		
+		if (action) {
+			this.io.send(action, {
+				type: btn.dataset.type,
 				competitor: btn.dataset.competitor
 			});
 		}
