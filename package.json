@@ -8,6 +8,11 @@
     "type": "git",
     "url": "http://github.com/axelboc/taekwon"
   },
+  "scripts": {
+	  "start": "gulp",
+	  "reset": "gulp reset && gulp",
+	  "test": "gulp test"
+  },
   "engines": {
     "node": "0.12.x"
   },
