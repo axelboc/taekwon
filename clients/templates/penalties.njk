@@ -1,7 +1,7 @@
 {% for penaltyType in ['warnings', 'fouls'] %}
 	<h2 class="pe-heading">{{ penaltyType | capitalize }}</h2>
 	<div class="pe-inner pe-inner--{{ penaltyType }}">
-		{{ set penalty = penalties[penaltyType] }}
+		{% set penalty = penalties[penaltyType] %}
 		<div class="pe-item">
 			<span class="pe-value hong-bg">{{ penalty[0] }}</span>
 			<div class="pe-btns">

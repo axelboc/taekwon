@@ -13,26 +13,26 @@
 			<tr class="res-row--{{ penaltyType }}">
 				<th scope="row">{{ penaltyType | capitalize }}</th>
 				{% for period in periods %}
-					<td class="hong-sbg">penalties[period][penaltyType][0]</td>
-					<td class="chong-sbg">penalties[period][penaltyType][1]</td>
+					<td class="hong-sbg">{{ penalties[period][penaltyType][0] }}</td>
+					<td class="chong-sbg">{{ penalties[period][penaltyType][1] }}</td>
 					{% if penaltyType == 'warnings' %}
-						<td class="hong-sbg" rowspan="2">maluses[period][0]</td>
-						<td class="chong-sbg" rowspan="2">maluses[period][1]</td>
+						<td class="hong-sbg" rowspan="2">{{ maluses[period][0] }}</td>
+						<td class="chong-sbg" rowspan="2">{{ maluses[period][1] }}</td>
 					{% endif %}
 				{% endfor %}
 			</tr>
 		{% endfor %}
-		{% for cjId, scoreboard in scoreboards %}
-			{{ set noData = ['-', '-'] }}
+		{% for scoreboard in scoreboards %}
+			{% set noData = ['-', '-'] %}
 			<tr>
 				<th scope="row">{{ scoreboard.cjName }}</th>
 				{% for period in periods %}
-					{{ set sheet = scoreboard.sheets[period] }}
-					{{ set sheet = sheet if sheet else { scores: noData, totals: noData, winner: '' } }}
-					<td class="hong-sbg">{{ scores[0] }}</td>
-					<td class="chong-sbg">{{ scores[1] }}</td>
-					<td class="hong-{{ 'bg' if winner == 'hong' else 'sbg' ">{{ totals[0] }}</td>
-					<td class="chong-{{ 'bg' if winner == 'chong' else 'sbg' ">{{ totals[1] }}</td>
+					{% set sheet = scoreboard.sheets[period] %}
+					{% set sheet = sheet if sheet else { scores: noData, totals: noData, winner: '' } %}
+					<td class="hong-sbg">{{ sheet.scores[0] }}</td>
+					<td class="chong-sbg">{{ sheet.scores[1] }}</td>
+					<td class="hong-{{ 'bg' if sheet.winner == 'hong' else 'sbg' }} ">{{ sheet.totals[0] }}</td>
+					<td class="chong-{{ 'bg' if sheet.winner == 'chong' else 'sbg' }} ">{{ sheet.totals[1] }}</td>
 				{% endfor %}
 			</tr>
 		{% endfor %}

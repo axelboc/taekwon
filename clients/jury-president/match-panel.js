@@ -61,7 +61,7 @@ MatchPanel.prototype.updateScoreboards = function (data) {
 };
 
 MatchPanel.prototype.updatePenalties = function (data) {
-	this.warningsInner.innerHTML = penaltiesTemplate.render(data);
+	this.penalties.innerHTML = penaltiesTemplate.render(data);
 };
 
 MatchPanel.prototype.disablePenaltyBtns = function () {

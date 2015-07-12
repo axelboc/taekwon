@@ -42,7 +42,7 @@ ScoringSheet.prototype.computeTotals = function (maluses) {
 	
 	// Sum the scores with the maluses to get the totals
 	this.totals = this.scores.map(function (score, index) {
-		return this.scores[index] + maluses[index];
+		return score + maluses[index];
 	});
 	
 	// Compute the winner of the scoring sheet

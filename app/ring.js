@@ -517,7 +517,7 @@ Ring.prototype._cjScore = function (cj, score) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
 	assert.ok(this.match, "ring must have a match");
 
-	this.match.score(cj.id, cj.name, score);
+	this.match.score(cj.id, score);
 	cj.scored(score);
 };
 
@@ -532,7 +532,7 @@ Ring.prototype._cjUndo = function (cj, score) {
 	assert.ok(this.juryPresident, "ring must have Jury President");
 
 	score.points *= -1;
-	this.match.score(cj.id, cj.name, score);
+	this.match.score(cj.id, score);
 	cj.undid(score);
 };
 

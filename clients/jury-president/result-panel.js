@@ -14,7 +14,7 @@ function ResultPanel(io) {
 		'setWinner',
 		'showContinueBtns',
 		'showEndBtns',
-		'updateScoreboard'
+		'updateResults'
 	], this);
 
 	this.winner = this.root.querySelector('.rp-winner');
@@ -59,7 +59,7 @@ ResultPanel.prototype.showEndBtns = function () {
 	this.endBtnsWrap.classList.remove('hidden');
 };
 
-ResultPanel.prototype.updateScoreboard = function (data) {
+ResultPanel.prototype.updateResults = function (data) {
 	this.results.innerHTML = resultsTemplate.render(data);
 };
 

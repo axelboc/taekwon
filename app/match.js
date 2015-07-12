@@ -143,10 +143,36 @@ Match.prototype.initScoreboard = function (cj) {
 		this.scoreboards[cj.id] = {
 			cjName: cj.name,
 			sheets: sheets
-		}
+		};
 	}
 	
 	this.emit('scoreboardsUpdated');
+};
+
+/**
+ * Return the state of each Corner Judge scoreboard.
+ * @return {Array}
+ */
+Match.prototype.getScoreboardStates = function () {
+	return Object.keys(this.scoreboards).map(function (cjId) {
+		var scoreboard = this.scoreboards[cjId];
+		
+		// Get the state of the scoreboard's sheets
+		var sheets = {};
+		Object.keys(scoreboard.sheets).forEach(function (period) {
+			var sheet = scoreboard.sheets[period];
+			sheets[period] = {
+				scores: sheet.scores,
+				totals: sheet.totals,
+				winner: sheet.winner
+			};
+		});
+		
+		return {
+			cjName: scoreboard.cjName,
+			sheets: sheets
+		};
+	}, this);
 };
 
 /**
@@ -158,9 +184,9 @@ Match.prototype.getCurrentScoreboards = function () {
 		var scoreboard = this.scoreboards[cjId];
 		return {
 			cjName: scoreboard.cjName,
-			scores: scoreboard.sheets[this.period.current].scores.slice(0);
+			scores: scoreboard.sheets[this.period.current].scores.slice(0)
 		};
-	});
+	}, this);
 };
 
 /**
@@ -253,7 +279,7 @@ Match.prototype._onEnterPeriod = function (transition, from, to) {
 	// Initialise a new scoring sheet in each scoreboard
 	Object.keys(this.scoreboards).forEach(function (cjId) {
 		this.scoreboards[cjId].sheets[to] = new ScoringSheet();
-	});
+	}, this);
 	
 	// Initialise a new penalty object for the period
 	this.penalties[to] = {
@@ -338,7 +364,7 @@ Match.prototype._computeWinner = function () {
 	});
 	
 	// Store the maluses
-	this.maluses[this.period.current];
+	this.maluses[this.period.current] = maluses;
 	
 	// Prepare to compute the totals and the overall winner
 	var cjIds = Object.keys(this.scoreboards);

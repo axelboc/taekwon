@@ -423,7 +423,7 @@ Tournament.prototype._ringStateChanged = function () {
 	var ringStates = this._getRingStates();
 	Object.keys(this.users).forEach(function (userId) {
 		this.users[userId].ringStateChanged(ringStates);
-	}.bind(this));
+	}, this);
 };
 
 

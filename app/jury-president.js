@@ -241,10 +241,11 @@ JuryPresident.prototype.matchStateChanged = function (ring, match, transition, f
 			}
 			
 			this._send('resultPanel.setWinner', { winner: match.winner });
-			this._send('resultPanel.updateScoreboard', {
+			this._send('resultPanel.updateResults', {
 				periods: match.periods,
 				penalties: match.penalties,
-				scoreboards: match.scoreboards,
+				maluses: match.maluses,
+				scoreboards: match.getScoreboardStates()
 			});
 			
 			if (fromState !== MatchStates.RESULTS) {

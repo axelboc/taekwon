@@ -12,7 +12,7 @@ var helpers = {
 	subscribeToEvents: function subscribeToEvents(io, namespace, events, scope) {
 		events.forEach(function (evt) {
 			io.primus.on(namespace + '.' + evt, scope[evt].bind(scope));
-		}, this);
+		});
 	},
 
 	/**
