@@ -1,0 +1,9 @@
+{% for scoreboard in scoreboards %}
+	<div class="sc-judge">
+		<h3 class="sc-judge-name">{{ scoreboard.cjName }}</h3>
+		<div class="sc-judge-score">
+			<span class="sc-hong hong-bg">{{ scoreboard.scores[0] }}</span>
+			<span class="sc-chong chong-bg">{{ scoreboard.scores[1] }}</span>
+		</div>
+	</div>
+{% endfor %}

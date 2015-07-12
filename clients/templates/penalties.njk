@@ -1,0 +1,20 @@
+{% for penaltyType in ['warnings', 'fouls'] %}
+	<h2 class="pe-heading">{{ penaltyType | capitalize }}</h2>
+	<div class="pe-inner pe-inner--{{ penaltyType }}">
+		{% set penalty = penalties[penaltyType] %}
+		<div class="pe-item">
+			<span class="pe-value hong-bg">{{ penalty[0] }}</span>
+			<div class="pe-btns">
+				<button class="pe-inc pe-btn btn" type="button" data-type="{{ penaltyType }}" data-competitor="hong"{% if not enabled %} disabled{% endif %}>+</button>
+				<button class="pe-dec pe-btn btn btn--minor" type="button" data-type="{{ penaltyType }}" data-competitor="hong"{% if not enabled or penalty[0] <= 0 %} disabled{% endif %}>&minus;</button>
+			</div>
+		</div>
+		<div class="pe-item">
+			<span class="pe-value chong-bg">{{ penalty[1] }}</span>
+			<div class="pe-btns">
+				<button class="pe-inc pe-btn btn" type="button" data-type="{{ penaltyType }}" data-competitor="chong"{% if not enabled %} disabled{% endif %}>+</button>
+				<button class="pe-dec pe-btn btn btn--minor" type="button" data-type="{{ penaltyType }}" data-competitor="chong"{% if not enabled or penalty[1] <= 0 %} disabled{% endif %}>&minus;</button>
+			</div>
+		</div>
+	</div>
+{% endfor %}

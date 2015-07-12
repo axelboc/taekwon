@@ -395,43 +395,43 @@
 	margin-right: 1em;
 }
 
-.scoreboard-wrap {
+.rp-results {
 	margin: 2em 0 3em;
 	font-size: 120%;
 }
 
-.scoreboard {
+.res-table {
 	margin: 0 auto;
 }
 
-.scoreboard th,
-.scoreboard td {
+.res-table th,
+.res-table td {
 	padding: .3em .5em;
 }
 
-.sb-body th {
+.res-body th {
 	text-align: right;
 }
 
-.sb-row--warnings,
-.sb-row--fouls {
+.res-row--warnings,
+.res-row--fouls {
 	font-size: 90%;
 }
 
-.sb-row--fouls > th,
-.sb-row--fouls > td,
-.sb-row--warnings > td[rowspan="2"] {
+.res-row--fouls > th,
+.res-row--fouls > td,
+.res-row--warnings > td[rowspan="2"] {
 	border-bottom: 10px solid #fff;
 }
 
-.sb-row--warnings > th,
-.sb-row--fouls > th {
+.res-row--warnings > th,
+.res-row--fouls > th {
 	font-weight: normal;
 }
 
-.sb-head th:not(:first-child),
-.sb-body .hong-sbg,
-.sb-body .hong-bg {
+.res-head th:not(:first-child),
+.res-body .hong-sbg,
+.res-body .hong-bg {
 	border-left: 10px solid #fff;
 }
 

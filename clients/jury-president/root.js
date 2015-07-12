@@ -1,11 +1,19 @@
 'use strict';
 
 // Dependencies
-var IO = require('../shared/io').IO;
+var nunjucks = require('nunjucks');
 var helpers = require('../shared/helpers');
+var IO = require('../shared/io').IO;
+
+// Set up the Nunjucks environment (this must be done before requiring the views)
+nunjucks.env = new nunjucks.Environment();
+nunjucks.env.addFilter('time', helpers.numToTime);
+
+// Dependencies
 var LoginView = require('../shared/login-view').LoginView;
 var RingListView = require('../shared/ring-list-view').RingListView;
 var RingView = require('./ring-view').RingView;
+
 
 // Initialise IO and root modules
 var io = new IO('juryPresident');

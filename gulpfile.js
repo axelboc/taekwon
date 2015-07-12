@@ -5,7 +5,7 @@ var gulp = require('gulp');
 var buffer = require('vinyl-buffer');
 var source = require('vinyl-source-stream');
 var browserify = require('browserify');
-var hbsfy = require('hbsfy');
+var nunjucksify = require('nunjucksify');
 var envify = require('envify');
 var cache = require('gulp-cached');
 var jshint = require('gulp-jshint');
@@ -23,14 +23,13 @@ require('dotenv').config({ path: 'config/.env' });
 // Clients
 var clients = ['corner-judge', 'jury-president'];
 
-// Task groups (client tasks are added to the default tasks further down)
-var resetTasks = ['clear:data', 'scripts:lint', 'server', 'watch'];
-var defaultTasks = resetTasks.slice(1);
+// Default tasks (client tasks are added to the default tasks further down)
+var defaultTasks = ['scripts:lint', 'server', 'watch'];
 
 // Globs
 var globs = {
 	js: '**/*.js',
-	hbs: '**/*.hbs',
+	njk: '**/*.njk',
 };
 
 // Path sets
@@ -45,7 +44,7 @@ var sets = {
 	client: [
 		path.join('config/.env'),
 		path.join('clients/shared', globs.js),
-		path.join('clients/templates', globs.hbs)
+		path.join('clients/templates', globs.njk)
 	]
 };
 
@@ -53,7 +52,7 @@ var sets = {
 /**
  * Task to clear the datastores.
  */
-gulp.task('clear:data', function () {
+gulp.task('reset', function () {
 	del('app/data/**');
 });
 
@@ -68,11 +67,11 @@ clients.forEach(function (client) {
 	gulp.task(task, function () {
 		return browserify({
 				entries: path.join('clients', client, 'root.js'),
-				noParse: ['fastclick', 'tiny-cookie'],
+				noParse: ['nunjucks', 'fastclick', 'tiny-cookie'],
 				debug: true
 			})
 			.transform(envify)
-			.transform(hbsfy)
+			.transform(nunjucksify, { extension: '.njk' })
 			.bundle()
 			.pipe(source(client + '.js'))
 			.pipe(buffer())
@@ -139,8 +138,6 @@ gulp.task('watch', function () {
 });
 
 /**
- * Main tasks.
- * Client scripts are not rebuilt as part of the `reset` task.
+ * Default task.
  */
-gulp.task('reset', resetTasks);
 gulp.task('default', defaultTasks);

@@ -2,7 +2,7 @@
 
 // Dependencies
 var helpers = require('../shared/helpers');
-var configItemsTemplate = require('../templates/config-items.hbs');
+var configItemsTemplate = require('../templates/config-items.njk');
 
 
 function ConfigPanel(io) {
@@ -25,7 +25,7 @@ function ConfigPanel(io) {
  * ================================================== */
 
 ConfigPanel.prototype.updateConfig = function (data) {
-	this.configInner.innerHTML = configItemsTemplate(data);
+	this.configInner.innerHTML = configItemsTemplate.render(data);
 };
 
 

@@ -64,16 +64,6 @@ util.createScoreObject = function (competitor, points) {
 };
 
 /**
- * Convert a number of seconds to a time string of the form '0:00'.
- * @param {Integer} num
- * @return {String}
- */
-util.numToTime = function (num) {
-	var sec = num % 60;
-	return Math.floor(num / 60) + ":" + (sec < 10 ? '0' : '') + sec;
-};
-
-/**
  * Clone a plain object.
  * @param {Object} obj
  * @return {Object}

@@ -71,40 +71,51 @@ JuryPresident.prototype._onConfigureMatch = function () {
  * ================================================== */
 
 /**
+ * The state of a ring has changed.
+ * @param {Array} ringStates
+ */
+JuryPresident.prototype.ringStateChanged = function (ringStates) {
+	assert.array(ringStates, 'ringStates');
+	this._send('ringListView.updateList', {
+		isJP: true,
+		rings: ringStates
+	});
+};
+
+/**
  * The ring has been opened.
  * @param {Ring} ring
- * @param {Object} matchConfig
- * @param {Array} slots
  */
-JuryPresident.prototype.ringOpened = function (ring, matchConfig, slots) {
+JuryPresident.prototype.ringOpened = function (ring) {
 	assert.provided(ring, 'ring');
-	assert.object(matchConfig, 'matchConfig');
-	assert.array(slots, 'slots');
 	
 	this._send('io.setPageTitle', {
 		title: "Jury President | Ring " + (ring.index + 1)
 	});
 	
-	this.matchConfigUpdated(matchConfig);
-	this._send('judgesSidebar.updateSlotList', { slots: slots });
+	this.matchConfigUpdated(ring.matchConfig);
+	this._send('judgesSidebar.updateSlotList', {
+		slotCount: ring.slotCount,
+		cornerJudges: ring.getCJStates()
+	});
 	
 	this._send('ringView.showPanel', { panel: 'configPanel' });
 	this._send('root.showView', { view: 'ringView' });
 };
 
 /**
- * A Corner Judge slot has been added or removed from the ring.
- * @param {Array} slots
- * @param {Array} scoreSlots
+ * A Corner Judge slot has been added or removed, or the state of a Corner Judge has changed.
+ * @param {Integer} slotCount
+ * @param {Array} cjStates
  */
-JuryPresident.prototype.slotsUpdated = function (slots, scoreSlots) {
-	assert.array(slots, 'slots');
-	assert.ok(scoreSlots === null || Array.isArray(scoreSlots), "`scoreSlots` must be either null or an array");
+JuryPresident.prototype.slotsUpdated = function (slotCount, cjStates) {
+	assert.integerGt0(slotCount, 'slotCount');
+	assert.array(cjStates, 'cjStates');
 	
-	this._send('judgesSidebar.updateSlotList', { slots: slots });
-	if (scoreSlots !== null) {
-		this._send('matchPanel.updateScoreSlots', { scoreSlots: scoreSlots });
-	}
+	this._send('judgesSidebar.updateSlotList', {
+		slotCount: slotCount,
+		cornerJudges: cjStates
+	});
 };
 
 /**
@@ -122,32 +133,10 @@ JuryPresident.prototype.slotNotRemoved = function (reason) {
  */
 JuryPresident.prototype.matchConfigUpdated = function (matchConfig) {
 	assert.object(matchConfig, 'matchConfig');
-	
-	// Prepare template context for config panel
-	var configItems = Object.keys(matchConfig).reduce(function (arr, name) {
-		var item = matchConfig[name];
-		
-		var customItem = {
-			name: name,
-			label: item.label,
-			type: item.type,
-			isTime: item.type === 'time',
-			isBoolean: item.type === 'boolean'
-		};
-		
-		if (customItem.isTime) {
-			customItem.isDecEnabled = item.value - config.matchConfig.timeStep > 0;
-			customItem.value = util.numToTime(item.value);
-		} else if (customItem.isBoolean) {
-			customItem.isFalse = !item.value;
-			customItem.isTrue = item.value;
-		}
-		
-		arr.push(customItem);
-		return arr;
-	}.bind(this), []);
-	
-	this._send('configPanel.updateConfig', { configItems: configItems });
+	this._send('configPanel.updateConfig', {
+		configItems: matchConfig,
+		timeStep: config.matchConfig.timeStep
+	});
 };
 
 /*
@@ -174,15 +163,22 @@ JuryPresident.prototype.matchStateChanged = function (ring, match, transition, f
 			});
 			
 			this._updateState(toState);
-			this._send('matchPanel.updateScoreSlots', { scoreSlots: ring.getScoreSlots() });
-			this._updatePenalties(match.getRoundPenalties(), false);
+			this._send('matchPanel.updateScoreboards', { scoreboards: match.getCurrentScoreboards() });
+			this._send('matchPanel.updatePenalties', {
+				penalties: match.getCurrentPenalties(),
+				enabled: false
+			});
 			
 			this._send('ringView.showPanel', { panel: 'matchPanel' });
 			break;
 			
 		case MatchStates.ROUND_STARTED:
 			if (fromState !== MatchStates.INJURY) {
-				this._updatePenalties(match.getRoundPenalties(), true);
+				this._send('matchPanel.updatePenalties', {
+					penalties: match.getCurrentPenalties(),
+					enabled: true
+				});
+				
 				this._send('roundTimer.start', {
 					countDown: !match.round.is(MatchRounds.GOLDEN_POINT),
 					delay: false
@@ -245,12 +241,11 @@ JuryPresident.prototype.matchStateChanged = function (ring, match, transition, f
 			}
 			
 			this._send('resultPanel.setWinner', { winner: match.winner });
-			this._send('resultPanel.updateScoreboard', {
-				twoRounds: match.config.twoRounds,
-				scoreboardColumns: match.scoreboardColumns,
-				scoreboards: match.scoreboards,
+			this._send('resultPanel.updateResults', {
+				periods: match.periods,
 				penalties: match.penalties,
-				cjNames: match.cjNames
+				maluses: match.maluses,
+				scoreboards: match.getScoreboardStates()
 			});
 			
 			if (fromState !== MatchStates.RESULTS) {
@@ -272,18 +267,18 @@ JuryPresident.prototype._updateState = function (state) {
 			isStarted: MatchStates.isStarted(state),
 			isBreak: MatchStates.isBreak(state),
 			isInjury: MatchStates.isInjury(state),
-			enableInjuryBtn: state === MatchStates.ROUND_STARTED || MatchStates.isInjury(state)
+			canStartInjury: state === MatchStates.ROUND_STARTED
 		}
 	});
 };
 
 /**
- * The match's scores have been updated.
- * @param {Object} scoreSlots
+ * The match's scoreboards have been updated.
+ * @param {Array} scoreboards
  */
-JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
-	assert.object(scoreSlots, 'scoreSlots');
-	this._send('matchPanel.updateScoreSlots', { scoreSlots: scoreSlots });
+JuryPresident.prototype.matchScoreboardsUpdated = function (scoreboards) {
+	assert.array(scoreboards, 'scoreboards');
+	this._send('matchPanel.updateScoreboards', { scoreboards: scoreboards });
 };
 
 /**
@@ -292,33 +287,10 @@ JuryPresident.prototype.matchScoresUpdated = function (scoreSlots) {
  */
 JuryPresident.prototype.penaltiesUpdated = function (penalties) {
 	assert.object(penalties, 'penalties');
-	this._updatePenalties(penalties, true);
-};
-
-/**
- * Update penalties in match panel.
- * @param {Object} penalties
- * @param {Boolean} enable - whether the penalties can be changed in the current state of the match
- */
-JuryPresident.prototype._updatePenalties = function (penalties, enable) {
-	assert.object(penalties, 'penalties');
-	assert.boolean(enable, 'enable');
-	
-	// Clone the object before modifying it
-	penalties = util.clone(penalties);
-	
-	// Add flags to `penalties` objects to indicate whether the values can be incremented and decremented
-	Object.keys(penalties).forEach(function (key) {
-		var p = penalties[key];
-		p.allowIncHong = enable;
-		p.allowDecHong = enable && p.hong > 0;
-		p.allowIncChong = enable;
-		p.allowDecChong = enable && p.chong > 0;
-	});
 	
 	this._send('matchPanel.updatePenalties', {
-		warnings: penalties.warnings,
-		fouls: penalties.fouls
+		penalties: penalties,
+		enabled: true
 	});
 };
 
@@ -330,5 +302,4 @@ JuryPresident.prototype.cjExited = function (cj) {
 	assert.provided(cj, 'cj');
 };
 
-
-exports.JuryPresident = JuryPresident;
+module.exports.JuryPresident = JuryPresident;

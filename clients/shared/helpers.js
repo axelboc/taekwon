@@ -12,7 +12,7 @@ var helpers = {
 	subscribeToEvents: function subscribeToEvents(io, namespace, events, scope) {
 		events.forEach(function (evt) {
 			io.primus.on(namespace + '.' + evt, scope[evt].bind(scope));
-		}, this);
+		});
 	},
 
 	/**
@@ -44,6 +44,16 @@ var helpers = {
 		} else {
 			btn.setAttribute('disabled', 'disabled');
 		}
+	},
+
+	/**
+	 * Convert a number of seconds to a time string of the form '0:00'.
+	 * @param {Integer} num
+	 * @return {String}
+	 */
+	numToTime: function (num) {
+		var sec = num % 60;
+		return Math.floor(num / 60) + ":" + (sec < 10 ? '0' : '') + sec;
 	}
 
 };

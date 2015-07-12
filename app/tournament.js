@@ -59,10 +59,12 @@ function Tournament(id, server) {
  * @return {Array}
  */
 Tournament.prototype._getRingStates = function () {
-	return this.rings.reduce(function (arr, ring) {
-		arr.push(ring.getState());
-		return arr;
-	}, []);
+	return this.rings.map(function (ring) {
+		return {
+			index: ring.index,
+			open: ring.juryPresident !== null
+		};
+	});
 };
 
 /**
@@ -309,7 +311,7 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 		if (!ring) {
 			user.idSuccess();
 		} else {
-			user.ringOpened(ring, ring.matchConfig, ring.getSlots());
+			user.ringOpened(ring);
 		}
 	
 	// Restore Corner Judge
@@ -421,7 +423,7 @@ Tournament.prototype._ringStateChanged = function () {
 	var ringStates = this._getRingStates();
 	Object.keys(this.users).forEach(function (userId) {
 		this.users[userId].ringStateChanged(ringStates);
-	}.bind(this));
+	}, this);
 };
 
 
@@ -523,7 +525,7 @@ Tournament.prototype._cjJoinRing = function (cj, ringIndex) {
 	
 	if (ring.isFull()) {
 		// If the ring is full, reject the Corner Judge
-		cj.rejected("Ring full", this._getRingStates());
+		cj.rejected("Ring full");
 	} else {
 		// Add the Corner Judge to the ring
 		ring.addCJ(cj);
@@ -550,5 +552,4 @@ Tournament.prototype._cjExited = function (cj) {
 	}
 };
 
-
-exports.Tournament = Tournament;
+module.exports.Tournament = Tournament;

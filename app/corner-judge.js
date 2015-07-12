@@ -45,19 +45,6 @@ CornerJudge.prototype.initSpark = function (spark) {
 	User.prototype.initSpark.call(this, spark, INBOUND_SPARK_EVENTS);
 };
 
-/**
- * Return a simplified object representation of the Corner Judge.
- * @return {Array}
- */
-CornerJudge.prototype.getState = function () {
-	return {
-		id: this.id,
-		name: this.name,
-		authorised: this.authorised,
-		connected: this.connected
-	};
-};
-
 
 /* ==================================================
  * Custom handlers for inbound spark events.
@@ -116,6 +103,18 @@ CornerJudge.prototype._onUndo = function () {
 /* ==================================================
  * Outbound spark events
  * ================================================== */
+
+/**
+ * The state of a ring has changed.
+ * @param {Array} ringStates
+ */
+CornerJudge.prototype.ringStateChanged = function (ringStates) {
+	assert.array(ringStates, 'ringStates');
+	this._send('ringListView.updateList', {
+		isJP: false,
+		rings: ringStates
+	});
+};
 
 /**
  * Waiting for authorisation to join the ring.
@@ -309,5 +308,4 @@ CornerJudge.prototype._updateBackdrop = function (ring) {
 	});
 };
 
-
-exports.CornerJudge = CornerJudge;
+module.exports.CornerJudge = CornerJudge;

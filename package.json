@@ -8,8 +8,16 @@
     "type": "git",
     "url": "http://github.com/axelboc/taekwon"
   },
+  "scripts": {
+	  "start": "gulp",
+	  "reset": "gulp reset && gulp",
+	  "test": "gulp test"
+  },
   "engines": {
     "node": "0.12.x"
+  },
+  "browser": {
+    "nunjucks": "nunjucks/browser/nunjucks-slim"
   },
   "dependencies": {
     "async": "1.2.*",
@@ -38,9 +46,8 @@
     "gulp-sourcemaps": "^1.5.2",
     "gulp-uglify": "^1.2.0",
     "gulp-util": "^3.0.6",
-    "handlebars": "^3.0.3",
-    "hbsfy": "^2.2.1",
     "mocha": "2.2.*",
+    "nunjucksify": "^0.2.2",
     "sinon": "1.15.*",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"

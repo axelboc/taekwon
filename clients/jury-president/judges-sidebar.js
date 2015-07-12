@@ -2,7 +2,7 @@
 
 // Dependencies
 var helpers = require('../shared/helpers');
-var judgeSlotsTemplate = require('../templates/judge-slots.hbs');
+var judgeSlotsTemplate = require('../templates/judge-slots.njk');
 
 
 function JudgesSidebar(io) {
@@ -28,7 +28,7 @@ function JudgesSidebar(io) {
 
 JudgesSidebar.prototype.updateSlotList = function (data) {
 	// Execute template
-	this.list.innerHTML = judgeSlotsTemplate(data);
+	this.list.innerHTML = judgeSlotsTemplate.render(data);
 };
 
 

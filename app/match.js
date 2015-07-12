@@ -1,17 +1,19 @@
 'use strict';
 
 // Dependencies
+var EventEmitter = require('events').EventEmitter;
+var StateMachine = require('javascript-state-machine');
+
 var assert = require('./lib/assert');
 var logger = require('./lib/log')('match');
 var util = require('./lib/util');
 var DB = require('./lib/db');
-
-var EventEmitter = require('events').EventEmitter;
-var StateMachine = require('javascript-state-machine');
+var ScoringSheet = require('./scoring-sheet').ScoringSheet;
 
 var States = require('./enum/match-states');
 var Transitions = require('./enum/match-transitions');
 var Rounds = require('./enum/match-rounds');
+var Periods = require('./enum/match-periods');
 var Competitors = require('./enum/competitors');
 
 
@@ -31,61 +33,20 @@ function Match(id, config, state, data) {
 	this.id = id;
 	this.config = config;
 	
+	// Periods of the match
+	this.periods = [];
 	
-	/**
-	 * Columns in the scoreboards and penalties array.
-	 * A column is added for each non-break state during the match, as well as when 
-	 * computing the total scores of previous rounds.
-	 * Examples of column ID sequences for various matches:
-	 * - 1-round match: 		main, total-1
-	 * - 2-round match: 		main, total-2
-	 * - up to golden point: 	main, total-2, tie-breaker, total-4, golden point, total-6
-	 */
-	this.scoreboardColumns = data.scoreboardColumns || [];
-	// The latest scoreboard column created
-	this.scoreboardColumnId = data.scoreboardColumnId || null;
-	
-	/**
-	 * Scoreboard, and name of each Corner Judge that scored at some point during the match.
-	 */
+	// Scoreboard object of each Corner Judge who has joined the ring at some point during the match
 	this.scoreboards = data.scoreboards || {};
-	this.cjNames = data.cjNames || {};
-
-	/**
-	 * Penalties ('warnings' and 'fouls') for each scoreboard column (except break states).
-	 * Total maluses are stored against 'total' columns (as negative integers).
-	 */
+	
+	// Penalties ('warnings' and 'fouls') for each period
 	this.penalties = data.penalties || {};
 	
-	/**
-	 * The winner of the match.
-	 */
+	// Maluses for each period (calculated from the penalties at the end of a period)
+	this.maluses = data.maluses || {};
+	
+	// Winner of the match
 	this.winner = data.winner || null;
-	
-	
-	/* ==================================================
-	 * Round state machine
-	 * ================================================== */
-	
-	// Prepare transitions based on number of rounds
-	var roundTransitions = [
-		{ name: 'next', from: Rounds.ROUND_1, to: config.twoRounds ? Rounds.ROUND_2 : Rounds.TIE_BREAKER },
-		{ name: 'next', from: Rounds.ROUND_2, to: Rounds.TIE_BREAKER },
-		{ name: 'next', from: Rounds.TIE_BREAKER, to: Rounds.GOLDEN_POINT }
-	];
-	
-	if (!config.twoRounds) {
-		roundTransitions.splice(1, 1);
-	}
-	
-	// Create state machine
-	this.round = StateMachine.create({
-		initial: data.round || Rounds.ROUND_1,
-		events: roundTransitions,
-		callbacks: {
-			onenterstate: this._onEnterRound.bind(this)
-		}
-	});
 	
 	
 	/* ==================================================
@@ -115,11 +76,126 @@ function Match(id, config, state, data) {
 	// Register state-based callbacks
 	this.state['on' + States.ROUND_ENDED] = this._onRoundEnded.bind(this);
 	this.state['on' + States.BREAK_ENDED] = this._onBreakEnded.bind(this);
+	
+	
+	/* ==================================================
+	 * Round state machine
+	 * ================================================== */
+	
+	// Prepare transitions based on number of rounds
+	var roundTransitions = [
+		{ name: 'next', from: Rounds.ROUND_1, to: config.twoRounds ? Rounds.ROUND_2 : Rounds.TIE_BREAKER },
+		{ name: 'next', from: Rounds.ROUND_2, to: Rounds.TIE_BREAKER },
+		{ name: 'next', from: Rounds.TIE_BREAKER, to: Rounds.GOLDEN_POINT }
+	];
+	
+	if (!config.twoRounds) {
+		roundTransitions.splice(1, 1);
+	}
+	
+	// Create state machine
+	this.round = StateMachine.create({
+		initial: data.round || Rounds.ROUND_1,
+		events: roundTransitions,
+		callbacks: {
+			onenterstate: this._onEnterRound.bind(this)
+		}
+	});
+	
+	
+	/* ==================================================
+	 * Period state machine
+	 * ================================================== */
+	
+	// Create state machine
+	this.period = StateMachine.create({
+		initial: data.period || Periods.MAIN_ROUNDS,
+		events: [
+			{ name: 'next', from: Periods.MAIN_ROUNDS, to: Periods.TIE_BREAKER },
+			{ name: 'next', from: Periods.TIE_BREAKER, to: Periods.GOLDEN_POINT }
+		],
+		callbacks: {
+			onenterstate: this._onEnterPeriod.bind(this)
+		}
+	});
 }
 
 // Inherit EventEmitter
 util.inherits(Match, EventEmitter);
 
+
+/**
+ * Initialise a Corner Judge's scoreboard.
+ * @param {CornerJudge} cj
+ */
+Match.prototype.initScoreboard = function (cj) {
+	assert.provided(cj, 'cj');
+	
+	// Ignore if the Corner Judge already has a scoreboard.
+	// This happens when a judge leaves the ring and re-joins it, as scoreboards are kept 
+	// for the whole duration of a match.
+	if (!this.scoreboards[cj.id]) {
+		// Initiliase a scoring sheet for the current period
+		var sheets = [];
+		sheets[this.period.current] = new ScoringSheet();
+		
+		// Initialise the judge's scoreboard object
+		this.scoreboards[cj.id] = {
+			cjName: cj.name,
+			sheets: sheets
+		};
+	}
+	
+	this.emit('scoreboardsUpdated');
+};
+
+/**
+ * Return the state of each Corner Judge scoreboard.
+ * @return {Array}
+ */
+Match.prototype.getScoreboardStates = function () {
+	return Object.keys(this.scoreboards).map(function (cjId) {
+		var scoreboard = this.scoreboards[cjId];
+		
+		// Get the state of the scoreboard's sheets
+		var sheets = {};
+		Object.keys(scoreboard.sheets).forEach(function (period) {
+			var sheet = scoreboard.sheets[period];
+			sheets[period] = {
+				scores: sheet.scores,
+				totals: sheet.totals,
+				winner: sheet.winner
+			};
+		});
+		
+		return {
+			cjName: scoreboard.cjName,
+			sheets: sheets
+		};
+	}, this);
+};
+
+/**
+ * Get the scoreboards for the current period.
+ * @return {Array}
+ */
+Match.prototype.getCurrentScoreboards = function () {
+	return Object.keys(this.scoreboards).map(function (cjId) {
+		var scoreboard = this.scoreboards[cjId];
+		return {
+			cjName: scoreboard.cjName,
+			scores: scoreboard.sheets[this.period.current].scores.slice(0)
+		};
+	}, this);
+};
+
+/**
+ * Get the penalties for the current period.
+ * @return {Object}
+ */
+Match.prototype.getCurrentPenalties = function () {
+	return this.penalties[this.period.current];
+};
 
 /**
  * The state machine has entered a new state.
@@ -134,11 +210,11 @@ Match.prototype._onEnterState = function (transition, from, to) {
 	// Update database
 	DB.setMatchState(this.id, to, {
 		round: this.round.current,
-		scoreboardColumns: this.scoreboardColumns,
-		scoreboardColumnId: this.scoreboardColumnId,
+		period: this.period.current,
+		periods: this.periods,
 		scoreboards: this.scoreboards,
-		cjNames: this.cjNames,
 		penalties: this.penalties,
+		maluses: this.maluses,
 		winner: this.winner
 	});
 };
@@ -153,10 +229,10 @@ Match.prototype._onRoundEnded = function () {
 			// If round 1 and match is to have two rounds, trigger a break
 			this.state.break();
 		} else {
-			// Otherwise, compute winner
-			this.winner = this._computeWinner(this._computeTotals());
+			// Otherwise, compute the maluses, total scores and overall winner
+			this._computeWinner();
 
-			// If winner, end match
+			// If winner or end of Golden Point, end match; otherwise, show results
 			if (this.winner || this.round.is(Rounds.GOLDEN_POINT)) {
 				this.state.end();
 			} else {
@@ -185,93 +261,50 @@ Match.prototype._onBreakEnded = function () {
  * @param {String} to
  */
 Match.prototype._onEnterRound = function (transition, from, to) {
-	if (to !== Rounds.ROUND_2) {
-		// Unless round 2, prepare the next column of the judges' scoreboards
-		this.scoreboardColumnId = to === Rounds.ROUND_1 ? 'main' : to;
-		this.scoreboardColumns.push(this.scoreboardColumnId);
-
-		// Initialise penalty objects for new state
-		this.penalties[this.scoreboardColumnId] = {
-			warnings: {
-				hong: 0,
-				chong: 0
-			},
-			fouls: {
-				hong: 0,
-				chong: 0
-			}
-		};
+	// Start next period if entering tie breaker or golden point
+	if (!Rounds.isMainRound(to)) {
+		this.period.next();
 	}
 };
 
 /**
- * Get the current scores of a Corner Judge.
- * Initialise a new score object if one doesn't already exist.
- * @param {String} cjId
- * @return {Object}
+ * The period state machine has entered a new period.
+ * @param {String} transition
+ * @param {String} from
+ * @param {String} to
  */
-Match.prototype.getScores = function (cjId) {
-	assert.string(cjId, 'cjId');
+Match.prototype._onEnterPeriod = function (transition, from, to) {
+	this.periods.push(to);
 	
-	var scoreboard = this._getScoreboard(cjId);
-	if (!scoreboard[this.scoreboardColumnId]) {
-		scoreboard[this.scoreboardColumnId] = {
-			hong: 0,
-			chong: 0
-		};
-	}
+	// Initialise a new scoring sheet in each scoreboard
+	Object.keys(this.scoreboards).forEach(function (cjId) {
+		this.scoreboards[cjId].sheets[to] = new ScoringSheet();
+	}, this);
 	
-	return scoreboard[this.scoreboardColumnId];
-};
-
-/**
- * Get the scoreboard of a judge.
- * Initialise the scoreboard if it doesn't already exist.
- * @param {String} cjId
- * @return {Object}
- */
-Match.prototype._getScoreboard = function (cjId) {
-	assert.string(cjId, 'cjId');
-	
-	if (!this.scoreboards[cjId]) {
-		this.scoreboards[cjId] = {};
-	}
-	
-	return this.scoreboards[cjId];
+	// Initialise a new penalty object for the period
+	this.penalties[to] = {
+		warnings: [0, 0],
+		fouls: [0, 0]
+	};
 };
 
 /**
  * A Corner Judge has scored.
  * @param {String} cjId
- * @param {String} cjName
  * @param {Object} score
  */
-Match.prototype.score = function (cjId, cjName, score) {
-	// Ensure that the match is in the correct state to allow scoring
+Match.prototype.score = function (cjId, score) {
+	assert.string(cjId, 'cjId');
+	assert.string(score.competitor, 'score.competitor');
+	assert.integer(score.points, 'score.points');
 	assert.ok(this.state.is(States.ROUND_STARTED), 
 			  "scoring not allowed in current match state: " + this.state.current);
 	
-	assert.string(cjId, 'cjId');
-	assert.string(cjName, 'cjName');
-	assert.string(score.competitor, 'score.competitor');
-	assert.integer(score.points, 'score.points');
-	
-	// Store the name of the Corner Judge for future reference
-	if (!this.cjNames[cjId]) {
-		this.cjNames[cjId] = cjName;
-	}
-	
-	// Record the new score
-	this.getScores(cjId)[score.competitor] += score.points;
-	this.emit('scoresUpdated');
-};
+	// Find the judge's scoring sheet for the current period and mark the score
+	var sheet = this.scoreboards[cjId].sheets[this.period.current];
+	sheet.markScore(score.competitor, score.points);
 
-/**
- * Get the penalties for the current round.
- * @return {Object}
- */
-Match.prototype.getRoundPenalties = function () {
-	return this.penalties[this.scoreboardColumnId];
+	this.emit('scoreboardsUpdated');
 };
 
 /**
@@ -299,96 +332,61 @@ Match.prototype.decrementPenalty = function (type, competitor) {
  * @param {String} value - (1|-1)
  */
 Match.prototype._updatePenalty = function (type, competitor, value) {
-	// Ensure that the match is in the correct state to allow manipulating penalties
-	assert.ok(this.state.is(States.ROUND_STARTED) || this.state.is(States.INJURY), 
-			  "manipulating penalties not allowed in current match state: " + this.state.current);
-	
 	assert.string(type, 'type');
 	assert.string(competitor, 'competitor');
 	assert.ok(value === 1 || value === -1, "`value` must be 1 or -1");
+	assert.ok(this.state.is(States.ROUND_STARTED) || this.state.is(States.INJURY), 
+			  "manipulating penalties not allowed in current match state: " + this.state.current);
 	
-	var penalty = this.penalties[this.scoreboardColumnId][type];
-	assert.object(penalty, 'penalty');
+	// Retrieve the penalty array
+	var penalty = this.penalties[this.period.current][type];
+	var index = competitor === Competitors.HONG ? 0 : 1;
 	
 	// Ensure that the new value is greater than or equal to zero
-	var newValue = penalty[competitor] + value;
+	var newValue = penalty[index] + value;
 	assert.ok(newValue >= 0, "cannot decrement penalty (cannot be negative)");
 	
 	// Change penalty value and emit event
-	penalty[competitor]  = newValue;
-	this.emit('penaltiesUpdated', this.getRoundPenalties());
+	penalty[index] = newValue;
+	this.emit('penaltiesUpdated');
 };
 
 /**
- * Compute the winner for the last round(s).
- * @return {String} - the winner of the round(s), or null if it's a tie
+ * Compute the maluses, total scores and overall winner for the current period.
  */
-Match.prototype._computeWinner = function (totalColumnId) {
+Match.prototype._computeWinner = function () {
+	// Retrieve the penalties for the current period
+	var penalties = this.penalties[this.period.current];
+	
+	// Compute each competitor's malus
+	var maluses = [0, 1].map(function (index) {
+		return 0 - Math.floor(penalties.warnings[index] / 3) - penalties.fouls[index];
+	});
+	
+	// Store the maluses
+	this.maluses[this.period.current] = maluses;
+	
+	// Prepare to compute the totals and the overall winner
+	var cjIds = Object.keys(this.scoreboards);
 	var diff = 0;
 	var ties = 0;
 
-	// Compute each Corner Judge's winner
-	var cjIds = Object.keys(this.scoreboards);
+	// Compute the totals for the current period in each scoreboard
 	cjIds.forEach(function (cjId) {
-		// Retrieve Corner Judge's totals
-		var totals = this.scoreboards[cjId][totalColumnId];
+		var winner = this.scoreboards[cjId].sheets[this.period.current].computeTotals(maluses);
 		
-		// Compute winner
-		var winner = totals.hong > totals.chong ? Competitors.HONG : 
-					 (totals.chong > totals.hong ? Competitors.CHONG : null);
-
-		// +1 if hong wins, -1 if chong wins, 0 if tie (null)
+		// +1 if hong wins, -1 if chong wins, 0 if tie
 		diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
-		ties += (!winner ? 1 : 0);
+		ties += !winner ? 1 : 0;
 	}, this);
-
+	
 	// If majority of ties, match is also a tie
 	if (cjIds.length > 2 && ties > Math.floor(cjIds.length % 2)) {
-		return null;
+		this.winner = null;
 	} else {
 		// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
-		return (diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null));
+		this.winner = diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null);
 	}
 };
 
-/**
- * Compute the total scores of each Corner Judge and the total maluses for the last round(s).
- * @return {String} - the ID of the new total column
- */
-Match.prototype._computeTotals = function () {
-	// Create a unique ID for the new total column
-	var totalColumnId = 'total-' + this.scoreboardColumns.length;
-	this.scoreboardColumns.push(totalColumnId);
-
-	// Compute total maluses in penalties object
-	var maluses = this._computeMaluses(this.scoreboardColumnId);
-	this.penalties[totalColumnId] = maluses;
-
-	// Compute total scores in scorboard objects
-	Object.keys(this.scoreboards).forEach(function (cjId) {
-		// Retrieve the Corner Judge's scores for the latest round(s)
-		var scores = this.getScores(cjId);
-		
-		// Sum scores and maluses (negative integers)
-		this.scoreboards[cjId][totalColumnId] = {
-			hong: scores.hong + maluses.hong,
-			chong: scores.chong + maluses.chong
-		};
-	}, this);
-
-	return totalColumnId;
-};
-
-/**
- * Compute maluses from one or more scoreboard columns' penalties, knowing that:
- * - 3 warnings = 1 foul = -1 pt
- */
-Match.prototype._computeMaluses = function (columnId) {
-	var penalties = this.penalties[columnId];
-	return {
-		hong: - Math.floor(penalties.warnings.hong / 3) - penalties.fouls.hong,
-		chong: - Math.floor(penalties.warnings.chong / 3) - penalties.fouls.chong,
-	};
-};
-
-exports.Match = Match;
+module.exports.Match = Match;

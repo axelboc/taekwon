@@ -89,15 +89,6 @@ User.prototype.idSuccess = function () {
 };
 
 /**
- * The state of a ring has changed.
- * @param {Array} ringStates
- */
-User.prototype.ringStateChanged = function (ringStates) {
-	assert.array(ringStates, 'ringStates');
-	this._send('ringListView.updateList', { rings: ringStates });
-};
-
-/**
  * The user has been disconnected.
  */
 User.prototype.disconnected = function () {
@@ -118,5 +109,4 @@ User.prototype.exit = function () {
 	});
 };
 
-
-exports.User = User;
+module.exports.User = User;
