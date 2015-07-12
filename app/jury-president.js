@@ -266,7 +266,7 @@ JuryPresident.prototype._updateState = function (state) {
 			isStarted: MatchStates.isStarted(state),
 			isBreak: MatchStates.isBreak(state),
 			isInjury: MatchStates.isInjury(state),
-			enableInjuryBtn: state === MatchStates.ROUND_STARTED || MatchStates.isInjury(state)
+			canStartInjury: state === MatchStates.ROUND_STARTED
 		}
 	});
 };
