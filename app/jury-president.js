@@ -71,6 +71,18 @@ JuryPresident.prototype._onConfigureMatch = function () {
  * ================================================== */
 
 /**
+ * The state of a ring has changed.
+ * @param {Array} ringStates
+ */
+JuryPresident.prototype.ringStateChanged = function (ringStates) {
+	assert.array(ringStates, 'ringStates');
+	this._send('ringListView.updateList', {
+		isJP: true,
+		rings: ringStates
+	});
+};
+
+/**
  * The ring has been opened.
  * @param {Ring} ring
  */

@@ -56,24 +56,17 @@ function Ring(id, index, slotCount, matchConfig) {
 util.inherits(Ring, EventEmitter);
 
 /**
- * Return an object representing the state of the ring (open/close).
- * @return {Array}
- */
-Ring.prototype.getState = function () {
-	return {
-		index: this.index,
-		number: this.number,
-		open: this.juryPresident !== null
-	};
-};
-
-/**
  * Return the state of each Corner Judge in an array.
  * @return {Array}
  */
 Ring.prototype.getCJStates = function () {
 	return this.cornerJudges.map(function (cj) {
-		return cj.getState();
+		return {
+			id: cj.id,
+			name: cj.name,
+			authorised: cj.authorised,
+			connected: cj.connected
+		};
 	});
 };
 

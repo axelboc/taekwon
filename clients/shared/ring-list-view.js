@@ -34,10 +34,7 @@ RingListView.prototype.setInstr = function (data) {
 
 RingListView.prototype.updateList = function (data) {
 	// Populate ring list from template
-	this.list.innerHTML = ringListTemplate.render({
-		isJP: this.io.identity === 'juryPresident',
-		rings: data.rings
-	});
+	this.list.innerHTML = ringListTemplate.render(data);
 };
 
 

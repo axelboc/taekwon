@@ -1,7 +1,5 @@
 {% for ring in rings %}
-	{% if isJP %}
-		<li><button type="button" class="btn rl-btn" data-index="{{ ring.index }}"{% if ring.open %} disabled{% endif %}>{{ ring.number }}</button></li>
-	{% else %}
-		<li><button type="button" class="btn no-hover rl-btn" data-index="{{ ring.index }}"{% if not ring.open %} disabled{% endif %}>{{ ring.number }}</button></li>
-	{% endif %}
+	<li>
+		<button type="button" class="btn {% if not isJP %}no-hover {% endif %}rl-btn" data-index="{{ ring.index }}"{% if isJP and ring.open or not isJP and not ring.open %} disabled{% endif %}>{{ ring.index + 1 }}</button>
+	</li>
 {% endfor %}

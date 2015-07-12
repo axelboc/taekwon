@@ -59,10 +59,12 @@ function Tournament(id, server) {
  * @return {Array}
  */
 Tournament.prototype._getRingStates = function () {
-	return this.rings.reduce(function (arr, ring) {
-		arr.push(ring.getState());
-		return arr;
-	}, []);
+	return this.rings.map(function (ring) {
+		return {
+			index: ring.index,
+			open: ring.juryPresident !== null
+		};
+	});
 };
 
 /**
@@ -523,7 +525,7 @@ Tournament.prototype._cjJoinRing = function (cj, ringIndex) {
 	
 	if (ring.isFull()) {
 		// If the ring is full, reject the Corner Judge
-		cj.rejected("Ring full", this._getRingStates());
+		cj.rejected("Ring full");
 	} else {
 		// Add the Corner Judge to the ring
 		ring.addCJ(cj);
