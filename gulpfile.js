@@ -119,7 +119,7 @@ gulp.task('watch', ['server'], function () {
 	clients.forEach(function (client) {
 		gulp.watch(sets.client.concat([
 			path.join('clients', client, globs.js),
-		]), ['scripts:' + client]);
+		]), [client]);
 	});
 	
 	// Lint any changed JS files
