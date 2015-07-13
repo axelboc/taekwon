@@ -24,7 +24,7 @@ require('dotenv').config({ path: 'config/.env' });
 var clients = ['corner-judge', 'jury-president'];
 
 // Default tasks (client tasks are added to the default tasks further down)
-var defaultTasks = ['scripts:lint', 'server', 'watch'];
+var defaultTasks = clients.concat(['scripts:lint', 'server', 'watch']);
 
 // Globs
 var globs = {
@@ -56,15 +56,27 @@ gulp.task('reset', function () {
 	del('app/data/**');
 });
 
-// Initialise a build task for each client
+/**
+ * Task to lint all scripts.
+ * Use gulp-cached to re-lint only files that have changed.
+ */
+gulp.task('scripts:lint', function() {
+	return gulp.src(sets.lint)
+		.pipe(cache('scripts:lint'))
+		.pipe(jshint({
+			"lookup": false, "devel": true, "browser": true, "node": true,
+			"bitwise": true, "curly": true, "eqeqeq": true, "funcscope": true, 
+			"latedef": "nofunc", "nocomma": true, "undef": true, "unused": false
+		}))
+		.pipe(jshint.reporter('default'));
+});
+
+/**
+ * Task to build a client script with Browserify.
+ * Register one task per client.
+ */
 clients.forEach(function (client) {
-	var task = 'scripts:' + client;
-	defaultTasks.unshift(task);
-	
-	/**
-	 * Task to build a client script with Browserify.
-	 */
-	gulp.task(task, function () {
+	gulp.task(client, function () {
 		return browserify({
 				entries: path.join('clients', client, 'root.js'),
 				noParse: ['nunjucks', 'fastclick', 'tiny-cookie'],
@@ -84,25 +96,10 @@ clients.forEach(function (client) {
 });
 
 /**
- * Task to lint all scripts.
- * Use gulp-cached to re-lint only files that have changed.
- */
-gulp.task('scripts:lint', function() {
-	return gulp.src(sets.lint)
-		.pipe(cache('scripts:lint'))
-		.pipe(jshint({
-			"lookup": false, "devel": true, "browser": true, "node": true,
-			"bitwise": true, "curly": true, "eqeqeq": true, "funcscope": true, 
-			"latedef": "nofunc", "nocomma": true, "undef": true, "unused": false
-		}))
-		.pipe(jshint.reporter('default'));
-});
-
-/**
  * Task to start the server.
  * Reload when the relevant files have changed.
  */
-gulp.task('server', function () {
+gulp.task('server', clients, function () {
 	nodemon({
 		script: 'app.js',
 		watch: [
@@ -115,17 +112,9 @@ gulp.task('server', function () {
 });
 
 /**
- * Task to run Mocha tests.
- */
-gulp.task('test', function () {
-	return gulp.src(path.join('tests', globs.js))
-		.pipe(mocha());
-});
-
-/**
  * Task to watch for changes.
  */
-gulp.task('watch', function () {
+gulp.task('watch', ['server'], function () {
 	// Watch and rebuild each client's scritps
 	clients.forEach(function (client) {
 		gulp.watch(sets.client.concat([
@@ -135,6 +124,14 @@ gulp.task('watch', function () {
 	
 	// Lint any changed JS files
 	gulp.watch(sets.lint, ['scripts:lint']);
+});
+
+/**
+ * Task to run Mocha tests.
+ */
+gulp.task('test', function () {
+	return gulp.src(path.join('tests', globs.js))
+		.pipe(mocha());
 });
 
 /**
