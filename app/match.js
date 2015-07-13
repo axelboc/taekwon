@@ -75,6 +75,7 @@ function Match(id, config, state, data) {
 	
 	// Register state-based callbacks
 	this.state['on' + States.ROUND_ENDED] = this._onRoundEnded.bind(this);
+	this.state['on' + States.BREAK_IDLE] = this._onBreakIdle.bind(this);
 	this.state['on' + States.BREAK_ENDED] = this._onBreakEnded.bind(this);
 	
 	
@@ -135,7 +136,7 @@ Match.prototype.initScoreboard = function (cj) {
 	// This happens when a judge leaves the ring and re-joins it, as scoreboards are kept 
 	// for the whole duration of a match.
 	if (!this.scoreboards[cj.id]) {
-		// Initiliase a scoring sheet for the current period
+		// Initialise a scoring sheet for the current period
 		var sheets = [];
 		sheets[this.period.current] = new ScoringSheet();
 		
@@ -212,7 +213,7 @@ Match.prototype._onEnterState = function (transition, from, to) {
 		round: this.round.current,
 		period: this.period.current,
 		periods: this.periods,
-		scoreboards: this.scoreboards,
+		scoreboards: this.getScoreboardStates(),
 		penalties: this.penalties,
 		maluses: this.maluses,
 		winner: this.winner
@@ -243,13 +244,20 @@ Match.prototype._onRoundEnded = function () {
 };
 
 /**
+ * A break is about to start.
+ */
+Match.prototype._onBreakIdle = function () {
+	// Transition to the next round
+	this.round.next();
+};
+
+/**
  * A break has ended.
  */
 Match.prototype._onBreakEnded = function () {
-	// Decide what to do on the next tick
+	// Wait for the next tick before automatically transitioning to another state
 	setTimeout(function () {
 		// Always continue to the next round after a break
-		this.round.next();
 		this.state.nextRound();
 	}.bind(this), 0);
 };
