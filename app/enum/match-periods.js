@@ -5,7 +5,7 @@
  * @type {Object}
  */
 module.exports = {
-	MAIN_ROUNDS: 'main-rounds',
-	TIE_BREAKER: 'tie-breaker',
-	GOLDEN_POINT: 'golden-point'
+	MAIN_ROUNDS: 'Rounds 1 & 2',
+	TIE_BREAKER: 'Tie Breaker',
+	GOLDEN_POINT: 'Golden Point'
 };
