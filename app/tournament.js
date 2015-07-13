@@ -189,6 +189,7 @@ Tournament.prototype._identifyUser = function (spark) {
 	// Inform user that we're waiting for an identification
 	logger.debug("> Waiting for identification...");
 	spark.emit('root.showView', { view: 'loginView' });
+	spark.emit('io.hideBackdrop');
 	spark.emit('login.focusField');
 };
 
