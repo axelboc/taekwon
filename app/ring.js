@@ -258,7 +258,7 @@ Ring.prototype.hasCJ = function (cj) {
 Ring.prototype._initMatch = function (doc) {
 	assert.object(doc, 'doc');
 	
-	this.match = new Match(doc._id, doc.config, doc.state, doc.data);
+	this.match = new Match(doc._id, doc.config, doc.data);
 	util.addEventListeners(this, this.match, MATCH_EVENTS, MATCH_HANDLER_PREFIX);
 	
 	// Start the state machine

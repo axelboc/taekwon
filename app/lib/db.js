@@ -210,8 +210,9 @@ var DB = {
 		matchesDb.insert({
 			ringId: ringId,
 			config: config,
-			state: MatchStates.ROUND_IDLE,
-			data: {}
+			data: {
+				state: MatchStates.ROUND_IDLE
+			}
 		}, callback(cb));
 	},
 	
@@ -273,20 +274,23 @@ var DB = {
 	
 	/**
 	 * Set the current state of a match.
+	 * The `data` sub-document is merged rather than replaced.
 	 * @param {String} matchId
-	 * @param {String} state
 	 * @param {Object} data
 	 * @param {Function} cb
 	 */
-	setMatchState: function (matchId, state, data, cb) {
+	setMatchState: function (matchId, data, cb) {
 		assert.string(matchId, 'matchId');
-		assert.string(state, 'state');
-		assert.object(data, 'data');
+		assert.ok(typeof data === 'undefined' || typeof data === 'object',
+				  "if provided, `data` must be an object");
 		
-		matchesDb.update({ _id: matchId }, { $set: {
-			state: state,
-			data: data
-		} }, callback(cb));
+		// Create the query object from the provided data (use dot notation to merge the data)
+		var query = Object.keys(data).reduce(function (q, key) {
+			q['data.' + key] = data[key];
+			return q;
+		}, {});
+		
+		matchesDb.update({ _id: matchId }, { $set: query }, callback(cb));
 	},
 	
 	/**

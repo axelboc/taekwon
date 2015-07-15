@@ -21,14 +21,14 @@ var Competitors = require('./enum/competitors');
  * Match.
  * @param {String} id
  * @param {Object} config
- * @param {String} state
- * @param {Object} data - additional state data
+ * @param {Object} data - state data
+ * 		  {String} data.state
  */
-function Match(id, config, state, data) {
+function Match(id, config, data) {
 	assert.string(id, 'id');
 	assert.object(config, 'config');
-	assert.string(state, 'state');
 	assert.object(data, 'data');
+	assert.string(data.state, 'data.state');
 	
 	this.id = id;
 	this.config = config;
@@ -55,7 +55,7 @@ function Match(id, config, state, data) {
 	
 	// Create state machine
 	this.state = StateMachine.create({
-		initial: { state: state, event: 'init', defer: true },
+		initial: { state: data.state, event: 'init', defer: true },
 		events: [
 			{ name: Transitions.START_STATE, from: States.ROUND_IDLE, to: States.ROUND_STARTED },
 			{ name: Transitions.START_STATE, from: States.BREAK_IDLE, to: States.BREAK_STARTED },
@@ -147,6 +147,9 @@ Match.prototype.initScoreboard = function (cj) {
 		};
 	}
 	
+	// Update database
+	DB.setMatchState(this.id, { scoreboards: this.getScoreboardStates() });
+	
 	this.emit('scoreboardsUpdated');
 };
 
@@ -205,19 +208,11 @@ Match.prototype.getCurrentPenalties = function () {
  * @param {String} to
  */
 Match.prototype._onEnterState = function (transition, from, to) {
+	// Update database
+	DB.setMatchState(this.id, { state: to });
+	
 	// Emit event synchronously to avoid race conditions
 	this.emit('stateChanged', transition, from, to);
-	
-	// Update database
-	DB.setMatchState(this.id, to, {
-		round: this.round.current,
-		period: this.period.current,
-		periods: this.periods,
-		scoreboards: this.getScoreboardStates(),
-		penalties: this.penalties,
-		maluses: this.maluses,
-		winner: this.winner
-	});
 };
 
 /**
@@ -269,6 +264,9 @@ Match.prototype._onBreakEnded = function () {
  * @param {String} to
  */
 Match.prototype._onEnterRound = function (transition, from, to) {
+	// Update database
+	DB.setMatchState(this.id, { round: to });
+	
 	// Start next period if entering tie breaker or golden point
 	if (!Rounds.isMainRound(to)) {
 		this.period.next();
@@ -294,6 +292,14 @@ Match.prototype._onEnterPeriod = function (transition, from, to) {
 		warnings: [0, 0],
 		fouls: [0, 0]
 	};
+	
+	// Update database
+	DB.setMatchState(this.id, {
+		period: to,
+		periods: this.periods,
+		scoreboards: this.getScoreboardStates(),
+		penalties: this.penalties
+	});
 };
 
 /**
@@ -311,6 +317,9 @@ Match.prototype.score = function (cjId, score) {
 	// Find the judge's scoring sheet for the current period and mark the score
 	var sheet = this.scoreboards[cjId].sheets[this.period.current];
 	sheet.markScore(score.competitor, score.points);
+	
+	// Update database
+	DB.setMatchState(this.id, { scoreboards: this.getScoreboardStates() });
 
 	this.emit('scoreboardsUpdated');
 };
@@ -354,8 +363,12 @@ Match.prototype._updatePenalty = function (type, competitor, value) {
 	var newValue = penalty[index] + value;
 	assert.ok(newValue >= 0, "cannot decrement penalty (cannot be negative)");
 	
-	// Change penalty value and emit event
+	// Change penalty value
 	penalty[index] = newValue;
+	
+	// Update database
+	DB.setMatchState(this.id, { penalties: this.penalties });
+	
 	this.emit('penaltiesUpdated');
 };
 
@@ -395,6 +408,13 @@ Match.prototype._computeWinner = function () {
 		// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
 		this.winner = diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null);
 	}
+	
+	// Update database
+	DB.setMatchState(this.id, {
+		scoreboards: this.getScoreboardStates(),
+		maluses: this.maluses,
+		winner: this.winner
+	});
 };
 
 module.exports.Match = Match;
