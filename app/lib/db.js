@@ -114,7 +114,7 @@ var DB = {
 	findMatchInProgress: function (ringId, cb) {
 		assert.string(ringId, 'ringId');
 		
-		matchesDb.find({ ringId: ringId, $not: { state: MatchStates.MATCH_ENDED } }, function (err, docs) {
+		matchesDb.find({ ringId: ringId, $not: { 'data.state': MatchStates.MATCH_ENDED } }, function (err, docs) {
 			assert.ok(docs.length === 0 || docs.length === 1, "`docs` should contain zero or one document");
 			// If the array is empty, `undefined` is passed to the callback
 			callback(cb)(null, docs[0]);

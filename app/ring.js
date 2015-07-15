@@ -275,7 +275,6 @@ Ring.prototype.restoreMatch = function (cb) {
 	DB.findMatchInProgress(this.id, function (doc) {
 		if (doc) {
 			this._initMatch(doc);
-			// TODO restore scoreboards
 			logger.debug("> Match restored");
 		} else {
 			logger.debug("> No match in progress");

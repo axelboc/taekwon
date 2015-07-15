@@ -10,11 +10,15 @@ var Competitors = require('./enum/competitors');
 /**
  * The scoring sheet of a Corner Judge.
  * A new sheet is initialised for each match period.
+ * @param {Object} data - scoring sheet data when restoring
  */
-function ScoringSheet() {
-	this.scores = [0, 0];
-	this.totals = null;
-	this.winner = null;
+function ScoringSheet(data) {
+	data = data || {};
+	assert.object(data, 'data');
+	
+	this.scores = data.scores || [0, 0];
+	this.totals = data.totals || null;
+	this.winner = data.winner || null;
 }
 
 /**

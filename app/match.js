@@ -37,7 +37,7 @@ function Match(id, config, data) {
 	this.periods = [];
 	
 	// Scoreboard object of each Corner Judge who has joined the ring at some point during the match
-	this.scoreboards = data.scoreboards || {};
+	this.scoreboards = this._restoreScoreboards(data.scoreboards || {});
 	
 	// Penalties ('warnings' and 'fouls') for each period
 	this.penalties = data.penalties || {};
@@ -154,11 +154,32 @@ Match.prototype.initScoreboard = function (cj) {
 };
 
 /**
+ * Restore scoreboards.
+ * @param {Object} data
+ */
+Match.prototype._restoreScoreboards = function (data) {
+	assert.object(data, 'data');
+	
+	return Object.keys(data).reduce(function (scoreboards, cjId) {
+		var scoreboard = data[cjId];
+		
+		// Replace the sheet objects with ScoringSheet instances
+		scoreboard.sheets = Object.keys(scoreboard.sheets).reduce(function (sheets, period) {
+			sheets[period] = new ScoringSheet(scoreboard.sheets[period]);
+			return sheets;
+		}, {});
+		
+		scoreboards[cjId] = scoreboard;
+		return scoreboards;
+	}, {});
+};
+
+/**
  * Return the state of each Corner Judge scoreboard.
  * @return {Array}
  */
 Match.prototype.getScoreboardStates = function () {
-	return Object.keys(this.scoreboards).map(function (cjId) {
+	return Object.keys(this.scoreboards).reduce(function (scoreboards, cjId) {
 		var scoreboard = this.scoreboards[cjId];
 		
 		// Get the state of the scoreboard's sheets
@@ -172,11 +193,13 @@ Match.prototype.getScoreboardStates = function () {
 			};
 		});
 		
-		return {
+		scoreboards[cjId] = {
 			cjName: scoreboard.cjName,
 			sheets: sheets
 		};
-	}, this);
+		
+		return scoreboards;
+	}.bind(this), {});
 };
 
 /**
