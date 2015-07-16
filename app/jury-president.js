@@ -201,6 +201,11 @@ JuryPresident.prototype.matchStateChanged = function (ring, match, transition, f
 			this._send('roundTimer.reset', { value: match.config.breakTime });
 			this._send('matchPanel.setRoundLabel', { label: 'Break' });
 			this._updateState(toState);
+			this._send('matchPanel.updateScoreboards', { scoreboards: match.getCurrentScoreboards() });
+			this._send('matchPanel.updatePenalties', {
+				penalties: match.getCurrentPenalties(),
+				enabled: false
+			});
 			
 			if (fromState === MatchStates.RESULTS) {
 				this._send('ringView.showPanel', { panel: 'matchPanel' });
@@ -292,6 +297,46 @@ JuryPresident.prototype.penaltiesUpdated = function (penalties) {
 		penalties: penalties,
 		enabled: true
 	});
+};
+
+/**
+ * Restore a match's state.
+ * @param {Match} match
+ */
+JuryPresident.prototype.restoreMatchState = function (match) {
+	assert.ok(match, "`match` must be provided");
+	
+	var state = match.state.current;
+	if (state !== MatchStates.MATCH_ENDED && state !== MatchStates.RESULTS) {
+		this._send('matchPanel.setRoundLabel', {
+			label: MatchStates.isBreak(state) ? 'Break' : match.round.current
+		});
+
+		this._updateState(state);
+		this._send('matchPanel.updateScoreboards', { scoreboards: match.getCurrentScoreboards() });
+		this._send('matchPanel.updatePenalties', {
+			penalties: match.getCurrentPenalties(),
+			enabled: state === MatchStates.INJURY || state === MatchStates.ROUND_STARTED
+		});
+		
+		this._send('ringView.showPanel', { panel : 'matchPanel' });
+	} else {
+		if (state === MatchStates.MATCH_ENDED) {
+			this._send('resultPanel.showEndBtns');
+		} else {
+			this._send('resultPanel.showContinueBtns');
+		}
+
+		this._send('resultPanel.setWinner', { winner: match.winner });
+		this._send('resultPanel.updateResults', {
+			periods: match.periods,
+			penalties: match.penalties,
+			maluses: match.maluses,
+			scoreboards: match.getScoreboardStates()
+		});
+		
+		this._send('ringView.showPanel', { panel : 'resultPanel' });
+	}
 };
 
 /**

@@ -186,12 +186,16 @@ CornerJudge.prototype.ringLeft = function (message) {
 /**
  * The state of the Match has changed.
  * @param {Ring} ring
+ * @param {Match} match
+ * @param {String} transition
+ * @param {String} fromState
+ * @param {String} toState
  */
 CornerJudge.prototype.matchStateChanged = function (ring, match, transition, fromState, toState) {
 	assert.provided(ring, 'ring');
 	assert.ok(match, "`match` must be provided");
-	assert.string(transition, 'transition');
-	assert.string(fromState, 'fromState');
+	assert.string(transition, 'transition', true);
+	assert.string(fromState, 'fromState', true);
 	assert.string(toState, 'toState');
 	
 	this._updateBackdrop(ring);

@@ -313,6 +313,10 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 			user.idSuccess();
 		} else {
 			user.ringOpened(ring);
+				
+			if (ring.match) {
+				user.restoreMatchState(ring.match);
+			}
 		}
 	
 	// Restore Corner Judge
@@ -325,6 +329,10 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 				user.waitingForAuthorisation();
 			} else {
 				user.ringJoined(ring);
+				
+				if (ring.match) {
+					user.matchStateChanged(ring, ring.match, '', '', ring.match.state.current);
+				}
 			}
 		}
 	}
