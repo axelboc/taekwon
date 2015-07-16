@@ -80,6 +80,23 @@ function Match(id, config, data) {
 	
 	
 	/* ==================================================
+	 * Period state machine
+	 * ================================================== */
+	
+	// Create state machine
+	this.period = StateMachine.create({
+		initial: data.period || Periods.MAIN_ROUNDS,
+		events: [
+			{ name: 'next', from: Periods.MAIN_ROUNDS, to: Periods.TIE_BREAKER },
+			{ name: 'next', from: Periods.TIE_BREAKER, to: Periods.GOLDEN_POINT }
+		],
+		callbacks: {
+			onenterstate: this._onEnterPeriod.bind(this)
+		}
+	});
+	
+	
+	/* ==================================================
 	 * Round state machine
 	 * ================================================== */
 	
@@ -100,23 +117,6 @@ function Match(id, config, data) {
 		events: roundTransitions,
 		callbacks: {
 			onenterstate: this._onEnterRound.bind(this)
-		}
-	});
-	
-	
-	/* ==================================================
-	 * Period state machine
-	 * ================================================== */
-	
-	// Create state machine
-	this.period = StateMachine.create({
-		initial: data.period || Periods.MAIN_ROUNDS,
-		events: [
-			{ name: 'next', from: Periods.MAIN_ROUNDS, to: Periods.TIE_BREAKER },
-			{ name: 'next', from: Periods.TIE_BREAKER, to: Periods.GOLDEN_POINT }
-		],
-		callbacks: {
-			onenterstate: this._onEnterPeriod.bind(this)
 		}
 	});
 }
