@@ -22,7 +22,7 @@
 				{% endfor %}
 			</tr>
 		{% endfor %}
-		{% for scoreboard in scoreboards %}
+		{% for cjId, scoreboard in scoreboards %}
 			{% set noData = ['-', '-'] %}
 			<tr>
 				<th scope="row">{{ scoreboard.cjName }}</th>
