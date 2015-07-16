@@ -572,11 +572,6 @@ Ring.prototype._matchStateChanged = function (transition, fromState, toState) {
 	this.cornerJudges.forEach(function (cj) {
 		cj.matchStateChanged(this, this.match, transition, fromState, toState);
 	}, this);
-	
-	// If the match has ended, clear the reference
-	if (toState === MatchStates.MATCH_ENDED) {
-		this.match = null;
-	}
 };
 
 /**
