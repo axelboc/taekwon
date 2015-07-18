@@ -77,13 +77,15 @@ DB.findOpenTournament(startOfToday, function (doc) {
 		logger.debug("Tournament found (ID=" + doc._id + "). Restoring...");
 
 		// If a tournament was found, restore it
-		tournament = new Tournament(doc._id, server);
+		tournament = new Tournament(doc._id);
 
 		// Restore its users and rings
 		async.series([
 			tournament.restoreUsers.bind(tournament),
 			tournament.restoreRings.bind(tournament)
 		], function () {
+			// The tournament has been restored and is ready to receive Web Socket connections
+			tournament.ready(server);
 			logger.debug("> Tournament restored");
 		});
 	} else {
@@ -93,8 +95,10 @@ DB.findOpenTournament(startOfToday, function (doc) {
 		DB.insertTournament(function (newDoc) {
 			if (newDoc) {
 				// Initialise the new tournament
-				tournament = new Tournament(newDoc._id, server);
+				tournament = new Tournament(newDoc._id);
 				tournament.createRings(config.ringCount, function () {
+					// The tournament has been initialised and is ready to receive Web Socket connections
+					tournament.ready(server);
 					logger.debug("> Tournament started (ID=" + newDoc._id + ")");
 				});
 			}

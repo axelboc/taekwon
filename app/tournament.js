@@ -28,15 +28,22 @@ var CJ_EVENTS = ['joinRing', 'exited'];
 /**
  * Tournament; the root of the application.
  * @param {String} id
- * @param {Server} server
  */
 function Tournament(id, server) {
 	assert.string(id, 'id');
-	assert.provided(server, 'server');
 	
 	this.id = id;
 	this.rings = [];
 	this.users = {};
+}
+
+/**
+ * The tournament is ready to receive Web Socket connections.
+ * Initialise Primus, listen for spark connection and disconnection events, and start the Express server.
+ * @param {Server} server
+ */
+Tournament.prototype.ready = function(server) {
+	assert.provided(server, 'server');
 	
 	// Initialise Primus
 	this.primus = new Primus(server, {
@@ -52,7 +59,7 @@ function Tournament(id, server) {
 	
 	// Start server
 	server.listen(80);
-}
+};
 
 /**
  * Build and return an array of the rings' states.
@@ -313,7 +320,6 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 			user.idSuccess();
 		} else {
 			user.ringOpened(ring);
-				
 			if (ring.match) {
 				user.restoreMatchState(ring.match);
 			}
@@ -329,7 +335,6 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 				user.waitingForAuthorisation();
 			} else {
 				user.ringJoined(ring);
-				
 				if (ring.match) {
 					user.matchStateChanged(ring, ring.match, '', '', ring.match.state.current);
 				}
