@@ -21,19 +21,19 @@ function IO(identity) {
 	this.backdrop = new Backdrop();
 	this.id = cookie.get('id');
 
-	// Build server URL
-	this.url = process.env.BASE_URL + '?identity=' + identity;
-
-	// Add ID parameter if available
-	if (this.id) {
-		this.url += '&id=' + this.id;
-	}
+	// Build query string from identity and identifier
+	this.query = 'identity=' + identity + (this.id ? '&id=' + this.id : '');
 
 	// Initialise Primus
 	console.log("Connecting to server");
-	this.primus = new Primus(this.url, {
+	this.primus = new Primus(process.env.BASE_URL, {
 		strategy: ['online', 'disconnect']
 	});
+	
+	// Add the query parameter dynamically on every Web Socket re/connection
+	this.primus.on('outgoing::url', function (url) {
+		url.query = this.query;
+	}.bind(this));
 
 	// Listen for Web Socket error event
 	this.primus.on('error', this.wsError.bind(this));
@@ -135,6 +135,9 @@ IO.prototype.wsError = function (err) {
 };
 
 IO.prototype.saveId = function (data) {
+	this.id = data.id;
+	this.query = 'identity=' + this.identity + '&id=' + this.id;
+	
 	cookie.set('id', data.id, {
 		expires: '12h'
 	});
