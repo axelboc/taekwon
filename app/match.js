@@ -34,7 +34,7 @@ function Match(id, config, data) {
 	this.config = config;
 	
 	// Periods of the match
-	this.periods = [];
+	this.periods = data.periods || [];
 	
 	// Scoreboard object of each Corner Judge who has joined the ring at some point during the match
 	this.scoreboards = this._restoreScoreboards(data.scoreboards || {});
@@ -303,6 +303,12 @@ Match.prototype._onEnterRound = function (transition, from, to) {
  * @param {String} to
  */
 Match.prototype._onEnterPeriod = function (transition, from, to) {
+	// If the period is already in the array, it means the match is being restored; return
+	var periodCount = this.periods.length;
+	if (periodCount > 0 && this.periods[periodCount - 1] === to) {
+		return;
+	}
+	
 	this.periods.push(to);
 	
 	// Initialise a new scoring sheet in each scoreboard
