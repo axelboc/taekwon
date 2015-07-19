@@ -10,8 +10,12 @@ function JudgesSidebar(io) {
 	this.root = document.getElementById('judges-sidebar');
 
 	// Subscribe to events
-	helpers.subscribeToEvents(io, 'judgesSidebar', ['updateSlotList'], this);
+	helpers.subscribeToEvents(io, 'judgesSidebar', [
+		'setHeading',
+		'updateSlotList'
+	], this);
 
+	this.heading = this.root.querySelector('.js-heading');
 	this.list = this.root.querySelector('.js-list');
 	this.addSlotBtn = this.root.querySelector('.js-add');
 	this.removeSlotBtn = this.root.querySelector('.js-remove');
@@ -25,6 +29,10 @@ function JudgesSidebar(io) {
 /* ==================================================
  * IO events
  * ================================================== */
+
+JudgesSidebar.prototype.setHeading = function (data) {
+	this.heading.textContent = data.text;
+};
 
 JudgesSidebar.prototype.updateSlotList = function (data) {
 	// Execute template

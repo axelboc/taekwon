@@ -94,6 +94,7 @@ JuryPresident.prototype.ringOpened = function (ring) {
 	});
 	
 	this.matchConfigUpdated(ring.matchConfig);
+	this._send('judgesSidebar.setHeading', { text: "Ring " + (ring.index + 1) });
 	this._send('judgesSidebar.updateSlotList', {
 		slotCount: ring.slotCount,
 		cornerJudges: ring.getCJStates()
