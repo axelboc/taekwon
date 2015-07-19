@@ -312,6 +312,10 @@ JuryPresident.prototype.restoreMatchState = function (match) {
 		this._send('matchPanel.setRoundLabel', {
 			label: MatchStates.isBreak(state) ? 'Break' : match.round.current
 		});
+		
+		if (state === MatchStates.INJURY) {
+			this._send('matchPanel.toggleInjuryTimer', { show: true });
+		}
 
 		this._updateState(state);
 		this._send('matchPanel.updateScoreboards', { scoreboards: match.getCurrentScoreboards() });
