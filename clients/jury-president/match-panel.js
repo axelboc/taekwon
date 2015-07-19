@@ -29,7 +29,7 @@ function MatchPanel(io) {
 	this.injuryTimer = new Timer('injury', io, tkBeeps);
 
 	// Match state, scores and penalties
-	this.mpStateLabel = this.root.querySelector('.mp-round-label');
+	this.rvTop = this.root.querySelector('.rv-top');
 	this.stateInner = this.root.querySelector('.st-inner');
 	this.scoreboardsInner = this.root.querySelector('.sc-inner');
 	this.penalties = this.root.querySelector('.penalties');
@@ -45,7 +45,7 @@ function MatchPanel(io) {
  * ================================================== */
 
 MatchPanel.prototype.setRoundLabel = function (data) {
-	this.mpStateLabel.textContent = data.label;
+	this.rvTop.textContent = data.label;
 };
 
 MatchPanel.prototype.toggleInjuryTimer = function (data) {
@@ -79,11 +79,11 @@ MatchPanel.prototype.onStateInnerDelegate = function (evt) {
 	var btn = evt.target;
 	if (btn && btn.nodeName === 'BUTTON') {
 		btn.blur();
-		if (btn.classList.contains('st-btn--start')) {
+		if (btn.classList.contains('match-btn--start')) {
 			this.io.send('startMatchState');
-		} else if (btn.classList.contains('st-btn--end')) {
+		} else if (btn.classList.contains('match-btn--end')) {
 			this.io.send('endMatchState');
-		} else if (btn.classList.contains('st-btn--injury')) {
+		} else if (btn.classList.contains('match-btn--injury')) {
 			this.io.send('toggleInjury');
 		}
 	}

@@ -19,7 +19,7 @@ function ResultPanel(io) {
 
 	this.winner = this.root.querySelector('.rp-winner');
 	this.continueBtnsWrap = document.getElementById('rp-buttons--continue');
-	this.endMatchBtn = this.root.querySelector('.match-btn--end');
+	this.endMatchBtn = this.root.querySelector('.match-btn--endm');
 	this.continueMatchBtn = this.root.querySelector('.match-btn--continue');
 	this.endBtnsWrap = document.getElementById('rp-buttons--end');
 	this.matchConfigBtn = this.root.querySelector('.match-btn--config');

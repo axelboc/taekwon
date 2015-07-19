@@ -1,3 +1,3 @@
-<button type="button" class="st-btn st-btn--start match-btn btn{% if not isBreak %} btn--major{% endif %}"{% if not isIdle %} disabled{% endif %}>Start</button>
-<button type="button" class="st-btn st-btn--end match-btn btn{% if not isBreak %} btn--major{% endif %}"{% if not isStarted or isInjury %} disabled{% endif %}>End</button>
-<button type="button" class="st-btn st-btn--injury match-btn btn btn--minor"{% if not (canStartInjury or isInjury) %} disabled{% endif %}>{{ 'End' if isInjury else 'Start' }} Injury</button>
+<button type="button" class="match-btn match-btn--start btn{% if not isBreak %} btn--major{% endif %}"{% if not isIdle %} disabled{% endif %}>Start</button>
+<button type="button" class="match-btn match-btn--end btn{% if not isBreak %} btn--major{% endif %}"{% if not isStarted or isInjury %} disabled{% endif %}>End</button>
+<button type="button" class="match-btn match-btn--injury btn btn--minor"{% if not (canStartInjury or isInjury) %} disabled{% endif %}>{{ 'End' if isInjury else 'Start' }} Injury</button>

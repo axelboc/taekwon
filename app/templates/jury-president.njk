@@ -21,7 +21,7 @@
 	<div id="ring" class="view hidden">
 		{# Sidebar (Corner Judges management) #}
 		<div id="judges-sidebar">
-			<h2 class="js-heading">Corner Judges</h2>
+			<h2 class="js-heading"></h2>
 			<ul class="js-list list-reset"></ul>
 			<div class="js-btns">
 				<button type="button" class="js-add btn btn--minor" title="Add slot">+</button>
@@ -32,18 +32,26 @@
 		<div class="main">
 			{# Configuration panel #}
 			<div id="config-panel" class="panel">
-				<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
-				<div class="config action">
-					<h2 class="cf-heading">Match Configuration</h2>
-					<div class="cf-inner"></div>
+				<h2 class="rv-top">Configuration</h2>
+				<div class="rv-row rv-row--top">
+					<div class="rv-cell">
+						<div class="btns-wrap">
+							<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
+						</div>
+					</div>
+				</div>
+				<div class="rv-row rv-row--bottom">
+					<div class="config">
+						<div class="cf-inner"></div>
+					</div>
 				</div>
 			</div>
 			{# Match panel #}
 			<div id="match-panel" class="panel hidden">
-				<h2 class="mp-round-label"></h2>
-				<div class="mp-row mp-row--top">
+				<h2 class="rv-top"></h2>
+				<div class="rv-row rv-row--top">
 					{# Time keeping #}
-					<div class="time-keeping tk_off mp-cell">
+					<div class="time-keeping tk_off rv-cell">
 						<audio id="tk-beeps">
 							<source src="audio/beeps.ogg" type="audio/ogg">
 							<source src="audio/beeps.mp3" type="audio/mp3">
@@ -58,31 +66,40 @@
 						</div>
 					</div>
 					{# Match state management #}
-					<div class="state mp-cell">
-						<div class="st-inner"></div>
+					<div class="state rv-cell">
+						<div class="st-inner btns-wrap"></div>
 					</div>
 				</div>
-				<div class="mp-row mp-row--bottom">
+				<div class="rv-row rv-row--bottom">
 					{# Scoreboards #}
-					<div class="scoreboards mp-cell">
+					<div class="scoreboards rv-cell">
 						<div class="sc-inner"></div>
 					</div>
 					{# Penalties #}
-					<div class="penalties mp-cell"></div>
+					<div class="penalties rv-cell"></div>
 				</div>
 			</div>
 			{# Result panel #}
 			<div id="result-panel" class="panel hidden">
-				<p class="rp-winner"></p>
-				<div id="rp-buttons--continue">
-					<button type="button" class="match-btn match-btn--end btn btn--minor">End Match</button>
-					<button type="button" class="match-btn match-btn--continue btn btn--major">Continue Match</button>
+				<h2 class="rv-top">Result</h2>
+				<div class="rv-row rv-row--top">
+					<div class="rv-cell">
+						<p class="rp-winner"></p>
+					</div>
+					<div class="rv-cell">
+						<div id="rp-buttons--continue" class="btns-wrap">
+							<button type="button" class="match-btn match-btn--continue btn btn--major">Continue</button>
+							<button type="button" class="match-btn match-btn--endm btn btn--minor">End Match</button>
+						</div>
+						<div id="rp-buttons--end" class="btns-wrap">
+							<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
+							<button type="button" class="match-btn match-btn--config btn btn--minor">Configuration</button>
+						</div>
+					</div>
 				</div>
-				<div id="rp-buttons--end">
-					<button type="button" class="match-btn match-btn--config btn btn--minor">Match Configuration</button>
-					<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
+				<div class="rv-row rv-row--bottom">
+					<div class="rp-results"></div>
 				</div>
-				<div class="rp-results"></div>
 			</div>
 		</div>
 	</div>

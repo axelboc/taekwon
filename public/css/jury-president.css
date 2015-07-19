@@ -22,9 +22,77 @@
 	height: 100%;
 }
 
+
+/* Match buttons */
+
+.btns-wrap {
+	max-width: 28em;
+	margin: 0 auto;
+}
+
 .match-btn {
-	padding: .5em 1em;
+	float: left;
+	display: block;
+	width: 100%;
+	padding: .5em .2em;
 	font-size: 150%;
+}
+
+.match-btn--start,
+.match-btn--end {
+	width: 48%;
+}
+
+.match-btn--start {
+	margin-right: 4%;
+}
+
+.match-btn--injury,
+.match-btn--config,
+.match-btn--endm {
+	font-size: 120%;
+	margin-top: .6em;
+}
+
+
+/* Top bar */
+
+.rv-top {
+	position: relative;
+	z-index: 10;
+	margin: 0 auto;
+	line-height: 1.7;
+	background-color: #555;
+	color: #fff;
+	font-size: 230%;
+}
+
+
+/* Rows and cells */
+
+.rv-row {
+	display: table;
+	width: 100%;
+	padding: 0 1em;
+}
+
+.rv-row--top {
+	height: 14em;
+	border-bottom: solid 1px #ccc;
+}
+
+.rv-row--bottom {
+	border-top: solid 1px #ccc;
+}
+
+.rv-cell {
+	display: table-cell;
+	vertical-align: middle;
+	width: 50%;
+}
+
+.rv-row--bottom > .rv-cell {
+	vertical-align: top;
 }
 
 
@@ -32,15 +100,16 @@
 
 #judges-sidebar {
 	width: 16em;
-	padding: 1em 2em 3em;
 	font-size: 90%;
 	background-color: #eee;
 	border-right: 1px solid #ccc;
 }
 
 .js-heading {
-	margin-top: 1.3em;
-	margin-bottom: 1.3em;
+	margin: 0;
+	line-height: 2.2;
+	font-size: 200%;
+	background-color: #ccc;
 }
 
 .js-btns {
@@ -111,13 +180,9 @@
 
 /* ===== Configuration panel ===== */
 
-#config-panel {
-	padding-top: 4.5em;
-}
-
 .config {
 	max-width: 45em;
-	margin: 3.5em auto 4em;
+	margin: 2em auto;
 	padding-bottom: 0;
 	font-size: 110%;
 	text-align: left;
@@ -184,41 +249,6 @@
 
 /* ===== Match panel ===== */
 
-.mp-round-label {
-	position: relative;
-	z-index: 10;
-	margin: 0 auto;
-	line-height: 1.5;
-	background-color: #555;
-	color: #fff;
-	font-size: 250%;
-}
-
-.mp-row {
-	display: table;
-	width: 100%;
-	padding: 0 1em;
-}
-
-.mp-row--top {
-	height: 14em;
-	border-bottom: solid 1px #ccc;
-}
-
-.mp-row--bottom {
-	border-top: solid 1px #ccc;
-}
-
-.mp-cell {
-	display: table-cell;
-	vertical-align: middle;
-	width: 50%;
-}
-
-.mp-row--bottom > .mp-cell {
-	vertical-align: top;
-}
-
 .time-keeping,
 .state-management {
 	height: 50%;
@@ -278,31 +308,6 @@
 .tk_on .tk-timer--round > .tk-timer-sep,
 .tk_injury .tk-timer--injury > .tk-timer-sep {/*
 	animation: blink 1s .5s ease infinite reverse;*/
-}
-
-
-/* Match state management */
-
-.st-inner {
-	max-width: 28em;
-	margin: 0 auto;
-}
-
-.st-btn {
-	float: left;
-	display: block;
-	width: 48%;
-	padding: .5em .2em;
-}
-
-.st-btn--start {
-	margin-right: 4%;
-}
-
-.st-btn--injury {
-	width: 100%;
-	margin-top: .6em;
-	font-size: 120%;
 }
 
 
@@ -386,13 +391,10 @@
 /* ===== Result panel ===== */
 
 .rp-winner {
-	font-size: 400%;
+	margin: 0;
+	color: #333;
+	font-size: 450%;
 	font-weight: bold;
-}
-
-.match-btn--end,
-.match-btn--config {
-	margin-right: 1em;
 }
 
 .rp-results {
