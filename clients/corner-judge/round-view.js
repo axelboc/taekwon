@@ -12,12 +12,11 @@ function RoundView(io) {
 	this.undoBtn = this.root.querySelector('.undo-btn');
 	this.undoBtn.addEventListener('click', this.onUndoBtn.bind(this));
 
-	// Score buttons (use 'touchstart' event if supported)
-	var event = 'ontouchstart' in document.documentElement ? 'touchstart' : 'click';
+	// Score buttons
 	var hongBtns = this.root.querySelector('.score-btns--hong');
 	var chongBtns = this.root.querySelector('.score-btns--chong');
-	hongBtns.addEventListener(event, this.onScoreBtnsDeletage.bind(this, 'hong'));
-	chongBtns.addEventListener(event, this.onScoreBtnsDeletage.bind(this, 'chong'));
+	hongBtns.addEventListener('click', this.onScoreBtnsDeletage.bind(this, 'hong'));
+	chongBtns.addEventListener('click', this.onScoreBtnsDeletage.bind(this, 'chong'));
 
 	// Feedback elements
 	document.addEventListener('transitionend', this.onTransitionEnd.bind(this));
@@ -85,6 +84,7 @@ RoundView.prototype.showFdb = function (data) {
 
 RoundView.prototype.onScoreBtnsDeletage = function (competitor, evt) {
 	var btn = evt.target;
+	console.log(btn.nodeName);
 	if (btn && btn.nodeName === 'BUTTON') {
 		btn.blur();
 		this.io.send('score', {
