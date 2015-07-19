@@ -42,7 +42,7 @@ ResultPanel.prototype.setWinner = function (data) {
 		this.winner.className = 'rp-winner ' + data.winner + '-col';
 		this.winner.textContent = data.winner.charAt(0).toUpperCase() + data.winner.slice(1) + " wins";
 	} else {
-		this.winner.className = 'rp-winner';
+		this.winner.className = 'rp-winner rp-winner--draw';
 		this.winner.textContent = "Draw";
 	}
 };

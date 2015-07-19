@@ -303,7 +303,7 @@ Match.prototype._onEnterRound = function (transition, from, to) {
  * @param {String} to
  */
 Match.prototype._onEnterPeriod = function (transition, from, to) {
-	// If the period is already in the array, it means the match is being restored; return
+	// If the match is being restored; return
 	if (this.periods.length > 0 && transition === 'startup') {
 		return;
 	}
