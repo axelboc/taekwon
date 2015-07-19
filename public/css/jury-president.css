@@ -132,21 +132,25 @@
 .js-judge-name {
 	margin-top: 0;
 	margin-bottom: .7em;
+	padding: 0 2em;
 }
 
 .js-judge-remove {
 	position: absolute;
 	top: 1.2em;
-	right: 0;
-	opacity: 0;
-	transition: all .3s ease;
-	padding: 0 .2em;
-	background: transparent;
+	right: .4em;
+	display: block;
+	width: 1.2em;
+	line-height: 1.2em;
+	padding: 0;
 	border: 1px solid transparent;
 	border-radius: 50%;
-	font-size: 130%;
+	background: transparent;
+	opacity: 0;
     color: #777;
+	font-size: 130%;
 	cursor: pointer;
+	transition: all .3s ease;
 }
 
 .js-judge-remove:focus {
