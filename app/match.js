@@ -291,7 +291,7 @@ Match.prototype._onEnterRound = function (transition, from, to) {
 	DB.setMatchState(this.id, { round: to });
 	
 	// Start next period if entering tie breaker or golden point
-	if (!Rounds.isMainRound(to)) {
+	if (transition !== 'startup' && !Rounds.isMainRound(to)) {
 		this.period.next();
 	}
 };
@@ -304,8 +304,7 @@ Match.prototype._onEnterRound = function (transition, from, to) {
  */
 Match.prototype._onEnterPeriod = function (transition, from, to) {
 	// If the period is already in the array, it means the match is being restored; return
-	var periodCount = this.periods.length;
-	if (periodCount > 0 && this.periods[periodCount - 1] === to) {
+	if (this.periods.length > 0 && transition === 'startup') {
 		return;
 	}
 	
