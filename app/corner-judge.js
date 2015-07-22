@@ -225,7 +225,7 @@ CornerJudge.prototype.scored = function (score) {
 		isUndo: false
 	});
 
-	if (this.scores.length === 1){
+	if (this.scores.length > 0){
 		// Enable the undo feature
 		this.undoEnabled = true;
 		this._send('roundView.enableUndoBtn', { enable: true });

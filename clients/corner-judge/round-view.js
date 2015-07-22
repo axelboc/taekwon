@@ -84,7 +84,6 @@ RoundView.prototype.showFdb = function (data) {
 
 RoundView.prototype.onScoreBtnsDeletage = function (competitor, evt) {
 	var btn = evt.target;
-	console.log(btn.nodeName);
 	if (btn && btn.nodeName === 'BUTTON') {
 		btn.blur();
 		this.io.send('score', {
