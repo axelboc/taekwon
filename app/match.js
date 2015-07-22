@@ -48,6 +48,12 @@ function Match(id, config, data) {
 	// Winner of the match
 	this.winner = data.winner || null;
 	
+	// Timers
+	this.timers = data.timers || {
+		round: 0,
+		injury: 0
+	};
+	
 	
 	/* ==================================================
 	 * Match state machine
@@ -55,7 +61,7 @@ function Match(id, config, data) {
 	
 	// Create state machine
 	this.state = StateMachine.create({
-		initial: { state: data.state, event: 'init', defer: true },
+		initial: { state: data.state, event: Transitions.INIT, defer: true },
 		events: [
 			{ name: Transitions.START_STATE, from: States.ROUND_IDLE, to: States.ROUND_STARTED },
 			{ name: Transitions.START_STATE, from: States.BREAK_IDLE, to: States.BREAK_STARTED },
@@ -231,8 +237,26 @@ Match.prototype.getCurrentPenalties = function () {
  * @param {String} to
  */
 Match.prototype._onEnterState = function (transition, from, to) {
+	// Set value of timers when appropriate
+	switch (to) {
+		case States.ROUND_IDLE:
+			this.timers.round = this.round.is(Rounds.GOLDEN_POINT) ? 0 : this.config.roundTime;
+			break;
+		case States.BREAK_IDLE:
+			this.timers.round = this.config.breakTime;
+			break;
+		case States.INJURY:
+			if (transition !== Transitions.INIT) {
+				this.timers.injury = this.config.injuryTime;
+			}
+			break;
+	}
+	
 	// Update database
-	DB.setMatchState(this.id, { state: to });
+	DB.setMatchState(this.id, {
+		state: to,
+		timers: this.timers
+	});
 	
 	// Emit event synchronously to avoid race conditions
 	this.emit('stateChanged', transition, from, to);
@@ -304,7 +328,7 @@ Match.prototype._onEnterRound = function (transition, from, to) {
  */
 Match.prototype._onEnterPeriod = function (transition, from, to) {
 	// If the match is being restored; return
-	if (this.periods.length > 0 && transition === 'startup') {
+	if (transition === 'startup' && this.periods.length > 0) {
 		return;
 	}
 	
@@ -398,6 +422,21 @@ Match.prototype._updatePenalty = function (type, competitor, value) {
 	DB.setMatchState(this.id, { penalties: this.penalties });
 	
 	this.emit('penaltiesUpdated');
+};
+
+/**
+ * Save the value of a timer.
+ * @param {String} name - the name of the timer
+ * @param {Integer} value - the new value
+ */
+Match.prototype.saveTimerValue = function (name, value) {
+	assert.string(name, 'name');
+	assert.integerGte0(value, 'value');
+	
+	this.timers[name] = value;
+	
+	// Update database
+	DB.setMatchState(this.id, { timers: this.timers });
 };
 
 /**

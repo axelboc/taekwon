@@ -11,7 +11,8 @@ var MatchRounds = require('./enum/match-rounds');
 var INBOUND_SPARK_EVENTS = [
 	'selectRing', 'addSlot', 'removeSlot', 'authoriseCJ', 'rejectCJ', 'removeCJ',
 	'configureMatch', 'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
-	'startMatchState', 'endMatchState', 'toggleInjury', 'incrementPenalty', 'decrementPenalty'
+	'startMatchState', 'endMatchState', 'incrementPenalty', 'decrementPenalty',
+	'toggleInjury', 'saveTimerValue'
 ];
 
 
@@ -159,10 +160,7 @@ JuryPresident.prototype.matchStateChanged = function (ring, match, transition, f
 	switch (toState) {
 		case MatchStates.ROUND_IDLE:
 			this._send('matchPanel.setRoundLabel', { label: match.round.current });
-			this._send('roundTimer.reset', {
-				value: match.round.is(MatchRounds.GOLDEN_POINT) ? 0 : match.config.roundTime
-			});
-			
+			this._send('roundTimer.reset', { value: match.timers.round });
 			this._updateState(toState);
 			this._send('matchPanel.updateScoreboards', { scoreboards: match.getCurrentScoreboards() });
 			this._send('matchPanel.updatePenalties', {
@@ -179,16 +177,15 @@ JuryPresident.prototype.matchStateChanged = function (ring, match, transition, f
 					penalties: match.getCurrentPenalties(),
 					enabled: true
 				});
-				
-				this._send('roundTimer.start', {
-					countDown: !match.round.is(MatchRounds.GOLDEN_POINT),
-					delay: false
-				});
 			} else {
 				this._send('injuryTimer.stop');
 				this._send('matchPanel.toggleInjuryTimer', { show: false });
-				this._send('roundTimer.unpause', { delay: true });
 			}
+			
+			this._send('roundTimer.start', {
+				countDown: !match.round.is(MatchRounds.GOLDEN_POINT),
+				delay: fromState === MatchStates.INJURY
+			});
 			
 			this._updateState(toState);
 			break;
@@ -199,7 +196,7 @@ JuryPresident.prototype.matchStateChanged = function (ring, match, transition, f
 			break;
 			
 		case MatchStates.BREAK_IDLE:
-			this._send('roundTimer.reset', { value: match.config.breakTime });
+			this._send('roundTimer.reset', { value: match.timers.round });
 			this._send('matchPanel.setRoundLabel', { label: 'Break' });
 			this._updateState(toState);
 			this._send('matchPanel.updateScoreboards', { scoreboards: match.getCurrentScoreboards() });
@@ -227,8 +224,8 @@ JuryPresident.prototype.matchStateChanged = function (ring, match, transition, f
 			break;
 			
 		case MatchStates.INJURY:
-			this._send('roundTimer.pause');
-			this._send('injuryTimer.reset', { value: match.config.injuryTime });
+			this._send('roundTimer.stop');
+			this._send('injuryTimer.reset', { value: match.timers.injury });
 			this._send('matchPanel.toggleInjuryTimer', { show: true });
 			this._send('injuryTimer.start', {
 				countDown: true,
@@ -307,26 +304,38 @@ JuryPresident.prototype.penaltiesUpdated = function (penalties) {
 JuryPresident.prototype.restoreMatchState = function (match) {
 	assert.ok(match, "`match` must be provided");
 	
-	var state = match.state.current;
-	if (state !== MatchStates.MATCH_ENDED && state !== MatchStates.RESULTS) {
+	var state = match.state;
+	if (!state.is(MatchStates.MATCH_ENDED) && !state.is(MatchStates.RESULTS)) {
 		this._send('matchPanel.setRoundLabel', {
-			label: MatchStates.isBreak(state) ? 'Break' : match.round.current
+			label: MatchStates.isBreak(state.current) ? 'Break' : match.round.current
 		});
 		
-		if (state === MatchStates.INJURY) {
+		this._send('roundTimer.reset', { value: match.timers.round });
+		this._send('injuryTimer.reset', { value: match.timers.injury });
+		
+		if (state.is(MatchStates.ROUND_STARTED)) {
+			this._send('roundTimer.start', {
+				countDown: !match.round.is(MatchRounds.GOLDEN_POINT),
+				delay: true
+			});
+		} else if (state.is(MatchStates.INJURY)) {
 			this._send('matchPanel.toggleInjuryTimer', { show: true });
+			this._send('injuryTimer.start', {
+				countDown: true,
+				delay: true
+			});
 		}
 
-		this._updateState(state);
+		this._updateState(state.current);
 		this._send('matchPanel.updateScoreboards', { scoreboards: match.getCurrentScoreboards() });
 		this._send('matchPanel.updatePenalties', {
 			penalties: match.getCurrentPenalties(),
-			enabled: state === MatchStates.INJURY || state === MatchStates.ROUND_STARTED
+			enabled: state.is(MatchStates.INJURY) || state.is(MatchStates.ROUND_STARTED)
 		});
 		
 		this._send('ringView.showPanel', { panel : 'matchPanel' });
 	} else {
-		if (state === MatchStates.MATCH_ENDED) {
+		if (state.is(MatchStates.MATCH_ENDED)) {
 			this._send('resultPanel.showEndBtns');
 		} else {
 			this._send('resultPanel.showContinueBtns');

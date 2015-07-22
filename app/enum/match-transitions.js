@@ -5,6 +5,7 @@
  * @type {Object}
  */
 module.exports = {
+	INIT: 'init',
 	BEGIN: 'begin',
 	START_STATE: 'startState',
 	END_STATE: 'endState',

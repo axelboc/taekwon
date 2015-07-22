@@ -17,8 +17,8 @@ var JP_HANDLER_PREFIX = '_jp';
 var JP_EVENTS = [
 	'addSlot', 'removeSlot', 'authoriseCJ',
 	'setConfigItem', 'createMatch', 'continueMatch', 'endMatch',
-	'startMatchState', 'endMatchState', 'toggleInjury', 'incrementPenalty', 'decrementPenalty',
-	'connectionStateChanged'
+	'startMatchState', 'endMatchState', 'incrementPenalty', 'decrementPenalty',
+	'toggleInjury', 'saveTimerValue', 'connectionStateChanged'
 ];
 
 var CJ_HANDLER_PREFIX = '_cj';
@@ -453,14 +453,6 @@ Ring.prototype._jpEndMatchState = function () {
 };
 
 /**
- * Start or end an injury.
- */
-Ring.prototype._jpToggleInjury = function () {
-	assert.ok(this.match, "ring must have a match");
-	this.match.state.toggleInjury();
-};
-
-/**
  * Increment a competitor's penalty type.
  */
 Ring.prototype._jpIncrementPenalty = function (data) {
@@ -474,6 +466,22 @@ Ring.prototype._jpIncrementPenalty = function (data) {
 Ring.prototype._jpDecrementPenalty = function (data) {
 	assert.ok(this.match, "ring must have a match");
 	this.match.decrementPenalty(data.type, data.competitor);
+};
+
+/**
+ * Start or end an injury.
+ */
+Ring.prototype._jpToggleInjury = function () {
+	assert.ok(this.match, "ring must have a match");
+	this.match.state.toggleInjury();
+};
+
+/**
+ * Save the value of a timer.
+ */
+Ring.prototype._jpSaveTimerValue = function (data) {
+	assert.ok(this.match, "ring must have a match");
+	this.match.saveTimerValue(data.name, data.value);
 };
 
 /**

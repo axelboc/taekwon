@@ -15,15 +15,12 @@ function Timer(name, io, beep) {
 
 	this.intervalId = null;
 	this.value = null;
-	this.paused = false;
 
 	// Subscribe to events
 	helpers.subscribeToEvents(io, name + 'Timer', [
 		'reset',
 		'start',
-		'stop',
-		'pause',
-		'unpause'
+		'stop'
 	], this);
 }
 
@@ -40,7 +37,6 @@ Timer.prototype.start = function (data) {
 
 	// Timer intervals may start after a delay of 500ms:
 	// 300ms to account for the sliding transition, plus 200ms for usability purposes
-	// TODO: refactor with `transitionend` event?
 	window.setTimeout((function () {
 		tickFunc();
 		this.intervalId = window.setInterval(tickFunc, 1000);
@@ -51,18 +47,8 @@ Timer.prototype.stop = function () {
 	window.clearInterval(this.intervalId);
 };
 
-Timer.prototype.pause = function () {
-	this.paused = true;
-};
-
-Timer.prototype.unpause = function (data) {
-	window.setTimeout((function () {
-		this.paused = false;
-	}).bind(this), (data.delay ? 500 : 0));
-};
-
 Timer.prototype._tickDown = function () {
-	if (!this.paused && this.value > 0) {
+	if (this.value > 0) {
 		this.value -= 1;
 		this._valueChanged();
 
@@ -75,16 +61,22 @@ Timer.prototype._tickDown = function () {
 };
 
 Timer.prototype._tickUp = function () {
-	if (!this.paused) {
-		this.value += 1;
-		this._valueChanged();
-	}
+	this.value += 1;
+	this._valueChanged();
 };
 
 Timer.prototype._valueChanged = function () {
 	var sec = this.value % 60;
 	this.sec.textContent = (sec < 10 ? '0' : '') + sec;
 	this.min.textContent = Math.floor(this.value / 60);
+	
+	// Send value to server every 5 seconds
+	if (sec % 5 === 0) {
+		this.io.send('saveTimerValue', {
+			name: this.name,
+			value: this.value
+		});
+	}
 };
 
 module.exports.Timer = Timer;
