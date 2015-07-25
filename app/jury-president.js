@@ -313,9 +313,9 @@ JuryPresident.prototype.restoreMatchState = function (match) {
 		this._send('roundTimer.reset', { value: match.timers.round });
 		this._send('injuryTimer.reset', { value: match.timers.injury });
 		
-		if (state.is(MatchStates.ROUND_STARTED)) {
+		if (MatchStates.isStarted(state.current)) {
 			this._send('roundTimer.start', {
-				countDown: !match.round.is(MatchRounds.GOLDEN_POINT),
+				countDown: state.is(MatchStates.BREAK_STARTED) || !match.round.is(MatchRounds.GOLDEN_POINT),
 				delay: true
 			});
 		} else if (state.is(MatchStates.INJURY)) {
