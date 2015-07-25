@@ -26,5 +26,9 @@
 				"value": true
 			}
 		}
+	},
+	"timer": {
+		"saveInterval": 2,
+		"toggleDelay": 500
 	}
 }

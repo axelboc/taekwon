@@ -2,6 +2,7 @@
 
 // Dependencies
 var helpers = require('../shared/helpers');
+var config = require('../../config/config.json').timer;
 
 
 function Timer(name, io, beep) {
@@ -36,15 +37,15 @@ Timer.prototype.reset = function (data) {
 Timer.prototype.start = function (data) {
 	// Just in case, clear the previous timer interval
 	this.stop();
-
+	
+	// Determine which tick function to use
 	var tickFunc = (data.countDown ? this._tickDown : this._tickUp).bind(this);
 
-	// Timer intervals may start after a delay of 500ms:
-	// 300ms to account for the sliding transition, plus 200ms for usability purposes
+	// Timer intervals may start after a delay to account for the injury timer sliding transition
 	window.setTimeout((function () {
 		tickFunc();
 		this.intervalId = window.setInterval(tickFunc, 1000);
-	}).bind(this), (data.delay ? 500 : 0));
+	}).bind(this), (data.delay ? config.toggleDelay : 0));
 };
 
 Timer.prototype.stop = function () {
@@ -74,8 +75,8 @@ Timer.prototype._valueChanged = function () {
 	this.sec.textContent = (sec < 10 ? '0' : '') + sec;
 	this.min.textContent = Math.floor(this.value / 60);
 	
-	// Send value to server every 5 seconds
-	if (sec % 5 === 0) {
+	// Send value to server every few seconds
+	if (sec % config.saveInterval === 0) {
 		this.io.send('saveTimerValue', {
 			name: this.name,
 			value: this.value
