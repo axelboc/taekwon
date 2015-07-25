@@ -37,6 +37,8 @@ function IO(identity) {
 
 	// Listen for Web Socket error event
 	this.primus.on('error', this.wsError.bind(this));
+	// Listen for loss of network connection
+	this.primus.on('offline', this.wsOffline.bind(this));
 
 	// Subscribe to inbound IO events
 	helpers.subscribeToEvents(this, 'io', [
@@ -107,11 +109,6 @@ function IO(identity) {
 		this.primus.on('online', function (msg) {
 			console.info('Online!', msg);
 		});
-
-		// Lost network connection
-		this.primus.on('offline', function (msg) {
-			console.warn('Offline!', msg);
-		});
 	}
 }
 
@@ -132,6 +129,15 @@ IO.prototype.wsError = function (err) {
 		});
 		return;
 	}
+};
+
+IO.prototype.wsOffline = function () {
+	console.warn('Offline!');
+	this.updateBackdrop({
+		text: "Connection lost",
+		subtext: "Check Wi-Fi settings or wait for signal to be restored",
+		visible: true
+	});
 };
 
 IO.prototype.saveId = function (data) {

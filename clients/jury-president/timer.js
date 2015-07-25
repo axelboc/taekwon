@@ -26,6 +26,7 @@ function Timer(name, io, beep) {
 	
 	// Stop timer on error
 	this.io.primus.on('error', this.stop.bind(this));
+	this.io.primus.on('offline', this.stop.bind(this));
 	this.io.primus.on('io.error', this.stop.bind(this));
 }
 
