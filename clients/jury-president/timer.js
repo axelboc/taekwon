@@ -22,6 +22,10 @@ function Timer(name, io, beep) {
 		'start',
 		'stop'
 	], this);
+	
+	// Stop timer on error
+	this.io.primus.on('error', this.stop.bind(this));
+	this.io.primus.on('io.error', this.stop.bind(this));
 }
 
 Timer.prototype.reset = function (data) {
