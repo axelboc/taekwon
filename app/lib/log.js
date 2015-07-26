@@ -1,109 +1,108 @@
 'use strict';
 
-// Modules
+// Dependencies
 var assert = require('assert');
-var Logger = require('nedb-logger');
+var extend = require('extend');
+var NeDBLogger = require('nedb-logger');
+
+
+/**
+ * NeDB logger.
+ * @type {NeDBLogger}
+ */
+var nedbLogger = new NeDBLogger({
+	filename: 'app/data/logs.db'
+});
 
 
 /**
  * Log levels.
  * @type {Object}
  */
-var LOG_LEVELS = {
-	ERROR: 'error',
+var levels = {
+	LOG: 'log',
 	INFO: 'info',
-	DEBUG: 'debug'
+	WARN: 'warn',
+	ERROR: 'error',
 };
 
-/*
- * NeDB logger.
- * @type {Logger}
- */
-var nedbLogger = new Logger({
-	filename: 'app/data/logs.db'
-});
 
-/**
- * Console logging function for each log level.
- * @type {Object} 
- */
-var consoleFuncs = {};
-consoleFuncs[LOG_LEVELS.ERROR] = console.error;
-consoleFuncs[LOG_LEVELS.INFO] = console.info;
-consoleFuncs[LOG_LEVELS.DEBUG] = console.log;
-
-
-/**
- * Add a new entry to the log file.
- * In development, the message is printed to the console.
- * @param {String} topic - (e.g. 'ring', 'match', etc.)
- * @param {String} level - (error|info|debug)
- * @param {String} message
- * @param {Object} data - optional data to store with the log entry
- */
-function log(topic, level, message, data) {
-	assert(typeof message === 'string', "`message` must be a string");
-	assert(typeof data === 'undefined' || typeof data === 'object', 
-		   "if `data` is provided, it must be an object");
+module.exports = {
 	
-	// When in development, print debug and error messages to the console 
-	if (process.env.NODE_ENV === 'development') {
-		consoleFuncs[level]('[' + topic + '] ' + message);
-	}
+	createLogger: function (topic, name, loggerData) {
+		assert.string(topic, 'topic');
+		assert.string(name, 'name');
+		assert.ok(typeof loggerData === 'undefined' || typeof loggerData === 'object' && loggerData,
+				  "if provided, `loggerData` must be an object");
+		
+		/**
+		 * The logger's main log function.
+		 * @param {String} level
+		 * @param {String} event (or message)
+		 * @param {Object} data (optional)
+		 * 		- {String} data.message (optional)
+		 */
+		function log(level, event, data) {
+			assert.string(level, 'level');
+			assert.string(event, 'event');
+			assert.ok(typeof data === 'undefined' || typeof data === 'object' && data,
+					  "if provided, `data` must be an object");
 
-	// Add a new entry to the logs
-	nedbLogger.insert({
-		timestamp: new Date(),
-		topic: topic,
-		level: level,
-		message: message,
-		data: data
-	}, function (err) {
-		if (err && process.env.NODE_ENV === 'development') {
-			consoleFuncs[LOG_LEVELS.ERROR]("Error adding log to NeDB datastore" + 
-										   err.message ? ": " + err.message : "");
+			// In development, log to console
+			if (process.env.NODE_ENV === 'development') {
+				console[level]('[' + name + '] ' + event + (data.message ? ": " + data.message : ""));
+				if (level === levels.LOG) { return; }
+			}
+
+			// Add a new entry to the logs
+			nedbLogger.insert({
+				timestamp: new Date(),
+				level: level,
+				topic: topic,
+				event: event,
+				data: extend({}, loggerData, data)
+			}, function (err) {
+				if (err && process.env.NODE_ENV === 'development') {
+					console.error("Error adding log to NeDB datastore" + (err.message ? ": " + err.message : ""));
+				}
+			});
 		}
-	});
+		
+		return {
+			
+			/**
+			 * Print a message to the console in development.
+			 * @param {String} message
+			 */
+			debug: log.bind(null, levels.LOG),
+			
+			/**
+			 * Log app events (ring opened, corner judge authorised, match ended, etc.)
+			 * To faciliate log analysis, pass a simple camel-case keyword - e.g. 'newUser', 'authorised'
+			 * If the logger's topic is the subject of the event, do not repeat it in the keyword.
+			 * For instance, if 'ring' is the topic, use 'opened' instead of 'ringOpened'.
+			 * @param {String} event
+			 * @param {Object} data (optional)
+			 */
+			info: log.bind(null, levels.INFO),
+			
+			/**
+			 * Log warnings (ring full, cannot remove slot, etc.)
+			 * @param {String} event
+			 * @param {Object} data (optional)
+			 * 		- {String} data.message (optional)
+			 */
+			warn: log.bind(null, levels.WARN),
+			
+			/**
+			 * Log operational errors (network, socket, database, user input, etc.)
+			 * @param {String} event
+			 * @param {Object} data (optional)
+			 * 		- {String} data.message (optional)
+			 */
+			error: log.bind(null, levels.ERROR)
+			
+		};
+	}
 	
-}
-
-/**
- * Create a logger for a specific topic.
- * @param {String} topic - (e.g. 'ring', 'match', etc.)
- */
-function logger(topic) {
-	// Using Node's `assert` function
-	// Environment variables (i.e. NODE_ENV) haven't been initialised at this stage
-	assert(typeof topic === 'string' && topic.length > 0, "`topic` must be a non-empty string");
-	
-	return {
-		
-		/**
-		 * Log operational errors (network, socket, database, user input, etc.)
-		 * @param {String} message
-		 * @param {Object} data
-		 */
-		error: log.bind(null, topic, LOG_LEVELS.ERROR),
-		
-		/**
-		 * Log notable app events (ring opened, corner judge authorised, match ended, etc.)
-		 * To faciliate log analysis, use a simple camel-case keyword - e.g. 'newUser', 'authorised'
-		 * If the logger's topic is the subject of the event, do not repeat it in the keyword.
-		 * For instance, if 'ring' is the topic, use 'opened' instead of 'ringOpened'.
-		 * @param {String} message
-		 * @param {Object} data
-		 */
-		info: log.bind(null, topic, LOG_LEVELS.INFO),
-		
-		/**
-		 * Log debug messages and data.
-		 * @param {String} message
-		 * @param {Object} data
-		 */
-		debug: log.bind(null, topic, LOG_LEVELS.DEBUG)
-		
-	};
-}
-
-// Export the logger factory function
-module.exports = logger;
+};

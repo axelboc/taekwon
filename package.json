@@ -9,9 +9,9 @@
     "url": "http://github.com/axelboc/taekwon"
   },
   "scripts": {
-	  "start": "gulp",
-	  "reset": "gulp reset && gulp",
-	  "test": "gulp test"
+    "start": "gulp",
+    "reset": "gulp reset && gulp",
+    "test": "gulp test"
   },
   "engines": {
     "node": "0.12.x"
@@ -23,6 +23,7 @@
     "async": "1.2.*",
     "dotenv": "^1.2.0",
     "express": "4.12.*",
+    "extend": "^3.0.0",
     "fastclick": "^1.0.6",
     "javascript-state-machine": "2.3.*",
     "nedb": "1.1.*",
