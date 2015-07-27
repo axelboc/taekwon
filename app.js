@@ -1,5 +1,8 @@
 'use strict';
 
+// Load environment variables
+require('dotenv').config({ path: 'config/.env' });
+
 // Dependencies
 var express = require('express');
 var http = require('http');
@@ -8,12 +11,9 @@ var async = require('async');
 
 var config = require('./config/config.json');
 var assert = require('./app/lib/assert');
-var logger = require('./app/lib/log')('app');
+var logger = require('./app/lib/log').createLogger('app');
 var DB = require('./app/lib/db');
 var Tournament = require('./app/tournament').Tournament;
-
-// Load environment variables
-require('dotenv').config({ path: 'config/.env' });
 
 
 /*
@@ -74,8 +74,6 @@ var startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).ge
 // Look for an open tournament
 DB.findOpenTournament(startOfToday, function (doc) {
 	if (doc) {
-		logger.debug("Tournament found (ID=" + doc._id + "). Restoring...");
-
 		// If a tournament was found, restore it
 		tournament = new Tournament(doc._id);
 
@@ -86,11 +84,9 @@ DB.findOpenTournament(startOfToday, function (doc) {
 		], function () {
 			// The tournament has been restored and is ready to receive Web Socket connections
 			tournament.ready(server);
-			logger.debug("> Tournament restored");
+			logger.info('tournamentRestored', { tournament: doc });
 		});
 	} else {
-		logger.debug("Starting new tournament...");
-
 		// Otherwise, insert a new tournament in the database
 		DB.insertTournament(function (newDoc) {
 			if (newDoc) {
@@ -99,7 +95,7 @@ DB.findOpenTournament(startOfToday, function (doc) {
 				tournament.createRings(config.ringCount, function () {
 					// The tournament has been initialised and is ready to receive Web Socket connections
 					tournament.ready(server);
-					logger.debug("> Tournament started (ID=" + newDoc._id + ")");
+					logger.info('tournamentStarted', { tournament: newDoc });
 				});
 			}
 		});

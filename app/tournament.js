@@ -7,7 +7,7 @@ var Emit = require('primus-emit');
 
 var config = require('../config/config.json');
 var assert = require('./lib/assert');
-var logger = require('./lib/log')('tournament');
+var log = require('./lib/log');
 var util = require('./lib/util');
 var DB = require('./lib/db');
 var Ring = require('./ring').Ring;
@@ -35,6 +35,7 @@ function Tournament(id, server) {
 	this.id = id;
 	this.rings = [];
 	this.users = {};
+	this.logger = log.createLogger('tournament');
 }
 
 /**
@@ -56,6 +57,12 @@ Tournament.prototype.ready = function(server) {
 	// Bind socket events
 	this.primus.on('connection', this._onConnection.bind(this));
 	this.primus.on('disconnection', this._onDisconnection.bind(this));
+	
+	// In development, if enabled, log all outgoing and incoming data
+	if (process.env.NODE_ENV === 'development' && process.env.FULL_LOG === 'true') {
+		this.primus.on('outgoing:data', this.logger.data.bind(this.logger, 'out'));
+		this.primus.on('incoming:data', this.logger.data.bind(this.logger, 'in'));
+	}
 	
 	// Start server
 	server.listen(80);
@@ -129,40 +136,33 @@ Tournament.prototype._onConnection = function (spark) {
 	var id = spark.query.id;
 	if (!id || !this.users[id]) {
 		// New user; request identification
-		logger.debug("New user with identity=" + identity);
+		this.logger.info('newUser', identity, { identity: identity });
 		this._identifyUser(spark);
 		return;
 	}
 	
 	// Existing user
 	var user = this.users[id];
-	logger.debug("Existing user with ID=" + id);
 
 	// Check whether the user's previous spark is still open
 	if (user.spark && user.spark.readyState === Primus.Spark.OPEN) {
 		// Inform client that a session conflict has been detected
-		logger.debug("> Session conflict detected");
-		spark.emit('io.error', {
-			message: "Session already open"
-		});
+		this.logger.info('sessionConflict', id, { id: id });
+		spark.emit('io.error', { message: "Session already open" });
 		spark.end();
 		return;
 	}
 
-	// Check whether user is switching role
+	// Check whether the user is switching role
 	var isJP = identity === 'juryPresident';
 	if (isJP && user instanceof JuryPresident || !isJP && user instanceof CornerJudge) {
 		// Not switching; restore session
-		logger.debug("> Identity confirmed: " + identity);
+		this.logger.info('identityConfirmed', identity, { identity: identity });
 		this._restoreUserSession(user, spark);
 	} else {
 		// Switching; remove user from system and request identification from new user
-		logger.debug("> User has changed identity. Starting new identification process...");
-		DB.removeUser(user, function () {
-			user.exit();
-			delete this.users[id];
-			this._identifyUser(spark);
-		}.bind(this));
+		this.logger.info('identityChanged', identity, { identity: identity });
+		this._removeUser(user, this._identifyUser.bind(this, spark));
 	}
 };
 
@@ -178,7 +178,6 @@ Tournament.prototype._onDisconnection = function (spark) {
 	var id = spark.query.id;
 	if (id && this.users[id]) {
 		// Notify user of disconnection
-		logger.debug("User with ID=" + id + " disconnected.");
 		this.users[id].disconnected();
 	}
 };
@@ -194,7 +193,6 @@ Tournament.prototype._identifyUser = function (spark) {
 	spark.once('identification', this._onIdentification.bind(this, spark));
 
 	// Inform user that we're waiting for an identification
-	logger.debug("> Waiting for identification...");
 	spark.emit('root.showView', { view: 'loginView' });
 	spark.emit('io.hideBackdrop');
 	spark.emit('login.focusField');
@@ -213,11 +211,18 @@ Tournament.prototype._onIdentification = function (spark, data) {
 	assert.string(data.identity, 'data.identity');
 	assert.ok(data.identity === 'juryPresident' || data.identity === 'cornerJudge',
 			  "`data.identity` must be 'juryPresident' or 'cornerJudge'");
+	
+	// Get user ID from query
+	var userId = spark.query.id;
 
 	// Check identification
 	if (data.identity === 'juryPresident' && data.value !== process.env.MASTER_PWD ||
 		data.identity === 'cornerJudge' && (typeof data.value !== 'string' || data.value.length === 0)) {
-		logger.debug("> Failed identification (identity=" + data.identity + ")");
+		this.logger.info('idFail', userId, {
+			userId: userId,
+			identity: data.identity,
+			value: data.value
+		});
 
 		// Shake field
 		spark.emit('login.shakeResetField');
@@ -233,29 +238,20 @@ Tournament.prototype._onIdentification = function (spark, data) {
 	}
 
 	// Successful identification; insert the new user in the database
-	DB.insertUser(spark.query.id, this.id, data.identity, data.value, function (newDoc) {
-		if (newDoc) {
-			var user = this._initUser(spark, true, newDoc);
-			logger.info('newUser', newDoc);
-			
-			// Notify client of success and send along ring states
-			logger.debug("> Successful identification (identity=" + data.identity + ")");
-			user.ringStateChanged(this._getRingStates());
-			user.idSuccess();
-		} else {
-			// If database insertion failed, notify client that identification failed
-			spark.emit('login.setInstr', { text: "Unexpected error" });
-			
-			// Listen for identification again
-			spark.once('identification', this._onIdentification.bind(this, spark));
-		}
+	DB.insertUser(userId, this.id, data.identity, data.value, function (newDoc) {
+		var user = this._initUser(spark, true, newDoc);
+		this.logger.info('idSuccess', userId, { user: newDoc });
+
+		// Update ring states and notify client of success
+		user.ringStateChanged(this._getRingStates());
+		user.idSuccess();
 	}.bind(this));
 };
 
 
 /*
  * ==================================================
- * Initialisation & restoration
+ * Initialisation, restoration, removal
  * ==================================================
  */
 
@@ -287,14 +283,14 @@ Tournament.prototype._initUser = function (spark, connected, doc) {
 
 /**
  * Retore the tournament's users.
- * @param {Function} cb - a function called when the restoration is complete
+ * @param {Function} cb
  */
 Tournament.prototype.restoreUsers = function (cb) {
 	assert.function(cb, 'cb');
 
 	DB.findUsers(this.id, function (docs) {
 		docs.forEach(this._initUser.bind(this, null, false));
-		logger.debug("> Users restored");
+		this.logger.info('usersRestored', { users: docs });
 		cb();
 	}.bind(this));
 };
@@ -342,7 +338,27 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
 		}
 	}
 	
-	logger.debug("> Session restored");
+	this.logger.info('sessionRestored', user.id, { userId: user.id });
+};
+
+/**
+ * Remove a user from the system.
+ * @param {User} user
+ * @param {Function} cb
+ */
+Tournament.prototype._removeUser(user, cb) {
+	assert.instanceOf(user, 'user', User, 'User');
+	assert.function(cb, 'cb');
+	
+	// Remove user from database
+	DB.removeUser(user, function () {
+		// Notify user to exit, then delete it
+		user.exit();
+		delete this.users[user.id];
+		
+		this.logger.info('userRemoved', user.id, { userId: user.id });
+		cb();
+	}.bind(this));
 };
 
 /**
@@ -361,7 +377,7 @@ Tournament.prototype._initRing = function (doc) {
 		if (jp) {
 			ring.initJP(jp);
 		} else {
-			logger.error("Jury President is not in the system", { id: doc.jpId });
+			this.logger.error('noUserWithId', doc.jpId, { jpId: doc.jpId });
 		}
 	}
 
@@ -372,7 +388,7 @@ Tournament.prototype._initRing = function (doc) {
 			if (cj) {
 				ring.initCJ(cj);
 			} else {
-				logger.error("Corner Judge is not in the system", { id: id });
+				this.logger.error('noUserWithID', id, { cjId: id });
 			}
 		}, this);
 	}
@@ -396,7 +412,7 @@ Tournament.prototype.createRings = function (count, cb) {
 	// Insert new rings in the database one at a time
 	DB.insertRings(this.id, count, config.cornerJudgesPerRing, defaults, function (newDocs) {
 		newDocs.forEach(this._initRing, this);
-		logger.debug("Rings initialised");
+		this.logger.info('ringsCreated', { rings: newDocs });
 		cb();
 	}.bind(this));
 };
@@ -415,9 +431,9 @@ Tournament.prototype.restoreRings = function (cb) {
 		async.each(this.rings, function (ring, next) {
 			ring.restoreMatch(next);
 		}, function () {
-			logger.debug("> Rings restored");
+			this.logger.info('ringsRestored', { rings: docs });
 			cb();
-		});
+		}.bind(this));
 	}.bind(this));
 };
 

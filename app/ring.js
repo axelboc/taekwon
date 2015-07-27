@@ -276,8 +276,6 @@ Ring.prototype.restoreMatch = function (cb) {
 		if (doc) {
 			this._initMatch(doc);
 			this.logger.info('matchRestored', { match: doc });
-		} else {
-			this.logger.debug("> No match to restore");
 		}
 		cb();
 	}.bind(this));
@@ -321,8 +319,7 @@ Ring.prototype._jpRemoveSlot = function () {
 	}
 	
 	if (reason) {
-		this.logger.warn('slotNotRemoved', {
-			message: reason,
+		this.logger.warn('slotNotRemoved', reason, {
 			slotCount: this.slotCount,
 			cjCount: this.cornerJudges.length
 		});
