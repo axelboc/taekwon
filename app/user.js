@@ -2,7 +2,6 @@
 
 // Modules
 var assert = require('./lib/assert');
-var logger = require('./lib/log')('user');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 
@@ -92,8 +91,8 @@ User.prototype.idSuccess = function () {
  * The user has been disconnected.
  */
 User.prototype.disconnected = function () {
-	logger.debug("Disconnected");
 	this.connected = false;
+	this.logger.info('disconnected');
 	this.emit('connectionStateChanged', this);
 };
 
@@ -102,11 +101,8 @@ User.prototype.disconnected = function () {
  * Following a call to this function, all references to the user must be deleted from the system. 
  */
 User.prototype.exit = function () {
+	this.logger.info('exited');
 	this.emit('exited', this);
-	logger.info('exit', {
-		id: this.id,
-		name: this.name
-	});
 };
 
 module.exports.User = User;

@@ -11,7 +11,7 @@ var async = require('async');
 
 var config = require('./config/config.json');
 var assert = require('./app/lib/assert');
-var logger = require('./app/lib/log').createLogger('app');
+var logger = require('./app/lib/log').createLogger('app', "App");
 var DB = require('./app/lib/db');
 var Tournament = require('./app/tournament').Tournament;
 

@@ -1,9 +1,10 @@
 'use strict';
 
 // Dependencies
-var util = require('util');
 var config = require('../config/config.json');
 var assert = require('./lib/assert');
+var log = require('./lib/log');
+var util = require('util');
 var User = require('./user').User;
 var MatchStates = require('./enum/match-states');
 var MatchRounds = require('./enum/match-rounds');
@@ -25,6 +26,7 @@ var INBOUND_SPARK_EVENTS = [
 function JuryPresident(id, spark, connected) {
 	// Call parent constructor and assert arguments
 	User.apply(this, arguments);
+	this.logger = log.createLogger('juryPresident', "JP", { id: id });
 }
 
 // Inherit from User
@@ -64,6 +66,7 @@ JuryPresident.prototype._onSelectRing = function (data) {
 JuryPresident.prototype._onConfigureMatch = function () {
 	// Simply show the configuration panel
 	this._send('ringView.showPanel', { panel: 'configPanel' });
+	this.logger.info('configureMatch');
 };
 
 
@@ -351,14 +354,6 @@ JuryPresident.prototype.restoreMatchState = function (match) {
 		
 		this._send('ringView.showPanel', { panel : 'resultPanel' });
 	}
-};
-
-/**
- * A Corner Judge has exited the system.
- * @param {CornerJudge} cj
- */
-JuryPresident.prototype.cjExited = function (cj) {
-	assert.provided(cj, 'cj');
 };
 
 module.exports.JuryPresident = JuryPresident;

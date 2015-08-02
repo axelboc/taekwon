@@ -52,7 +52,7 @@ function Ring(id, index, slotCount, matchConfig) {
 	this.match = null;
 	
 	// Initialise logger
-	this.logger = log.createLogger('ring', 'Ring ' + this.number, {
+	this.logger = log.createLogger('ring', 'Ring:' + this.number, {
 		id: id,
 		index: index
 	});

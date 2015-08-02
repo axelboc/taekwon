@@ -1,7 +1,7 @@
 'use strict';
 
 // Logger
-var logger = require('./log')('assert');
+var logger = require('./log').createLogger('assert', "Assert");
 
 // Import Node's core `assert` module, then extend it.
 var assert = require('assert');
@@ -17,12 +17,15 @@ var _ok = assert.ok;
  */
 assert.ok = function (val, message) {
 	if (!val) {
-		// Log error
-		logger.error(message);
-		
 		// Forward to original `assert.ok` method in development
 		if (process.env.NODE_ENV === 'development') {
 			_ok(val, message);
+		} else {
+			// Log error
+			logger.error('assertionError', message, {
+				val: val,
+				message: message
+			});
 		}
 	}	
 };

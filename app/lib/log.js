@@ -1,7 +1,6 @@
 'use strict';
 
 // Dependencies
-var assert = require('assert');
 var extend = require('extend');
 var NeDBLogger = require('nedb-logger');
 
@@ -30,13 +29,6 @@ var levels = {
 module.exports = {
 	
 	createLogger: function (topic, name, loggerData) {
-		// Use topic as name if not provided
-		name = name || topic.charAt(0).toUpperCase() + topic.slice(1);
-		
-		assert.string(topic, 'topic');
-		assert.string(name, 'name');
-		assert.ok(typeof loggerData === 'undefined' || typeof loggerData === 'object' && loggerData,
-				  "if provided, `loggerData` must be an object");
 		
 		/**
 		 * The logger's main log function.
@@ -46,9 +38,6 @@ module.exports = {
 		 * @param {Object} data (optional)
 		 */
 		function log(level, event, message, data) {
-			assert.string(level, 'level');
-			assert.string(event, 'event');
-			
 			// Allow skipping message argument
 			if (!data && typeof message === 'object') {
 				data = message;
@@ -112,21 +101,7 @@ module.exports = {
 			 * @param {String} message (optional)
 			 * @param {Object} data (optional)
 			 */
-			error: log.bind(null, levels.ERROR),
-			
-			/**
-			 * Log JSON data sent or received through Web Sockets.
-			 * @param {String} direction
-			 * @param {String} data
-			 */
-			data: function (direction, data) {
-				try {
-					var obj = JSON.parse(data);
-					if (obj && obj.emit) {
-						log(levels.INFO, direction + '.' + obj.emit[0], obj.emit[1]);
-					}
-				} catch (exc) {}
-			}
+			error: log.bind(null, levels.ERROR)
 			
 		};
 	}

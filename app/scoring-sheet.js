@@ -2,7 +2,7 @@
 
 // Dependencies
 var assert = require('./lib/assert');
-var logger = require('./lib/log')('scoring-sheet');
+var log = require('./lib/log');
 var DB = require('./lib/db');
 var Competitors = require('./enum/competitors');
 
@@ -19,6 +19,8 @@ function ScoringSheet(data) {
 	this.scores = data.scores || [0, 0];
 	this.totals = data.totals || null;
 	this.winner = data.winner || null;
+	
+	this.logger = log.createLogger('scoringSheet', "Sheet");
 }
 
 /**
@@ -33,6 +35,12 @@ ScoringSheet.prototype.markScore = function (competitor, value) {
 	// Add the score's value
 	var competitorIndex = (competitor === Competitors.HONG ? 0 : 1);
 	this.scores[competitorIndex] += value;
+	
+	this.logger.info('scoreMarked', {
+		competitor: competitor,
+		value: value,
+		newValue: this.scores[competitorIndex]
+	});
 };
 
 /**
@@ -52,6 +60,11 @@ ScoringSheet.prototype.computeTotals = function (maluses) {
 	// Compute the winner of the scoring sheet
 	this.winner = this.totals[0] > this.totals[1] ? Competitors.HONG : 
 				  (this.totals[1] > this.totals[0] ? Competitors.CHONG : null);
+	
+	this.logger.info('totalsComputed', this.winner, {
+		totals: this.totals,
+		winner: this.winner
+	});
 	
 	// Return the winner
 	return this.winner;

@@ -2,7 +2,7 @@
 
 // Modules
 var assert = require('./assert');
-var logger = require('./log')('db');
+var logger = require('./log').createLogger('db', "DB");
 var Datastore = require('nedb');
 var MatchStates = require('../enum/match-states');
 
@@ -35,7 +35,7 @@ var matchesDb = new Datastore({
  */
 function isError(err) {
 	if (err) {
-		logger.error(err.message);
+		logger.error('dbError', err.message, { message: err.message });
 		return true;
 	}
 	return false;

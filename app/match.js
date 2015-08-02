@@ -5,7 +5,7 @@ var EventEmitter = require('events').EventEmitter;
 var StateMachine = require('javascript-state-machine');
 
 var assert = require('./lib/assert');
-var logger = require('./lib/log')('match');
+var log = require('./lib/log');
 var util = require('./lib/util');
 var DB = require('./lib/db');
 var ScoringSheet = require('./scoring-sheet').ScoringSheet;
@@ -32,6 +32,7 @@ function Match(id, config, data) {
 	
 	this.id = id;
 	this.config = config;
+	this.logger = log.createLogger('match', "Match", { id: id });
 	
 	// Periods of the match
 	this.periods = data.periods || [];
@@ -258,7 +259,13 @@ Match.prototype._onEnterState = function (transition, from, to) {
 		timers: this.timers
 	});
 	
-	// Emit event synchronously to avoid race conditions
+	// Log and emit event synchronously to avoid race conditions
+	this.logger.info('stateChanged', to, {
+		transition: transition,
+		from: from,
+		to: to
+	});
+
 	this.emit('stateChanged', transition, from, to);
 };
 
@@ -314,6 +321,12 @@ Match.prototype._onEnterRound = function (transition, from, to) {
 	// Update database
 	DB.setMatchState(this.id, { round: to });
 	
+	this.logger.info('roundChanged', to, {
+		transition: transition,
+		from: from,
+		to: to
+	});
+	
 	// Start next period if entering tie breaker or golden point
 	if (transition !== 'startup' && !Rounds.isMainRound(to)) {
 		this.period.next();
@@ -352,6 +365,12 @@ Match.prototype._onEnterPeriod = function (transition, from, to) {
 		scoreboards: this.getScoreboardStates(),
 		penalties: this.penalties
 	});
+	
+	this.logger.info('periodChanged', to, {
+		transition: transition,
+		from: from,
+		to: to
+	});
 };
 
 /**
@@ -373,6 +392,12 @@ Match.prototype.score = function (cjId, score) {
 	// Update database
 	DB.setMatchState(this.id, { scoreboards: this.getScoreboardStates() });
 
+	this.logger.info('score', {
+		cjId: cjId,
+		competitor: score.competitor,
+		points: score.points
+	});
+	
 	this.emit('scoreboardsUpdated');
 };
 
@@ -421,6 +446,13 @@ Match.prototype._updatePenalty = function (type, competitor, value) {
 	// Update database
 	DB.setMatchState(this.id, { penalties: this.penalties });
 	
+	this.logger.info('penaltiesUpdated', {
+		type: type,
+		competitor: competitor,
+		value: value,
+		newValue: newValue
+	});
+	
 	this.emit('penaltiesUpdated');
 };
 
@@ -437,6 +469,11 @@ Match.prototype.saveTimerValue = function (name, value) {
 	
 	// Update database
 	DB.setMatchState(this.id, { timers: this.timers });
+	
+	// Log timer value every 30s
+	if (value % 30 === 0) {
+		this.logger.info(name + 'Timer', value, { value: value });
+	}
 };
 
 /**
@@ -453,6 +490,7 @@ Match.prototype._computeWinner = function () {
 	
 	// Store the maluses
 	this.maluses[this.period.current] = maluses;
+	this.logger.info('malusesComputed', { maluses: maluses });
 	
 	// Prepare to compute the totals and the overall winner
 	var cjIds = Object.keys(this.scoreboards);
@@ -482,6 +520,8 @@ Match.prototype._computeWinner = function () {
 		maluses: this.maluses,
 		winner: this.winner
 	});
+	
+	this.logger.info('winnerComputed', this.winner, { winner: this.winner });
 };
 
 module.exports.Match = Match;

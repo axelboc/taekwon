@@ -2,7 +2,7 @@
 
 // Modules
 var assert = require('./lib/assert');
-var logger = require('./lib/log')('cj');
+var log = require('./lib/log');
 var util = require('./lib/util');
 var User = require('./user').User;
 var MatchStates = require('./enum/match-states');
@@ -26,6 +26,10 @@ function CornerJudge(id, spark, connected, name, authorised) {
 	
 	this.name = name;
 	this.authorised = authorised;
+	this.logger = log.createLogger('cornerJudge', "CJ:" + name, {
+		id: id,
+		name: name
+	});
 	
 	// Store scores for undo feature
 	this.scores = [];
@@ -66,8 +70,6 @@ CornerJudge.prototype._onCancelJoin = function () {
 CornerJudge.prototype._onSelectRing = function (data) {
 	assert.object(data, 'data');
 	assert.integerGte0(data.index, 'data.index');
-	
-	logger.debug("Joining ring #" + (data.index + 1) + "...");
 	this.emit('joinRing', this, data.index);
 };
 
@@ -81,7 +83,6 @@ CornerJudge.prototype._onScore = function (data) {
 	assert.object(data, 'data');
 	assert.string(data.competitor, 'data.competitor');
 	assert.integerGt0(data.points, 'data.points');
-	
 	this.emit('score', this, util.createScoreObject(data.competitor, data.points));
 };
 
@@ -89,13 +90,7 @@ CornerJudge.prototype._onScore = function (data) {
  * Undo the latest score.
  */
 CornerJudge.prototype._onUndo = function () {
-	// Fail silently if there's no score to undo 
-	if (this.scores.length === 0) {
-		logger.error("No score to undo");
-		return;
-	}
-	
-	// Undo the latest score
+	assert.ok(this.scores.length > 0, "no score to undo");
 	this.emit('undo', this, this.scores.pop());
 };
 
@@ -121,6 +116,7 @@ CornerJudge.prototype.ringStateChanged = function (ringStates) {
  */
 CornerJudge.prototype.waitingForAuthorisation = function () {
 	this._send('root.showView', { view: 'waitingView' });
+	this.logger.info('waitingForAuthorisation');
 };
 
 /**
@@ -131,10 +127,11 @@ CornerJudge.prototype.waitingForAuthorisation = function () {
  */
 CornerJudge.prototype.rejected = function (message) {
 	assert.string(message, 'message', true);
-	logger.debug("> " + (message || "Join request cancelled"));
-
+	
 	this._send('ringListView.setInstr', { text: message });
 	this._send('root.showView', { view: 'ringListView' });
+	
+	this.logger.info(message ? 'rejected' : 'canceled', { message: 'message' });
 };
 
 /**
@@ -153,17 +150,11 @@ CornerJudge.prototype.ringJoined = function (ring) {
 	this._send('roundView.enableUndoBtn', { enable: false });
 	this._send('root.showView', { view: 'roundView' });
 	
-	logger.info('ringJoined', {
-		id: this.id,
-		name: this.name,
-		ringNumber: ring.number
-	});
+	this.logger.info('ringJoined', { ringNumber: ring.number });
 };
 
 /**
- * The Corner Judge has left the ring, either voluntarily or by force:
- * - The Jury President has rejected the Corner Judge's request to join the ring.
- * - The Jury President has removed the Corner Judge from the ring.
+ * The Corner Judge has left the ring, either voluntarily or by force.
  * @param {String} message - an explanation intended to be displayed to the human user
  */
 CornerJudge.prototype.ringLeft = function (message) {
@@ -177,10 +168,7 @@ CornerJudge.prototype.ringLeft = function (message) {
 	this._send('ringListView.setInstr', { text: message });
 	this._send('root.showView', { view: 'ringListView' });
 
-	logger.info('ringLeft', {
-		id: this.id,
-		name: this.name,
-	});
+	this.logger.info('ringLeft', { message: message });
 };
 
 /**
@@ -216,7 +204,6 @@ CornerJudge.prototype.matchStateChanged = function (ring, match, transition, fro
  */
 CornerJudge.prototype.scored = function (score) {
 	assert.provided(score, 'score');
-	logger.debug("Scored " + score.points + " for " + score.competitor);
 	
 	// Store the score so it can be undone
 	this.scores.push(score);
@@ -230,6 +217,8 @@ CornerJudge.prototype.scored = function (score) {
 		this.undoEnabled = true;
 		this._send('roundView.enableUndoBtn', { enable: true });
 	}
+	
+	this.logger.info('scored', score);
 };
 
 /**
@@ -238,7 +227,6 @@ CornerJudge.prototype.scored = function (score) {
  */
 CornerJudge.prototype.undid = function (score) {
 	assert.provided(score, 'score');
-	logger.debug("Undid score of " + score.points + " for " + score.competitor);
 	
 	this._send('roundView.showFdb', {
 		score: score,
@@ -250,6 +238,8 @@ CornerJudge.prototype.undid = function (score) {
 		this.undoEnabled = false;
 		this._send('roundView.enableUndoBtn', { enable: false });
 	}
+	
+	this.logger.info('undid', score);
 };
 
 /**

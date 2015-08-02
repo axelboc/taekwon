@@ -35,7 +35,7 @@ function Tournament(id, server) {
 	this.id = id;
 	this.rings = [];
 	this.users = {};
-	this.logger = log.createLogger('tournament');
+	this.logger = log.createLogger('tournament', "Tournament", { id: id });
 }
 
 /**
@@ -57,12 +57,6 @@ Tournament.prototype.ready = function(server) {
 	// Bind socket events
 	this.primus.on('connection', this._onConnection.bind(this));
 	this.primus.on('disconnection', this._onDisconnection.bind(this));
-	
-	// In development, if enabled, log all outgoing and incoming data
-	if (process.env.NODE_ENV === 'development' && process.env.FULL_LOG === 'true') {
-		this.primus.on('outgoing:data', this.logger.data.bind(this.logger, 'out'));
-		this.primus.on('incoming:data', this.logger.data.bind(this.logger, 'in'));
-	}
 	
 	// Start server
 	server.listen(80);
@@ -290,7 +284,13 @@ Tournament.prototype.restoreUsers = function (cb) {
 
 	DB.findUsers(this.id, function (docs) {
 		docs.forEach(this._initUser.bind(this, null, false));
-		this.logger.info('usersRestored', { users: docs });
+		
+		if (docs.length > 0) {
+			this.logger.info('usersRestored', { users: docs });
+		} else {
+			this.logger.info('noUsersToRestore', { users: docs });
+		}
+		
 		cb();
 	}.bind(this));
 };
@@ -346,7 +346,7 @@ Tournament.prototype._restoreUserSession = function (user, spark) {
  * @param {User} user
  * @param {Function} cb
  */
-Tournament.prototype._removeUser(user, cb) {
+Tournament.prototype._removeUser = function (user, cb) {
 	assert.instanceOf(user, 'user', User, 'User');
 	assert.function(cb, 'cb');
 	
@@ -575,10 +575,7 @@ Tournament.prototype._cjExited = function (cj) {
 	var ring = this._findCJRing(cj);
 	if (ring) {
 		// Remove Corner Judge from ring
-		ring.removeCJ(cj, "Exited system", function () {
-			// Notify Jury President
-			ring.juryPresident.cjExited(cj);
-		}.bind(this));
+		ring.removeCJ(cj, "Exited system");
 	}
 };
 
