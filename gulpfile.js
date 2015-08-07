@@ -64,9 +64,9 @@ gulp.task('scripts:lint', function() {
 	return gulp.src(sets.lint)
 		.pipe(cache('scripts:lint'))
 		.pipe(jshint({
-			"lookup": false, "devel": true, "browser": true, "node": true,
-			"bitwise": true, "curly": true, "eqeqeq": true, "funcscope": true, 
-			"latedef": "nofunc", "nocomma": true, "undef": true, "unused": false
+			lookup: false, devel: true, browser: true, node: true,
+			bitwise: true, curly: true, eqeqeq: true, funcscope: true, 
+			latedef: nofunc, nocomma: true, undef: true, unused: false
 		}))
 		.pipe(jshint.reporter('default'));
 });
