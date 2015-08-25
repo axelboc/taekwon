@@ -1,5 +1,8 @@
 'use strict';
 
+// Load environment variables (later used by envify) 
+require('dotenv').config({ path: 'config/.env' });
+
 // Dependencies
 var gulp = require('gulp');
 var buffer = require('vinyl-buffer');
@@ -17,65 +20,60 @@ var gutil = require('gulp-util');
 var path = require('path');
 var del = require('del');
 
-// Load environment variables (later used by envify) 
-require('dotenv').config({ path: 'config/.env' });
 
 // Clients
-var clients = ['corner-judge', 'jury-president'];
-
-// Default tasks (client tasks are added to the default tasks further down)
-var defaultTasks = clients.concat(['scripts:lint', 'server', 'watch']);
+var CLIENTS = ['corner-judge', 'jury-president'];
 
 // Globs
-var globs = {
+var GLOBS = {
 	js: '**/*.js',
 	njk: '**/*.njk',
 };
 
-// Path sets
-var sets = {
+// Sets of paths
+var SETS = {
 	lint: [
 		'app.js',
 		'gulpfile.js',
-		path.join('app', globs.js),
-		path.join('clients', globs.js),
-		path.join('tests', globs.js)
+		path.join('app', GLOBS.js),
+		path.join('clients', GLOBS.js),
+		path.join('tests', GLOBS.js)
 	],
 	client: [
 		path.join('config/.env'),
-		path.join('clients/shared', globs.js),
-		path.join('clients/templates', globs.njk)
+		path.join('clients/shared', GLOBS.js),
+		path.join('clients/templates', GLOBS.njk)
 	]
 };
 
 
 /**
- * Task to clear the datastores.
+ * Clear the datastores.
  */
 gulp.task('reset', function () {
 	del('app/data/**');
 });
 
 /**
- * Task to lint all scripts.
+ * Lint all scripts.
  * Use gulp-cached to re-lint only files that have changed.
  */
 gulp.task('scripts:lint', function() {
-	return gulp.src(sets.lint)
+	return gulp.src(SETS.lint)
 		.pipe(cache('scripts:lint'))
 		.pipe(jshint({
 			lookup: false, devel: true, browser: true, node: true,
 			bitwise: true, curly: true, eqeqeq: true, funcscope: true, 
-			latedef: nofunc, nocomma: true, undef: true, unused: false
+			latedef: 'nofunc', nocomma: true, undef: true, unused: false
 		}))
 		.pipe(jshint.reporter('default'));
 });
 
 /**
- * Task to build a client script with Browserify.
+ * Build a client script with Browserify.
  * Register one task per client.
  */
-clients.forEach(function (client) {
+CLIENTS.forEach(function (client) {
 	gulp.task(client, function () {
 		return browserify({
 				entries: path.join('clients', client, 'root.js'),
@@ -96,10 +94,10 @@ clients.forEach(function (client) {
 });
 
 /**
- * Task to start the server.
+ * Start the development server.
  * Reload when the relevant files have changed.
  */
-gulp.task('server', clients, function () {
+gulp.task('server', CLIENTS, function () {
 	nodemon({
 		script: 'app.js',
 		watch: [
@@ -112,29 +110,34 @@ gulp.task('server', clients, function () {
 });
 
 /**
- * Task to watch for changes.
+ * Watch for changes.
  */
 gulp.task('watch', ['server'], function () {
 	// Watch and rebuild each client's scritps
-	clients.forEach(function (client) {
-		gulp.watch(sets.client.concat([
-			path.join('clients', client, globs.js),
+	CLIENTS.forEach(function (client) {
+		gulp.watch(SETS.client.concat([
+			path.join('clients', client, GLOBS.js),
 		]), [client]);
 	});
 	
 	// Lint any changed JS files
-	gulp.watch(sets.lint, ['scripts:lint']);
+	gulp.watch(SETS.lint, ['scripts:lint']);
 });
 
 /**
- * Task to run Mocha tests.
+ * Run Mocha tests.
  */
 gulp.task('test', function () {
-	return gulp.src(path.join('tests', globs.js))
+	return gulp.src(path.join('tests', GLOBS.js))
 		.pipe(mocha());
 });
 
+
 /**
- * Default task.
+ * ============
+ *  MAIN TASKS
+ * ============
  */
-gulp.task('default', defaultTasks);
+gulp.task('build', CLIENTS.slice(0));
+gulp.task('default', ['build', 'scripts:lint', 'server', 'watch']);
+gulp.task('reset', ['reset', 'default']);

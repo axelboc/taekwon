@@ -9,8 +9,10 @@
     "url": "http://github.com/axelboc/taekwon"
   },
   "scripts": {
-    "start": "gulp",
-    "reset": "gulp reset && gulp",
+    "build": "gulp build",
+    "start": "node app",
+    "dev": "gulp",
+    "reset": "gulp reset",
     "test": "gulp test"
   },
   "engines": {
