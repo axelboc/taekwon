@@ -59,7 +59,7 @@ Tournament.prototype.ready = function(server) {
 	this.primus.on('disconnection', this._onDisconnection.bind(this));
 	
 	// Start server
-	server.listen(80);
+	server.listen(process.env.PORT);
 };
 
 /**

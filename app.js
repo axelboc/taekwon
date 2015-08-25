@@ -36,6 +36,7 @@ app.use(express.static(__dirname + '/public'));
 
 // Pass server-side configuration to client
 app.locals.baseUrl = process.env.BASE_URL;
+app.locals.port = process.env.PORT;
 
 // Assert relevant configuration options
 assert.ok(config.maxScore >= 3 && config.maxScore <= 5, "maximum score must be 3, 4 or 5 (current: " + config.maxScore + ")");

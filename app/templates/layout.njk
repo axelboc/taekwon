@@ -12,7 +12,7 @@
 </head>
 <body>
 	{% block body %}{% endblock %}
-	<script src="{{ baseUrl }}/primus/primus.js"></script>
+	<script src="{{ baseUrl }}:{{ port }}/primus/primus.js"></script>
 	<script src="/js/{{ identity }}.js"></script>
 </body>
 </html>
