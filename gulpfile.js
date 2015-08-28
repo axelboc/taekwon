@@ -140,4 +140,3 @@ gulp.task('test', function () {
  */
 gulp.task('build', CLIENTS.slice(0));
 gulp.task('default', ['build', 'scripts:lint', 'server', 'watch']);
-gulp.task('reset', ['reset', 'default']);
