@@ -1,34 +1,8 @@
 'use strict';
 
-// Logger
-var logger = require('./log').createLogger('assert', "Assert");
-
 // Import Node's core `assert` module, then extend it.
 var assert = require('assert');
 
-// Monkey patch `assert.ok` function to skip assertion in production and add functionality.
-// Store reference to original function
-var _ok = assert.ok;
-
-/**
- * Monkey patch `assert.ok` method.
- * @param {Mixed} val
- * @param {String} message
- */
-assert.ok = function (val, message) {
-	if (!val) {
-		// Forward to original `assert.ok` method in development
-		if (process.env.NODE_ENV === 'development') {
-			_ok(val, message);
-		} else {
-			// Log error
-			logger.error('assertionError', message, {
-				val: val,
-				message: message
-			});
-		}
-	}	
-};
 
 /**
  * Assert that a value is provided.
