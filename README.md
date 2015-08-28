@@ -1,6 +1,23 @@
 # Taekwon
 
-Real-time scoring system for **ITF Taekwon-Do** sparring matches, built with [Node.js](http://nodejs.org) and Web Sockets ([Primus](https://github.com/primus/primus)).
+Real-time scoring system for **ITF Taekwon-Do** sparring matches, built with [Node.js](http://nodejs.org) and WebSocket ([Primus](https://github.com/primus/primus)).
+
+- [Installation](#installation)
+- [Take it for a spin!](#take-it-for-a-spin)
+- [Let's get real](#lets-get-real)
+  - [Hardware requirements](#hardware-requirements)
+    - [Choosing a Wi-Fi router](#choosing-a-wi-fi-router)
+  - [Software requirements](#software-requirements)
+  - [Logistics](#logistics)
+  - [Network and environment configuration](#network-and-environment-configuration)
+    - [Set up a local Wi-Fi network](#set-up-a-local-wi-fi-network)
+    - [Give the server a static IP address](#give-the-server-a-static-ip-address)
+    - [Edit Taekwon's environment configuration](#edit-taekwons-environment-configuration)
+    - [Checkpoint](#checkpoint)
+    - [Set up a custom URL](#set-up-a-custom-url)
+  - [Running Taekwon in production with `forever`](#running-taekwon-in-production-with-forever)
+  - [Ready, set, go!](#ready-set-go)
+- [About security](#about-security)
 
 
 ## Installation
@@ -35,7 +52,7 @@ That's it! You can now play around with the system:
 
 ## Let's get real
 
-By the end of the this section you'll know how to use Taekwon at a tournament. We'll list the hardware and software requirements, discuss some of the logistics involved, set up the Wi-Fi network, learn how to manage the server, configure the system, and finally run the server.
+By the end of this section you'll know all about using Taekwon at a tournament. We'll list the hardware and software requirements, discuss some of the logistics involved, set up the Wi-Fi network, and learn how to configure and run the server in production.
 
 ### Hardware requirements
 
@@ -94,6 +111,16 @@ Typically, Corner Judges access the system by typing a URL in a browser. Althoug
 
 In a perfect scenario, the organiser of the tournament would provide all the devices so as to ensure that they are properly configured. If this is not an option (usually for financial reasons), the best you can do is communicate these instructions to the judges in advance and perhaps do a test run before the tournament.
 
+Finally, it's always good to remember that no system is flawless; something could go wrong despite your best efforts:
+
+- a Corner Judge's device could run out of battery or stop working,
+- someone could trip over the router's power cord,
+- the power could go out,
+- a Jury President could spill water on his/her laptop,
+- ... the list is endless!
+
+With this in mind, it's wise to have a back up plan in case something goes wrong. Place scoring sheets, pens and flags under the Corner Judges' chairs, and a penalty board on the Jury President's table. Then, decide and explain to the judges how they should react in various scenarios. If something goes wrong in the middle of a match, should the match be stopped? Should the Corner Judges grab a scoring sheet from under their chairs? If a Corner Judge starts using a scoring sheet, would the Jury President be able to compute the results appropriately? And so on and so forth...
+
 
 ### Network and environment configuration
 
@@ -133,7 +160,7 @@ Remember `config/.env`, the environment configuration file that you created when
 
 1. Change the value of `BASE_URL` from `http://localhost` to `http://192.168.1.2` (i.e. the IP address that you chose for the server).
 2. Open a terminal and navigate to Taekwon's directory.
-3. Run `npm run build` to re-build the client scripts.
+3. Run `npm run build` to rebuild the client scripts.
 
 
 #### Checkpoint
@@ -196,5 +223,19 @@ For more information, refer to the [official documentation](https://github.com/f
 
 ### Ready, set, go!
 
+You're still here? **Congratulations!** You're almost ready to use Taekwon at a tournament. The last step would be to take it for a test run at your local club. This will give you an idea of what to expect, especially in terms of logistics, and a chance to train the judges to use the system.
 
+Oh and of course, don't forget to change the default master password in `config/.env` and to have a look at the various configuration options available in `config/config.json`. When you're done, make sure you run `npm run build` to rebuild the client stripts.
+
+Good luck!
+
+
+## About security
+
+Taekwon currently implements two main security features:
+
+- The Jury President interface is protected by a configurable password.
+- Jury Presidents have to manually accept Corner Judges who try to join their rings.
+
+These two features prevent unauthorised users from using the system quite effectively, but are no silver bullet. Because it runs on a local network, the system doesn't use SSL or any other kind of encryption. All data exchanged betwen the server and the clients is transmitted in clear, including the clients' identifiers. This means that anyone connected to the Wi-Fi network could technically intercept and misuse this data, which is why you should strongly consider [securing the network](#set-up-a-local-wi-fi-network).
 
