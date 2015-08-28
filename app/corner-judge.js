@@ -283,7 +283,7 @@ CornerJudge.prototype._updateBackdrop = function (ring) {
 					visible = false;
 					break;
 				case MatchStates.ROUND_IDLE:
-					subtext = "Round is about to being";
+					subtext = "Round is about to begin";
 					break;
 				case MatchStates.BREAK_STARTED:
 					subtext = "Break in progress";
