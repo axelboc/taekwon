@@ -57,13 +57,10 @@ JudgesSidebar.prototype.onListDelegate = function (evt) {
 			/*if (!this.ring.match || !this.ring.match.isInProgress() || 
 				confirm("Match in progress. If you continue, this judge's scores will be erased. " +
 						"Remove anyway?")) {*/
-			console.log("Judge removed");
 			this.io.send('removeCJ', data);
 		} else if (btn.classList.contains('js-judge-accept')) {
-			console.log("Judge authorised");
 			this.io.send('authoriseCJ', data);
 		} else if (btn.classList.contains('js-judge-reject')) {
-			console.log("Judge rejected");
 			this.io.send('rejectCJ', data);
 		}
 	}

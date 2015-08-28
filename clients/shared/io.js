@@ -25,7 +25,6 @@ function IO(identity) {
 	this.query = 'identity=' + identity + (this.id ? '&id=' + this.id : '');
 
 	// Initialise Primus
-	console.log("Connecting to server");
 	this.primus = new Primus(process.env.BASE_URL, {
 		strategy: ['online', 'disconnect']
 	});
