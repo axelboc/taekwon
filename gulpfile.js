@@ -41,6 +41,7 @@ var SETS = {
 	],
 	client: [
 		path.join('config/.env'),
+		path.join('config/config.json'),
 		path.join('clients/shared', GLOBS.js),
 		path.join('clients/templates', GLOBS.njk)
 	]
