@@ -1,6 +1,6 @@
 # Taekwon
 
-Real-time scoring system for **ITF Taekwon-Do** sparring matches, built with [Node.js](http://nodejs.org) and Web Sockets (with [Primus](https://github.com/primus/primus)).
+Real-time scoring system for **ITF Taekwon-Do** sparring matches, built with [Node.js](http://nodejs.org) and Web Sockets ([Primus](https://github.com/primus/primus)).
 
 
 ## Installation
@@ -151,16 +151,50 @@ If you can see the Corner Judge interface in step 4 but not 5, it's most likely 
 
 #### Set up a custom URL
 
-You could stop here and Taekwon would work perfectly fine at the tournament. Let's be honest, though, an IP address doesn't make a good URL. It's difficult to remember and tedious to type, especially on a touch screen. If you can't set up shortcuts on the devices' home screens to bypass the step of typing the URL (cf. [Logistics](#logistics) section), this section explains how you might go about mapping a custom URL, like [http://taekwon.do](http://taekwon.do), to your server's IP address.
+You could stop here and Taekwon would work perfectly fine at the tournament. Let's be honest, though, an IP address doesn't make a good URL. It's difficult to remember and tedious to type, especially on a touch screen. This section explains how you might go about mapping a custom URL, like [http://taekwon.do](http://taekwon.do), to your server's IP address. This is especially useful if you can't set up home screen shortcuts on the judges' devices (cf. [Logistics](#logistics) section), 
 
-If your router supports **static DNS mapping**, it's very easy:
+If your router supports **static DNS mapping**, it's a cake walk:
 
 1. Open your router's administration interface and look for a page called *Static DNS* (or similar).
 2. Add a mapping for a domain name of your choosing (e.g. `taekwon.do`) to the server's static IP address (e.g. `192.168.1.2`).
-3. Save the changes, restart the router just in case, and try it out! Once again, some browsers may require you to type the `http://` suffix to force the resolution of the URL.
+3. Save the changes and restart the router.
 
-If you can't find the *Static DNS* page, things get a little more complicated and outside of the scope of this documentation... One solution might be to host your own DNS server on the server and point the router to it.
+If you can't find the *Static DNS* page, things get a little more complicated and outside of the scope of this documentation. One solution might be to host your own DNS server on the server and point the router to it.
 
+Once the custom DNS mapping is in place:
+
+1. Edit `config/.env` and change the value of `BASE_URL` to the new URL (include the `http://` prefix, but do not add a trailing slash).
+2. Run `npm run build` to rebuild the client scripts.
+3. Run `npm start` to start the server.
+4. Try it out!
+
+
+### Running Taekwon in production with `forever`
+
+The most difficult part is done: you've managed to get Taekwon to work over a Wi-Fi network! But so far, you've been running the system *in development*. This means that:
+
+- lots of debugging messages are being logged to the terminal and to your browser's developer console (which can be opened by pressing F12), and
+- if a critical error were to occur, the server would crash and not be able to restart.
+
+Development mode is great for testing and debugging, but it's not robust enough to withstand real-life conditions. It's time to learn how to run Taekwon *in production*.
+
+The first step is to switch the `NODE_ENV` flag from `development` to `production` in `config/.env`. Once you're done, run `npm run build` to rebuild the client scripts.
+
+The second step has to do with the way Taekwon is started. Basically, instead of running `npm start`, we're going to use a process management tool called `forever`. This tool will **restart** Taekwon automatically if it ever crashes. When restarting, Taekwon is able to restore its entire state like nothing happened (rings, judges, matches, etc.) So by using `forever` we guarantee that the system will remain perfectly functional for the duration of the tournament.
+
+To install `forever` on the server, open a terminal as administrator and run `npm install forever -g`. You can then run the following commands from inside Taekwon's directory:
+
+- `forever start app` to start the system (`app.js`)
+- `forever stop app` to stop it
+- `forever list` to check whether the system is running
+- `forever logs app` to display the logs to the console (in production, only fatal errors are logged)
+- `forever logs app -f` to stream the logs to the console (hit `Ctrl-C` to stop the streaming)
+- `forever logs` to display the name and location of the log file
+
+For more information, refer to the [official documentation](https://github.com/foreverjs/forever).
+
+
+### Ready, set, go!
 
 
 
