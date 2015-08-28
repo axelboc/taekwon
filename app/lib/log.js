@@ -47,25 +47,23 @@ module.exports = {
 			// In development, log the message (or the event) to console
 			if (process.env.NODE_ENV === 'development') {
 				console[level]('[' + name + '] ' + event + (message ? ": " + message : ""));
-				
-				// If level is LOG, don't persist
-				if (level === levels.LOG) {
-					return;
-				}
 			}
-
-			// Add a new entry to the logs
-			nedbLogger.insert({
-				timestamp: new Date(),
-				level: level,
-				topic: topic,
-				event: event,
-				data: extend({}, loggerData, data)
-			}, function (err) {
-				if (err && process.env.NODE_ENV === 'development') {
-					console.error("Error adding log to NeDB datastore" + (err.message ? ": " + err.message : ""));
-				}
-			});
+				
+			// Persist log except when level is LOG
+			if (level !== levels.LOG) {
+				// Add a new entry to the logs
+				nedbLogger.insert({
+					timestamp: new Date(),
+					level: level,
+					topic: topic,
+					event: event,
+					data: extend({}, loggerData, data)
+				}, function (err) {
+					if (err) {
+						console.error("Error adding log to NeDB datastore" + (err.message ? ": " + err.message : ""));
+					}
+				});
+			}
 		}
 		
 		return {
