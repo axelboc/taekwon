@@ -1,6 +1,7 @@
 'use strict';
 
 // Dependencies
+var Howl = require('howler').Howl;
 var helpers = require('../shared/helpers');
 var Timer = require('./timer').Timer;
 var stateBtnsTemplate = require('../templates/state-btns.njk');
@@ -23,10 +24,10 @@ function MatchPanel(io) {
 	], this);
 
 	// Time keeping
+	var beeps = new Howl({ urls: ['/audio/beeps.ogg', '/audio/beeps.mp3'] });
 	this.timeKeeping = this.root.querySelector('.time-keeping');
-	var tkBeeps = document.getElementById('tk-beeps');
-	this.roundTimer = new Timer('round', io, tkBeeps);
-	this.injuryTimer = new Timer('injury', io, tkBeeps);
+	this.roundTimer = new Timer('round', io, beeps);
+	this.injuryTimer = new Timer('injury', io, beeps);
 
 	// Match state, scores and penalties
 	this.rvTop = this.root.querySelector('.rv-top');

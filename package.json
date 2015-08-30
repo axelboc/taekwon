@@ -12,8 +12,7 @@
     "build": "gulp build",
     "start": "node app",
     "dev": "gulp",
-    "reset": "gulp reset",
-    "test": "gulp test"
+    "reset": "gulp reset"
   },
   "engines": {
     "node": "0.12.x"
@@ -27,6 +26,7 @@
     "express": "4.12.*",
     "extend": "^3.0.0",
     "fastclick": "^1.0.6",
+    "howler": "^1.1.26",
     "javascript-state-machine": "2.3.*",
     "nedb": "1.1.*",
     "nedb-logger": "0.1.*",
@@ -38,7 +38,6 @@
   },
   "devDependencies": {
     "browserify": "^10.2.4",
-    "chai": "3.0.*",
     "del": "^1.2.0",
     "envify": "^3.4.0",
     "gulp": "^3.9.0",
@@ -49,9 +48,7 @@
     "gulp-sourcemaps": "^1.5.2",
     "gulp-uglify": "^1.2.0",
     "gulp-util": "^3.0.6",
-    "mocha": "2.2.*",
     "nunjucksify": "^0.2.2",
-    "sinon": "1.15.*",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
   }

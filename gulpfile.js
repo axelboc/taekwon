@@ -12,7 +12,6 @@ var nunjucksify = require('nunjucksify');
 var envify = require('envify');
 var cache = require('gulp-cached');
 var jshint = require('gulp-jshint');
-var mocha = require('gulp-mocha');
 var nodemon = require('gulp-nodemon');
 var sourcemaps = require('gulp-sourcemaps');
 var uglify = require('gulp-uglify');
@@ -123,14 +122,6 @@ gulp.task('watch', ['server'], function () {
 	
 	// Lint any changed JS files
 	gulp.watch(SETS.lint, ['scripts:lint']);
-});
-
-/**
- * Run Mocha tests.
- */
-gulp.task('test', function () {
-	return gulp.src(path.join('tests', GLOBS.js))
-		.pipe(mocha());
 });
 
 

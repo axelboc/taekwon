@@ -5,10 +5,10 @@ var helpers = require('../shared/helpers');
 var config = require('../../config/config.json').timer;
 
 
-function Timer(name, io, beep) {
+function Timer(name, io, beeps) {
 	this.name = name;
 	this.io = io;
-	this.beep = beep;
+	this.beeps = beeps;
 
 	this.root = document.getElementById(name + '-timer');
 	this.min = this.root.querySelector('.tk-timer-min');
@@ -59,8 +59,8 @@ Timer.prototype._tickDown = function () {
 		this._valueChanged();
 
 		if (this.value === 0) {
-			// Beep and stop the timer
-			this.beep.play();
+			// Play beeps and stop the timer
+			this.beeps.play();
 			this.stop();
 		}
 	}
