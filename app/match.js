@@ -279,8 +279,8 @@ Match.prototype._onRoundEnded = function () {
 			// If round 1 and match is to have two rounds, trigger a break
 			this.state.break();
 		} else {
-			// Otherwise, compute the maluses, total scores and overall winner
-			this._computeWinner();
+			// Otherwise, compute the results for the current period
+			this._computeResults();
 
 			// If winner or end of Golden Point, end match; otherwise, show results
 			if (this.winner || this.round.is(Rounds.GOLDEN_POINT)) {
@@ -477,9 +477,26 @@ Match.prototype.saveTimerValue = function (name, value) {
 };
 
 /**
- * Compute the maluses, total scores and overall winner for the current period.
+ * Compute the maluses, total scores and winner for the current period.
  */
-Match.prototype._computeWinner = function () {
+Match.prototype._computeResults = function () {
+	var cjIds = Object.keys(this.scoreboards);
+	this._computeMaluses();
+	this._computeTotals(cjIds);
+	this._computeWinner(cjIds);
+
+	// Update database
+	DB.setMatchState(this.id, {
+		scoreboards: this.getScoreboardStates(),
+		maluses: this.maluses,
+		winner: this.winner
+	});
+};
+
+/**
+ * Compute the maluses for the current period.
+ */
+Match.prototype._computeMaluses = function () {
 	// Retrieve the penalties for the current period
 	var penalties = this.penalties[this.period.current];
 	
@@ -491,35 +508,51 @@ Match.prototype._computeWinner = function () {
 	// Store the maluses
 	this.maluses[this.period.current] = maluses;
 	this.logger.info('malusesComputed', { maluses: maluses });
-	
-	// Prepare to compute the totals and the overall winner
-	var cjIds = Object.keys(this.scoreboards);
-	var diff = 0;
+};
+
+/**
+ * Compute the total scores for the current period in every scoring sheet.
+ * @param {Array} cjIds
+ */
+Match.prototype._computeTotals = function (cjIds) {
+	cjIds.forEach(function (cjId) {
+		var sheet = this.scoreboards[cjId].sheets[this.period.current];
+		var maluses = this.maluses[this.period.current];
+		sheet.computeTotals(maluses);
+	}, this);
+};
+
+/**
+ * Compute the winner for the current period in every scoring sheet,
+ * then compute the overall winner.
+ * @param {Array} cjIds
+ */
+Match.prototype._computeWinner = function (cjIds) {
+	var wins = [0, 0];
 	var ties = 0;
 
 	// Compute the totals for the current period in each scoreboard
 	cjIds.forEach(function (cjId) {
-		var winner = this.scoreboards[cjId].sheets[this.period.current].computeTotals(maluses);
+		var sheet = this.scoreboards[cjId].sheets[this.period.current];
+		sheet.computeWinner();
 		
-		// +1 if hong wins, -1 if chong wins, 0 if tie
-		diff += winner === Competitors.HONG ? 1 : (winner === Competitors.CHONG ? -1 : 0);
-		ties += !winner ? 1 : 0;
+		if (sheet.winner) {
+			// Increment the winner's win sum
+			wins[Competitors.getIndex(sheet.winner)] += 1;
+		} else {
+			// No winner, increment tie sum
+			ties += 1;
+		}
 	}, this);
 	
-	// If majority of ties, match is also a tie
-	if (cjIds.length > 2 && ties > Math.floor(cjIds.length % 2)) {
+	// If majority of ties, match is also a tie (with 4 CJs, this is the case only with 3 ties + 1 win)
+	if (ties > Math.max.apply(null, wins)) {
 		this.winner = null;
 	} else {
-		// If diff is positive, hong wins; if it's negative, chong wins; otherwise, it's a tie
-		this.winner = diff > 0 ? Competitors.HONG : (diff < 0 ? Competitors.CHONG : null);
+		// Determine winner
+		var index = wins[0] > wins[1] ? 0 : (wins[1] > wins[0] ? 1 : -1);
+		this.winner = index > -1 ? Competitors.get(index) : null;
 	}
-	
-	// Update database
-	DB.setMatchState(this.id, {
-		scoreboards: this.getScoreboardStates(),
-		maluses: this.maluses,
-		winner: this.winner
-	});
 	
 	this.logger.info('winnerComputed', this.winner, { winner: this.winner });
 };
