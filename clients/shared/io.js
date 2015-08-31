@@ -1,7 +1,7 @@
 'use strict';
 
 // Dependencies
-/* globals Primus */
+var Primus = require('../vendor/primus');
 var cookie = require('tiny-cookie');
 var helpers = require('./helpers');
 var Backdrop = require('./backdrop').Backdrop;

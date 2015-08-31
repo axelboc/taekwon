@@ -51,8 +51,9 @@ Tournament.prototype.ready = function(server) {
 		transformer: 'sockjs'
 	});
 	
-	// Add emit plugin
+	// Add emit plugin and remove client library middleware
 	this.primus.use('emit', Emit);
+	this.primus.remove('primus.js');
 	
 	// Bind socket events
 	this.primus.on('connection', this._onConnection.bind(this));

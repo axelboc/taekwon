@@ -36,6 +36,7 @@ var SETS = {
 		'gulpfile.js',
 		path.join('app', GLOBS.js),
 		path.join('clients', GLOBS.js),
+		('!' + path.join('clients', 'vendor', GLOBS.js)),
 		path.join('tests', GLOBS.js)
 	],
 	client: [
