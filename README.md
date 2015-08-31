@@ -1,6 +1,6 @@
 # Taekwon
 
-Real-time scoring system for **ITF Taekwon-Do** sparring matches, built with [Node.js](http://nodejs.org) and WebSocket ([Primus](https://github.com/primus/primus)).
+Real-time scoring system for **ITF Taekwon-Do** sparring matches, built with [Node.js](http://nodejs.org) and [Primus](https://github.com/primus/primus).
 
 - [Installation](#installation)
 - [Take it for a spin!](#take-it-for-a-spin)

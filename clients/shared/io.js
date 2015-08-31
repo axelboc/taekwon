@@ -26,7 +26,11 @@ function IO(identity) {
 
 	// Initialise Primus
 	this.primus = new Primus(process.env.BASE_URL, {
-		strategy: ['online', 'disconnect']
+		reconnect: {
+			max: 5000,
+			retries: 10000,
+			factor: 1.2
+		}
 	});
 	
 	// Add the query parameter dynamically on every Web Socket re/connection
