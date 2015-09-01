@@ -1,5 +1,9 @@
 'use strict';
 
+// Modules
+var assert = require('../lib/assert');
+
+
 /**
  * The competitors.
  * @type {Array}
@@ -24,6 +28,7 @@ var competitorIndices = {};
  * @return {String}
  */
 function get(index) {
+	assert.ok(index >= 0 && index < competitors.length, "`index` out of range: " + index);
 	return competitors[index];
 }
 
@@ -33,6 +38,7 @@ function get(index) {
  * @return {Integer}
  */
 function getIndex(competitor) {
+	assert.string(competitor, 'competitor');
 	return competitorIndices[competitor];
 }
 
