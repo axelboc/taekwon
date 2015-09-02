@@ -6,8 +6,15 @@ Real-time scoring system for **ITF Taekwon-Do** sparring matches, built with [No
 - [Take it for a spin!](#take-it-for-a-spin)
 - [Quick tour of the interface](#quick-tour-of-the-interface)
   - [Identification](#identification)
-  - [Open/join a ring](#open-join-a-ring)
+  - [Open/join a ring](#openjoin-a-ring)
   - [Match configuration](#match-configuration)
+  - [Authorisation process](#authorisation-process)
+  - [New match](#new-match)
+  - [Round in progress](#round-in-progress)
+  - [Break](#break)
+  - [Injury/timeout](#injurytimeout)
+  - [Result](#result)
+  - [Additional rounds](#additional-rounds)
 - [Let's get real](#lets-get-real)
   - [Hardware requirements](#hardware-requirements)
     - [Choosing a Wi-Fi router](#choosing-a-wi-fi-router)
@@ -62,71 +69,95 @@ This section should give you a general idea of how to use the Jury President and
 
 | Screenshot | Description |
 |:---:|---|
-| [![thumb-jp-identify](https://cloud.githubusercontent.com/assets/2936402/9620894/431fdd2e-5163-11e5-99a0-1fdee17ac79b.png)](https://cloud.githubusercontent.com/assets/2936402/9620865/3b020018-5163-11e5-86ab-a2bd68c6883d.png) | Jury President must enter the *master password**, as configured in `config/.env`. |
-| [![thumb-cj-identify](https://cloud.githubusercontent.com/assets/2936402/9620882/42f1cf1a-5163-11e5-996c-01bc718a8730.png)](https://cloud.githubusercontent.com/assets/2936402/9620857/3ad867f8-5163-11e5-875a-d2ca00063f84.png) | Corner Judge must enter his/her **name**. |
+| [![thumb-jp-identify](https://cloud.githubusercontent.com/assets/2936402/9620894/431fdd2e-5163-11e5-99a0-1fdee17ac79b.png)](https://cloud.githubusercontent.com/assets/2936402/9620865/3b020018-5163-11e5-86ab-a2bd68c6883d.png) | The Jury President must enter the **master password**, as configured in `config/.env`. |
+| [![thumb-cj-identify](https://cloud.githubusercontent.com/assets/2936402/9620882/42f1cf1a-5163-11e5-996c-01bc718a8730.png)](https://cloud.githubusercontent.com/assets/2936402/9620857/3ad867f8-5163-11e5-875a-d2ca00063f84.png) | The Corner Judge must enter his/her **name**. |
 
 
 ### Open/join a ring
 
 | Screenshot | Description |
 |:---:|---|
-| [![thumb-jp-open-ring](https://cloud.githubusercontent.com/assets/2936402/9620901/434b2312-5163-11e5-925d-222cd05075d8.png)](https://cloud.githubusercontent.com/assets/2936402/9620875/3b2c63a8-5163-11e5-9484-505e350f609f.png) | Jury President may **select a ring to open**. The buttons are disabled once the rings are opened. |
-| [![thumb-cj-join-ring](https://cloud.githubusercontent.com/assets/2936402/9620883/42f40078-5163-11e5-9f08-6e59dbb65366.png)](https://cloud.githubusercontent.com/assets/2936402/9620854/3ad70688-5163-11e5-8871-f3f5ef528bf2.png) | Corner Judge may **select a ring to join**. The buttons are disabled until the rings are opened by the Jury Presidents. If a ring is full (i.e. if all of the Corner Judge slots of the ring are filled), a message is displayed. |
+| [![thumb-jp-open-ring](https://cloud.githubusercontent.com/assets/2936402/9620901/434b2312-5163-11e5-925d-222cd05075d8.png)](https://cloud.githubusercontent.com/assets/2936402/9620875/3b2c63a8-5163-11e5-9484-505e350f609f.png) | The Jury President may **select a ring to open**. The buttons are disabled once the rings are opened. |
+| [![thumb-cj-join-ring](https://cloud.githubusercontent.com/assets/2936402/9620883/42f40078-5163-11e5-9f08-6e59dbb65366.png)](https://cloud.githubusercontent.com/assets/2936402/9620854/3ad70688-5163-11e5-8871-f3f5ef528bf2.png) | The Corner Judge may **select a ring to join**. The buttons are disabled until the rings are opened by the Jury Presidents. If a ring is full (i.e. if all of the Corner Judge slots of the ring are filled), a message is displayed. |
 
 
 ### Match configuration
 
 | Screenshot | Description |
 |:---:|---|
-| [![thumb-jp-config-match](https://cloud.githubusercontent.com/assets/2936402/9620893/431ea1d4-5163-11e5-94da-1bb2bb5e99f0.png)](https://cloud.githubusercontent.com/assets/2936402/9620866/3b02861e-5163-11e5-8401-5ae82a9533eb.png) | Jury President has opened a ring and can now **manage the ring's Corner Judges** (sidebar) and **configure the first match**. |
+| [![thumb-jp-config-match](https://cloud.githubusercontent.com/assets/2936402/9620893/431ea1d4-5163-11e5-94da-1bb2bb5e99f0.png)](https://cloud.githubusercontent.com/assets/2936402/9620866/3b02861e-5163-11e5-8401-5ae82a9533eb.png) | The Jury President has opened a ring and can now **manage the ring's Corner Judges** (sidebar) and **configure the first match**. The configuration options include the duration of the rounds, breaks and injury timeouts, and the number of *main* rounds (1 or 2). In the sidebar, the number of Corner Judge *slots* can be adjusted to equal the number of Corner Judges that are expected to join the ring. |
 
 
-### 
-
-| Screenshot | Description |
-|:---:|---|
-| []() | |
-| []() | |
-
-
-### 
+### Authorisation process
 
 | Screenshot | Description |
 |:---:|---|
-| []() | |
-| []() | |
+| [![thumb-cj-wait-authorisation](https://cloud.githubusercontent.com/assets/2936402/9620884/42f43a02-5163-11e5-95b0-638a6f750470.png)](https://cloud.githubusercontent.com/assets/2936402/9620853/3ad6e5ea-5163-11e5-9774-53c1d90069c4.png) | Having selected a ring to join, the Corner Judge must **wait** for the Jury President to accept the request. |
+| [![thumb-jp-authorise](https://cloud.githubusercontent.com/assets/2936402/9620890/431c582a-5163-11e5-85b4-53c5cf27c2ff.png)](https://cloud.githubusercontent.com/assets/2936402/9620863/3afd776e-5163-11e5-83a1-40e32a909f9c.png) | The Jury President can either **accept of reject** the request. |
+| [![thumb-cj-wait-for-new-match](https://cloud.githubusercontent.com/assets/2936402/9620881/42cbc752-5163-11e5-91d0-71694130d4ea.png)](https://cloud.githubusercontent.com/assets/2936402/9620858/3ad8cec8-5163-11e5-9084-8f07d54fbcc4.png) | Upon acceptance, the Corner Judge is shown the **scoring interface** overlayed with a message informing him/her that no match is currently in progress. If the Jury President were to lose connection with the server, the overlay would show a different message. |
+| [![thumb-jp-new-match](https://cloud.githubusercontent.com/assets/2936402/9620900/434761d2-5163-11e5-9a52-08fcaf5b1a0b.png)](https://cloud.githubusercontent.com/assets/2936402/9620873/3b287220-5163-11e5-896f-8cbb83605ba6.png) | The Corner Judge now appears as ***Connected*** in the sidebar of the Jury President interface. If the Corner Judge were to lose connection with the server, a different message would be shown. The Jury President may force a Corner Judge to leave the ring at any time by pressing the cross next to the Corner Judge's name in the sidebar. |
 
 
-### 
-
-| Screenshot | Description |
-|:---:|---|
-| []() | |
-| []() | |
-
-
-### 
+### New match
 
 | Screenshot | Description |
 |:---:|---|
-| []() | |
-| []() | |
+| [![thumb-jp-start-round](https://cloud.githubusercontent.com/assets/2936402/9620902/434bf1ca-5163-11e5-89e8-312c9d00b511.png)](https://cloud.githubusercontent.com/assets/2936402/9620874/3b2a19b8-5163-11e5-98e9-ee8fdd784893.png) | Once the match has been adequately configured and all the Corner Judges have joined the ring (and appear as *Connected* in the sidebar), the Jury President may press the *New Match* button. This reveals the *match panel*, which allows the Jury President to **control and monitor the match**. |
+| [![thumb-cj-wait-for-round-start](https://cloud.githubusercontent.com/assets/2936402/9620888/4315e8fa-5163-11e5-844a-3d0037dcd2b0.png)](https://cloud.githubusercontent.com/assets/2936402/9620859/3af90d64-5163-11e5-92f9-29b16157f882.png) | The Corner Judge is informed that a round is about to begin. |
+
+> At this point, the centre referee would have called the competitors onto the ring and be checking that they are wearing the required protections.
 
 
-### 
+### Round in progress
 
-| Screenshot | Description |
-|:---:|---|
-| []() | |
-| []() | |
-
-
-### 
+The Jury President must press the *Start* button at the same time as the referee commands the competitors to start sparring.
 
 | Screenshot | Description |
 |:---:|---|
-| []() | |
-| []() | |
+| [![thumb-jp-monitor-round](https://cloud.githubusercontent.com/assets/2936402/9620899/433f1068-5163-11e5-8132-887edb97b219.png)](https://cloud.githubusercontent.com/assets/2936402/9620872/3b24143c-5163-11e5-8297-aae277b596de.png) | The Jury President can now **monitor the timer and the scores**, and **increment the warnings and fouls** as they are given by the centre referee. |
+| [![thumb-cj-score](https://cloud.githubusercontent.com/assets/2936402/9620885/42f4c9e0-5163-11e5-8fc0-6f6022d2c28b.png)](https://cloud.githubusercontent.com/assets/2936402/9620856/3ad8833c-5163-11e5-8e21-07f03fb8f315.png) | The Corner Judge **scores** using the buttons on either side of the interface, and receives instant feedback that the scores have been processed in the form of numbers slowly *falling* through the centre. The Corner Judge may undo a score by pressing the *Undo* button at the top. |
+
+
+### Break
+
+When the timer reaches zero and beeps, the Jury President must notify the centre referee, who then commands the competitors to stop sparring. The Jury Presisdent must then press the *End* button to **end the round* (if possible after a short delay so that the Corner Judges have enough time to input their last scores, if any).
+
+Assuming this is a two-round match, after the competitors have bowed to each other, the centre referee sends them off to their coaches for a break. At this point the Jury President must press the *Start* button again to **start the break**.
+
+| Screenshot | Description |
+|:---:|---|
+| [![thumb-jp-manage-break](https://cloud.githubusercontent.com/assets/2936402/9620895/43223718-5163-11e5-9b42-5f2535c791b8.png)](https://cloud.githubusercontent.com/assets/2936402/9620867/3b04b916-5163-11e5-9578-960dbc23d966.png) | The Jury President has started the break. The penalties cannot be modified. When the timer reaches zero, the Jury President must notify the centre referee and press the *End* button to move on to the second round. |
+| [![thumb-cj-wait-for-break-end](https://cloud.githubusercontent.com/assets/2936402/9620886/42f5278c-5163-11e5-981d-e0cdb7df7535.png)](https://cloud.githubusercontent.com/assets/2936402/9620855/3ad84a8e-5163-11e5-9017-7af957de0e2d.png) | The Corner Judge is notified that a break is in progress. Scoring is, of course, disabled. |
+
+> When the break ends, the centre referee instructs the competitors to come back onto the ring and the [same steps](#round-in-progress) are repeated.
+
+
+### Injury/timeout
+
+During a round, the centre referee may instruct the Jury President to **pause the timer**, typically when an injury occurs. In this case, the Jury President simply presses the *Start injury* button to start the injury timer.
+
+| Screenshot | Description |
+|:---:|---|
+| [![thumb-jp-manage-injury](https://cloud.githubusercontent.com/assets/2936402/9620896/4323ef90-5163-11e5-84e3-e0987f8089a3.png)](https://cloud.githubusercontent.com/assets/2936402/9620870/3b065b36-5163-11e5-84a6-472d3a30f8b8.png) | The Jury President has started a timeout. The penalties can be modified. When the centre referee resumes the match, the Jury President must press the *End injury* button. |
+| [![thumb-cj-wait-for-timeout-end](https://cloud.githubusercontent.com/assets/2936402/9620892/431e15ca-5163-11e5-8044-c70d518c8717.png)](https://cloud.githubusercontent.com/assets/2936402/9620862/3afc3476-5163-11e5-877e-ad6967b21d23.png) | The Corner Judge is notified that a timeout is in progress. Scoring is disabled. |
+
+
+### Result
+
+| Screenshot | Description |
+|:---:|---|
+| [![thumb-jp-check-result](https://cloud.githubusercontent.com/assets/2936402/9620889/431a1902-5163-11e5-8ca0-6636b92d4c03.png)](https://cloud.githubusercontent.com/assets/2936402/9620861/3afb53da-5163-11e5-8413-91a05dd20014.png) | The *result panel* is displayed at the end of the second round, when the Jury President presses the *End* button. The results include the **winner of the match** and the **final scoreboard**. The latter collates the penalties given by the centre referee and the scores given by each Corner Judge. The numbers are totaled in the last column and the resulting winner for each Corner Judge is highlighted. Two options are offered to the Jury President at this point: starting a new match with the same configuration, or returning to the *configuration panel* to configure the next match. |
+
+> Announcing the winner can be done in multiple way; here is one: the Jury President stands up, holding the two flags; the centre referee grabs the arms of the competitors and counts to three; the Jury President lifts the flag of the winner; the centre referee lifts the arm of the winner.
+
+
+### Additional rounds
+
+| Screenshot | Description |
+|:---:|---|
+| [![thumb-jp-continue-match](https://cloud.githubusercontent.com/assets/2936402/9620878/41ce8bfa-5163-11e5-98fb-b410f1891956.png)](https://cloud.githubusercontent.com/assets/2936402/9620869/3b055970-5163-11e5-8cda-10fad06b5fef.png) | In the case of a **draw**, the Jury President can either continue to the next round, the **tie breaker** or end the match. |
+| [![thumb-jp-check-tie-breaker-result](https://cloud.githubusercontent.com/assets/2936402/9620887/42f9e6aa-5163-11e5-8bf0-af7be2ccbf67.png)](https://cloud.githubusercontent.com/assets/2936402/9620864/3afda36a-5163-11e5-924e-dccf26aea8da.png) | If the tie breaker itself results in a draw, the Jury President may choose to continue on to the **golden point** round. |
+| [![thumb-jp-manage-golden-point](https://cloud.githubusercontent.com/assets/2936402/9620897/43242c94-5163-11e5-8a7c-4a928403306b.png)](https://cloud.githubusercontent.com/assets/2936402/9620868/3b04ca3c-5163-11e5-8053-433fddb5eb54.png) | During a golden point round, the timer counts up. There is no time limit; it is up to the Jury President to **monitor the scores** and raise a flag when a majority of the Corner Judges agree that one of the competitors has scored. |
 
 
 ## Let's get real
@@ -178,7 +209,7 @@ The key technology that restricts the range of compatible browsers is *Web Socke
 
 ### Logistics
 
-Laptops should be plugged in to avoid surprises. You will need power cord extensions and power strips to bring power to the Jury President tables and to the router. Since Taekwon doesn't need access to the Internet, all the router need is power. This makes it easier to maximise coverage by placing the router as close to the center of the tournament area as possible.
+Laptops should be plugged in to avoid surprises. You will need power cord extensions and power strips to bring power to the Jury President tables and to the router. Since Taekwon doesn't need access to the Internet, all the router need is power. This makes it easier to maximise coverage by placing the router as close to the centre of the tournament area as possible.
 
 All battery-powered devices should be fully charged in the morning of the tournament. It might be wise to have a few chargers handy on the day, or to ask Corner Judges to bring their own.
 
