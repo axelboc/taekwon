@@ -4,6 +4,10 @@ Real-time scoring system for **ITF Taekwon-Do** sparring matches, built with [No
 
 - [Installation](#installation)
 - [Take it for a spin!](#take-it-for-a-spin)
+- [Quick tour of the interface](#quick-tour-of-the-interface)
+  - [Identification](#identification)
+  - [Open/join a ring](#open-join-a-ring)
+  - [Match configuration](#match-configuration)
 - [Let's get real](#lets-get-real)
   - [Hardware requirements](#hardware-requirements)
     - [Choosing a Wi-Fi router](#choosing-a-wi-fi-router)
@@ -36,8 +40,8 @@ Real-time scoring system for **ITF Taekwon-Do** sparring matches, built with [No
 At this point, Taekwon is ready to be run locally.
 
 1. Run `npm start` to start the server.
-2. Open your web browser and visit [http://localhost/jury](http://localhost/jury). This is the **Jury President** interface.
-3. Open a different browser or a new browser session (i.e. a private window in Firefox, or an igognito window in Chrome) and visit [http://localhost](http://localhost). This is the **Corner Judge** interface.
+2. Open your web browser and visit **[http://localhost/jury](http://localhost/jury)**. This is the **Jury President** interface.
+3. Open a different browser or a new browser session (i.e. a private window in Firefox, or an igognito window in Chrome) and visit **[http://localhost](http://localhost)**. This is the **Corner Judge** interface.
 
 That's it! You can now play around with the system:
 
@@ -48,6 +52,81 @@ That's it! You can now play around with the system:
 5. **JP** Create a new match and start the first round.
 6. **CJ** Score some points.
 7. **JP** Control the state of the match until it ends, and check out the results!
+
+
+## Quick tour of the interface
+
+This section should give you a general idea of how to use the Jury President and Corner Judge interfaces. Click on the thumbnails to view the full-size screenshots.
+
+### Identification
+
+| Screenshot | Description |
+|:---:|---|
+| [![thumb-jp-identify](https://cloud.githubusercontent.com/assets/2936402/9620894/431fdd2e-5163-11e5-99a0-1fdee17ac79b.png)](https://cloud.githubusercontent.com/assets/2936402/9620865/3b020018-5163-11e5-86ab-a2bd68c6883d.png) | Jury President must enter the *master password**, as configured in `config/.env`. |
+| [![thumb-cj-identify](https://cloud.githubusercontent.com/assets/2936402/9620882/42f1cf1a-5163-11e5-996c-01bc718a8730.png)](https://cloud.githubusercontent.com/assets/2936402/9620857/3ad867f8-5163-11e5-875a-d2ca00063f84.png) | Corner Judge must enter his/her **name**. |
+
+
+### Open/join a ring
+
+| Screenshot | Description |
+|:---:|---|
+| [![thumb-jp-open-ring](https://cloud.githubusercontent.com/assets/2936402/9620901/434b2312-5163-11e5-925d-222cd05075d8.png)](https://cloud.githubusercontent.com/assets/2936402/9620875/3b2c63a8-5163-11e5-9484-505e350f609f.png) | Jury President may **select a ring to open**. The buttons are disabled once the rings are opened. |
+| [![thumb-cj-join-ring](https://cloud.githubusercontent.com/assets/2936402/9620883/42f40078-5163-11e5-9f08-6e59dbb65366.png)](https://cloud.githubusercontent.com/assets/2936402/9620854/3ad70688-5163-11e5-8871-f3f5ef528bf2.png) | Corner Judge may **select a ring to join**. The buttons are disabled until the rings are opened by the Jury Presidents. If a ring is full (i.e. if all of the Corner Judge slots of the ring are filled), a message is displayed. |
+
+
+### Match configuration
+
+| Screenshot | Description |
+|:---:|---|
+| [![thumb-jp-config-match](https://cloud.githubusercontent.com/assets/2936402/9620893/431ea1d4-5163-11e5-94da-1bb2bb5e99f0.png)](https://cloud.githubusercontent.com/assets/2936402/9620866/3b02861e-5163-11e5-8401-5ae82a9533eb.png) | Jury President has opened a ring and can now **manage the ring's Corner Judges** (sidebar) and **configure the first match**. |
+
+
+### 
+
+| Screenshot | Description |
+|:---:|---|
+| []() | |
+| []() | |
+
+
+### 
+
+| Screenshot | Description |
+|:---:|---|
+| []() | |
+| []() | |
+
+
+### 
+
+| Screenshot | Description |
+|:---:|---|
+| []() | |
+| []() | |
+
+
+### 
+
+| Screenshot | Description |
+|:---:|---|
+| []() | |
+| []() | |
+
+
+### 
+
+| Screenshot | Description |
+|:---:|---|
+| []() | |
+| []() | |
+
+
+### 
+
+| Screenshot | Description |
+|:---:|---|
+| []() | |
+| []() | |
 
 
 ## Let's get real
