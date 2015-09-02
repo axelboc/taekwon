@@ -20,6 +20,7 @@ Real-time scoring system for **ITF Taekwon-Do** sparring matches, built with [No
     - [Choosing a Wi-Fi router](#choosing-a-wi-fi-router)
   - [Software requirements](#software-requirements)
   - [Logistics](#logistics)
+    - [Have a back-up plan](#have-a-back-up-plan)
   - [Network and environment configuration](#network-and-environment-configuration)
     - [Set up a local Wi-Fi network](#set-up-a-local-wi-fi-network)
     - [Give the server a static IP address](#give-the-server-a-static-ip-address)
@@ -180,9 +181,9 @@ A two-ring tournament with one Jury President and four Corner Judges per ring wo
 - 1 laptop or desktop computer
 - 1 Wi-Fi router
 
-All devices must be capable of connecting to a Wi-Fi network except for the server, which you may connect to the router with an Ethernet cable. If setting up a separate computer as the server is not practical, you may choose to make use of one of the Jury Presidents' laptops.
+All devices must be capable of using Wi-Fi, except for the server, which you may plug in directy to the router with an Ethernet cable. If setting up a separate computer as the server is not practical, you may choose to make use of one of the Jury Presidents' laptops.
 
-Taekwon works on a local network; it doesn't need access to the Internet. Therefore, you won't need to plug in the router to an ADSL socket; only to a power socket.
+> Taekwon works on a local network; it doesn't need access to the Internet. Therefore, you won't need to plug in the router to an ADSL socket; only to a power socket.
 
 
 #### Choosing a Wi-Fi router
@@ -191,7 +192,7 @@ If the tournament is held in an area that already provides a Wi-Fi network *and*
 
 So all you need is a basic Wi-Fi router. They're pretty cheap nowadays, but you need one that provides good-enough coverage and uses a protocol that is supported by all the devices. You don't need to worry at all about the bandwidth/speed. As of August 2015, the **802.11n** protocol is well supported and provides a much wider range than 802.11g. If you can, choose a router that operates in the 2.4 GHz band rather than the 5 GHz band. And of course, the more antennas the better!
 
-If the tournament is really big or spread out, you may have to install additional routers to repeat the signal. There's no better way to know for sure than to do some field testing.
+> If the tournament is really big or spread out, you may have to install additional routers to repeat the signal. There's no better way to know for sure than to do some field testing.
 
 One more thing to look for when choosing a router is a feature called **static DNS mapping**. This feature allows a router to map a custom domain name (e.g. taekwon.do, tkd.com, etc.) to a local IP address (e.g. `192.168.1.2`). If you're unable to get your hands on a router that supports it, there are alternatives ... but they are quite complex. For more information, refer to the [Set up a custom URL](#set-up-a-custom-url) section.
 
@@ -204,24 +205,26 @@ Jury Presidents and Corner Judges access their respective interfaces through a *
 - **Android**: latest version of Firefox for Android or Chrome for Android
 - **iOS**: Safari 6.1 or above
  
-The key technology that restricts the range of compatible browsers is *Web Sockets*. The whole system is dependent on it, as it's what allows the clients to communicate with the server in real-time. Therefore, the [Web Sockets support table](http://caniuse.com/#feat=websockets) can help rule out most incompatible browsers.
+> The key technology that restricts the range of compatible browsers is *Web Sockets*. The whole system is dependent on it, as it's what allows the clients to communicate with the server in real-time. Therefore, the [Web Sockets support table](http://caniuse.com/#feat=websockets) can help rule out most incompatible browsers.
 
 
 ### Logistics
 
-Laptops should be plugged in to avoid surprises. You will need power cord extensions and power strips to bring power to the Jury President tables and to the router. Since Taekwon doesn't need access to the Internet, all the router need is power. This makes it easier to maximise coverage by placing the router as close to the centre of the tournament area as possible.
+Laptops should be **plugged in** to avoid surprises. You will need power cord extensions and power strips to bring power to the Jury President tables and to the router. Since Taekwon doesn't need access to the Internet, all the router need is power. This makes it easier to maximise coverage by placing the router as close to the centre of the tournament area as possible.
 
-All battery-powered devices should be fully charged in the morning of the tournament. It might be wise to have a few chargers handy on the day, or to ask Corner Judges to bring their own.
+All battery-powered devices should be **fully charged** in the morning of the tournament. It might be wise to have a few chargers handy on the day, or to ask Corner Judges to bring their own.
 
 To avoid interuptions, mobile devices should be configured so as to always remain **awake and unlocked**. They should not be allowed to turn off Wi-Fi to save power.
 
-Pins, patterns and other forms of locking mechanisms should be disabled. This is especially important if there is a chance that Corner Judges will share devices (e.g. when a Corner Judge doesn't have his/her own device).
+Pins, patterns and other forms of **locking mechanisms should be disabled**. This is especially important if there is a chance that Corner Judges will share devices (e.g. when a Corner Judge doesn't have his/her own device).
 
-Typically, Corner Judges access the system by typing a URL in a browser. Although very simple in theory, this turns out to be quite a hindrance in practice: the URL has to be communciated to the judges; the URL may be difficult to remember; the `http://` prefix has to be entered in some browsers; and typing a URL on a touch screen is generally slow and prone to errors. A fairly simple workaround is to bookmark the URL and create a shortcut for it on the device's home screen.
+Typically, Corner Judges access the system by typing a URL in a browser. Although very simple in theory, this turns out to be quite a hindrance in practice: the URL has to be communciated to the judges; the URL may be difficult to remember; the `http://` prefix has to be entered in some browsers; and typing a URL on a touch screen is generally slow and prone to errors. A fairly simple workaround is to **bookmark the URL** and create a shortcut for it on the device's home screen.
 
-In a perfect scenario, the organiser of the tournament would provide all the devices so as to ensure that they are properly configured. If this is not an option (usually for financial reasons), the best you can do is communicate these instructions to the judges in advance and perhaps do a test run before the tournament.
+> In a perfect scenario, the organiser of the tournament would provide all the devices so as to ensure that they are properly configured. If this is not an option (usually for financial reasons), the best you can do is communicate these instructions to the judges in advance and perhaps do a test run before the tournament.
 
-Finally, it's always good to remember that no system is flawless; something could go wrong despite your best efforts:
+#### Have a back-up plan
+
+It's always good to remember that no system is flawless; something could go wrong despite your best efforts:
 
 - a Corner Judge's device could run out of battery or stop working,
 - someone could trip over the router's power cord,
@@ -252,7 +255,7 @@ Then, let's create and configure the Wi-Fi network:
 3. If you know there won't be any other Wi-Fi network at the tournament, let the router pick the best channel. Otherwise, select a channel that is as far away from the other networks' channels as possible (cf. [Choosing a Wi-Fi router](choosing-a-wi-fi-router), and set a narrow channel width (typically 20 MHz).
 4. Disable any kind of special features like Turbo Mode, Afterburner, etc. to maximise compatibility with all devices.
 
-If security is a concern, you may protect your network with a security key. The main downside is that it will take longer for the Jury Presidents and Corner Judges to join the network, as typing a security key on a touch screen is no easy task. In terms of logistics, you'll also have to find a way to communicate the security key with them and no one else, and make sure they can remember or find it easily in case they need to reconnect. If you decide to go ahead, use WPA2-PSK as the security protocol and choose a relatively short, memorable key.
+> If security is a concern, you may protect your network with a security key. The main downside is that it will take longer for the Jury Presidents and Corner Judges to join the network, as typing a security key on a touch screen is no easy task. In terms of logistics, you'll also have to find a way to communicate the security key with them and no one else, and make sure they can remember or find it easily in case they need to reconnect. If you decide to go ahead, use WPA2-PSK as the security protocol and choose a relatively short, memorable key.
 
 
 #### Give the server a static IP address
@@ -283,7 +286,7 @@ Let's see if everything's working so far.
 4. Open your browser and enter the static IP of the server as the URL (e.g. [http://192.168.1.2](http://192.168.1.2)). The Corner Judge interface should appear.
 5. Connect your smartphone or tablet to the Wi-Fi network, and try the same thing. Depending on your mobile browser, you may have to enter the URL in full (including `http://`) to force it to visit the URL instead of running a web search.
 
-If you can see the Corner Judge interface in step 4 but not 5, it's most likely due to the server's **firewall**. On Windows, if the Wi-Fi network is identified as *public*, try changing it to *private*. Unfortunately, this may not be possible if the network doesn't have a security key; in this case, disable the firewall all together.
+> If you can see the Corner Judge interface in step 4 but not 5, it's most likely due to the server's **firewall**. On Windows, if the Wi-Fi network is identified as *public*, try changing it to *private*. Unfortunately, this may not be possible if the network doesn't have a security key; in this case, disable the firewall all together.
 
 
 #### Set up a custom URL
@@ -296,7 +299,7 @@ If your router supports **static DNS mapping**, it's a cake walk:
 2. Add a mapping for a domain name of your choosing (e.g. `taekwon.do`) to the server's static IP address (e.g. `192.168.1.2`).
 3. Save the changes and restart the router.
 
-If you can't find the *Static DNS* page, things get a little more complicated and outside of the scope of this documentation. One solution might be to host your own DNS server on the server and point the router to it.
+> If you can't find the *Static DNS* page, things get a little more complicated and outside of the scope of this documentation. One solution might be to host your own DNS server on the server and point the router to it.
 
 Once the custom DNS mapping is in place:
 
@@ -328,7 +331,7 @@ To install `forever` on the server, open a terminal as administrator and run `np
 - `forever logs app -f` to stream the logs to the console (hit `Ctrl-C` to stop the streaming)
 - `forever logs` to display the name and location of the log file
 
-For more information, refer to the [official documentation](https://github.com/foreverjs/forever).
+> For more information, refer to the [official documentation](https://github.com/foreverjs/forever).
 
 
 ### Ready, set, go!
@@ -337,7 +340,7 @@ You're still here? **Congratulations!** You're almost ready to use Taekwon at a 
 
 Oh and of course, don't forget to change the default master password in `config/.env` and to have a look at the various configuration options available in `config/config.json`. When you're done, make sure you run `npm run build` to rebuild the client stripts.
 
-Good luck!
+**Good luck!**
 
 
 ## About security
