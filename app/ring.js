@@ -143,7 +143,12 @@ Ring.prototype.close = function () {
 		async.each(this.cornerJudges, function (cj, cb) {
 			this.removeCJ(cj, "Ring closed", cb);
 		}.bind(this), function () {
-			// Once all Corner Judges have been removed, close the ring
+			// If a match is in progress, end it
+			if (this.match && !this.match.state.is(MatchStates.MATCH_ENDED)) {
+				this.match.state.end();
+			}
+			
+			// Close the ring
 			util.removeEventListeners(this.juryPresident, JP_EVENTS);
 			this.juryPresident = null;
 			

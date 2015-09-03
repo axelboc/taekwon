@@ -73,7 +73,7 @@ function Match(id, config, data) {
 			{ name: Transitions.NEXT_ROUND, from: States.BREAK_ENDED, to: States.ROUND_IDLE },
 			{ name: Transitions.BREAK, from: [States.ROUND_ENDED, States.RESULTS], to: States.BREAK_IDLE },
 			{ name: Transitions.RESULTS, from: States.ROUND_ENDED, to: States.RESULTS },
-			{ name: Transitions.END, from: [States.ROUND_ENDED, States.RESULTS], to: States.MATCH_ENDED }
+			{ name: Transitions.END, from: '*', to: States.MATCH_ENDED }
 		],
 		callbacks: {
 			onenterstate: this._onEnterState.bind(this)
