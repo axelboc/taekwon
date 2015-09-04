@@ -53,7 +53,7 @@ At this point, Taekwon is ready to be run locally.
 
 That's it! You can now play around with the system:
 
-1. Enter your name in the Corner Judge interface (**CJ**), and the master password (`tkd` by default) in the Jury President interface (**JP**).
+1. Enter your name in the Corner Judge interface (**CJ**), and the password (`tkd` by default) in the Jury President interface (**JP**).
 2. **JP** Open one of the rings.
 3. **CJ** Join the newly opened ring.
 4. **JP** Accept the Corner Judge's request to join the ring.
@@ -70,7 +70,7 @@ This section should give you a general idea of how to use the Jury President and
 
 | Screenshot | Description |
 |:---:|---|
-| [![thumb-jp-identify](https://cloud.githubusercontent.com/assets/2936402/9620894/431fdd2e-5163-11e5-99a0-1fdee17ac79b.png)](https://cloud.githubusercontent.com/assets/2936402/9620865/3b020018-5163-11e5-86ab-a2bd68c6883d.png) | The Jury President must enter the **master password**, as configured in `config/.env`. |
+| [![thumb-jp-identify](https://cloud.githubusercontent.com/assets/2936402/9620894/431fdd2e-5163-11e5-99a0-1fdee17ac79b.png)](https://cloud.githubusercontent.com/assets/2936402/9620865/3b020018-5163-11e5-86ab-a2bd68c6883d.png) | The Jury President must enter the **password**, as configured in `config/config.json`. |
 | [![thumb-cj-identify](https://cloud.githubusercontent.com/assets/2936402/9620882/42f1cf1a-5163-11e5-996c-01bc718a8730.png)](https://cloud.githubusercontent.com/assets/2936402/9620857/3ad867f8-5163-11e5-875a-d2ca00063f84.png) | The Corner Judge must enter his/her **name**. |
 
 
@@ -338,7 +338,7 @@ To install `forever` on the server, open a terminal as administrator and run `np
 
 You're still here? **Congratulations!** You're almost ready to use Taekwon at a tournament. The last step would be to take it for a test run at your local club. This will give you an idea of what to expect, especially in terms of logistics, and a chance to train the judges to use the system.
 
-Oh and of course, don't forget to change the default master password in `config/.env` and to have a look at the various configuration options available in `config/config.json`. When you're done, make sure you run `npm run build` to rebuild the client stripts.
+Oh and of course, don't forget to change the default Jury President password in `config/config.json` and to have a look at the various configuration options available. When you're done, make sure you run `npm run build` to rebuild the client stripts.
 
 **Good luck!**
 

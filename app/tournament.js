@@ -211,7 +211,7 @@ Tournament.prototype._onIdentification = function (spark, data) {
 	var userId = spark.query.id;
 
 	// Check identification
-	if (data.identity === 'juryPresident' && data.value !== process.env.MASTER_PWD ||
+	if (data.identity === 'juryPresident' && data.value !== config.jpPwd ||
 		data.identity === 'cornerJudge' && (typeof data.value !== 'string' || data.value.length === 0)) {
 		this.logger.info('idFail', userId, {
 			userId: userId,
@@ -224,7 +224,7 @@ Tournament.prototype._onIdentification = function (spark, data) {
 
 		// Update instruction text if appropriate
 		if (data.identity === 'juryPresident') {
-			spark.emit('login.setInstr', { text: "Master password incorrect" });
+			spark.emit('login.setInstr', { text: "Password incorrect" });
 		}
 
 		// Listen for identification again
@@ -411,7 +411,7 @@ Tournament.prototype.createRings = function (count, cb) {
 	var defaults = config.matchConfig.defaults;
 
 	// Insert new rings in the database one at a time
-	DB.insertRings(this.id, count, config.cornerJudgesPerRing, defaults, function (newDocs) {
+	DB.insertRings(this.id, count, config.cjsPerRing, defaults, function (newDocs) {
 		newDocs.forEach(this._initRing, this);
 		this.logger.info('ringsCreated', { rings: newDocs });
 		cb();

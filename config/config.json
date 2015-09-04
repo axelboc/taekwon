@@ -1,7 +1,8 @@
 {
 	"ringCount": 2,
-	"cornerJudgesPerRing": 4,
+	"cjsPerRing": 4,
 	"maxScore": 3,
+	"jpPwd": "tkd",
 	"matchConfig": {
 		"timeStep": 15,
 		"defaults": {
