@@ -56,6 +56,16 @@ h1,
     transition: font-size .2s ease-in-out;
 }
 
+.clearfix:before,
+.clearfix:after {
+    content: "";
+    display: table;
+}
+
+.clearfix:after {
+    clear: both;
+}
+
 
 /* ===== Components ===== */
 

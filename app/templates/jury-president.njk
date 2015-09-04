@@ -32,17 +32,13 @@
 		<div class="main">
 			{# Configuration panel #}
 			<div id="config-panel" class="panel">
-				<h2 class="rv-top">Configuration</h2>
-				<div class="rv-row rv-row--top">
-					<div class="rv-cell">
-						<div class="btns-wrap">
-							<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
-						</div>
-					</div>
-				</div>
-				<div class="rv-row rv-row--bottom">
+				<h2 class="rv-top">Match Settings</h2>
+				<div class="rv-row">
 					<div class="config">
 						<div class="cf-inner"></div>
+					</div>
+					<div class="cf-new clearfix">
+						<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
 					</div>
 				</div>
 			</div>
@@ -63,7 +59,7 @@
 					</div>
 					{# Match state management #}
 					<div class="state rv-cell">
-						<div class="st-inner btns-wrap"></div>
+						<div class="st-inner btns-wrap clearfix"></div>
 					</div>
 				</div>
 				<div class="rv-row rv-row--bottom">
@@ -83,13 +79,13 @@
 						<p class="rp-winner"></p>
 					</div>
 					<div class="rv-cell">
-						<div id="rp-buttons--continue" class="btns-wrap">
+						<div id="rp-buttons--continue" class="btns-wrap clearfix">
 							<button type="button" class="match-btn match-btn--continue btn btn--major">Continue</button>
 							<button type="button" class="match-btn match-btn--endm btn btn--minor">End Match</button>
 						</div>
-						<div id="rp-buttons--end" class="btns-wrap">
+						<div id="rp-buttons--end" class="btns-wrap clearfix">
 							<button type="button" class="match-btn match-btn--new btn btn--major">New Match</button>
-							<button type="button" class="match-btn match-btn--config btn btn--minor">Configuration</button>
+							<button type="button" class="match-btn match-btn--config btn btn--minor">Change Settings</button>
 						</div>
 					</div>
 				</div>

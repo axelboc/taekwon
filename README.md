@@ -7,7 +7,7 @@ Real-time scoring system for **ITF Taekwon-Do** sparring matches, built with [No
 - [Quick tour of the interface](#quick-tour-of-the-interface)
   - [Identification](#identification)
   - [Open/join a ring](#openjoin-a-ring)
-  - [Match configuration](#match-configuration)
+  - [Match settings](#match-settings)
   - [Authorisation process](#authorisation-process)
   - [New match](#new-match)
   - [Round in progress](#round-in-progress)
@@ -82,11 +82,11 @@ This section should give you a general idea of how to use the Jury President and
 | [![thumb-cj-join-ring](https://cloud.githubusercontent.com/assets/2936402/9620883/42f40078-5163-11e5-9f08-6e59dbb65366.png)](https://cloud.githubusercontent.com/assets/2936402/9620854/3ad70688-5163-11e5-8871-f3f5ef528bf2.png) | The Corner Judge may **select a ring to join**. The buttons are disabled until the rings are opened by the Jury Presidents. If a ring is full (i.e. if all of the Corner Judge slots of the ring are filled), a message is displayed. |
 
 
-### Match configuration
+### Match settings
 
 | Screenshot | Description |
 |:---:|---|
-| [![thumb-jp-config-match](https://cloud.githubusercontent.com/assets/2936402/9620893/431ea1d4-5163-11e5-94da-1bb2bb5e99f0.png)](https://cloud.githubusercontent.com/assets/2936402/9620866/3b02861e-5163-11e5-8401-5ae82a9533eb.png) | The Jury President has opened a ring and can now **manage the ring's Corner Judges** (sidebar) and **configure the first match**. The configuration options include the duration of the rounds, breaks and injury timeouts, and the number of *main* rounds (1 or 2). In the sidebar, the number of Corner Judge *slots* can be adjusted to equal the number of Corner Judges that are expected to join the ring. |
+| [![thumb-jp-config-match](https://cloud.githubusercontent.com/assets/2936402/9682009/fc84c368-5345-11e5-81b7-ee3bef5df670.png)](https://cloud.githubusercontent.com/assets/2936402/9682008/fc823b84-5345-11e5-9879-4b9aa7c4d7de.png) | The Jury President has opened a ring and can now **manage the ring's Corner Judges** (sidebar) and **configure the settings** for the first match. The settings include the duration of the rounds, breaks and injury timeouts, and the number of *main* rounds (1 or 2). In the sidebar, the number of Corner Judge *slots* can be adjusted to equal the number of Corner Judges that are expected to join the ring. |
 
 
 ### Authorisation process
