@@ -3,7 +3,6 @@ app/data/
 config/.env
 node_modules/
 public/js/
-resources/
 
 
 #############

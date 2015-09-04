@@ -286,20 +286,18 @@ Let's see if everything's working so far.
 4. Open your browser and enter the static IP of the server as the URL (e.g. [http://192.168.1.2](http://192.168.1.2)). The Corner Judge interface should appear.
 5. Connect your smartphone or tablet to the Wi-Fi network, and try the same thing. Depending on your mobile browser, you may have to enter the URL in full (including `http://`) to force it to visit the URL instead of running a web search.
 
-> If you can see the Corner Judge interface in step 4 but not 5, it's most likely due to the server's **firewall**. On Windows, if the Wi-Fi network is identified as *public*, try changing it to *private*. Unfortunately, this may not be possible if the network doesn't have a security key; in this case, disable the firewall all together.
+> If you can see the Corner Judge interface in step 4 but not 5, it's most likely due to the server's **firewall**. You'll need to disable it or create an inbound rule for Node.JS.
 
 
 #### Set up a custom URL
 
 You could stop here and Taekwon would work perfectly fine at the tournament. Let's be honest, though, an IP address doesn't make a good URL. It's difficult to remember and tedious to type, especially on a touch screen. This section explains how you might go about mapping a custom URL, like [http://taekwon.do](http://taekwon.do), to your server's IP address. This is especially useful if you can't set up home screen shortcuts on the judges' devices (cf. [Logistics](#logistics) section), 
 
-If your router supports **static DNS mapping**, it's a cake walk:
+If your router supports creating **static DNS mappings** (the technology is called *DNS Masquerading*), it's a cake walk:
 
 1. Open your router's administration interface and look for a page called *Static DNS* (or similar).
 2. Add a mapping for a domain name of your choosing (e.g. `taekwon.do`) to the server's static IP address (e.g. `192.168.1.2`).
 3. Save the changes and restart the router.
-
-> If you can't find the *Static DNS* page, things get a little more complicated and outside of the scope of this documentation. One solution might be to host your own DNS server on the server and point the router to it.
 
 Once the custom DNS mapping is in place:
 
@@ -307,6 +305,8 @@ Once the custom DNS mapping is in place:
 2. Run `npm run build` to rebuild the client scripts.
 3. Run `npm start` to start the server.
 4. Try it out!
+
+> If you can't find the *Static DNS* page, things get a little more complicated and outside of the scope of this documentation. One solution might be to host your own DNS server on the server and point the router to it. This page summarises the issue and points to some good resources: [Accessing Websites on a Local Network (LAN) Web Server](https://www.devside.net/wamp-server/accessing-websites-on-a-local-network-lan-web-server).
 
 
 ### Running Taekwon in production with `forever`

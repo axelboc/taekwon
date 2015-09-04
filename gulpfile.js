@@ -78,7 +78,6 @@ CLIENTS.forEach(function (client) {
 	gulp.task(client, function () {
 		return browserify({
 				entries: path.join('clients', client, 'root.js'),
-				noParse: ['nunjucks', 'fastclick', 'tiny-cookie'],
 				debug: true
 			})
 			.transform(envify)
