@@ -11,7 +11,7 @@ var async = require('async');
 
 var config = require('./config/config.json');
 var assert = require('./app/lib/assert');
-var logger = require('./app/lib/log').createLogger('app', "App");
+var log = require('./app/lib/log');
 var DB = require('./app/lib/db');
 var Tournament = require('./app/tournament').Tournament;
 
@@ -74,7 +74,13 @@ var startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).ge
 
 // Look for an open tournament
 DB.findOpenTournament(startOfToday, function (doc) {
+	// Create logger
+	var logger = log.createLogger('app', "App");
+	
 	if (doc) {
+		// Initialise log module using the existing tournament's ID
+		log.init(doc._id);
+		
 		// If a tournament was found, restore it
 		tournament = new Tournament(doc._id);
 
@@ -91,6 +97,9 @@ DB.findOpenTournament(startOfToday, function (doc) {
 		// Otherwise, insert a new tournament in the database
 		DB.insertTournament(function (newDoc) {
 			if (newDoc) {
+				// Initialise log module using the new tournament's ID
+				log.init(newDoc._id);
+				
 				// Initialise the new tournament
 				tournament = new Tournament(newDoc._id);
 				tournament.createRings(config.ringCount, function () {

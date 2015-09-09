@@ -1,18 +1,16 @@
 'use strict';
 
 // Dependencies
+var path = require('path');
 var extend = require('extend');
 var NeDBLogger = require('nedb-logger');
 
 
 /**
- * NeDB logger.
- * @type {NeDBLogger}
+ * Log directory path.
+ * @type {String}
  */
-var nedbLogger = new NeDBLogger({
-	filename: 'app/data/logs.db'
-});
-
+var PATH = 'app/data/logs';
 
 /**
  * Log levels.
@@ -25,9 +23,33 @@ var levels = {
 	ERROR: 'error',
 };
 
+/**
+ * NeDB logger.
+ * @type {NeDBLogger}
+ */
+var nedbLogger = null;
+
 
 module.exports = {
 	
+	/**
+	 * Initialise the log module by creating an instance of NeDBLogger.
+	 * Log files are named as follows: `<tournament-id>.db`.
+	 * @param {String} tournamentId
+	 */
+	init: function (tournamentId) {
+		nedbLogger = new NeDBLogger({
+			filename: path.join(PATH, tournamentId + '.db')
+		});
+	},
+	
+	/**
+	 * Create a new logger facade.
+	 * @param {String} topic - used for categorisation purposes
+	 * @param {String} name - a name that is printed to the console in development
+	 * @param {Object} loggerData (optional) - data to attach to every log entry produced but the logger
+	 * @return {Object} - a facade with a logging function for each log level
+	 */
 	createLogger: function (topic, name, loggerData) {
 		
 		/**
@@ -38,6 +60,10 @@ module.exports = {
 		 * @param {Object} data (optional)
 		 */
 		function log(level, event, message, data) {
+			if (!nedbLogger) {
+				throw new Error("log module not initialised");
+			}
+			
 			// Allow skipping message argument
 			if (!data && typeof message === 'object') {
 				data = message;
