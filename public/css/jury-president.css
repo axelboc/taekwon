@@ -146,20 +146,13 @@
 	border: 1px solid transparent;
 	border-radius: 50%;
 	background: transparent;
-	opacity: 0;
-    color: #777;
+    color: #999;
 	font-size: 130%;
 	cursor: pointer;
-	transition: all .3s ease;
 }
 
 .js-judge-remove:focus {
 	outline: 1px dashed #666;
-}
-
-.js-judge-remove:focus,
-.js-judge:hover > .js-judge-remove {
-	opacity: 1;
 }
 
 .js-judge-remove:focus,
