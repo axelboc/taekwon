@@ -47,6 +47,9 @@ var SETS = {
 	]
 };
 
+// Determine the arguments with which to start the server
+var args = process.argv.indexOf('--force') !== -1 ? ['--force'] : [];
+
 
 /**
  * Clear the datastores.
@@ -100,6 +103,7 @@ CLIENTS.forEach(function (client) {
 gulp.task('server', CLIENTS, function () {
 	nodemon({
 		script: 'app.js',
+		args: args,
 		watch: [
 			'app',
 			'app.js',
@@ -132,3 +136,4 @@ gulp.task('watch', ['server'], function () {
  */
 gulp.task('build', CLIENTS.slice(0));
 gulp.task('default', ['build', 'scripts:lint', 'server', 'watch']);
+

@@ -16,6 +16,10 @@ var DB = require('./app/lib/db');
 var Tournament = require('./app/tournament').Tournament;
 
 
+// Create logger
+var logger = log.createLogger('app', "App");
+
+
 /*
  * Initialise Express and the web server
  */
@@ -68,46 +72,56 @@ app.get('/jury', function (req, res) {
  */
 var tournament;
 
-// Get timestamp for the start of today
-var now = new Date();
-var startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-
-// Look for an open tournament
-DB.findOpenTournament(startOfToday, function (doc) {
-	// Create logger
-	var logger = log.createLogger('app', "App");
+if (process.argv.indexOf('--force') !== -1) {
+	// If `--force` argument is present, create a new tournament
+	createTournament();
+} else {
+	// Get timestamp for the start of today
+	var now = new Date();
+	var startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 	
-	if (doc) {
-		// Initialise log module using the existing tournament's ID
-		log.init(doc._id);
-		
-		// If a tournament was found, restore it
-		tournament = new Tournament(doc._id);
+	// Look for an open tournament in the database
+	DB.findOpenTournament(startOfToday, function (doc) {
+		if (doc) {
+			// Initialise log module using the existing tournament's ID
+			log.init(doc._id);
 
-		// Restore its users and rings
-		async.series([
-			tournament.restoreUsers.bind(tournament),
-			tournament.restoreRings.bind(tournament)
-		], function () {
-			// The tournament has been restored and is ready to receive Web Socket connections
-			tournament.ready(server);
-			logger.info('tournamentRestored', { tournament: doc });
-		});
-	} else {
-		// Otherwise, insert a new tournament in the database
-		DB.insertTournament(function (newDoc) {
-			if (newDoc) {
-				// Initialise log module using the new tournament's ID
-				log.init(newDoc._id);
-				
-				// Initialise the new tournament
-				tournament = new Tournament(newDoc._id);
-				tournament.createRings(config.ringCount, function () {
-					// The tournament has been initialised and is ready to receive Web Socket connections
-					tournament.ready(server);
-					logger.info('tournamentStarted', { tournament: newDoc });
-				});
-			}
-		});
-	}
-});
+			// If a tournament was found, restore it
+			tournament = new Tournament(doc._id);
+
+			// Restore its users and rings
+			async.series([
+				tournament.restoreUsers.bind(tournament),
+				tournament.restoreRings.bind(tournament)
+			], function () {
+				// The tournament has been restored and is ready to receive Web Socket connections
+				tournament.ready(server);
+				logger.info('tournamentRestored', { tournament: doc });
+			});
+		} else {
+			// No open tournament found; create a new tournament
+			createTournament();
+		}
+	});
+}
+
+
+/**
+ * Create a new tournament.
+ */
+function createTournament() {
+	DB.insertTournament(function (newDoc) {
+		if (newDoc) {
+			// Initialise log module using the new tournament's ID
+			log.init(newDoc._id);
+
+			// Initialise the new tournament
+			tournament = new Tournament(newDoc._id);
+			tournament.createRings(config.ringCount, function () {
+				// The tournament has been initialised and is ready to receive Web Socket connections
+				tournament.ready(server);
+				logger.info('tournamentStarted', { tournament: newDoc });
+			});
+		}
+	});
+}
