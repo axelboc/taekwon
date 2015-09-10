@@ -55,9 +55,8 @@ Tournament.prototype.ready = function(server) {
 	this.primus.use('emit', Emit);
 	this.primus.remove('primus.js');
 	
-	// Bind socket events
+	// Listen for incoming socket connections
 	this.primus.on('connection', this._onConnection.bind(this));
-	this.primus.on('disconnection', this._onDisconnection.bind(this));
 	
 	// Start server
 	server.listen(process.env.PORT);
@@ -158,22 +157,6 @@ Tournament.prototype._onConnection = function (spark) {
 		// Switching; remove user from system and request identification from new user
 		this.logger.info('identityChanged', identity, { identity: identity });
 		this._removeUser(user, this._identifyUser.bind(this, spark));
-	}
-};
-
-/**
- * Socket disconnection.
- * @param {Spark} spark
- */
-Tournament.prototype._onDisconnection = function (spark) {
-	assert.instanceOf(spark, 'spark', Primus.Spark, 'Spark');
-	
-	// Check whether the user ID is passed as a query parameter and if it matches and existing user
-	// In some situations, such as when the database is reset, an ID might not match any user
-	var id = spark.query.id;
-	if (id && this.users[id]) {
-		// Notify user of disconnection
-		this.users[id].disconnected();
 	}
 };
 

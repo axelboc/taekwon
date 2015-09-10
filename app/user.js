@@ -52,6 +52,9 @@ User.prototype.initSpark = function (spark, events) {
 		this.spark.on(evt, handler ? handler.bind(this) : this.emit.bind(this, evt));
 	}, this);
 	
+	// Listen for disconnections
+	spark.on('end', this.disconnected.bind(this));
+	
 	// Mark user as connected
 	this.connected = true;
 	this._send('io.hideBackdrop');
@@ -73,20 +76,6 @@ User.prototype._send = function (event, data) {
 	}
 };
 
-
-/* ==================================================
- * Outbound spark events
- * ================================================== */
-
-/**
- * The user has been successfully identified.
- */
-User.prototype.idSuccess = function () {
-	this._send('io.saveId', { id: this.id });
-	this._send('login.blurField');
-	this._send('root.showView', { view: 'ringListView' });
-};
-
 /**
  * The user has been disconnected.
  */
@@ -104,5 +93,20 @@ User.prototype.exit = function () {
 	this.logger.info('exited');
 	this.emit('exited', this);
 };
+
+
+/* ==================================================
+ * Outbound spark events
+ * ================================================== */
+
+/**
+ * The user has been successfully identified.
+ */
+User.prototype.idSuccess = function () {
+	this._send('io.saveId', { id: this.id });
+	this._send('login.blurField');
+	this._send('root.showView', { view: 'ringListView' });
+};
+
 
 module.exports.User = User;
