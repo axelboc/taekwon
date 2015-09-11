@@ -125,7 +125,7 @@ Tournament.prototype._onConnection = function (spark) {
 	var identity = spark.query.identity;
 	assert.string(identity, 'identity');
 	
-	// Check whether the user ID is passed as a query parameter and if it matches and existing user
+	// Check whether the user ID is passed as a query parameter and if it matches an existing user
 	// In some situations, such as when the database is reset, an ID might not match any user
 	var id = spark.query.id;
 	if (!id || !this.users[id]) {
@@ -196,6 +196,7 @@ Tournament.prototype._onIdentification = function (spark, data) {
 	// Check identification
 	if (data.identity === 'juryPresident' && data.value !== config.jpPwd ||
 		data.identity === 'cornerJudge' && (typeof data.value !== 'string' || data.value.length === 0)) {
+		
 		this.logger.info('idFail', userId, {
 			userId: userId,
 			identity: data.identity,
@@ -215,8 +216,8 @@ Tournament.prototype._onIdentification = function (spark, data) {
 		return;
 	}
 
-	// Successful identification; insert the new user in the database
-	DB.insertUser(userId, this.id, data.identity, data.value, function (newDoc) {
+	// Successful identification; insert the new user in the database (or update it)
+	DB.insertUser(this.id, userId, data.identity, data.value, function (newDoc) {
 		var user = this._initUser(spark, true, newDoc);
 		this.logger.info('idSuccess', userId, { user: newDoc });
 
