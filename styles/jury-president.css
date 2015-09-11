@@ -1,0 +1,445 @@
+@charset "utf-8";
+
+/* ===== Ring view ===== */
+
+#ring {
+	display: table;
+	width: 100%;
+	max-width: none;
+	height: 100%;
+	padding-bottom: 0;
+}
+
+#judges-sidebar,
+.main {
+	display: table-cell;
+	vertical-align: top;
+	height: 100%;
+}
+
+.panel {
+	overflow: hidden;
+	height: 100%;
+}
+
+
+/* Match buttons */
+
+.btns-wrap {
+	max-width: 28em;
+	margin: 0 auto;
+}
+
+.match-btn {
+	float: left;
+	display: block;
+	width: 100%;
+	padding: .5em .2em;
+	font-size: 150%;
+}
+
+.match-btn--start,
+.match-btn--end {
+	width: 48%;
+}
+
+.match-btn--start {
+	margin-right: 4%;
+}
+
+.match-btn--injury,
+.match-btn--config,
+.match-btn--endm {
+	font-size: 120%;
+	margin-top: .6em;
+}
+
+
+/* Top bar */
+
+.rv-top {
+	position: relative;
+	z-index: 10;
+	margin: 0 auto;
+	line-height: 1.7;
+	background-color: #555;
+	color: #fff;
+	font-size: 230%;
+}
+
+
+/* Rows and cells */
+
+.rv-row {
+	display: table;
+	width: 100%;
+	padding: 0 1em;
+}
+
+.rv-row--top {
+	height: 14em;
+	border-bottom: solid 1px #ccc;
+}
+
+.rv-row--bottom {
+	border-top: solid 1px #ccc;
+}
+
+.rv-cell {
+	display: table-cell;
+	vertical-align: middle;
+	width: 50%;
+}
+
+.rv-row--bottom > .rv-cell {
+	vertical-align: top;
+}
+
+
+/* ===== Judges sidebar ===== */
+
+#judges-sidebar {
+	width: 16em;
+	font-size: 90%;
+	background-color: #eee;
+	border-right: 1px solid #ccc;
+}
+
+.js-heading {
+	margin: 0;
+	line-height: 2.2;
+	font-size: 200%;
+	background-color: #ccc;
+}
+
+.js-btns {
+	margin-top: 1.6em;
+}
+
+.js-btns > button {
+	margin: 0 .1em;
+	padding: .2em .5em;
+	border-radius: 50%;
+	font-size: 130%;
+}
+
+.js-judge {
+	position: relative;
+	padding: 1.6em 0;
+	border-bottom: 1px solid #ccc;
+}
+
+.js-judge-name {
+	margin-top: 0;
+	margin-bottom: .7em;
+	padding: 0 2em;
+}
+
+.js-judge-remove {
+	position: absolute;
+	top: 1.2em;
+	right: .4em;
+	display: block;
+	width: 1.2em;
+	line-height: 1.2em;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: 50%;
+	background: transparent;
+    color: #999;
+	font-size: 130%;
+	cursor: pointer;
+}
+
+.js-judge-remove:focus {
+	outline: 1px dashed #666;
+}
+
+.js-judge-remove:focus,
+.js-judge-remove:hover {
+    background-color: #ddd;
+	border: 1px solid #bbb;
+    color: #444;
+}
+
+.js-judge-state {
+	margin-bottom: 0;
+}
+
+.js-judge-btns {
+	cursor: default; /* Prevent text cursor between the two buttons */
+}
+
+.js-judge-btn {
+	padding: .3em .8em;
+}
+
+
+/* ===== Configuration panel ===== */
+
+.config {
+	max-width: 45em;
+	margin: 3em auto;
+	padding-bottom: 0;
+	font-size: 110%;
+	text-align: left;
+}
+
+.cf-heading {
+	margin: 0 0 1em;
+	text-align: center;
+}
+
+.cf-item { 
+	overflow: hidden;
+}
+
+.cf-lbl,
+.cf-controls {
+	display: block;
+	float: left;
+	width: 50%;
+	margin: .3em 0;
+	padding: 0 .6em;
+}
+
+.cf-lbl {
+	padding-top: .2em;
+	padding-bottom: .2em;
+	text-align: right;
+}
+
+.cf-value {
+	display: inline-block;
+	border: 1px solid #bbb;
+	padding: .2em .5em;
+	background-color: #eee;
+}
+
+.cf-btn {
+	padding: .2em 0;
+}
+
+.cf-btn:not(.btn_pressed):not(:hover) {
+	color: inherit;
+}
+
+.cf-btn:first-child {
+	border-radius: 10px 0 0 10px;
+	border-right: 0;
+}
+
+.cf-btn:last-child {
+	border-radius: 0 10px 10px 0;
+	border-left: 0;
+}
+
+.cf-inc,
+.cf-dec {
+	width: 2em;
+}
+
+.cf-true,
+.cf-false {
+	width: 3.5em;
+}
+
+.cf-new {
+	max-width: 28em;
+	margin: 3em auto;
+}
+
+
+/* ===== Match panel ===== */
+
+.time-keeping,
+.state-management {
+	height: 50%;
+}
+
+/* Time keeping */
+
+.tk-inner {
+	position: relative;
+	top: 0;
+	width: 22.5em;
+	margin: 0 auto;
+	text-align: center;
+	transition: top .3s ease-out;
+}
+
+.tk-timer {
+	letter-spacing: .06em;
+	color: #444;
+}
+
+.tk-timer-sep {
+	position: relative;
+	top: -.09em;
+	text-align: center;
+}
+
+.tk-timer--round {
+	font-size: 750%;
+	background-color: #fff;
+	transition: opacity .3s ease-in;
+}
+
+.tk-timer--injury {
+	position: absolute;
+	bottom: 0;
+	z-index: -10;
+	width: 100%;
+	font-size: 300%;
+	opacity: 0;
+	transition: bottom .3s ease-out;
+}
+
+.tk_injury > .tk-inner {
+	top: -2em;
+}
+
+.tk_injury .tk-timer--round {
+	opacity: .6;
+}
+
+.tk_injury .tk-timer--injury {
+	bottom: -1em;
+	opacity: 1;
+}
+
+.tk_on .tk-timer--round > .tk-timer-sep,
+.tk_injury .tk-timer--injury > .tk-timer-sep {/*
+	animation: blink 1s .5s ease infinite reverse;*/
+}
+
+
+/* Scoring */
+
+.sc-inner {
+	padding: 0em 2em 2em;
+	overflow: hidden;
+}
+
+.sc-judge {
+	float: left;
+	width: 50%;
+	height: 50%;
+	padding: 1em 2em;
+}
+
+.sc-judge-score > span {
+	display: block;
+	float: left;
+	width: 50%;
+	padding: .5em 0;
+	font-size: 140%;
+	font-weight: bold;
+}
+
+
+/* Penalties */
+
+.penalties {
+	padding-top: .4em;
+}
+
+.pe-heading {
+	margin-bottom: .5em;
+}
+
+.pe-inner {
+	margin-bottom: 1.5em;
+}
+
+.pe-inner--warnings {
+	font-size: 150%;
+}
+
+.pe-item {
+	display: inline-block;
+	text-align: center;
+	padding: 0 .5em;
+}
+
+.pe-value,
+.pe-btns {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.pe-value {
+	padding: 0 .3em;
+	line-height: 1.6;
+	font-size: 200%;
+}
+
+.pe-btn {
+	display: block;
+	width: 4rem;
+	border-radius: 5px;
+}
+
+.pe-inc {
+	margin-bottom: .2em;
+	line-height: 2.05;
+}
+
+.pe-dec {
+	line-height: 1;
+	font-size: 80%;
+}
+
+
+/* ===== Result panel ===== */
+
+.rp-winner {
+	margin: 0;
+	font-size: 450%;
+	font-weight: bold;
+}
+
+.rp-winner--draw {
+	color: #333;
+}
+
+.rp-results {
+	margin: 2em 0 3em;
+	font-size: 120%;
+}
+
+.res-table {
+	margin: 0 auto;
+}
+
+.res-table th,
+.res-table td {
+	padding: .3em .5em;
+}
+
+.res-body th {
+	text-align: right;
+}
+
+.res-row--warnings,
+.res-row--fouls {
+	font-size: 90%;
+}
+
+.res-row--fouls > th,
+.res-row--fouls > td,
+.res-row--warnings > td[rowspan="2"] {
+	border-bottom: 10px solid #fff;
+}
+
+.res-row--warnings > th,
+.res-row--fouls > th {
+	font-weight: normal;
+}
+
+.res-head th:not(:first-child),
+.res-body .hong-sbg,
+.res-body .hong-bg {
+	border-left: 10px solid #fff;
+}
+

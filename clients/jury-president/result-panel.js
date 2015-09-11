@@ -2,7 +2,7 @@
 
 // Dependencies
 var helpers = require('../shared/helpers');
-var resultsTemplate = require('../templates/results.njk');
+var resultsTemplate = require('../../templates/precompiled/results.njk');
 
 
 function ResultPanel(io) {

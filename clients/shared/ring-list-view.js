@@ -2,7 +2,7 @@
 
 // Dependencies
 var helpers = require('./helpers');
-var ringListTemplate = require('../templates/ring-list.njk');
+var ringListTemplate = require('../../templates/precompiled/ring-list.njk');
 
 
 function RingListView(io) {

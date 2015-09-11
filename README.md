@@ -352,3 +352,36 @@ Taekwon currently implements two main security features:
 
 These two features prevent unauthorised users from using the system quite effectively, but are no silver bullet. Because it runs on a local network, the system doesn't use SSL or any other kind of encryption. All data exchanged betwen the server and the clients is transmitted in clear, including the clients' identifiers. This means that anyone connected to the Wi-Fi network could technically intercept and misuse this data, which is why you should strongly consider [securing the network](#set-up-a-local-wi-fi-network).
 
+
+## Reference
+
+### NPM scripts
+
+- `npm run dev`
+
+This is the prefered command to run in development. It uses Gulp to build the client scripts, lint all the JavaScript files, start the server with [nodemon](https://github.com/remy/nodemon) and watch for file changes. When a file in the `clients` folder changes, Gulp rebuilds the client scripts automatically. When a file in the `app` folder changes, nodemon restarts the server automatically.
+
+- `npm run build`
+
+This command just buils the client scripts. It neither starts the server nor watches for file changes.
+
+- `npm start` or `npm run start`
+
+This is an alias of `node app`; it simply starts the server. Don't use it in production: [use `forever start app`](#running-taekwon-in-production-with-forever).
+
+- `npm run reset`
+
+This command deletes the content of the `data` folder, which stores the system's database files. This is a good way to start fresh when testing. It can also be useful if you're experiencing problems, or when the database files become too big. Make sure you back up the folder before running the command. Note that you can achieve the same thing by deleting the content of the folder (not the folder itself) manually.
+
+
+### Tournament management
+
+When the server starts, it looks for an open tournament in the database. A tournament is *open* if it was started on the same day. If no tournament is found, a new one is started.
+
+To force the start of a new tournament even if one is already open, use `--force`:
+
+- `forever start app --force`
+- `npm run dev -- --force`
+- `npm start -- --force`
+- `node app --force`
+

@@ -4,9 +4,9 @@
 var Howl = require('howler').Howl;
 var helpers = require('../shared/helpers');
 var Timer = require('./timer').Timer;
-var stateBtnsTemplate = require('../templates/state-btns.njk');
-var scoreboardsTemplate = require('../templates/scoreboards.njk');
-var penaltiesTemplate = require('../templates/penalties.njk');
+var stateBtnsTemplate = require('../../templates/precompiled/state-btns.njk');
+var scoreboardsTemplate = require('../../templates/precompiled/scoreboards.njk');
+var penaltiesTemplate = require('../../templates/precompiled/penalties.njk');
 
 
 function MatchPanel(io) {

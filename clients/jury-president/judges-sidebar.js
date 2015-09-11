@@ -2,7 +2,7 @@
 
 // Dependencies
 var helpers = require('../shared/helpers');
-var judgeSlotsTemplate = require('../templates/judge-slots.njk');
+var judgeSlotsTemplate = require('../../templates/precompiled/judge-slots.njk');
 
 
 function JudgesSidebar(io) {

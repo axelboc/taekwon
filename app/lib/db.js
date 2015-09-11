@@ -8,22 +8,22 @@ var MatchStates = require('../enum/match-states');
 
 // Load NeDB datastores
 var tournamentsDb = new Datastore({
-	filename: 'app/data/tournaments.db',
+	filename: 'data/tournaments.db',
 	autoload: true
 });
 
 var usersDb = new Datastore({
-	filename: 'app/data/users.db',
+	filename: 'data/users.db',
 	autoload: true
 });
 
 var ringsDb = new Datastore({
-	filename: 'app/data/rings.db',
+	filename: 'data/rings.db',
 	autoload: true
 });
 
 var matchesDb = new Datastore({
-	filename: 'app/data/matches.db',
+	filename: 'data/matches.db',
 	autoload: true
 });
 
@@ -133,16 +133,19 @@ var DB = {
 	
 	/**
 	 * Insert a new user.
-	 * @param {String} userId - if falsy, let DB pick an ID, 
+	 * If a user ID is provided, call NeDB's `update` method with the `upsert` option set to `true`. When the server
+	 * is restarted with the `--force` argument, the `insert` method can result in an error if a user already exists 
+	 * in the database. The `update` method allows updating the user rather than deleting then re-inserting it.
 	 * @param {String} tournamentId
+	 * @param {String} userId - if falsy, let DB pick an ID, 
 	 * @param {String} identity - the user's identity ('juryPresident' or 'cornerJudge')
 	 * @param {String} name
 	 * @param {Function} cb
 	 */
-	insertUser: function (userId, tournamentId, identity, name, cb) {
+	insertUser: function (tournamentId, userId, identity, name, cb) {
+		assert.string(tournamentId, 'tournamentId');
 		assert.ok(typeof userId === 'undefined' || typeof userId === 'string' && userId.length > 0,
 				  "if provided, `userId` must be a non-empty string");
-		assert.string(tournamentId, 'tournamentId');
 		assert.string(identity, 'identity');
 		assert.ok(identity === 'juryPresident' || identity === 'cornerJudge',
 				  "`identity` must be 'juryPresident' or 'cornerJudge'");
@@ -155,17 +158,22 @@ var DB = {
 			identity: identity
 		};
 		
-		if (userId) {
-			doc._id = userId;
-		}
-		
 		if (identity === 'cornerJudge') {
 			doc.name = name;
 			doc.authorised = false;
 		}
 		
-		// Insert user
-		usersDb.insert(doc, callback(cb));
+		if (userId) {
+			// Update user
+			doc._id = userId;
+			usersDb.update({ _id: userId }, doc, { upsert: true }, function (err) {
+				if (isError(err)) { return; }
+				if (cb) { cb(doc); }
+			});
+		} else {
+			// Insert user
+			usersDb.insert(doc, callback(cb));
+		}
 	},
 	
 	/**

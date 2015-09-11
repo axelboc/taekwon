@@ -10,7 +10,7 @@ var NeDBLogger = require('nedb-logger');
  * Log directory path.
  * @type {String}
  */
-var PATH = 'app/data/logs';
+var PATH = 'data/logs';
 
 /**
  * Log levels.

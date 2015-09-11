@@ -13,8 +13,10 @@ var envify = require('envify');
 var cache = require('gulp-cached');
 var jshint = require('gulp-jshint');
 var nodemon = require('gulp-nodemon');
-var sourcemaps = require('gulp-sourcemaps');
 var uglify = require('gulp-uglify');
+var minify = require('gulp-minify-css');
+var concat = require('gulp-concat');
+var sourcemaps = require('gulp-sourcemaps');
 var gutil = require('gulp-util');
 var path = require('path');
 var del = require('del');
@@ -25,6 +27,7 @@ var CLIENTS = ['corner-judge', 'jury-president'];
 
 // Globs
 var GLOBS = {
+	css: '**/*.css',
 	js: '**/*.js',
 	njk: '**/*.njk',
 };
@@ -43,16 +46,19 @@ var SETS = {
 		path.join('config/.env'),
 		path.join('config/config.json'),
 		path.join('clients/shared', GLOBS.js),
-		path.join('clients/templates', GLOBS.njk)
+		path.join('templates/precompiled', GLOBS.njk)
 	]
 };
+
+// Determine the arguments with which to start the server
+var args = process.argv.indexOf('--force') !== -1 ? ['--force'] : [];
 
 
 /**
  * Clear the datastores.
  */
 gulp.task('reset', function () {
-	del('app/data/**');
+	del('data/**');
 });
 
 /**
@@ -75,7 +81,7 @@ gulp.task('scripts:lint', function() {
  * Register one task per client.
  */
 CLIENTS.forEach(function (client) {
-	gulp.task(client, function () {
+	gulp.task(client + ':js', function () {
 		return browserify({
 				entries: path.join('clients', client, 'root.js'),
 				debug: true
@@ -94,12 +100,32 @@ CLIENTS.forEach(function (client) {
 });
 
 /**
+ * Build a client stylesheet.
+ * Register one task per client.
+ */
+CLIENTS.forEach(function (client) {
+	gulp.task(client + ':css', function () {
+		return gulp.src([
+				'styles/main.css',
+				'styles/' + client + '.css'
+			])
+			.pipe(concat(client + '.css'))
+			.pipe(sourcemaps.init({ loadMaps: true }))
+			.pipe(minify())
+			.on('error', gutil.log)
+			.pipe(sourcemaps.write('./'))
+			.pipe(gulp.dest('public/css'));
+	});
+});
+
+/**
  * Start the development server.
  * Reload when the relevant files have changed.
  */
-gulp.task('server', CLIENTS, function () {
+gulp.task('server', ['build'], function () {
 	nodemon({
 		script: 'app.js',
+		args: args,
 		watch: [
 			'app',
 			'app.js',
@@ -117,7 +143,12 @@ gulp.task('watch', ['server'], function () {
 	CLIENTS.forEach(function (client) {
 		gulp.watch(SETS.client.concat([
 			path.join('clients', client, GLOBS.js),
-		]), [client]);
+		]), [client + ':js']);
+		
+		gulp.watch([
+			'styles/main.css',
+			'styles/' + client + '.css'
+		], [client + ':css']);
 	});
 	
 	// Lint any changed JS files
@@ -130,5 +161,11 @@ gulp.task('watch', ['server'], function () {
  *  MAIN TASKS
  * ============
  */
-gulp.task('build', CLIENTS.slice(0));
+
 gulp.task('default', ['build', 'scripts:lint', 'server', 'watch']);
+
+gulp.task('build', CLIENTS.reduce(function (arr, client) {
+	arr.push(client + ':css', client + ':js');
+	return arr;
+}, []));
+
