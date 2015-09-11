@@ -8,22 +8,22 @@ var MatchStates = require('../enum/match-states');
 
 // Load NeDB datastores
 var tournamentsDb = new Datastore({
-	filename: 'app/data/tournaments.db',
+	filename: 'data/tournaments.db',
 	autoload: true
 });
 
 var usersDb = new Datastore({
-	filename: 'app/data/users.db',
+	filename: 'data/users.db',
 	autoload: true
 });
 
 var ringsDb = new Datastore({
-	filename: 'app/data/rings.db',
+	filename: 'data/rings.db',
 	autoload: true
 });
 
 var matchesDb = new Datastore({
-	filename: 'app/data/matches.db',
+	filename: 'data/matches.db',
 	autoload: true
 });
 

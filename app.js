@@ -27,7 +27,7 @@ var app = express();
 var server = http.Server(app);
 
 // Configure Nunjucks
-nunjucks.configure(['app/templates', 'app/templates/partials'], {
+nunjucks.configure(['templates', 'templates/partials'], {
 	autoescape: true,
 	express: app
 });

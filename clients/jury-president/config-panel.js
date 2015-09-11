@@ -2,7 +2,7 @@
 
 // Dependencies
 var helpers = require('../shared/helpers');
-var configItemsTemplate = require('../templates/config-items.njk');
+var configItemsTemplate = require('../../templates/precompiled/config-items.njk');
 
 
 function ConfigPanel(io) {
