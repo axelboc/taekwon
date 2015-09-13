@@ -12,7 +12,8 @@
     "build": "gulp build",
     "start": "node app",
     "dev": "gulp",
-    "reset": "gulp reset"
+    "reset": "gulp reset",
+    "test": "mocha"
   },
   "engines": {
     "node": "0.12.x"
