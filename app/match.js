@@ -528,7 +528,7 @@ Match.prototype._computeTotals = function (cjIds) {
  * @param {Array} cjIds
  */
 Match.prototype._computeWinner = function (cjIds) {
-	var wins = [0, 0];
+	var wins = { hong: 0, chong: 0 };
 	var ties = 0;
 
 	// Compute the totals for the current period in each scoreboard
@@ -538,23 +538,25 @@ Match.prototype._computeWinner = function (cjIds) {
 		
 		if (sheet.winner) {
 			// Increment the winner's win sum
-			wins[Competitors.getIndex(sheet.winner)] += 1;
+			wins[sheet.winner] += 1;
 		} else {
 			// No winner, increment tie sum
 			ties += 1;
 		}
 	}, this);
 	
-	// If majority of ties, match is also a tie (with 4 CJs, this is the case only with 3 ties + 1 win)
-	if (ties > Math.max.apply(null, wins)) {
-		this.winner = null;
-	} else {
-		// Determine winner
-		var index = wins[0] > wins[1] ? 0 : (wins[1] > wins[0] ? 1 : -1);
-		this.winner = index > -1 ? Competitors.get(index) : null;
+	this.winner = this._computeOverallWinner(wins.hong, wins.chong, ties);
+	this.logger.info('winnerComputed', this.winner, { winner: this.winner });
+};
+
+Match.prototype._computeOverallWinner = function (winsHong, winsChong, ties) {
+	// If majority of ties, match is also a tie (with 4 CJs, this is relevant only in the case of 3 ties + 1 win)
+	if (ties > Math.max(winsHong, winsChong)) {
+		return null;
 	}
 	
-	this.logger.info('winnerComputed', this.winner, { winner: this.winner });
+	// Determine winner
+	return (winsHong > winsChong ? Competitors.HONG : (winsHong < winsChong ? Competitors.CHONG : null));
 };
 
 module.exports.Match = Match;
