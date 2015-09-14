@@ -8,6 +8,7 @@ var gulp = require('gulp');
 var buffer = require('vinyl-buffer');
 var source = require('vinyl-source-stream');
 var browserify = require('browserify');
+var babelify = require('babelify');
 var nunjucksify = require('nunjucksify');
 var envify = require('envify');
 var cache = require('gulp-cached');
@@ -86,6 +87,7 @@ CLIENTS.forEach(function (client) {
 				entries: path.join('clients', client, 'root.js'),
 				debug: true
 			})
+			.transform(babelify.configure({ ignore: [/node_modules/, /vendor/] }))
 			.transform(envify)
 			.transform(nunjucksify, { extension: '.njk' })
 			.bundle()
