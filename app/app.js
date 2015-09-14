@@ -33,8 +33,8 @@ var app = express();
 var server = http.Server(app);
 
 // Configure Nunjucks
-nunjucks.configure(['templates', 'templates/partials'], {
-	autoescape: true,
+nunjucks.configure(['app'], {
+	autoescape: false,
 	express: app
 });
 
