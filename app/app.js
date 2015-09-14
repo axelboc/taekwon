@@ -16,7 +16,8 @@ var log = require('./lib/log');
 var DB = require('./lib/db');
 var Tournament = require('./tournament').Tournament;
 
-import React from 'react/addons';
+import React from 'react';
+import ReactDOMServer from 'react-dom/server';
 import CornerJudge from './components/corner-judge';
 import JuryPresident from './components/jury-president';
 
@@ -52,24 +53,21 @@ assert.ok(config.maxScore >= 3 && config.maxScore <= 5, "maximum score must be 3
 
 // Corner Judge route
 app.get('/', function (req, res) {
-	var identity = 'corner-judge';
-	res.render(identity, {
-		identity: identity,
+	res.render('layout', {
+		identity: 'corner-judge',
 		title: "Corner Judge",
 		metaViewport: 'width=device-width, initial-scale=1, user-scalable=no',
-		maxScore: config.maxScore,
-		main: React.renderToString(<CornerJudge />)
+		main: ReactDOMServer.renderToString(<CornerJudge />)
 	});
 });
 
 // Jury President route
 app.get('/jury', function (req, res) {
-	var identity = 'jury-president';
-	res.render(identity, {
-		identity: identity,
+	res.render('layout', {
+		identity: 'jury-president',
 		title: "Jury President",
 		metaViewport: 'width=device-width, initial-scale=1',
-		main: React.renderToString(<JuryPresident />)
+		main: ReactDOMServer.renderToString(<JuryPresident />)
 	});
 });
 
