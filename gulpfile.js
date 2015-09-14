@@ -9,7 +9,6 @@ var buffer = require('vinyl-buffer');
 var source = require('vinyl-source-stream');
 var browserify = require('browserify');
 var babelify = require('babelify');
-var nunjucksify = require('nunjucksify');
 var envify = require('envify');
 var cache = require('gulp-cached');
 var eslint = require('gulp-eslint');
@@ -39,15 +38,12 @@ var SETS = {
 		'app.js',
 		'gulpfile.js',
 		path.join('app', GLOBS.js),
-		path.join('clients', GLOBS.js),
-		('!' + path.join('clients', 'vendor', GLOBS.js)),
 		path.join('tests', GLOBS.js)
 	],
 	client: [
 		path.join('config/.env'),
 		path.join('config/config.json'),
-		path.join('clients/shared', GLOBS.js),
-		path.join('templates/precompiled', GLOBS.njk)
+		path.join('app/components', GLOBS.js)
 	]
 };
 
@@ -80,12 +76,11 @@ gulp.task('scripts:lint', function() {
 CLIENTS.forEach(function (client) {
 	gulp.task(client + ':js', function () {
 		return browserify({
-				entries: path.join('clients', client, 'root.js'),
+				entries: path.join('app/clients', client + '.js'),
 				debug: true
 			})
 			.transform(babelify.configure({ ignore: [/node_modules/, /vendor/] }))
 			.transform(envify)
-			.transform(nunjucksify, { extension: '.njk' })
 			.bundle()
 			.pipe(source(client + '.js'))
 			.pipe(buffer())
@@ -127,8 +122,7 @@ gulp.task('server', ['build'], function () {
 		watch: [
 			'app',
 			'app.js',
-			'config/.env',
-			'config/config.json'
+			'config'
 		]
 	});
 });
@@ -140,7 +134,7 @@ gulp.task('watch', ['server'], function () {
 	// Watch and rebuild each client's scritps
 	CLIENTS.forEach(function (client) {
 		gulp.watch(SETS.client.concat([
-			path.join('clients', client, GLOBS.js)
+			path.join('app/clients', client + '.js')
 		]), [client + ':js']);
 		
 		gulp.watch([
