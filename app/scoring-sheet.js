@@ -3,7 +3,6 @@
 // Dependencies
 var assert = require('./lib/assert');
 var log = require('./lib/log');
-var DB = require('./lib/db');
 var Competitors = require('./enum/competitors');
 
 
@@ -61,6 +60,7 @@ ScoringSheet.prototype.computeTotals = function (maluses) {
 
 /**
  * Compute the winner for the period and return it.
+ * @return {String} - the winning competitor or `null` if tie
  */
 ScoringSheet.prototype.computeWinner = function () {
 	if (this.totals[0] > this.totals[1]) {

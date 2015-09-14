@@ -77,9 +77,12 @@ function IO(identity) {
 				if (obj && obj.emit) {
 					console.log(obj.emit[0], obj.emit[1]);
 					return;
+				} else {
+					console.log(data);
 				}
-			} catch (exc) {}
-			console.log(data);
+			} catch (exc) {
+				console.log(data);
+			}
 		});
 
 		// Listen for when Primus attempts to reconnect

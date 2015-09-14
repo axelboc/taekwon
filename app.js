@@ -3,4 +3,4 @@
 require('babel/register');
 
 // Load the ES6 app
-var app = require('./app/app');
+require('./app/app');

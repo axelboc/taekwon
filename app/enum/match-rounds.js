@@ -24,7 +24,7 @@ var MatchStates = {
 	isMainRound: function (round) {
 		assert.string(round, 'round');
 		return MAIN_ROUND_REGEX.test(round);
-	},
+	}
 	
 };
 

@@ -12,7 +12,7 @@ var babelify = require('babelify');
 var nunjucksify = require('nunjucksify');
 var envify = require('envify');
 var cache = require('gulp-cached');
-var jshint = require('gulp-jshint');
+var eslint = require('gulp-eslint');
 var nodemon = require('gulp-nodemon');
 var uglify = require('gulp-uglify');
 var minify = require('gulp-minify-css');
@@ -30,7 +30,7 @@ var CLIENTS = ['corner-judge', 'jury-president'];
 var GLOBS = {
 	css: '**/*.css',
 	js: '**/*.js',
-	njk: '**/*.njk',
+	njk: '**/*.njk'
 };
 
 // Sets of paths
@@ -68,13 +68,9 @@ gulp.task('reset', function () {
  */
 gulp.task('scripts:lint', function() {
 	return gulp.src(SETS.lint)
-		.pipe(cache('scripts:lint'))
-		.pipe(jshint({
-			lookup: false, devel: true, browser: true, node: true,
-			bitwise: true, curly: true, eqeqeq: true, funcscope: true, 
-			latedef: 'nofunc', nocomma: true, undef: true, unused: false
-		}))
-		.pipe(jshint.reporter('default'));
+		.pipe(cache('scrips:lint'))
+		.pipe(eslint())
+		.pipe(eslint.format())
 });
 
 /**
@@ -144,7 +140,7 @@ gulp.task('watch', ['server'], function () {
 	// Watch and rebuild each client's scritps
 	CLIENTS.forEach(function (client) {
 		gulp.watch(SETS.client.concat([
-			path.join('clients', client, GLOBS.js),
+			path.join('clients', client, GLOBS.js)
 		]), [client + ':js']);
 		
 		gulp.watch([
@@ -164,10 +160,10 @@ gulp.task('watch', ['server'], function () {
  * ============
  */
 
-gulp.task('default', ['build', 'scripts:lint', 'server', 'watch']);
+gulp.task('default', ['build', 'server', 'watch']);
 
 gulp.task('build', CLIENTS.reduce(function (arr, client) {
 	arr.push(client + ':css', client + ':js');
 	return arr;
-}, []));
+}, ['scripts:lint']));
 

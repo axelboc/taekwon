@@ -29,7 +29,7 @@ var CJ_EVENTS = ['joinRing', 'exited'];
  * Tournament; the root of the application.
  * @param {String} id
  */
-function Tournament(id, server) {
+function Tournament(id) {
 	assert.string(id, 'id');
 	
 	this.id = id;

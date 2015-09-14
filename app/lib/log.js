@@ -20,7 +20,7 @@ var levels = {
 	LOG: 'log',
 	INFO: 'info',
 	WARN: 'warn',
-	ERROR: 'error',
+	ERROR: 'error'
 };
 
 /**

@@ -515,6 +515,8 @@ Match.prototype._computeMaluses = function () {
  * @param {Array} cjIds
  */
 Match.prototype._computeTotals = function (cjIds) {
+	assert.array(cjIds, 'cjIds');
+	
 	cjIds.forEach(function (cjId) {
 		var sheet = this.scoreboards[cjId].sheets[this.period.current];
 		var maluses = this.maluses[this.period.current];
@@ -523,11 +525,12 @@ Match.prototype._computeTotals = function (cjIds) {
 };
 
 /**
- * Compute the winner for the current period in every scoring sheet,
- * then compute the overall winner.
+ * Compute the winner for the current period in every scoring sheet.
  * @param {Array} cjIds
  */
 Match.prototype._computeWinner = function (cjIds) {
+	assert.array(cjIds, 'cjIds');
+	
 	var wins = { hong: 0, chong: 0 };
 	var ties = 0;
 
@@ -549,7 +552,18 @@ Match.prototype._computeWinner = function (cjIds) {
 	this.logger.info('winnerComputed', this.winner, { winner: this.winner });
 };
 
+/**
+ * Compute the overall winner for the current period.
+ * @param {Integer} winsHong
+ * @param {Integer} winsChong
+ * @param {Integer} ties
+ * @return {String} - the winning competitor or `null` if tie
+ */
 Match.prototype._computeOverallWinner = function (winsHong, winsChong, ties) {
+	assert.integerGte0(winsHong, 'winsHong');
+	assert.integerGte0(winsChong, 'winsChong');
+	assert.integerGte0(ties, 'ties');
+	
 	// If majority of ties, match is also a tie (with 4 CJs, this is relevant only in the case of 3 ties + 1 win)
 	if (ties > Math.max(winsHong, winsChong)) {
 		return null;
