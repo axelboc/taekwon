@@ -1,9 +1,7 @@
 
 import React, { Component } from 'react';
-import ActionBox from './action-box';
-import IdentificationForm from './identification-form';
-import RingList from './ring-list';
-import ScoreBtns from './score-btns';
+import ActionView from './cj/action-view';
+import ScoringView from './cj/scoring-view';
 
 
 export default class CornerJudge extends Component {
@@ -12,6 +10,9 @@ export default class CornerJudge extends Component {
 		super();
 		this.state = {
 			rings: [true, false],
+			isIdentified: true,
+			isAuthorised: true,
+			joinedRing: 1,
 			maxScore: 3
 		}
 	}
@@ -19,26 +20,20 @@ export default class CornerJudge extends Component {
 	render() {
 		return (
 			<div>
-				<div>
-					<h1>Corner Judge</h1>
-					<ActionBox instructions="Enter your name">
-						<IdentificationForm type="text" autoCapitalize="on" />
-					</ActionBox>
-					<ActionBox instructions="Select ring number">
-						<RingList disableWhenClosed={true} rings={this.state.rings} />
-					</ActionBox>
-					<ActionBox instructions="Waiting for authorisation...">
-						<button type="button">Cancel</button>
-					</ActionBox>
-				</div>
-				<div>
-					<button type="button">Undo</button>
-					<ScoreBtns maxScore={this.state.maxScore} />
-					<ScoreBtns maxScore={this.state.maxScore} />
-					<div className="feedback"></div>
-				</div>
+				{this.renderView()}
 			</div>
 		);
+	}
+	
+	renderView() {
+		if (!this.state.isAuthorised) {
+			return <ActionView 
+						isIdentified={this.state.isIdentified}
+						joinedRing={this.state.joinedRing}
+						rings={this.state.rings} />
+		} else {
+			return <ScoringView maxScore={this.state.maxScore} />
+		}
 	}
 	
 }
