@@ -27,7 +27,6 @@ var CLIENTS = ['corner-judge', 'jury-president'];
 
 // Globs
 var GLOBS = {
-	css: '**/*.css',
 	js: '**/*.js',
 	njk: '**/*.njk'
 };
@@ -43,6 +42,7 @@ var SETS = {
 	client: [
 		path.join('config/.env'),
 		path.join('config/config.json'),
+		path.join('app/clients', GLOBS.js),
 		path.join('app/components', GLOBS.js)
 	]
 };
@@ -82,6 +82,7 @@ CLIENTS.forEach(function (client) {
 			.transform(babelify.configure({ ignore: [/node_modules/, /vendor/] }))
 			.transform(envify)
 			.bundle()
+			.on('error', gutil.log)
 			.pipe(source(client + '.js'))
 			.pipe(buffer())
 			.pipe(sourcemaps.init({ loadMaps: true }))

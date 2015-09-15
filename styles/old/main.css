@@ -1,0 +1,326 @@
+@charset "utf-8";
+
+*,
+*:before,
+*:after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	height: 100%;
+}
+
+body {
+	font-family: Century Gothic, sans-serif;
+	margin: 0;
+}
+
+h1 {
+	margin: 1.2em 0 .8em;
+	font-size: 250%;
+	text-align: center;
+}
+
+h1,
+h2 {
+	font-weight: normal;
+}
+
+.hidden {
+	display: none !important;
+}
+
+.hidden--view {
+	position: absolute !important;
+	clip: rect(1px, 1px, 1px, 1px);
+}
+
+button::-moz-focus-inner {
+    border: none;
+}
+
+.list-reset {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.list-grid > li {
+    display: inline-block;
+    margin: 0 .5em;
+}
+
+/* Font-size transitions when device orientation changes or browser is resized */
+h1,
+.instr {
+    transition: font-size .2s ease-in-out;
+}
+
+.clearfix:before,
+.clearfix:after {
+    content: "";
+    display: table;
+}
+
+.clearfix:after {
+    clear: both;
+}
+
+
+/* ===== Components ===== */
+
+/* View */
+.view {
+	overflow: hidden;
+	max-width: 50em;
+	margin: 0 auto;
+	padding-bottom: 4em;
+	text-align: center;
+}
+
+/* Action container */
+.action {
+	max-width: 50em;
+	margin: 0 auto;
+	padding: .2em 0 .6em;
+	border-width: 0 8px;
+	border-style: solid;
+	border-color: #ec1822;
+	text-align: center;
+}
+
+.action > *:last-child {
+    margin-bottom: 0;
+}
+
+/* Instruction paragraph */
+.instr {
+	margin: 0 0 1em;
+	padding: 0 1em;
+	font-size: 140%;
+	font-style: italic;
+}
+
+/* Text field */
+.field {
+	padding: .2em;
+	border: 1px solid #555;
+	border-radius: 4px;
+	font-size: 150%;
+	text-align: inherit;
+}
+
+
+/* ===== Buttons ===== */
+
+.btn {
+	padding: 0;
+	background-image: none;
+    background-color: #555;
+    border: 1px solid #555;
+    border-radius: 10px;
+    color: #fff;
+	font: inherit;
+    cursor: pointer;
+    transition: all .2s ease-in-out;
+	outline: 0px dashed #666;
+}
+
+.btn:focus {
+	outline-width: 1px;
+}
+
+.btn[disabled],
+.btn_pressed {
+	pointer-events: none;
+}
+
+.btn[disabled] {
+    opacity: .4;
+}
+
+.no-hover {
+	transition: all .3s ease-out 0s;
+}
+
+.btn--go {
+	width: 2em;
+	margin-left: .2em;
+	padding: .16em;
+	font-size: 150%;
+	border-radius: 4px;
+}
+
+.btn--minor,
+.btn--toggle {
+    background-color: #ddd;
+	border: 1px solid #bbb;
+    color: #444;
+}
+
+.btn--major,
+.btn_pressed {
+	background-color: #ec1822;
+	border-color: #ec1822;
+    color: #fff;
+}
+
+.btn:not(.no-hover):hover,
+.no-hover:active {
+    background-color: #ddd;
+    border-color: #bbb;
+    color: #444;
+}
+
+.no-hover:active {
+	transition-duration: 0s;
+}
+
+.btn--minor:not(.no-hover):hover,
+.btn--major:not(.no-hover):hover,
+.btn--toggle:not(.no-hover):hover,
+.btn--minor.no-hover:active,
+.btn--major.no-hover:active,
+.btn--toggle.no-hover:active {
+    background-color: #555;
+    border-color: #555;
+    color: #fff;
+}
+
+
+/* ===== Competitors' colours ===== */
+
+.hong-col { color: hsl(6, 78%, 57%); }
+.hong-bg { background-color: hsl(6, 78%, 57%); color: #fff; }
+.hong-sbg { background-color: hsla(6, 78%, 57%, .3); }
+
+.chong-col { color: hsl(204, 64%, 44%); }
+.chong-bg { background-color: hsl(204, 64%, 44%); color: #fff; }
+.chong-sbg { background-color: hsla(204, 64%, 44%, .3); }
+
+
+/* ===== Shake effect for identification text fields (name, password) ===== */
+
+.shake {
+	-webkit-animation: shake 150ms 2 linear;
+	animation: shake 150ms 2 linear;
+}
+
+@-webkit-keyframes shake {
+	0% { -webkit-transform: translate3d(3px, 0, 0); }
+	50% { -webkit-transform: translate3d(-3px, 0, 0); }
+	100% { -webkit-transform: translate3d(0, 0, 0); }
+}
+
+@keyframes shake{
+	0% { transform: translate3d(3px, 0, 0); }
+	50% { transform: translate3d(-3px, 0, 0); }
+	100% { transform: translate3d(0, 0, 0); }
+}
+
+
+/* ===== Error and waiting views ===== */
+
+.err-btn,
+.wa-btn {
+	padding: .5em 1em;
+	margin-top: 1em;
+    font-size: 140%;
+}
+
+
+/* ===== Ring List view ===== */
+
+.rl-list {
+	max-width: 18em;
+	margin: 0 auto;
+}
+
+.rl-btn {
+    min-width: 2.8em;
+    min-height: 2.8em;
+	margin-top: .7em;
+    font-size: 180%;
+}
+
+
+/* ===== Backdrop ===== */
+
+.backdrop {
+	position: fixed;
+	z-index: 50;
+	top: 0;
+	left: 0;
+	display: table;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, .88);
+	color: #fff;
+}
+
+.bdp-body {
+	display: table-cell;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.bdp-body > p {
+	margin: .5em 0;
+}
+
+.bdp-text {
+	font-size: 150%;
+}
+
+
+/* ===== Media queries ===== */
+
+@media (min-width: 30em) {
+	
+	.rl-list {
+		max-width: none;
+	}
+	
+}
+
+@media (min-height: 22em) {
+	
+	h1 {
+		margin: 1.4em 0 1.2em;
+	}
+	
+}
+
+@media (min-width: 35em) and (min-height: 26em) {
+	
+	h1 {
+		font-size: 300%;
+	}
+	
+	.instr {
+		font-size: 150%;
+	}
+	
+	.rl-btn {
+		font-size: 230%;
+	}
+	
+	.bdp-body {
+		font-size: 130%;
+	}
+	
+}
+
+@media (min-width: 45em) and (min-height: 32em) {
+	
+	h1 {
+		font-size: 400%;
+	}
+	
+	.instr {
+		font-size: 170%;
+	}
+	
+}
+
