@@ -1,8 +1,8 @@
 
 import React, { Component } from 'react';
-import ActionBox from '../action-box';
-import IdentificationForm from '../identification-form';
-import RingList from '../ring-list';
+import ActionBox from '../../shared/components/action-box';
+import IdentificationForm from '../../shared/components/identification-form';
+import RingList from '../../shared/components/ring-list';
 
 
 export default class ActionView extends Component {

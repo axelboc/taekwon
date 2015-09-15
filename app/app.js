@@ -18,8 +18,8 @@ var Tournament = require('./tournament').Tournament;
 
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
-import CornerJudge from './components/corner-judge';
-import JuryPresident from './components/jury-president';
+import CornerJudge from './clients/corner-judge/components/root';
+import JuryPresident from './clients/jury-president/components/root';
 
 
 // Create logger

@@ -1,10 +1,10 @@
 
 import React, { Component } from 'react';
-import ActionView from './cj/action-view';
-import ScoringView from './cj/scoring-view';
+import ActionView from './action-view';
+import ScoringView from './scoring-view';
 
 
-export default class CornerJudge extends Component {
+export default class Root extends Component {
 	
 	constructor() {
 		super();

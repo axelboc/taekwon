@@ -28,6 +28,7 @@
     "extend": "^3.0.0",
     "fastclick": "^1.0.6",
     "howler": "^1.1.26",
+    "immutable": "^3.7.5",
     "javascript-state-machine": "2.3.*",
     "nedb": "1.1.*",
     "nedb-logger": "0.1.*",
@@ -36,6 +37,8 @@
     "primus-emit": "0.1.*",
     "react": "^0.14.0-rc1",
     "react-dom": "^0.14.0-rc1",
+    "react-redux": "^2.1.2",
+    "redux": "^3.0.0",
     "sockjs": "0.3.*",
     "tiny-cookie": "^0.5.4"
   },

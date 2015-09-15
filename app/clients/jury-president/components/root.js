@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 
 
-export default class JuryPresident extends Component {
+export default class Root extends Component {
 	
 	render() {
 		return (
