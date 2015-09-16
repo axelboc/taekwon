@@ -1,10 +1,11 @@
 
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import ActionView from './action-view';
 import ScoringView from './scoring-view';
 
 
-export default class Root extends Component {
+class Root extends Component {
 	
 	constructor() {
 		super();
@@ -37,3 +38,10 @@ export default class Root extends Component {
 	}
 	
 }
+
+// Determine which props to inject given the global state
+function select(state) {
+	return state;
+}
+
+export default connect(select)(App);

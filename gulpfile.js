@@ -42,7 +42,7 @@ var SETS = {
 	client: [
 		path.join('config/.env'),
 		path.join('config/config.json'),
-		path.join('app/clients/shared', GLOBS.js)
+		path.join('clients/shared', GLOBS.js)
 	]
 };
 
@@ -75,7 +75,7 @@ gulp.task('scripts:lint', function() {
 CLIENTS.forEach(function (client) {
 	gulp.task(client + ':js', function () {
 		return browserify({
-				entries: path.join('app/clients', client, 'main.js'),
+				entries: path.join('clients', client, 'main.js'),
 				debug: true
 			})
 			.transform(babelify.configure({ ignore: [/node_modules/, /vendor/] }))
@@ -134,7 +134,7 @@ gulp.task('watch', ['server'], function () {
 	// Watch and rebuild each client's scritps
 	CLIENTS.forEach(function (client) {
 		gulp.watch(SETS.client.concat([
-			path.join('app/clients', client, GLOBS.js)
+			path.join('clients', client, GLOBS.js)
 		]), [client + ':js']);
 		
 		gulp.watch([
