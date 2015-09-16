@@ -13,7 +13,7 @@
     "start": "node app",
     "dev": "gulp",
     "reset": "gulp reset",
-    "test": "mocha"
+    "test": "mocha --compilers js:babel/register  --recursive"
   },
   "engines": {
     "node": "0.12.x"
@@ -48,6 +48,7 @@
     "babelify": "^6.3.0",
     "browserify": "^10.2.4",
     "chai": "^3.2.0",
+    "chai-immutable": "^1.3.0",
     "del": "^1.2.0",
     "envify": "^3.4.0",
     "gulp": "^3.9.0",
