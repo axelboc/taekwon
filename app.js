@@ -3,4 +3,4 @@
 require('babel/register');
 
 // Load the server
-require('./app/app');
+require('./app/index');

@@ -16,10 +16,10 @@ var log = require('./lib/log');
 var DB = require('./lib/db');
 var Tournament = require('./tournament').Tournament;
 
-import React from 'react';
-import ReactDOMServer from 'react-dom/server';
-import CornerJudge from './clients/corner-judge/components/root';
-import JuryPresident from './clients/jury-president/components/root';
+//import React from 'react';
+//import ReactDOMServer from 'react-dom/server';
+//import CornerJudge from './clients/corner-judge/components/root';
+//import JuryPresident from './clients/jury-president/components/root';
 
 
 // Create logger
@@ -49,7 +49,8 @@ app.locals.baseUrl = process.env.BASE_URL;
 app.locals.port = process.env.PORT;
 
 // Assert relevant configuration options
-assert.ok(config.maxScore >= 3 && config.maxScore <= 5, "maximum score must be 3, 4 or 5 (current: " + config.maxScore + ")");
+assert.ok(config.maxScore >= 3 && config.maxScore <= 5, 
+		  "maximum score must be 3, 4 or 5 (current: " + config.maxScore + ")");
 
 // Corner Judge route
 app.get('/', function (req, res) {
@@ -57,7 +58,8 @@ app.get('/', function (req, res) {
 		identity: 'corner-judge',
 		title: "Corner Judge",
 		metaViewport: 'width=device-width, initial-scale=1, user-scalable=no',
-		main: ReactDOMServer.renderToString(<CornerJudge />)
+		//main: ReactDOMServer.renderToString(<CornerJudge />)
+		main: ''
 	});
 });
 
@@ -67,7 +69,8 @@ app.get('/jury', function (req, res) {
 		identity: 'jury-president',
 		title: "Jury President",
 		metaViewport: 'width=device-width, initial-scale=1',
-		main: ReactDOMServer.renderToString(<JuryPresident />)
+		//main: ReactDOMServer.renderToString(<JuryPresident />)
+		main: ''
 	});
 });
 

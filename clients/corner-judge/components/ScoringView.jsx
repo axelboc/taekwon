@@ -1,6 +1,6 @@
 
 import React, { Component } from 'react';
-import ScoreBtns from './score-btns';
+import ScoreBtns from './ScoreBtns';
 
 
 export default class ScoringView extends Component {

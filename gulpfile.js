@@ -28,6 +28,7 @@ var CLIENTS = ['corner-judge', 'jury-president'];
 // Globs
 var GLOBS = {
 	js: '**/*.js',
+	jsx: '**/*.jsx',
 	njk: '**/*.njk'
 };
 
@@ -42,7 +43,8 @@ var SETS = {
 	client: [
 		path.join('config/.env'),
 		path.join('config/config.json'),
-		path.join('clients/shared', GLOBS.js)
+		path.join('clients/shared', GLOBS.js),
+		path.join('clients/shared', GLOBS.jsx)
 	]
 };
 
@@ -75,8 +77,9 @@ gulp.task('scripts:lint', function() {
 CLIENTS.forEach(function (client) {
 	gulp.task(client + ':js', function () {
 		return browserify({
-				entries: path.join('clients', client, 'main.js'),
-				debug: true
+				entries: path.join('clients', client, 'index.jsx'),
+				debug: true,
+				extensions: ['.js', '.jsx']
 			})
 			.transform(babelify.configure({ ignore: [/node_modules/, /vendor/] }))
 			.transform(envify)
@@ -134,7 +137,8 @@ gulp.task('watch', ['server'], function () {
 	// Watch and rebuild each client's scritps
 	CLIENTS.forEach(function (client) {
 		gulp.watch(SETS.client.concat([
-			path.join('clients', client, GLOBS.js)
+			path.join('clients', client, GLOBS.js),
+			path.join('clients', client, GLOBS.jsx)
 		]), [client + ':js']);
 		
 		gulp.watch([

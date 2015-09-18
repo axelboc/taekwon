@@ -3,16 +3,25 @@ import 'babel-core/polyfill';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Root from './components/root';
+import CornerJudge from './components/CornerJudge';
 
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
-import reducer from './reducers';
+import reducer from './reducer';
 
 
 // Create Redux store
 let store = createStore(reducer);
-
+store.dispatch({
+	type: 'SET_STATE',
+	state: {
+		rings: [true, false],
+		isIdentified: true,
+		isAuthorised: true,
+		joinedRing: 1,
+		maxScore: 3
+	}
+});
 
 // Get main container
 let main = document.getElementById('main');
@@ -20,7 +29,7 @@ let main = document.getElementById('main');
 // Render Corner Judge interface
 ReactDOM.render(
 	<Provider store={store}>
-		{() => <Root />}
+		<CornerJudge />
 	</Provider>,
 	main
 );

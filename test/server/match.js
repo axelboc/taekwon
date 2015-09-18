@@ -4,9 +4,9 @@ var expect = require('chai').expect;
 var fs = require('fs');
 var path = require('path');
 
-var log = require('../app/lib/log');
-var Match = require('../app/match').Match;
-var Competitors = require('../app/enum/competitors');
+var log = require('../../app/lib/log');
+var Match = require('../../app/match').Match;
+var Competitors = require('../../app/enum/competitors');
 
 
 describe('Match', function () {
@@ -55,7 +55,7 @@ describe('Match', function () {
 	
 	after(function () {
 		// Delete log file
-		fs.unlinkSync(path.join(__dirname, '../data/logs/testing.db'));
+		fs.unlinkSync(path.join(__dirname, '../../data/logs/testing.db'));
 	});
 	
 });
