@@ -371,7 +371,7 @@ This is an alias of `node app`; it simply starts the server. Don't use it in pro
 
 - `npm run reset`
 
-This command deletes the content of the `data` folder, which stores the system's database files. This is a good way to start fresh when testing. It can also be useful if you're experiencing problems, or when the database files become too big. Make sure you back up the folder before running the command. Note that you can achieve the same thing by deleting the content of the folder (not the folder itself) manually.
+This command deletes the `data` folder, which stores the system's database files. This is a good way to start fresh when testing. It can also be useful if you're experiencing problems, or when the database files become too big. Make sure you back up the folder before running the command. Note that you can achieve the same thing by deleting the folder manually.
 
 
 ### Tournament management

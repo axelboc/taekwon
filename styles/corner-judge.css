@@ -109,7 +109,7 @@
 	font-weight: bold;
 	text-align: center;
 	transform: translate3d(0, 0, 0);
-	transition: transform 10s linear;
+	transition: transform 8s linear;
 	opacity: .8;
 }
 
@@ -136,7 +136,7 @@
 	}
 	
 	.no3d > .fdb {
-		top: -2em;
+		top: -1em;
 	}
 	
 }
