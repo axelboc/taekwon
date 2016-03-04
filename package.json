@@ -9,53 +9,38 @@
     "url": "http://github.com/axelboc/taekwon"
   },
   "scripts": {
-    "build": "gulp build",
-    "start": "node app",
-    "dev": "gulp",
-    "reset": "gulp reset",
-    "test": "mocha"
+    "start": "npm run watch",
+    "build:clients": "gulp build",
+    "build:server": "babel (transpile server-side into build folder)",
+    "build": "concurrent \"npm run build:clients\" \"npm run build:server\"",
+    "watch:clients": "gulp watch",
+    "watch:server": "babel-watch (run server and watch for changes)",
+    "watch": "concurrent \"npm run watch:clients\" \"npm run watch:server\"",
+    "lint": "(lint server and client-side JS code with ESLint)",
+    "test": "(run unit tests)",
+    "ci": "concurrent \"npm run lint\" \"npm test\""
   },
   "engines": {
-    "node": "0.12.x"
-  },
-  "browser": {
-    "nunjucks": "nunjucks/browser/nunjucks-slim"
+    "node": "^4.3.2",
+    "npm": "^3.3.6"
   },
   "dependencies": {
-    "async": "1.2.*",
-    "dotenv": "^1.2.0",
-    "express": "4.12.*",
-    "extend": "^3.0.0",
-    "fastclick": "^1.0.6",
-    "howler": "^1.1.26",
-    "javascript-state-machine": "2.3.*",
-    "nedb": "1.1.*",
-    "nedb-logger": "0.1.*",
-    "nunjucks": "^1.3.4",
-    "primus": "3.1.*",
-    "primus-emit": "0.1.*",
-    "sockjs": "0.3.*",
-    "tiny-cookie": "^0.5.4"
+    "react": "^0.14.7",
+    "redux": "^3.3.1"
   },
   "devDependencies": {
-    "browserify": "^10.2.4",
-    "chai": "^3.2.0",
-    "del": "^1.2.0",
-    "envify": "^3.4.0",
-    "gulp": "^3.9.0",
-    "gulp-cached": "^1.1.0",
-    "gulp-concat": "^2.6.0",
-    "gulp-jshint": "^1.11.2",
-    "gulp-minify-css": "^1.2.1",
-    "gulp-mocha": "^2.1.2",
-    "gulp-nodemon": "^2.0.3",
-    "gulp-sourcemaps": "^1.5.2",
-    "gulp-uglify": "^1.2.0",
-    "gulp-util": "^3.0.6",
-    "mocha": "^2.3.2",
-    "nunjucksify": "^0.2.2",
-    "sinon": "^1.16.1",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0"
+    "babel-plugin-react-transform": "^2.0.0",
+    "babel-preset-es2015": "^6.6.0",
+    "babel-preset-react": "^6.5.0",
+    "babelify": "^7.2.0",
+    "browserify": "^13.0.0",
+    "event-stream": "^3.3.2",
+    "gulp": "^3.9.1",
+    "gulp-util": "^3.0.7",
+    "livereactload": "^2.2.0",
+    "minifyify": "^7.3.2",
+    "react-proxy": "^1.1.2",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.7.0"
   }
 }

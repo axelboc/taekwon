@@ -4,11 +4,7 @@ config/.env
 node_modules/
 public/js/
 public/css/
-
-
-#############
-## Windows detritus
-#############
+.nvmrc
 
 # Windows image file caches
 Thumbs.db
