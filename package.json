@@ -11,10 +11,10 @@
   "scripts": {
     "start": "npm run watch",
     "build:clients": "gulp build",
-    "build:server": "babel server/index.js -o app.js --presets es2015,react --babelrc false",
+    "build:server": "babel server -d server/build --ignore server/build --presets es2015 --babelrc false",
     "build": "concurrent \"npm run build:clients\" \"npm run build:server\"",
     "watch:clients": "gulp watch",
-    "watch:server": "babel-watch (run server and watch for changes)",
+    "watch:server": "nodemon server/index.js -w server --ignore server/build --exec \"babel-node --presets es2015\"",
     "watch": "concurrent \"npm run watch:clients\" \"npm run watch:server\"",
     "lint": "(lint server and client-side JS code with ESLint)",
     "test": "(run unit tests)",
@@ -41,6 +41,7 @@
     "gulp-util": "^3.0.7",
     "livereactload": "^2.2.0",
     "minifyify": "^7.3.2",
+    "nodemon": "^1.9.1",
     "react-proxy": "^1.1.2",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.7.0"
