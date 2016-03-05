@@ -1,10 +1,10 @@
 
-data/
-config/.env
-node_modules/
-public/js/
-public/css/
+node_modules
 .nvmrc
+.env
+/public/js/
+/public/css/
+/app.js
 
 # Windows image file caches
 Thumbs.db
