@@ -1,7 +1,9 @@
 
-node_modules
-.nvmrc
 .env
+.eslintcache
+.nvmrc
+node_modules
+npm-debug.log
 /public/js/
 /public/css/
 /server/build
