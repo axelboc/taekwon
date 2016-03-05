@@ -9,7 +9,10 @@ var es = require('event-stream');
 var path = require('path');
 
 // Clients
-var CLIENTS = ['corner-judge', 'jury-president'];
+var CLIENTS = [
+  'corner-judge',
+  'jury-president'
+ ];
 
 // Globs
 var GLOBS = {
@@ -41,6 +44,7 @@ gulp.task('watch', ['watch:js']);
 gulp.task('build:js', function () {
   var streams = CLIENTS.map(function (client) {
     return browserify({ entries: path.join('clients', client, 'index.js') })
+      .transform('babelify', { presets: ['es2015', 'react'] })
       .plugin('minifyify', { map: false })
 			.bundle()
 			.on('error', gutil.log)
@@ -60,12 +64,12 @@ gulp.task('watch:js', function () {
   var streams = CLIENTS.map(function (client) {
     // Create bundler
     var bundler = browserify({
-      entries: path.join('clients', client, 'index.js'),
-      cache: {},
-      packageCache: {},
-      debug: true,
-      plugin: [watchify]
-    });
+        entries: path.join('clients', client, 'index.js'),
+        cache: {}, packageCache: {},
+        debug: true
+      })
+      .transform('babelify', { presets: ['es2015', 'react'] })
+      .plugin('watchify');
     
     // Bundling function
     function rebundle() {
