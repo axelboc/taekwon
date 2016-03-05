@@ -12,20 +12,20 @@
     "start": "npm run watch",
     "build:clients": "gulp build",
     "build:server": "babel server -d server/build --ignore server/build --presets es2015 --babelrc false",
-    "build": "concurrent --kill-others \"npm run build:clients\" \"npm run build:server\"",
+    "build": "concurrently --kill-others \"npm run build:clients\" \"npm run build:server\"",
     "prebuild": "npm run lint",
     "watch:clients": "gulp watch",
     "watch:server": "nodemon server/index.js -w server --ignore server/build --exec \"babel-node --presets es2015\"",
-    "watch": "concurrent --kill-others \"npm run watch:clients\" \"npm run watch:server\"",
+    "watch": "concurrently --kill-others \"npm run watch:clients\" \"npm run watch:server\"",
     "lint:clients": "eslint clients/** --env es6,browser --cache",
     "lint:server": "eslint server/** --env es6,node --cache --ignore-pattern server/build/**",
-    "lint": "concurrent --kill-others \"npm run lint:clients\" \"npm run lint:server\"",
+    "lint": "concurrently --kill-others \"npm run lint:clients\" \"npm run lint:server\"",
     "test": "(run unit tests)",
-    "ci": "concurrent --kill-others \"npm run lint\" \"npm test\""
+    "ci": "concurrently --kill-others \"npm run lint\" \"npm test\""
   },
   "engines": {
     "node": "^4.3.2",
-    "npm": "^3.3.6"
+    "npm": "^3.8.0"
   },
   "dependencies": {
     "react": "^0.14.7",
