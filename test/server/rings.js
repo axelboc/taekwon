@@ -1,20 +1,19 @@
 import {Map, fromJS} from 'immutable';
 import {expect} from 'chai';
 
-import { INIT_RINGS } from '../../../server/actions/rings';
-import ringsReducer from '../../../server/reducers/rings';
+import rings from '../../server/rings';
 
 describe('Rings reducer', () => {
 
   it('has initial state', () => {
-    const nextState = ringsReducer(undefined, { type: '' });
+    const nextState = rings.reducer(undefined, { type: '' });
     expect(nextState).to.equal(fromJS([]));
   });
   
-  it('handles INIT_RINGS', () => {
+  it('handles INIT', () => {
     const initialState = Map();
-    const action = { type: 'INIT_RINGS', count: 1 };
-    const nextState = ringsReducer(initialState, action);
+    const action = { type: rings.actions.INIT, count: 1 };
+    const nextState = rings.reducer(initialState, action);
 
     expect(nextState).to.equal(fromJS([
       {

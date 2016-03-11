@@ -1,9 +1,11 @@
 import { List, Map } from 'immutable';
-import { INIT_RINGS } from '../actions/rings';
+import { INIT } from './actions';
 
-export default function ringsReducer(state = new List(), action) {
+const initialState = new List();
+
+export default function ringsReducer(state = initialState, action) {
   switch (action.type) {
-    case INIT_RINGS:
+    case INIT:
       return List(Array.from({ length: action.count }, (val, index) => Map({
         index,
         jp: null,
@@ -15,4 +17,4 @@ export default function ringsReducer(state = new List(), action) {
     default:
       return state;
   }
-};
+}
