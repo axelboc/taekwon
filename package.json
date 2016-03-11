@@ -11,14 +11,14 @@
   "scripts": {
     "start": "concurrently --kill-others \"npm run watch\" \"npm run test:watch\"",
     "build:clients": "gulp build",
-    "build:server": "babel server -d server/build --ignore server/build",
+    "build:server": "babel server -d bin",
     "build": "concurrently --kill-others \"npm run build:clients\" \"npm run build:server\"",
     "prebuild": "npm run lint",
     "watch:clients": "gulp watch",
-    "watch:server": "nodemon server/index.js -w server --ignore server/build --exec \"babel-node\"",
+    "watch:server": "nodemon server/index.js -w server --exec \"babel-node\"",
     "watch": "concurrently --kill-others \"npm run watch:clients\" \"npm run watch:server\"",
-    "lint:clients": "eslint clients/** --env es6,browser --cache",
-    "lint:server": "eslint server/** --env es6,node --cache --ignore-pattern server/build/**",
+    "lint:clients": "eslint clients/** --env es6,browser,mocha --cache",
+    "lint:server": "eslint server/** --env es6,node,mocha --cache",
     "lint": "concurrently --kill-others \"npm run lint:clients\" \"npm run lint:server\"",
     "test": "mocha --compilers js:babel-core/register --require test/setup.js --recursive",
     "test:watch": "npm run test -- --watch",
@@ -52,7 +52,7 @@
     "minifyify": "^7.3.2",
     "mocha": "^2.4.5",
     "nodemon": "^1.9.1",
-    "react-proxy": "^1.1.2",
+    "react-proxy": "^1.1.8",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.7.0"
   },
@@ -60,12 +60,5 @@
     "presets": [
       "es2015"
     ]
-  },
-  "eslintConfig": {
-    "extends": "eslint:recommended",
-    "parserOptions": {
-      "ecmaVersion": 6,
-      "sourceType": "module"
-    }
   }
 }
