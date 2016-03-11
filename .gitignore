@@ -4,9 +4,9 @@
 .nvmrc
 node_modules
 npm-debug.log
+/bin
 /public/js/
 /public/css/
-/server/build
 
 # Visual Studio Code
 /typings

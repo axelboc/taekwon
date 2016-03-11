@@ -69,7 +69,13 @@ gulp.task('watch:js', function () {
         debug: true
       })
       .transform('babelify', { presets: ['es2015', 'react'] })
-      .plugin('watchify');
+      .plugin('watchify')
+      .plugins('react-transform', {
+        transforms: [{
+          transform: 'livereactload/babel-transform',
+          imports: ['react']
+        }]
+      });
     
     // Bundling function
     function rebundle() {
