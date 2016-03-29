@@ -13,12 +13,6 @@ var CLIENTS = [
   'jury-president'
  ];
 
-// Globs
-var GLOBS = {
-	css: '**/*.css',
-	js: '**/*.js'
-};
-
 
 /**
  * ============
