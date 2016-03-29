@@ -9,29 +9,31 @@
     "url": "http://github.com/axelboc/taekwon"
   },
   "scripts": {
-    "start": "concurrently --kill-others \"npm run watch\" \"npm run test:watch\"",
+    "start": "npm run watch",
     "build:clients": "gulp build",
     "build:server": "babel server -d bin",
-    "build": "concurrently --kill-others \"npm run build:clients\" \"npm run build:server\"",
+    "build": "cross-env NODE_ENV=production concurrently -k \"npm run build:clients\" \"npm run build:server\"",
     "prebuild": "npm run lint",
     "watch:clients": "gulp watch",
     "watch:server": "nodemon server/index.js -w server --exec \"babel-node\"",
-    "watch": "concurrently --kill-others \"npm run watch:clients\" \"npm run watch:server\"",
+    "watch": "concurrently -k \"npm run watch:clients\" \"npm run watch:server\"",
     "lint:clients": "eslint clients/** --env es6,browser,mocha --cache",
     "lint:server": "eslint server/** --env es6,node,mocha --cache",
-    "lint": "concurrently --kill-others \"npm run lint:clients\" \"npm run lint:server\"",
+    "lint": "concurrently -k \"npm run lint:clients\" \"npm run lint:server\"",
     "test": "mocha --compilers js:babel-core/register --require test/setup.js --recursive",
     "test:watch": "npm run test -- --watch",
-    "ci": "concurrently --kill-others \"npm run lint\" \"npm test\""
+    "ci": "concurrently -k \"npm run lint\" \"npm test\""
   },
   "engines": {
     "node": "^4.3.2",
     "npm": "^3.8.0"
   },
   "dependencies": {
+    "connect": "^3.4.1",
     "immutable": "^3.7.6",
     "react": "^0.14.7",
-    "redux": "^3.3.1"
+    "redux": "^3.3.1",
+    "serve-static": "^1.10.2"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
@@ -44,6 +46,7 @@
     "chai": "^3.5.0",
     "chai-immutable": "^1.5.3",
     "concurrently": "^2.0.0",
+    "cross-env": "^1.0.7",
     "eslint": "^2.3.0",
     "event-stream": "^3.3.2",
     "gulp": "^3.9.1",

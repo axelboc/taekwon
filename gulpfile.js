@@ -2,8 +2,6 @@
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var browserify = require('browserify');
-var watchify = require('watchify');
-var minifyify = require('minifyify');
 var source = require('vinyl-source-stream');
 var es = require('event-stream');
 var path = require('path');
@@ -61,28 +59,31 @@ gulp.task('build:js', function () {
  * Includes hot module reloading, sourcemaps, JSX transformation, and transpilation from ES6 to ES5.
  */
 gulp.task('watch:js', function () {
-  var streams = CLIENTS.map(function (client) {
+  var streams = CLIENTS.map(function (client, index) {
     // Create bundler
     var bundler = browserify({
         entries: path.join('clients', client, 'index.js'),
         cache: {}, packageCache: {},
         debug: true
       })
-      .transform('babelify', { presets: ['es2015', 'react'] })
-      .plugin('watchify')
-      .plugins('react-transform', {
-        transforms: [{
-          transform: 'livereactload/babel-transform',
-          imports: ['react']
-        }]
-      });
+      .transform('babelify', {
+        presets: ['es2015', 'react'],
+        plugins: [['react-transform', {
+          transforms: [{
+            transform: 'livereactload/babel-transform',
+            imports: ['react']
+          }]
+        }]]
+      })
+      .plugin('livereactload', { port: 4474 + index })
+      .plugin('watchify');
     
     // Bundling function
     function rebundle() {
       return bundler.bundle()
         .on('error', gutil.log)
-			  .pipe(source(client + '.js'))
-			  .pipe(gulp.dest('public/js'));
+        .pipe(source(client + '.js'))
+        .pipe(gulp.dest('public/js'));
     }
     
     // Rebundle on update
