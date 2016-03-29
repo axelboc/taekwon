@@ -8,6 +8,7 @@ var path = require('path');
 
 // Clients
 var CLIENTS = [
+  'admin',
   'corner-judge',
   'jury-president'
  ];
