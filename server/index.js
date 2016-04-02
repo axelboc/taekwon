@@ -1,15 +1,20 @@
-import http from 'http';
-import connect from 'connect';
-import serveStatic from 'serve-static';
-import makeStore from './store';
+import createServer from './server';
+import createIO from './io';
+import createStore from './store';
 
-// Create and configure server
-let app = connect();
-app.use(serveStatic('public'));
+// Create web server
+const server = createServer();
+
+// Create socket server
+const io = createIO(server);
+
+// Create Redux store
+const store = createStore();
+
+// Listen for socket connections
+io.on('connection', (socket) => {
+  
+});
 
 // Start server
-http.createServer(app).listen(80);
-
-// Initialise Redux store
-const store = makeStore();
-
+server.listen(80);

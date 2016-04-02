@@ -188,7 +188,7 @@ Tournament.prototype._onIdentification = function (spark, data) {
 	assert.object(data, 'data');
 	assert.string(data.identity, 'data.identity');
 	assert.ok(data.identity === 'juryPresident' || data.identity === 'cornerJudge',
-			  "`data.identity` must be 'juryPresident' or 'cornerJudge'");
+            "`data.identity` must be 'juryPresident' or 'cornerJudge'");
 	
 	// Get user ID from query
 	var userId = spark.query.id;
