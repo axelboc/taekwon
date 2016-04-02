@@ -13,9 +13,11 @@ function initRing() {
 }
 
 export default function ringsReducer(state = initialState, action) {
+  const payload = action.payload;
+  
   switch (action.type) {
     case INIT:
-      return List(Array.from({ length: action.payload.count }, () => initRing()));
+      return List(Array.from({ length: payload.count }, () => initRing()));
     
     case ADD:
       return state.push(initRing(state.size));
@@ -24,18 +26,18 @@ export default function ringsReducer(state = initialState, action) {
       return state.pop();
     
     case OPEN:
-      return state.setIn([action.payload.index, 'jp'], action.payload.jpId);
+      return state.setIn([payload.index, 'jp'], payload.jpId);
     
     case CLOSE:
-      return state.setIn([action.payload.index, 'jp'], null);
+      return state.setIn([payload.index, 'jp'], null);
     
     case ADD_CJ:
-      return state.updateIn([action.payload.index, 'cjs'], cjs => cjs.push(action.payload.cjId));
+      return state.updateIn([payload.index, 'cjs'], cjs => cjs.push(payload.cjId));
     
     case REMOVE_CJ:
       return state.setIn(
-        [action.payload.index, 'cjs'],
-        state.getIn([action.payload.index, 'cjs']).filter(cjId => cjId !== action.payload.cjId)
+        [payload.index, 'cjs'],
+        state.getIn([payload.index, 'cjs']).filter(cjId => cjId !== payload.cjId)
       );
     
     default:

@@ -6,7 +6,7 @@ import rings from '../../server/rings';
 describe('Rings', () => {
   
   it('deals with initial state', () => {
-    const nextState = rings.reducer(undefined, { type: '' });
+    const nextState = rings.reducer(undefined, {});
     expect(nextState).to.equal(fromJS([]));
   });
   
