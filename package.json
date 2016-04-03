@@ -30,12 +30,14 @@
   },
   "dependencies": {
     "connect": "^3.4.1",
+    "dotenv": "^2.0.0",
     "immutable": "^3.7.6",
     "react": "^0.14.7",
     "react-dom": "^0.14.7",
     "redux": "^3.3.1",
     "serve-static": "^1.10.2",
-    "socket.io": "^1.4.5"
+    "socket.io": "^1.4.5",
+    "socket.io-client": "^1.4.5"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
@@ -49,6 +51,7 @@
     "chai-immutable": "^1.5.3",
     "concurrently": "^2.0.0",
     "cross-env": "^1.0.7",
+    "envify": "^3.4.0",
     "eslint": "^2.3.0",
     "event-stream": "^3.3.2",
     "gulp": "^3.9.1",

@@ -1,3 +1,6 @@
+// Load environment variables (later used by envify) 
+require('dotenv').config();
+
 // Dependencies
 var gulp = require('gulp');
 var gutil = require('gulp-util');
@@ -70,6 +73,7 @@ gulp.task('watch:js', function () {
           }]
         }]]
       })
+      .transform('envify')
       .plugin('livereactload', { port: 4474 + index })
       .plugin('watchify');
     
