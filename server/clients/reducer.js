@@ -7,6 +7,9 @@ export default function clientsReducer(state = initialState, action) {
   const payload = action.payload;
   
   switch (action.type) {
+    case 'SET_FOO':
+      return state.set('foo', 'bar');
+    
     case ADD:
       return state.set(payload.id, Map({
        type: payload.type,
