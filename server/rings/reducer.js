@@ -1,4 +1,5 @@
 import { List, Map } from 'immutable';
+import { createReduer } from 'redux-immutablejs';
 import { INIT, ADD, REMOVE, OPEN, CLOSE, ADD_CJ, REMOVE_CJ } from './actions';
 
 const initialState = new List();
@@ -12,35 +13,43 @@ function initRing() {
   });
 }
 
-export default function ringsReducer(state = initialState, action) {
-  const payload = action.payload;
-  
-  switch (action.type) {
-    case INIT:
-      return List(Array.from({ length: payload.count }, () => initRing()));
-    
-    case ADD:
-      return state.push(initRing(state.size));
-    
-    case REMOVE:
-      return state.pop();
-    
-    case OPEN:
-      return state.setIn([payload.index, 'jp'], payload.jpId);
-    
-    case CLOSE:
-      return state.setIn([payload.index, 'jp'], null);
-    
-    case ADD_CJ:
-      return state.updateIn([payload.index, 'cjs'], cjs => cjs.push(payload.cjId));
-    
-    case REMOVE_CJ:
-      return state.setIn(
-        [payload.index, 'cjs'],
-        state.getIn([payload.index, 'cjs']).filter(cjId => cjId !== payload.cjId)
-      );
-    
-    default:
-      return state;
-  }
-}
+export const init = (state, { payload }) => {
+  return List(Array.from({ length: payload.count }, () => initRing()));
+};
+
+export const add = state => {
+  return state.push(initRing(state.size));
+};
+
+export const remove = state => {
+  return state.pop();
+};
+
+export const open = (state, { payload }) => {
+  return state.setIn([payload.index, 'jp'], payload.jpId);
+};
+
+export const close = (state, { payload }) => {
+  return state.setIn([payload.index, 'jp'], null);
+};
+
+export const addCJ = (state, { payload }) => {
+  return state.updateIn([payload.index, 'cjs'], cjs => cjs.push(payload.cjId));
+};
+
+export const removeCJ = (state, { payload }) => {
+  return state.setIn(
+    [payload.index, 'cjs'],
+    state.getIn([payload.index, 'cjs']).filter(cjId => cjId !== payload.cjId)
+  );
+};
+
+export default createReduer(initialState, {
+  [INIT]: init,
+  [ADD]: add,
+  [REMOVE]: remove,
+  [OPEN]: open,
+  [CLOSE]: close,
+  [ADD_CJ]: addCJ,
+  [REMOVE_CJ]: removeCJ
+});

@@ -1,35 +1,37 @@
 import { Map } from 'immutable';
+import { createReduer } from 'redux-immutablejs';
 import { ADD, REMOVE, SET_CONNECTED, SET_CJ_NAME, SET_CJ_AUTHORISED } from './actions';
 
 const initialState = new Map();
 
-export default function clientsReducer(state = initialState, action) {
-  const payload = action.payload;
-  
-  switch (action.type) {
-    case 'SET_FOO':
-      return state.set('foo', 'bar');
-    
-    case ADD:
-      return state.set(payload.id, Map({
-       type: payload.type,
-       connected: true,
-       data: payload.data
-      }));
-      
-    case REMOVE:
-      return state.delete(payload.id);
-      
-    case SET_CONNECTED:
-      return state.setIn([payload.id, 'connected'], payload.connected);
-      
-    case SET_CJ_NAME:
-      return state.setIn([payload.id, 'data', 'name'], payload.name);
-      
-    case SET_CJ_AUTHORISED:
-      return state.setIn([payload.id, 'data', 'authorised'], payload.authorised);
-    
-    default:
-      return state;
-  }
-}
+export const add = (state, { payload }) => {
+  return state.set(payload.id, Map({
+    type: payload.type,
+    connected: true,
+    data: payload.data
+  }));
+};
+
+export const remove = (state, { payload }) => {
+  return state.delete(payload.id);
+};
+
+export const setConnected = (state, { payload }) => {
+  return state.setIn([payload.id, 'connected'], payload.connected);
+};
+
+export const setCJName = (state, { payload }) => {
+  return state.setIn([payload.id, 'data', 'name'], payload.name);
+};
+
+export const setCJAuthorised = (state, { payload }) => {
+  return state.setIn([payload.id, 'data', 'authorised'], payload.authorised);
+};
+
+export default createReduer(initialState, {
+  [ADD]: add,
+  [REMOVE]: remove,
+  [SET_CONNECTED]: setConnected,
+  [SET_CJ_NAME]: setCJName,
+  [SET_CJ_AUTHORISED]: setCJAuthorised
+});
