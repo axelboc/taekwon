@@ -1,5 +1,5 @@
 import { List, Map } from 'immutable';
-import { createReduer } from 'redux-immutablejs';
+import { createReducer } from 'redux-immutablejs';
 import { INIT, ADD, REMOVE, OPEN, CLOSE, ADD_CJ, REMOVE_CJ } from './actions';
 
 const initialState = new List();
@@ -9,7 +9,7 @@ function initRing() {
     jp: null,
     cjs: List(),
     slotCount: 4,
-    mathes: List()
+    matches: List()
   });
 }
 
@@ -44,7 +44,7 @@ export const removeCJ = (state, { payload }) => {
   );
 };
 
-export default createReduer(initialState, {
+export default createReducer(initialState, {
   [INIT]: init,
   [ADD]: add,
   [REMOVE]: remove,

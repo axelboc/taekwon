@@ -1,5 +1,5 @@
 import { Map } from 'immutable';
-import { createReduer } from 'redux-immutablejs';
+import { createReducer } from 'redux-immutablejs';
 import { ADD, REMOVE, SET_CONNECTED, SET_CJ_NAME, SET_CJ_AUTHORISED } from './actions';
 
 const initialState = new Map();
@@ -28,7 +28,7 @@ export const setCJAuthorised = (state, { payload }) => {
   return state.setIn([payload.id, 'data', 'authorised'], payload.authorised);
 };
 
-export default createReduer(initialState, {
+export default createReducer(initialState, {
   [ADD]: add,
   [REMOVE]: remove,
   [SET_CONNECTED]: setConnected,

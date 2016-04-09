@@ -1,25 +1,35 @@
 import { fromJS } from 'immutable';
 import { expect } from 'chai';
 
-import adminReducer from '../../../clients/admin/reducer';
+import { setStateAction } from '../../../clients/shared/set-state';
+import { addRing } from '../../../clients/admin/actions';
+import reducer from '../../../clients/admin/reducer';
 import serverReducer from '../../../server/reducer';
-import { admin as adminPresenter } from '../../../server/presenters';
+import { admin as serverPresenter } from '../../../server/presenters';
 
 describe('Admin', () => {
   
-  it('can set foo', () => {
-    const action = { type: 'SET_FOO' };
+  it('can add ring', () => {
+    const action = addRing();
     
-    const initialAdminState = fromJS({});
-    const optimisticState = adminReducer(initialAdminState, action);
+    const initialState = fromJS({});
+    const optimisticState = reducer(initialState, action);
     
     const initialServerState = fromJS({});
     const nextServerState = serverReducer(initialServerState, action);
-    const presentedServerState = adminPresenter(nextServerState.toJS());
-    const nextState = adminReducer(optimisticState, { type: 'SET_STATE', state: presentedServerState });
+    const presentedServerState = serverPresenter(nextServerState.toJS());
     
-    expect(optimisticState).to.equal(fromJS({ foo: 'bar' }));
+    const nextState = reducer(optimisticState, setStateAction(presentedServerState));
+    
     expect(nextState).to.equal(optimisticState);
+    expect(nextState.get('rings')).to.equal(fromJS([
+      {
+        jp: null,
+        cjs: [],
+        slotCount: 4,
+        matches: []
+      }
+    ]));
   });
   
 });

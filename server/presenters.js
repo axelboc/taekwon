@@ -1,6 +1,1 @@
-export function admin(state) {
-  const subset = {};
-  subset.foo = state.clients.foo;
-  
-  return subset;
-} 
+export const admin = state => state;

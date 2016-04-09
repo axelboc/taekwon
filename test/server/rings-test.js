@@ -20,7 +20,7 @@ describe('Rings', () => {
         jp: null,
         cjs: [],
         slotCount: 4,
-        mathes: []
+        matches: []
       }
     ]));
   });
@@ -35,7 +35,7 @@ describe('Rings', () => {
         jp: null,
         cjs: [],
         slotCount: 4,
-        mathes: []
+        matches: []
       }
     ]));
   });
