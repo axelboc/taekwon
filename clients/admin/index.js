@@ -1,5 +1,5 @@
 import { createStore, applyMiddleware } from 'redux';
-import remoteActionMiddleware from './remote-action-middleware';
+import { remoteActionMiddleware } from './remote-action';
 import reducer from './reducer';
 import io from 'socket.io-client';
 
