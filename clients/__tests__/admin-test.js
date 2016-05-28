@@ -5,7 +5,7 @@ import { setStateAction } from '../shared/set-state';
 import { addRing } from '../admin/actions';
 import reducer from '../admin/reducer';
 import serverReducer from '../../server/reducer';
-import { admin as serverPresenter } from '../../server/presenters';
+import serverPresenter from '../../server/presenters/admin-presenter';
 
 describe('Admin', () => {
   

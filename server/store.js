@@ -1,6 +1,6 @@
 import { createStore } from 'redux';
 import reducer from './reducer';
-import * as presenters from './presenters';
+import presenters from './presenters';
 
 export default function () {
   return createStore(reducer);
