@@ -1,9 +1,9 @@
 import { List, Map, fromJS } from 'immutable';
 import { expect } from 'chai';
 
-import rings from '../../server/rings';
+import rings from '../rings';
 
-describe('Rings', () => {
+describe('Server::rings', () => {
   
   it('deals with initial state', () => {
     const nextState = rings.reducer(undefined, {});

@@ -1,9 +1,9 @@
 import { List, Map, fromJS } from 'immutable';
 import { expect } from 'chai';
 
-import clients from '../../server/clients';
+import clients from '../clients';
 
-describe('Clients', () => {
+describe('Server::clients', () => {
   
   it('deals with initial state', () => {
     const nextState = clients.reducer(undefined, {});

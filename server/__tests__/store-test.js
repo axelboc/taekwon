@@ -1,9 +1,9 @@
 import { Map } from 'immutable';
 import { expect } from 'chai';
 
-import makeStore from '../../server/store';
+import makeStore from '../store';
 
-describe('store', () => {
+describe('Server::store', () => {
 
   it('creates a Redux store', () => {
     const store = makeStore();

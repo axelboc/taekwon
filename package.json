@@ -20,7 +20,7 @@
     "lint:clients": "eslint clients/** --env es6,browser,mocha --cache",
     "lint:server": "eslint server/** --env es6,node,mocha --cache",
     "lint": "concurrently -k \"npm run lint:clients\" \"npm run lint:server\"",
-    "test": "mocha --compilers js:babel-core/register --require test/setup.js --recursive",
+    "test": "mocha",
     "test:watch": "npm run test -- --watch",
     "ci": "concurrently -k \"npm run lint\" \"npm test\""
   },

@@ -1,0 +1,5 @@
+clients/__tests__
+server/__tests__
+--recursive
+--require test/setup.js
+--compilers js:babel-core/register
