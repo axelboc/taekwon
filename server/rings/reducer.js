@@ -18,7 +18,7 @@ export const init = (state, { payload }) => {
 };
 
 export const add = state => {
-  return state.push(initRing(state.size));
+  return state.push(initRing());
 };
 
 export const remove = state => {
