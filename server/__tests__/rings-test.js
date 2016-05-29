@@ -1,6 +1,5 @@
-import { List, Map, fromJS } from 'immutable';
+import { fromJS } from 'immutable';
 import { expect } from 'chai';
-
 import rings from '../rings';
 
 describe('Server::rings', () => {

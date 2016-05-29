@@ -1,6 +1,4 @@
-import { Map } from 'immutable';
 import { expect } from 'chai';
-
 import makeStore from '../store';
 
 describe('Server::store', () => {

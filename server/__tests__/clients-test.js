@@ -1,6 +1,5 @@
-import { List, Map, fromJS } from 'immutable';
+import { fromJS } from 'immutable';
 import { expect } from 'chai';
-
 import clients from '../clients';
 
 describe('Server::clients', () => {
