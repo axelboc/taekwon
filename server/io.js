@@ -10,7 +10,7 @@ export default function (server, store) {
     socket.on('action', store.dispatch.bind(store));
 
     // Send a subset of the state to the client every time the state changes
-    store.subscribe(createSubscriber(store, socket, 'admin'));
+    store.subscribe(createSubscriber(store, socket, 'admin', 'id'));
   });
   
   return io;

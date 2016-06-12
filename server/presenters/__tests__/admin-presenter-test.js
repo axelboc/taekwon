@@ -1,15 +1,14 @@
 import { Map } from 'immutable';
 import { expect } from 'chai';
-
-import adminPresenter from '../../presenters/admin-presenter';
+import createPresenter from '../../presenters';
 
 describe ('Presenter::admin', () => {
+
+  const presenter = createPresenter('admin', 'id');
   
   it('presents the entire server state', () => {
     const state = Map();
-    const presentedState = adminPresenter(state);
-    
-    expect(presentedState).to.equal(state);
+    expect(presenter(state)).to.equal(state);
   });
   
 });

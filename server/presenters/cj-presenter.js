@@ -7,7 +7,7 @@ function presentRingState(ring) {
   });
 }
 
-export default state => {
+export default (id, state) => {
   return Map({
     rings: state.get('rings').map(presentRingState)
   });

@@ -1,9 +1,10 @@
 import { fromJS } from 'immutable';
 import { expect } from 'chai';
-
-import cjPresenter from '../../presenters/cj-presenter';
+import createPresenter from '../../presenters';
 
 describe ('Presenter::CJ', () => {
+
+  const presenter = createPresenter('cj', 'id');
   
   it('presents whether the rings are open and full', () => {
     const state = fromJS({
@@ -12,11 +13,9 @@ describe ('Presenter::CJ', () => {
         { jp: 'jp', cjs: [], slotCount: 1 },
         { jp: 'jp', cjs: ['cj'], slotCount: 1 }
       ]
-  });
+    });
     
-    const presentedState = cjPresenter(state);
-    
-    expect(presentedState).to.equal(fromJS({
+    expect(presenter(state)).to.equal(fromJS({
       rings: [
         { isOpen: false, isFull: false },
         { isOpen: true, isFull: false },

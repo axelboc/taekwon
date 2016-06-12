@@ -1,13 +1,13 @@
 import { createStore } from 'redux';
 import reducer from './reducer';
-import presenters from './presenters';
+import createPresenter from './presenters';
 
 export default function () {
   return createStore(reducer);
 }
 
-export function createSubscriber(store, socket, clientType) {
-  const presenter = presenters[clientType];
+export function createSubscriber(store, socket, clientType, clientId) {
+  const presenter = createPresenter(clientType, clientId);
   
   return () => {
     const state = store.getState().toJS();
