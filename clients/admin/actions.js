@@ -1,3 +1,4 @@
+import { makeRemote } from '../shared/remote-action';
 import * as rings from '../../server/rings/actions';
 
-export const addRing = rings.add;
+export const addRing = makeRemote(rings.add);

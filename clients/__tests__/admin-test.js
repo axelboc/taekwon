@@ -21,6 +21,7 @@ describe('Admin', () => {
     
     const nextState = reducer(optimisticState, setStateAction(presentedServerState));
     
+    expect(action.meta.remote).to.be.true;
     expect(nextState).to.equal(optimisticState);
     expect(nextState.get('rings')).to.equal(fromJS([
       {
