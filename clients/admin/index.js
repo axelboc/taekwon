@@ -1,21 +1,12 @@
-import { createStore, applyMiddleware, compose } from 'redux';
-import { remoteActionMiddleware } from '../shared/remote-action';
-import { setStateAction } from '../shared/set-state';
+import createStore from '../shared/store';
+import createIO, { dispatchSocketEvents } from '../shared/io';
 import reducer from './reducer';
-import io from 'socket.io-client';
 
-const store = createStore(
-  reducer,
-  applyMiddleware(remoteActionMiddleware)
-);
+// Create socket server
+const socket = createIO();
 
-const socket = io(`http://${process.env.HOST}:${process.env.PORT}`);
+// Create Redux store
+const store = createStore(reducer, socket);
 
-socket.on('connect', () => {
-  console.log('connected!');
-});
-
-socket.on('state', compose(
-  store.dispatch.bind(store),
-  setStateAction
-));
+// Dispatch actions on socket events
+dispatchSocketEvents(socket, store);

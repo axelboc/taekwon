@@ -1,5 +1,6 @@
 // Load environment variables (later used by envify) 
 require('dotenv').config();
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Dependencies
 var gulp = require('gulp');
@@ -14,7 +15,7 @@ var CLIENTS = [
   'admin',
   'corner-judge',
   'jury-president'
- ];
+];
 
 
 /**

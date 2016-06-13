@@ -1,8 +1,16 @@
 import reduceReducers from 'reduce-reducers';
+import { combineReducers } from 'redux-immutablejs';
 import { setStateReducer } from '../shared/set-state';
-import serverReducer from '../../server/reducer';
+import { reducers as serverReducers } from '../../server/reducer';
+import status from '../shared/status';
 
-export default reduceReducers(
+export const reducers = Object.assign({}, serverReducers, {
+  [status.NAME]: status.reducer
+});
+
+const adminReducer = reduceReducers(
   setStateReducer,
-  serverReducer
+  combineReducers(reducers)
 );
+
+export default adminReducer;
