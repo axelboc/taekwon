@@ -1,4 +1,7 @@
 clients/__tests__
+clients/corner-judge/__tests__
+clients/jury-president/__tests__
+clients/shared/__tests__
 server/__tests__
 server/presenters/__tests__
 --recursive

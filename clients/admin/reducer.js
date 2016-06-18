@@ -2,10 +2,10 @@ import reduceReducers from 'reduce-reducers';
 import { combineReducers } from 'redux-immutablejs';
 import { setStateReducer } from '../shared/set-state';
 import { reducers as serverReducers } from '../../server/reducer';
-import status from '../shared/status';
+import socket from '../shared/socket';
 
 export const reducers = Object.assign({}, serverReducers, {
-  [status.NAME]: status.reducer
+  [socket.NAME]: socket.reducer
 });
 
 const adminReducer = reduceReducers(

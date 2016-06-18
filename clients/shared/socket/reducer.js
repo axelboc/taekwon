@@ -2,14 +2,17 @@ import { Map } from 'immutable';
 import { createReducer } from 'redux-immutablejs';
 import { SET_CONNECTED, SET_RECONNECTING } from './actions';
 
-const initialState = new Map();
+const initialState = new Map({
+  isConnected: false,
+  isReconnecting: false
+});
 
 export const setConnected = (state, { payload }) => {
-  return state.set('connected', payload.connected);
+  return state.set('isConnected', payload.isConnected);
 };
 
 export const setReconnecting = (state, { payload }) => {
-  return state.set('reconnecting', payload.reconnecting);
+  return state.set('isReconnecting', payload.isReconnecting);
 };
 
 export default createReducer(initialState, {

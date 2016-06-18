@@ -1,14 +1,13 @@
 import { Map } from 'immutable';
 
-const cjPresenter = {
+const jpPresenter = {
   rings: presentRings
 };
 
 function presentRings(state) {
   return state.get('rings').map(ring => Map({
-    isOpen: ring.get('jp') !== null,
-    isFull: ring.get('cjs').size === ring.get('slotCount')
+    isOpen: ring.get('jp') !== null
   }));
 }
 
-export default cjPresenter;
+export default jpPresenter;
