@@ -1,6 +1,6 @@
 import { Iterable } from 'immutable';
 import { createStore as reduxCreateStore, applyMiddleware } from 'redux';
-import { createRemoteActionMiddleware } from '../shared/remote-action';
+import { createRemoteActionMiddleware } from '../shared/remoteAction';
 import createLogger from 'redux-logger';
 
 const middlewares = [];

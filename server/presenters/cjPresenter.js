@@ -1,6 +1,7 @@
 import { Map } from 'immutable';
+import combinePresenters from './combinePresenters';
 
-const cjPresenter = {
+export const presenters = {
   rings: presentRings
 };
 
@@ -11,4 +12,4 @@ function presentRings(state) {
   }));
 }
 
-export default cjPresenter;
+export default combinePresenters(presenters);

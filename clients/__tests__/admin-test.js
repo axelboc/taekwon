@@ -1,11 +1,11 @@
 import { fromJS } from 'immutable';
 import { expect } from 'chai';
 
-import { setStateAction } from '../shared/set-state';
+import { setStateAction } from '../shared/setState';
 import { addRing } from '../admin/actions';
 import reducer from '../admin/reducer';
 import serverReducer from '../../server/reducer';
-import serverPresenter from '../../server/presenters/admin-presenter';
+import serverPresenter from '../../server/presenters/adminPresenter';
 
 describe('Admin', () => {
   

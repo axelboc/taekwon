@@ -1,6 +1,6 @@
 import { compose } from 'redux';
 import { setConnected, setReconnecting } from './socket/actions';
-import { setStateAction } from './set-state';
+import { setStateAction } from './setState';
 import io from 'socket.io-client';
 
 /**

@@ -1,6 +1,6 @@
 import reduceReducers from 'reduce-reducers';
 import { combineReducers } from 'redux-immutablejs';
-import { setStateReducer } from '../shared/set-state';
+import { setStateReducer } from '../shared/setState';
 import socket from '../shared/socket';
 import status from './status';
 

@@ -1,6 +1,6 @@
 import { Map } from 'immutable';
 import { expect } from 'chai';
-import presenter from '../../presenters/admin-presenter';
+import presenter from '../../presenters/adminPresenter';
 
 describe ('Presenter::admin', () => {
 

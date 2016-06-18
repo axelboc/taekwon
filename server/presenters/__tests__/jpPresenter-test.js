@@ -1,6 +1,6 @@
 import { fromJS } from 'immutable';
 import { expect } from 'chai';
-import presenter from '../../presenters/jp-presenter';
+import { presenters } from '../../presenters/jpPresenter';
 
 describe ('Presenter::JP', () => {
   
@@ -12,7 +12,7 @@ describe ('Presenter::JP', () => {
       ]
     });
     
-    expect(presenter.rings(state)).to.equal(fromJS([
+    expect(presenters.rings(state)).to.equal(fromJS([
       { isOpen: false },
       { isOpen: true }
     ]));
