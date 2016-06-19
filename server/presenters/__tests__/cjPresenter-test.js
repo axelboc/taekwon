@@ -1,8 +1,8 @@
 import { fromJS } from 'immutable';
 import { expect } from 'chai';
-import { presenters } from '../../presenters/cjPresenter';
+import { presenters } from '../cjPresenter';
 
-describe ('Presenter::CJ', () => {
+describe ('Presenters::CJ', () => {
 
   it('presents whether the rings are open and full', () => {
     const state = fromJS({

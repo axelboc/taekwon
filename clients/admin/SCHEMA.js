@@ -1,6 +1,7 @@
-export default {
-  socket: { // shared client reducer
-    isConnected: true,
-    isReconnecting: false
+/* eslint-disable */
+const state = {
+  socket: { // reducer
+    isConnected: boolean,
+    isReconnecting: boolean
   }
 };

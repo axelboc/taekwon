@@ -7,7 +7,6 @@ npm-debug.log
 /bin
 /public/js/
 /public/css/
-STATE_*.js
 
 # Visual Studio Code
 /typings

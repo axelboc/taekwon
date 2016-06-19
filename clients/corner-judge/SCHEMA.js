@@ -11,6 +11,6 @@ const state = {
     isReconnecting: boolean
   },
   status: { // reducer
-    //ringJoined: number || null
+    //ring: number || null
   }
-}
+};

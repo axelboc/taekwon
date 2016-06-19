@@ -1,8 +1,8 @@
 import { Map } from 'immutable';
 import { expect } from 'chai';
-import presenter from '../../presenters/adminPresenter';
+import presenter from '../adminPresenter';
 
-describe ('Presenter::admin', () => {
+describe ('Presenters::admin', () => {
 
   it('presents the entire server state', () => {
     const state = Map();
