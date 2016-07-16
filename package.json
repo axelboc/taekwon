@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "async": "~2.0.0",
-    "dotenv": "~1.2.0",
+    "dotenv": "~2.0.0",
     "express": "~4.12.4",
     "extend": "~3.0.0",
     "fastclick": "~1.0.6",
