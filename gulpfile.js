@@ -58,7 +58,7 @@ var args = process.argv.indexOf('--force') !== -1 ? ['--force'] : [];
  * Clear the datastores.
  */
 gulp.task('reset', function () {
-	del('data/**');
+	return del('data/**');
 });
 
 /**
