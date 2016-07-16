@@ -1,7 +1,7 @@
 'use strict';
 
 // Dependencies
-var async = require('async');
+var asyncEach = require('async/each');
 var Primus = require('primus');
 var Emit = require('primus-emit');
 
@@ -413,7 +413,7 @@ Tournament.prototype.restoreRings = function (cb) {
 		docs.forEach(this._initRing, this);
 		
 		// Restore matches
-		async.each(this.rings, function (ring, next) {
+		asyncEach(this.rings, function (ring, next) {
 			ring.restoreMatch(next);
 		}, function () {
 			this.logger.info('ringsRestored', { rings: docs });

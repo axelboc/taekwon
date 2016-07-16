@@ -6,7 +6,7 @@ var assert = require('./lib/assert');
 var log = require('./lib/log');
 var util = require('./lib/util');
 var DB = require('./lib/db');
-var async = require('async');
+var asyncEach = require('async/each');
 var EventEmitter = require('events').EventEmitter;
 var CornerJudge = require('./corner-judge').CornerJudge;
 var JuryPresident = require('./jury-president').JuryPresident;
@@ -140,7 +140,7 @@ Ring.prototype.close = function () {
 	// Update the database
 	DB.setRingJPId(this.id, null, function () {
 		// Ask Corner Judges to leave the ring
-		async.each(this.cornerJudges, function (cj, cb) {
+		asyncEach(this.cornerJudges, function (cj, cb) {
 			this.removeCJ(cj, "Ring closed", cb);
 		}.bind(this), function () {
 			// If a match is in progress, end it

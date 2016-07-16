@@ -23,7 +23,7 @@
     "nunjucks": "nunjucks/browser/nunjucks-slim"
   },
   "dependencies": {
-    "async": "~1.2.1",
+    "async": "~2.0.0",
     "dotenv": "~1.2.0",
     "express": "~4.12.4",
     "extend": "~3.0.0",

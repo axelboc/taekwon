@@ -7,7 +7,7 @@ require('dotenv').config({ path: 'config/.env' });
 var express = require('express');
 var http = require('http');
 var nunjucks = require('nunjucks');
-var async = require('async');
+var asyncSeries = require('async/series');
 
 var config = require('./config/config.json');
 var assert = require('./app/lib/assert');
@@ -90,7 +90,7 @@ if (process.argv.indexOf('--force') !== -1) {
 			tournament = new Tournament(doc._id);
 
 			// Restore its users and rings
-			async.series([
+			asyncSeries([
 				tournament.restoreUsers.bind(tournament),
 				tournament.restoreRings.bind(tournament)
 			], function () {
