@@ -37,8 +37,7 @@ Real-time scoring system for **ITF Taekwon-Do** sparring matches, built with [No
 1. Install [Node.js](http://nodejs.org/), making sure to include npm, the Node package manager.
 2. Clone this Git repository, or download the ZIP file and extract it.
 3. Open a terminal as administrator and navigate to Taekwon's directory.
-4. Run `npm install -g gulp` to install Gulp globally.
-5. Run `npm install` to install the local dependencies.
+4. Run `npm install` to install the local dependencies.
 5. Inside the `config` folder, make a copy of `sample.env` and rename it to `.env`.
 6. Run `npm run build` to generate the client scripts.
 
@@ -261,10 +260,10 @@ Then, let's create and configure the Wi-Fi network:
 #### Give the server a static IP address
 
 The server has to be consistently identifiable on the local network, which means it must always have the same IP address. This can be done in two ways:
-- by configuring the server's Wi-Fi adapter with a static IP address, or
-- by adding a new reserved IP address in the DHCP server configuration of the router (to do so, you'll need the Wi-Fi adapter's MAC address).
+- by assigning a static IP address to the server's network adapter, or
+- in the configuration of the router's DHCP server, by mapping an IP address to the MAC address of the server's network adapter.
 
-The second solution is safer, as it guarantees that the IP address (usually in the start of the DHCP range, like `192.168.1.2`) will never be assigned to any other device. If your router doesn't support this feature, or you prefer to go with the first solution, make sure to pick an IP address in the end of the DHCP range, like `192.168.1.250`. This will reduce the risk of the router assigning this address to another device. 
+If you go for the first option, make sure you also configure the IP range of the router's DHCP server so that the server's IP address never gets allocated to another device. For instance, if you choose 192.168.1.2 as the server's IP address, configure the DHCP IP range to start at 192.168.1.3.
 
 
 #### Edit Taekwon's environment configuration
