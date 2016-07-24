@@ -379,8 +379,8 @@ When the server starts, it looks for an open tournament in the database. A tourn
 
 To force the start of a new tournament even if one is already open, use `--force`:
 
-- `forever start app --force`
 - `npm run dev -- --force`
 - `npm start -- --force`
 - `node app --force`
 
+**BEWARE!** Do not start the server with `forever start app --force`, as if it were to then crash and restart, the ongoing tournament would not be restored. Instead, run `npm start -- --force`, stop the script, and then run `forever start app`.   
