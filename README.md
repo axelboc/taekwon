@@ -340,7 +340,7 @@ To install `forever` on the server, open a terminal as administrator and run `np
 
 You're still here? **Congratulations!** You're almost ready to use Taekwon at a tournament. The last step would be to take it for a test run at your local club. This will give you an idea of what to expect, especially in terms of logistics, and a chance to train the judges to use the system.
 
-Oh and of course, don't forget to change the default Jury President password in `config/config.json` and to have a look at the various configuration options available. When you're done, make sure you run `npm run build` to rebuild the client stripts.
+Oh and of course, don't forget to change the default Jury President password in `config/config.json` and to have a look at the various configuration options available. When you're done, make sure you run `npm run build` to rebuild the client scripts.
 
 **Good luck!**
 
