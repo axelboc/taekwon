@@ -30,6 +30,9 @@ Real-time scoring system for **ITF Taekwon-Do** sparring matches, built with [No
   - [Running Taekwon in production with `forever`](#running-taekwon-in-production-with-forever)
   - [Ready, set, go!](#ready-set-go)
 - [About security](#about-security)
+- [Reference](#reference)
+  - [NPM scripts](#npm-scripts)
+  - [Tournament management](#tournament-management)
 
 
 ## Installation
