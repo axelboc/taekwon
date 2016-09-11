@@ -377,14 +377,24 @@ Match.prototype._onEnterPeriod = function (transition, from, to) {
  * A Corner Judge has scored.
  * @param {String} cjId
  * @param {Object} score
+ * @param {Boolean} `true` if score was processed as expected - `false` otherwise
  */
 Match.prototype.score = function (cjId, score) {
 	assert.string(cjId, 'cjId');
 	assert.string(score.competitor, 'score.competitor');
 	assert.integer(score.points, 'score.points');
-	assert.ok(this.state.is(States.ROUND_STARTED), 
-			  "scoring not allowed in current match state: " + this.state.current);
 	
+	// Warn and return if scoring is not allowed in current match state
+	if (!this.state.is(States.ROUND_STARTED)) {
+		this.logger.warn('scoringNotAllowed', {
+			state: this.state.current,
+			cjId: cjId,
+			score: score
+		});
+
+		return false;
+	}
+
 	// Find the judge's scoring sheet for the current period and mark the score
 	var sheet = this.scoreboards[cjId].sheets[this.period.current];
 	sheet.markScore(score.competitor, score.points);
@@ -399,6 +409,7 @@ Match.prototype.score = function (cjId, score) {
 	});
 	
 	this.emit('scoreboardsUpdated');
+	return true;
 };
 
 /**
