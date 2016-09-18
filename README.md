@@ -365,7 +365,7 @@ This is the prefered command to run in development. It uses Gulp to build the cl
 
 - `npm run build`
 
-This command just buils the client scripts. It neither starts the server nor watches for file changes.
+This command just builds the client scripts. It neither starts the server nor watches for file changes. Run this after modifying `config/.env`.
 
 - `npm start` or `npm run start`
 
