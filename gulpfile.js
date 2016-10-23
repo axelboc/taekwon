@@ -21,6 +21,11 @@ var gutil = require('gulp-util');
 var path = require('path');
 var del = require('del');
 
+// Dependencies required for building the Primus client library
+var Primus = require('primus');
+var Emit = require('primus-emit');
+var EventEmitter = require('events');
+
 
 // Clients
 var CLIENTS = ['corner-judge', 'jury-president'];
@@ -77,11 +82,26 @@ gulp.task('scripts:lint', function() {
 });
 
 /**
+ * Generate the Primus client library.
+ */
+gulp.task('primus', function () {
+	var server = new EventEmitter();
+
+	// Instanciate Primus and configure its plugins (must match steps performed in `app/tournament.js`)
+  var primus = new Primus(server, { transformer: 'sockjs' });
+	primus.plugin('emit', Emit);
+	primus.remove('primus.js');
+
+	// Save the library
+  primus.save('clients/vendor/primus.js');
+});
+
+/**
  * Build a client script with Browserify.
  * Register one task per client.
  */
 CLIENTS.forEach(function (client) {
-	gulp.task(client + ':js', function () {
+	gulp.task(client + ':js', ['primus'], function () {
 		return browserify({
 				entries: path.join('clients', client, 'root.js'),
 				debug: true
@@ -167,5 +187,5 @@ gulp.task('default', ['build', 'scripts:lint', 'server', 'watch']);
 gulp.task('build', CLIENTS.reduce(function (arr, client) {
 	arr.push(client + ':css', client + ':js');
 	return arr;
-}, []));
+}, ['primus']));
 
