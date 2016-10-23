@@ -10,8 +10,9 @@
   },
   "scripts": {
     "build": "gulp build",
+    "prebuild": "rm -Rf \"clients/vendor\" && mkdir \"clients/vendor\" && gulp primus",
     "start": "node app",
-    "dev": "gulp",
+    "dev": "npm run prebuild && gulp",
     "reset": "gulp reset",
     "test": "mocha"
   },
