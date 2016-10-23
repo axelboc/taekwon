@@ -273,23 +273,31 @@ CornerJudge.prototype._updateBackdrop = function (ring) {
 		subtext = "Waiting for reconnection...";
 	} else {
 		visible = true;
-		text = "Please wait...";
 		
 		if (!ring.match || ring.match.state.current === MatchStates.MATCH_ENDED) {
-			subtext = "No match in progress";
+			text = "Hi there!";
+			subtext = "Next match will begin shortly...";
 		} else {
 			switch (ring.match.state.current) {
 				case MatchStates.ROUND_STARTED:
 					visible = false;
 					break;
 				case MatchStates.ROUND_IDLE:
-					subtext = "Round is about to begin";
+					text = "Get ready!";
+					subtext = "Round is about to begin...";
 					break;
+				case MatchStates.BREAK_IDLE:
 				case MatchStates.BREAK_STARTED:
-					subtext = "Break in progress";
+					text = "Break in progress";
+					subtext = "Next round will begin shortly...";
 					break;
 				case MatchStates.INJURY:
-					subtext = "Timeout in progress";
+					text = "Timeout in progress";
+					subtext = "Match will resume shortly...";
+					break;
+				case MatchStates.RESULTS:
+					text = "Match over";
+					subtext = "Thank you for scoring!";
 					break;
 			}
 		}
