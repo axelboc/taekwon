@@ -52,7 +52,7 @@ Tournament.prototype.ready = function(server) {
 	});
 	
 	// Add emit plugin and remove client library middleware
-	this.primus.use('emit', Emit);
+	this.primus.plugin('emit', Emit);
 	this.primus.remove('primus.js');
 	
 	// Listen for incoming socket connections
