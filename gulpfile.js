@@ -101,7 +101,7 @@ gulp.task('primus', function () {
  * Register one task per client.
  */
 CLIENTS.forEach(function (client) {
-	gulp.task(client + ':js', ['primus'], function () {
+	gulp.task(client + ':js', function () {
 		return browserify({
 				entries: path.join('clients', client, 'root.js'),
 				debug: true
@@ -187,5 +187,5 @@ gulp.task('default', ['build', 'scripts:lint', 'server', 'watch']);
 gulp.task('build', CLIENTS.reduce(function (arr, client) {
 	arr.push(client + ':css', client + ':js');
 	return arr;
-}, ['primus']));
+}, []));
 
