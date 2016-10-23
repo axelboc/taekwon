@@ -1,9 +1,10 @@
 
-data/
+clients/vendor/primus.js
 config/.env
+data/
 node_modules/
-public/js/
 public/css/
+public/js/
 
 
 #############
