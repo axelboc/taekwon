@@ -92,7 +92,7 @@ function Match(id, config, data) {
 	
 	// Create state machine
 	this.period = StateMachine.create({
-		initial: data.period || Periods.MAIN_ROUNDS,
+		initial: { state: (data.period || Periods.MAIN_ROUNDS), event: Transitions.INIT },
 		events: [
 			{ name: 'next', from: Periods.MAIN_ROUNDS, to: Periods.TIE_BREAKER },
 			{ name: 'next', from: Periods.TIE_BREAKER, to: Periods.GOLDEN_POINT }
@@ -120,7 +120,7 @@ function Match(id, config, data) {
 	
 	// Create state machine
 	this.round = StateMachine.create({
-		initial: data.round || Rounds.ROUND_1,
+		initial: { state: (data.round || Rounds.ROUND_1), event: Transitions.INIT },
 		events: roundTransitions,
 		callbacks: {
 			onenterstate: this._onEnterRound.bind(this)
@@ -294,10 +294,13 @@ Match.prototype._onRoundEnded = function () {
 
 /**
  * A break is about to start.
+ * @param {String} transition
  */
-Match.prototype._onBreakIdle = function () {
+Match.prototype._onBreakIdle = function (transition) {
 	// Transition to the next round
-	this.round.next();
+	if (transition !== Transitions.INIT) {
+		this.round.next();
+	}
 };
 
 /**
@@ -328,7 +331,7 @@ Match.prototype._onEnterRound = function (transition, from, to) {
 	});
 	
 	// Start next period if entering tie breaker or golden point
-	if (transition !== 'startup' && !Rounds.isMainRound(to)) {
+	if (transition !== Transitions.INIT && !Rounds.isMainRound(to)) {
 		this.period.next();
 	}
 };
@@ -341,7 +344,7 @@ Match.prototype._onEnterRound = function (transition, from, to) {
  */
 Match.prototype._onEnterPeriod = function (transition, from, to) {
 	// If the match is being restored; return
-	if (transition === 'startup' && this.periods.length > 0) {
+	if (transition === Transitions.INIT && this.periods.length > 0) {
 		return;
 	}
 	
