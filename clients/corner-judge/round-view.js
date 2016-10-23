@@ -63,7 +63,7 @@ RoundView.prototype.showFdb = function (data) {
 
 	// Vibrate
 	if (window.navigator.vibrate) {
-		window.navigator.vibrate(100);
+		window.navigator.vibrate(50);
 	}
 
 	// Translate the element
