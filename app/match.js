@@ -294,10 +294,13 @@ Match.prototype._onRoundEnded = function () {
 
 /**
  * A break is about to start.
+ * @param {String} transition
  */
-Match.prototype._onBreakIdle = function () {
+Match.prototype._onBreakIdle = function (transition) {
 	// Transition to the next round
-	this.round.next();
+	if (transition !== Transitions.INIT) {
+		this.round.next();
+	}
 };
 
 /**
