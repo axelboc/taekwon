@@ -51,7 +51,7 @@ At this point, Taekwon is ready to be run locally.
 
 1. Run `npm start` to start the server.
 2. Open your web browser and visit **[http://localhost/jury](http://localhost/jury)**. This is the **Jury President** interface.
-3. Open a different browser or a new browser session (i.e. a private window in Firefox, or an igognito window in Chrome) and visit **[http://localhost](http://localhost)**. This is the **Corner Judge** interface.
+3. Open a different browser or a new browser session (i.e. a private window in Firefox, or an incognito window in Chrome) and visit **[http://localhost](http://localhost)**. This is the **Corner Judge** interface.
 
 That's it! You can now play around with the system:
 
@@ -239,12 +239,12 @@ With this in mind, it's wise to have a back up plan in case something goes wrong
 
 ### Network and environment configuration
 
-In the [Take it for a spin!](#take-it-for-a-spin!) section, you accessed the system through [http://localhost](http://localhost). This was very convenient to get up and running quickly and test Taekwon on your local machine, but now we need the system to run over a Wi-Fi network. Setting up the network and getting the devices to communciate with the server is not trivial. Hopefully the instructions below are suffiently vulgarised, but if you don't know anything at all about computer networks, you may need the help of someone who does.
+In the [Take it for a spin!](#take-it-for-a-spin!) section, you accessed the system through [http://localhost](http://localhost). This was very convenient to get up and running quickly and test Taekwon on your local machine, but now we need the system to run over a Wi-Fi network. Setting up the network and getting the devices to communicate with the server is not trivial. Hopefully the instructions below are sufficiently vulgarised, but if you don't know anything at all about computer networks, you may need the help of someone who does.
 
 
 #### Set up a local Wi-Fi network
 
-First, let's access the router's adminsitration interface:
+First, let's access the router's administration interface:
 
 1. Connect the router to your computer with an Ethernet cable (one is usually provided when you buy a new router). Note that you don't need to connect the router to the Internet.
 2. Open a web browser and visit [http://192.168.1.1](http://192.168.1.1) (the URL may be different, check the router's documentation).
@@ -352,7 +352,7 @@ Taekwon currently implements two main security features:
 - The Jury President interface is protected by a configurable password.
 - Jury Presidents have to manually accept Corner Judges who try to join their rings.
 
-These two features prevent unauthorised users from using the system quite effectively, but are no silver bullet. Because it runs on a local network, the system doesn't use SSL or any other kind of encryption. All data exchanged betwen the server and the clients is transmitted in clear, including the clients' identifiers. This means that anyone connected to the Wi-Fi network could technically intercept and misuse this data, which is why you should strongly consider [securing the network](#set-up-a-local-wi-fi-network).
+These two features prevent unauthorised users from using the system quite effectively, but are no silver bullet. Because it runs on a local network, the system doesn't use SSL or any other kind of encryption. All data exchanged between the server and the clients is transmitted in clear, including the clients' identifiers. This means that anyone connected to the Wi-Fi network could technically intercept and misuse this data, which is why you should strongly consider [securing the network](#set-up-a-local-wi-fi-network).
 
 
 ## Reference
@@ -361,13 +361,13 @@ These two features prevent unauthorised users from using the system quite effect
 
 - `npm run dev`
 
-This is the prefered command to run in development. It uses Gulp to build the client scripts, lint all the JavaScript files, start the server with [nodemon](https://github.com/remy/nodemon) and watch for file changes. When a file in the `clients` folder changes, Gulp rebuilds the client scripts automatically. When a file in the `app` folder changes, nodemon restarts the server automatically.
+This is the preferred command to run in development. It uses Gulp to build the client scripts, lint all the JavaScript files, start the server with [nodemon](https://github.com/remy/nodemon) and watch for file changes. When a file in the `clients` folder changes, Gulp rebuilds the client scripts automatically. When a file in the `app` folder changes, nodemon restarts the server automatically.
 
 - `npm run build`
 
 This command just builds the client scripts. It neither starts the server nor watches for file changes. Run this after modifying `config/.env`.
 
-- `npm start` or `npm run start`
+- `npm start`
 
 This is an alias of `node app`; it simply starts the server. Don't use it in production: [use `forever start app`](#running-taekwon-in-production-with-forever).
 
