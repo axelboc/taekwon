@@ -102,7 +102,8 @@ h1,
 
 /* Text field */
 .field {
-	margin-top: .8em;
+	display: inline-block;
+	vertical-align: middle;
 	padding: .2em;
 	border: 1px solid #555;
 	border-radius: 4px;
@@ -223,12 +224,36 @@ h1,
 
 /* ===== Login view ===== */
 
+.login-field-wrap {
+	margin-top: .8em;
+}
+
 .login-btn {
+	vertical-align: middle;
 	width: 2em;
 	margin-left: .2em;
 	padding: .16em;
 	font-size: 150%;
 	border-radius: 4px;
+}
+
+@supports (display: flex) {
+	.login-field-wrap {
+		display: flex;
+		justify-content: center;
+		padding: 0 .5rem;
+	}
+
+	.login-field {
+		flex: 1;
+		max-width: 17rem;
+		margin-right: .25rem;
+		min-width: 0;
+	}
+
+	.login-btn {
+		flex-shrink: 0;
+	}
 }
 
 
