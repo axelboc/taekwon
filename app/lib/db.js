@@ -63,6 +63,18 @@ function callback(cb) {
 var DB = {
 	
 	/**
+	 * Find a tournament by its ID.
+	 * Used by tournament summary feature.
+	 * @param {String} tournamentId
+	 * @param {Function} cb 
+	 */
+	findTournament: function (tournamentId, cb) {
+		assert.string(tournamentId, 'tournamentId');
+		
+		tournamentsDb.find({ _id: tournamentId }, callback(cb));
+	},
+	
+	/**
 	 * Look for an open tournament; that is, a tournament that started on the current day.
 	 * If multiple tournaments were started on the current day, this function retrieves the latest one.
 	 * @param {Number} startOfToday - timestamp of the start of the current day
