@@ -20,6 +20,8 @@ var sourcemaps = require('gulp-sourcemaps');
 var gutil = require('gulp-util');
 var path = require('path');
 var del = require('del');
+var exec = require('child_process').exec;
+
 
 // Dependencies required for building the Primus client library
 var Primus = require('primus');
@@ -189,3 +191,26 @@ gulp.task('build', CLIENTS.reduce(function (arr, client) {
 	return arr;
 }, []));
 
+
+/**
+ * Set static IP for network adapter.
+ */
+gulp.task('ip:set', function () {
+	var cmd = 'netsh interface ip set address "' + process.env.NETWORK_ADAPTER + '" static ' +
+		process.env.TAEKWON_SERVER_IP + ' ' + process.env.DNS_SERVER_MASK + ' ' + process.env.DNS_SERVER_IP;
+	exec(cmd, execCb);
+});
+
+/**
+ * Reset network adapter to DHCP.
+ */
+gulp.task('ip:reset', function () {
+	var cmd = 'netsh interface ip set address "' + process.env.NETWORK_ADAPTER + '" dhcp ';
+	exec(cmd, execCb);
+});
+
+function execCb(err, stdout, stderr) {
+	if (err) console.log(err);
+	if (stdout) console.log(stdout);
+	if (stderr) console.log(stderr);
+}

@@ -14,7 +14,9 @@
     "start": "node app",
     "dev": "npm run prebuild && gulp",
     "reset": "gulp reset",
-    "test": "mocha"
+    "test": "mocha",
+    "ip:set": "gulp ip:set",
+    "ip:reset": "gulp ip:reset"
   },
   "engines": {
     "node": "^6.5.0",
